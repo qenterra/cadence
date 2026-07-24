@@ -1,0 +1,19 @@
+.DS_Store
+.build/
+DerivedData/
+build/
+xcuserdata/
+*.xcuserstate
+*.xccheckout
+*.xcscmblueprint
+
+# XcodeGen output
+Cadence.xcodeproj/
+
+# Local configuration and credentials
+*.mobileprovision
+*.provisionprofile
+Secrets.xcconfig
+
+# Local design brainstorming sessions
+.superpowers/
