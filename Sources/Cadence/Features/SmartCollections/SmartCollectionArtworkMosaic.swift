@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct SmartCollectionArtworkMosaic: View {
+    @Bindable var model: CadenceAppModel
+
     let layout: SmartCollectionArtworkLayout
     let title: String
 
@@ -53,9 +55,15 @@ struct SmartCollectionArtworkMosaic: View {
     private func tile(at index: Int) -> some View {
         if layout.slots.indices.contains(index) {
             let slot = layout.slots[index]
-            ArtworkView(
-                palette: slot.palette,
+            MediaArtworkView(
+                source: ArtworkResolver.album(
+                    custom: model.customArtwork(
+                        for: .album(slot.albumID)
+                    ),
+                    catalog: slot.palette
+                ),
                 title: slot.albumTitle,
+                placeholder: .album,
                 cornerRadius: 0,
                 showsBorder: false,
                 fillsAvailableSpace: true

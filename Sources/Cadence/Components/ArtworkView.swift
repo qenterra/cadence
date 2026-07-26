@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 struct ArtworkView: View {
@@ -52,7 +53,7 @@ struct ArtworkView: View {
             .overlay {
                 if showsBorder {
                     RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                        .strokeBorder(.white.opacity(0.12), lineWidth: 0.5)
+                        .strokeBorder(CadenceTheme.separator, lineWidth: 0.5)
                 }
             }
         }
@@ -65,21 +66,209 @@ struct ArtworkView: View {
     }
 }
 
-struct ArtistArtworkView: View {
-    let artist: ArtistPreview
+struct MediaArtworkView: View {
+    let source: ResolvedArtworkSource
+    let title: String
+    let placeholder: ArtworkPlaceholder
+    var cornerRadius: CGFloat = 8
+    var showsBorder = true
+    var fillsAvailableSpace = false
 
     var body: some View {
-        ArtworkView(
-            palette: artist.artworkPalette,
+        Group {
+            switch source {
+            case let .catalog(palette):
+                ArtworkView(
+                    palette: palette,
+                    title: title,
+                    cornerRadius: cornerRadius,
+                    showsBorder: showsBorder,
+                    fillsAvailableSpace: fillsAvailableSpace
+                )
+            case let .custom(asset):
+                CustomArtworkContent(
+                    asset: asset,
+                    placeholder: placeholder,
+                    cornerRadius: cornerRadius,
+                    showsBorder: showsBorder
+                )
+            case let .placeholder(kind):
+                ArtworkPlaceholderView(
+                    kind: kind,
+                    cornerRadius: cornerRadius,
+                    showsBorder: showsBorder
+                )
+            }
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Artwork for \(title)")
+    }
+}
+
+struct ArtistArtworkView: View {
+    let artist: ArtistPreview
+    let source: ResolvedArtworkSource
+
+    init(
+        artist: ArtistPreview,
+        source: ResolvedArtworkSource
+    ) {
+        self.artist = artist
+        self.source = source
+    }
+
+    init(
+        artist: ArtistPreview,
+        customImage: ArtistImageAsset?
+    ) {
+        self.artist = artist
+        source = ArtworkResolver.artist(custom: customImage)
+    }
+
+    var body: some View {
+        MediaArtworkView(
+            source: source,
             title: artist.name,
-            cornerRadius: 100
+            placeholder: .artist,
+            cornerRadius: 0,
+            showsBorder: false
         )
         .clipShape(Circle())
         .overlay {
             Circle()
-                .strokeBorder(.white.opacity(0.14), lineWidth: 0.5)
+                .strokeBorder(CadenceTheme.separator, lineWidth: 0.5)
         }
         .accessibilityLabel("Artwork for \(artist.name)")
+    }
+}
+
+private struct CustomArtworkContent: View {
+    let asset: ArtistImageAsset
+    let placeholder: ArtworkPlaceholder
+    let cornerRadius: CGFloat
+    let showsBorder: Bool
+
+    var body: some View {
+        if let image = ArtworkImageCache.shared.image(for: asset) {
+            GeometryReader { geometry in
+                Image(nsImage: image)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(
+                        width: geometry.size.width,
+                        height: geometry.size.height
+                    )
+                    .scaleEffect(asset.scale)
+                    .offset(
+                        x: asset.normalizedOffset.width * geometry.size.width,
+                        y: asset.normalizedOffset.height * geometry.size.height
+                    )
+                    .clipped()
+            }
+            .clipShape(
+                RoundedRectangle(
+                    cornerRadius: cornerRadius,
+                    style: .continuous
+                )
+            )
+            .overlay {
+                if showsBorder {
+                    RoundedRectangle(
+                        cornerRadius: cornerRadius,
+                        style: .continuous
+                    )
+                    .strokeBorder(CadenceTheme.separator, lineWidth: 0.5)
+                }
+            }
+        } else {
+            ArtworkPlaceholderView(
+                kind: placeholder,
+                cornerRadius: cornerRadius,
+                showsBorder: showsBorder
+            )
+        }
+    }
+}
+
+private struct ArtworkPlaceholderView: View {
+    let kind: ArtworkPlaceholder
+    let cornerRadius: CGFloat
+    let showsBorder: Bool
+
+    var body: some View {
+        GeometryReader { geometry in
+            ZStack {
+                CadenceTheme.secondarySurface
+
+                Image(systemName: kind.symbolName)
+                    .resizable()
+                    .scaledToFit()
+                    .symbolRenderingMode(.hierarchical)
+                    .foregroundStyle(.secondary)
+                    .padding(
+                        min(geometry.size.width, geometry.size.height)
+                            * placeholderPadding
+                    )
+                    .offset(
+                        x: kind == .artist
+                            ? min(
+                                geometry.size.width,
+                                geometry.size.height
+                            ) * 0.013
+                            : 0
+                    )
+            }
+        }
+        .clipShape(
+            RoundedRectangle(
+                cornerRadius: cornerRadius,
+                style: .continuous
+            )
+        )
+        .overlay {
+            if showsBorder {
+                RoundedRectangle(
+                    cornerRadius: cornerRadius,
+                    style: .continuous
+                )
+                .strokeBorder(CadenceTheme.separator, lineWidth: 0.5)
+            }
+        }
+        .accessibilityHidden(true)
+    }
+
+    private var placeholderPadding: CGFloat {
+        switch kind {
+        case .artist:
+            0.2
+        case .album:
+            0.26
+        case .track:
+            0.3
+        }
+    }
+}
+
+@MainActor
+private final class ArtworkImageCache {
+    static let shared = ArtworkImageCache()
+
+    private let cache = NSCache<NSString, NSImage>()
+
+    private init() {
+        cache.countLimit = 80
+    }
+
+    func image(for asset: ArtworkAsset) -> NSImage? {
+        let key = "\(asset.id.uuidString)-\(asset.revision)" as NSString
+        if let cached = cache.object(forKey: key) {
+            return cached
+        }
+        guard let image = NSImage(data: asset.data) else {
+            return nil
+        }
+        cache.setObject(image, forKey: key)
+        return image
     }
 }
 
