@@ -34,8 +34,11 @@ struct ArtistsColumn: View {
             model.selectArtist(artist)
         } label: {
             HStack(spacing: 12) {
-                ArtistArtworkView(artist: artist)
-                    .frame(width: 44, height: 44)
+                ArtistArtworkView(
+                    artist: artist,
+                    source: model.resolvedArtwork(for: artist)
+                )
+                .frame(width: 44, height: 44)
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(artist.name)
