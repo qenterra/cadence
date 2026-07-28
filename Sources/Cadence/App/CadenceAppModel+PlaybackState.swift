@@ -1,0 +1,135 @@
+import Foundation
+
+extension CadenceAppModel {
+    var isPlaying: Bool {
+        get {
+            playbackCoordinator?.state.isPlaying ?? previewIsPlaying
+        }
+        set {
+            guard let playbackCoordinator else {
+                previewIsPlaying = newValue
+                return
+            }
+            if newValue {
+                playbackCoordinator.play()
+            } else {
+                playbackCoordinator.pause()
+            }
+        }
+    }
+
+    var isShuffleEnabled: Bool {
+        get {
+            playbackCoordinator?.isShuffleEnabled
+                ?? previewIsShuffleEnabled
+        }
+        set {
+            guard let playbackCoordinator else {
+                previewIsShuffleEnabled = newValue
+                return
+            }
+            playbackCoordinator.setShuffleEnabled(newValue)
+        }
+    }
+
+    var repeatMode: RepeatMode {
+        get {
+            playbackCoordinator?.repeatMode ?? previewRepeatMode
+        }
+        set {
+            guard let playbackCoordinator else {
+                previewRepeatMode = newValue
+                return
+            }
+            playbackCoordinator.repeatMode = newValue
+        }
+    }
+
+    var progress: Double {
+        get {
+            playbackCoordinator?.progress ?? previewProgress
+        }
+        set {
+            guard let playbackCoordinator else {
+                previewProgress = newValue
+                return
+            }
+            Task {
+                await playbackCoordinator.seek(toProgress: newValue)
+            }
+        }
+    }
+
+    var volume: Double {
+        get {
+            playbackCoordinator.map { Double($0.volume) }
+                ?? previewVolume
+        }
+        set {
+            guard let playbackCoordinator else {
+                previewVolume = newValue
+                return
+            }
+            playbackCoordinator.setVolume(Float(newValue))
+        }
+    }
+
+    var currentPlaybackTrack: PlaybackTrack? {
+        playbackCoordinator?.state.currentTrack
+    }
+
+    var playbackCurrentTime: TimeInterval {
+        playbackCoordinator?.state.currentTime
+            ?? (currentTrack?.duration ?? 0) * previewProgress
+    }
+
+    var playbackDuration: TimeInterval {
+        playbackCoordinator?.state.duration
+            ?? currentTrack?.duration
+            ?? 0
+    }
+
+    var hasCurrentPlaybackItem: Bool {
+        currentPlaybackTrack != nil || currentTrack != nil
+    }
+
+    func seekPlayback(
+        toProgress progress: Double
+    ) async {
+        guard let playbackCoordinator else {
+            previewProgress = min(max(progress, 0), 1)
+            return
+        }
+        await playbackCoordinator.seek(toProgress: progress)
+    }
+
+    var qualityProfile: AudioQualityProfile {
+        playbackCoordinator?.qualityProfile ?? .adaptive
+    }
+
+    var isStereoSpatializationEnabled: Bool {
+        get {
+            playbackCoordinator?.stereoSpatializationEnabled ?? false
+        }
+        set {
+            guard let playbackCoordinator else {
+                return
+            }
+            Task {
+                await playbackCoordinator
+                    .setStereoSpatializationEnabled(newValue)
+            }
+        }
+    }
+
+    func selectQualityProfile(
+        _ profile: AudioQualityProfile
+    ) {
+        guard let playbackCoordinator else {
+            return
+        }
+        Task {
+            await playbackCoordinator.setQualityProfile(profile)
+        }
+    }
+}
