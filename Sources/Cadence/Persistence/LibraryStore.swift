@@ -26,6 +26,7 @@ private struct InitialLibrarySnapshot: Sendable {
 @Observable
 final class LibraryStore {
     private(set) var repository: LibraryRepository?
+    private(set) var lyricsService: ManagedLyricsService?
     private var trackCursor: LibraryPageCursor?
     private var catalogSearchGeneration = 0
     @ObservationIgnored var artworkAssetCache: [UUID: ArtworkAsset] = [:]
@@ -38,6 +39,9 @@ final class LibraryStore {
     var albums: [LibraryAlbumProjection] = []
     var tags: [LibraryTagProjection] = []
     var playlists: [LibraryPlaylistProjection] = []
+    private(set) var smartCollectionIndex =
+        ProductionSmartCollectionIndex.empty
+    private(set) var isLoadingSmartCollectionIndex = false
     var selectedPlaylistID: UUID?
     var selectedPlaylistTracks: [LibraryTrackProjection] = []
     var tagRevision = 0
@@ -48,12 +52,23 @@ final class LibraryStore {
     private(set) var isCatalogSearching = false
     private(set) var searchQuery = ""
 
-    init(container: ModelContainer? = nil) {
+    init(
+        container: ModelContainer? = nil,
+        package: ManagedLibraryPackage? = nil
+    ) {
         if let container {
-            repository = LibraryRepository(modelContainer: container)
+            let repository = LibraryRepository(modelContainer: container)
+            self.repository = repository
+            lyricsService = package.map {
+                ManagedLyricsService(
+                    package: $0,
+                    repository: repository
+                )
+            }
             availability = .ready
         } else {
             repository = nil
+            lyricsService = nil
             availability = .empty
         }
     }
@@ -71,9 +86,16 @@ final class LibraryStore {
     }
 
     func attach(
-        repository: LibraryRepository
+        repository: LibraryRepository,
+        package: ManagedLibraryPackage? = nil
     ) {
         self.repository = repository
+        lyricsService = package.map {
+            ManagedLyricsService(
+                package: $0,
+                repository: repository
+            )
+        }
         availability = .ready
     }
 
@@ -131,6 +153,30 @@ final class LibraryStore {
         }
     }
 
+    func clearCatalogSearch() {
+        catalogSearchGeneration += 1
+        catalogSearchQuery = ""
+        catalogSearchResults = .empty
+        isCatalogSearching = false
+    }
+
+    func restoreCatalogSearch(_ query: String) {
+        catalogSearchGeneration += 1
+        catalogSearchQuery = query
+        catalogSearchResults = .empty
+        isCatalogSearching = false
+
+        guard
+            repository != nil,
+            !SearchNormalizer.normalize(query).isEmpty
+        else {
+            return
+        }
+        Task {
+            await searchCatalog(query)
+        }
+    }
+
     func artist(id: UUID) async -> LibraryArtistProjection? {
         try? await repository?.artist(id: id)
     }
@@ -161,6 +207,25 @@ final class LibraryStore {
 
     func allTrackIDs() async -> [UUID] {
         await (try? repository?.allTrackIDs()) ?? tracks.map(\.id)
+    }
+
+    func loadSmartCollectionIndex() async {
+        guard let repository else {
+            smartCollectionIndex = .empty
+            return
+        }
+        isLoadingSmartCollectionIndex = true
+        defer {
+            isLoadingSmartCollectionIndex = false
+        }
+        do {
+            smartCollectionIndex =
+                try await repository.productionSmartCollectionIndex()
+        } catch {
+            availability = .failed(
+                LibraryStoreFailure(message: error.localizedDescription)
+            )
+        }
     }
 
     func loadInitialTracks() async {

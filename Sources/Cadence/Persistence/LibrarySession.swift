@@ -85,8 +85,11 @@ final class LibrarySession {
             )
             return LibrarySession(
                 location: location,
-                store: LibraryStore(container: container),
-                availability: .ready
+                store: LibraryStore(
+                    container: container,
+                    package: package
+                ),
+                availability: .recovering
             )
         } catch {
             return failed(
@@ -112,7 +115,10 @@ final class LibrarySession {
         repository: LibraryRepository
     ) async {
         availability = .recovering
-        store.attach(repository: repository)
+        store.attach(
+            repository: repository,
+            package: location.map(ManagedLibraryPackage.init)
+        )
         await store.loadInitialLibrary()
         if case let .failed(failure) = store.availability {
             availability = .failed(

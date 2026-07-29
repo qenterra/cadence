@@ -174,6 +174,9 @@ struct LibraryRepositoryTests {
         try context.save()
 
         let repository = LibraryRepository(modelContainer: container)
+        let albumTags = try await repository.tags(albumID: album.id)
+        #expect(albumTags.map(\.id) == [inheritedTag.id])
+
         var states = try await repository.tagStates(trackID: track.id)
         #expect(states.map(\.tag.id) == [inheritedTag.id])
         #expect(states.first?.source == .inherited)
@@ -214,6 +217,25 @@ struct LibraryRepositoryTests {
         #expect(states.map(\.tag.id) == [tagID])
         #expect(states.first?.tag.displayPath == "Context / Rainy Day")
         #expect(states.first?.source == .direct)
+    }
+
+    @Test("Standalone tags can be created before anything is assigned")
+    func createStandaloneProductionTag() async throws {
+        let container = try makeContainer(trackCount: 1)
+        let repository = LibraryRepository(modelContainer: container)
+
+        let tagID = try await repository.createTag(
+            displayPath: "  Mood / Calm  "
+        )
+        let tags = try await repository.tagsPage().items
+
+        #expect(tags.map(\.id) == [tagID])
+        #expect(tags.map(\.displayPath) == ["Mood / Calm"])
+        #expect(
+            try await repository.productionSmartCollectionIndex()
+                .effectiveTagIDsByTrackID.values
+                .allSatisfy(\.isEmpty)
+        )
     }
 }
 

@@ -32,7 +32,108 @@ enum ProductionTagEditError: Error, LocalizedError, Sendable {
     }
 }
 
+private struct ProductionSmartCollectionRecords {
+    let tracks: [TrackRecord]
+    let assignments: [TagAssignmentRecord]
+    let exclusions: [TagExclusionRecord]
+    let tags: [TagRecord]
+}
+
 extension LibraryRepository {
+    func productionSmartCollectionIndex() throws
+        -> ProductionSmartCollectionIndex {
+        let records = try productionSmartCollectionRecords()
+
+        let directByTrackID = Dictionary(
+            grouping: records.assignments.filter { $0.targetKind == .track },
+            by: \.targetID
+        ).mapValues { Set($0.map(\.tagID)) }
+        let inheritedByAlbumID = Dictionary(
+            grouping: records.assignments.filter { $0.targetKind == .album },
+            by: \.targetID
+        ).mapValues { Set($0.map(\.tagID)) }
+        let exclusionsByTrackID = Dictionary(
+            grouping: records.exclusions,
+            by: \.trackID
+        ).mapValues { Set($0.map(\.tagID)) }
+
+        let effectiveTags = Dictionary(
+            uniqueKeysWithValues: records.tracks.map { track in
+                let direct = directByTrackID[track.id] ?? []
+                let inherited = track.album.flatMap {
+                    inheritedByAlbumID[$0.id]
+                } ?? []
+                let excluded = exclusionsByTrackID[track.id] ?? []
+                return (
+                    track.id,
+                    direct.union(inherited.subtracting(excluded))
+                )
+            }
+        )
+        let tags = records.tags.map(LibraryProjectionFactory.tag)
+        return ProductionSmartCollectionIndex(
+            tracks: records.tracks.map(LibraryProjectionFactory.track),
+            effectiveTagIDsByTrackID: effectiveTags,
+            tagsByID: Dictionary(
+                uniqueKeysWithValues: tags.map { ($0.id, $0) }
+            )
+        )
+    }
+
+    private func productionSmartCollectionRecords() throws
+        -> ProductionSmartCollectionRecords {
+        let tracks = try modelContext.fetch(
+            FetchDescriptor<TrackRecord>(
+                sortBy: [
+                    SortDescriptor(\.normalizedTitle),
+                    SortDescriptor(\.sortIdentity),
+                ]
+            )
+        )
+        let assignments = try modelContext.fetch(
+            FetchDescriptor<TagAssignmentRecord>()
+        )
+        let exclusions = try modelContext.fetch(
+            FetchDescriptor<TagExclusionRecord>()
+        )
+        let tags = try modelContext.fetch(
+            FetchDescriptor<TagRecord>(
+                sortBy: [SortDescriptor(\.normalizedPath)]
+            )
+        )
+        return ProductionSmartCollectionRecords(
+            tracks: tracks,
+            assignments: assignments,
+            exclusions: exclusions,
+            tags: tags
+        )
+    }
+
+    func tags(
+        albumID: UUID
+    ) throws -> [LibraryTagProjection] {
+        let targetKind = TagTargetKind.album.rawValue
+        let predicate = #Predicate<TagAssignmentRecord> {
+            $0.targetID == albumID
+                && $0.targetKindRawValue == targetKind
+        }
+        let tagIDs = try modelContext.fetch(
+            FetchDescriptor(predicate: predicate)
+        ).map(\.tagID)
+        guard !tagIDs.isEmpty else {
+            return []
+        }
+        let tagPredicate = #Predicate<TagRecord> {
+            tagIDs.contains($0.id)
+        }
+        return try modelContext.fetch(
+            FetchDescriptor(
+                predicate: tagPredicate,
+                sortBy: [SortDescriptor(\.normalizedPath)]
+            )
+        ).map(LibraryProjectionFactory.tag)
+    }
+
     func tagStates(
         trackID: UUID
     ) throws -> [ProductionTrackTagState] {
@@ -124,33 +225,9 @@ extension LibraryRepository {
         guard try trackRecordForTagging(id: trackID) != nil else {
             throw ProductionTagEditError.missingTrack
         }
-        let normalized = SearchNormalizer.normalize(displayPath)
-        let components = displayPath
-            .split(separator: "/", omittingEmptySubsequences: false)
-            .map {
-                $0.trimmingCharacters(in: .whitespacesAndNewlines)
-            }
-        guard
-            !normalized.isEmpty,
-            components.count <= 2,
-            components.allSatisfy({ !$0.isEmpty })
-        else {
-            throw ProductionTagEditError.invalidPath
-        }
-
-        let tag: TagRecord
-        if let existing = try tagRecord(normalizedPath: normalized) {
-            tag = existing
-        } else {
-            tag = TagRecord(
-                displayPath: components.joined(separator: " / "),
-                groupPath: components.count == 2 ? components[0] : nil
-            )
-            modelContext.insert(tag)
-        }
-        try modelContext.save()
-        try setTag(tag.id, assigned: true, trackID: trackID)
-        return tag.id
+        let tagID = try createTag(displayPath: displayPath)
+        try setTag(tagID, assigned: true, trackID: trackID)
+        return tagID
     }
 
     func assignTag(

@@ -14,7 +14,7 @@ struct ProductionTagEditorInspector: View {
         VStack(alignment: .leading, spacing: 18) {
             header
 
-            Divider()
+            CadenceSeparator()
 
             ScrollView {
                 LazyVStack(spacing: 4) {
@@ -24,7 +24,7 @@ struct ProductionTagEditorInspector: View {
                 }
             }
 
-            Divider()
+            CadenceSeparator()
 
             HStack(spacing: 8) {
                 TextField("mood/sad or childhood", text: $newTagPath)

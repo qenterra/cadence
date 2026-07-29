@@ -1,6 +1,30 @@
 import Foundation
 
 extension LibraryStore {
+    @discardableResult
+    func createTag(
+        displayPath: String
+    ) async throws -> UUID? {
+        guard let repository else {
+            return nil
+        }
+        let tagID = try await repository.createTag(
+            displayPath: displayPath
+        )
+        tagRevision &+= 1
+        await refreshTags()
+        return tagID
+    }
+
+    func tags(
+        albumID: UUID
+    ) async throws -> [LibraryTagProjection] {
+        guard let repository else {
+            return []
+        }
+        return try await repository.tags(albumID: albumID)
+    }
+
     func tagStates(
         trackID: UUID
     ) async throws -> [ProductionTrackTagState] {
