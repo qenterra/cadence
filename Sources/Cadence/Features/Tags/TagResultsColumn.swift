@@ -37,6 +37,23 @@ struct TagResultsColumn: View {
 
     private var resultsHeader: some View {
         HStack(alignment: .center, spacing: 16) {
+            if model.hasContextualBackNavigation {
+                Button {
+                    model.requestContextualBack()
+                } label: {
+                    Label("Back", systemImage: "chevron.left")
+                        .font(.callout.weight(.medium))
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(.secondary)
+                .help("Back to \(model.contextualBackTitle)")
+                .accessibilityLabel(
+                    "Back to \(model.contextualBackTitle)"
+                )
+                .keyboardShortcut(.leftArrow, modifiers: .command)
+                .fixedSize()
+            }
+
             VStack(alignment: .leading, spacing: 4) {
                 Text(selectedTagDisplayPath)
                     .font(.title3.weight(.semibold))

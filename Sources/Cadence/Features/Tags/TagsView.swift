@@ -18,42 +18,64 @@ struct TagsView: View {
     }
 
     var body: some View {
-        GeometryReader { geometry in
-            let layout = TagsWorkspaceLayout(
-                totalWidth: geometry.size.width,
-                isInspectorPresented: model.isTagInspectorPresented,
-                requestedInspectorWidth: inspectorWidth
-            )
-
-            ZStack(alignment: .trailing) {
-                workspace(layout: layout)
-
-                if layout.inspectorPresentation == .overlay {
-                    TagEditorInspector(
-                        model: model,
-                        initialSearchQuery: initialInspectorSearchQuery
+        Group {
+            if model.librarySession.availability != .preview {
+                ProductionTagsView(
+                    model: model,
+                    store: model.librarySession.store
+                )
+            } else if model.tracks.isEmpty {
+                EmptyLibraryView(
+                    title: "No Tracks to Tag",
+                    description: "Import music before organizing it with tags."
+                ) {
+                    model.requestNavigationDestination(.importMusic)
+                }
+            } else {
+                GeometryReader { geometry in
+                    let layout = TagsWorkspaceLayout(
+                        totalWidth: geometry.size.width,
+                        isInspectorPresented: model.isTagInspectorPresented,
+                        requestedInspectorWidth: inspectorWidth
                     )
-                    .frame(width: layout.inspectorWidth)
-                    .frame(maxHeight: .infinity, alignment: .top)
-                    .shadow(color: .black.opacity(0.32), radius: 24, x: -8)
-                    .overlay(alignment: .leading) {
-                        Rectangle()
-                            .fill(inspectorBoundaryColor)
-                            .frame(width: contrast == .increased ? 2 : 1)
+
+                    ZStack(alignment: .trailing) {
+                        workspace(layout: layout)
+
+                        if layout.inspectorPresentation == .overlay {
+                            TagEditorInspector(
+                                model: model,
+                                initialSearchQuery: initialInspectorSearchQuery
+                            )
+                            .frame(width: layout.inspectorWidth)
+                            .frame(maxHeight: .infinity, alignment: .top)
+                            .shadow(
+                                color: .black.opacity(0.32),
+                                radius: 24,
+                                x: -8
+                            )
+                            .overlay(alignment: .leading) {
+                                Rectangle()
+                                    .fill(inspectorBoundaryColor)
+                                    .frame(
+                                        width: contrast == .increased ? 2 : 1
+                                    )
+                            }
+                            .transition(.opacity)
+                            .zIndex(1)
+                        }
                     }
-                    .transition(.opacity)
-                    .zIndex(1)
+                    .frame(
+                        maxWidth: .infinity,
+                        maxHeight: .infinity,
+                        alignment: .topTrailing
+                    )
+                    .animation(
+                        reduceMotion ? nil : .easeOut(duration: 0.15),
+                        value: layout.inspectorPresentation == .overlay
+                    )
                 }
             }
-            .frame(
-                maxWidth: .infinity,
-                maxHeight: .infinity,
-                alignment: .topTrailing
-            )
-            .animation(
-                reduceMotion ? nil : .easeOut(duration: 0.15),
-                value: layout.inspectorPresentation == .overlay
-            )
         }
         .background(CadenceTheme.contentBackground)
         .onExitCommand {

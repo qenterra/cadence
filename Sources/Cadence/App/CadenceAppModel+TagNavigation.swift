@@ -5,6 +5,7 @@ extension CadenceAppModel {
         guard albums.contains(where: { $0.id == album.id }) else {
             return
         }
+        contextualNavigationHistory.removeAll()
 
         let assignedTags = assignedTags(for: album)
         let anchorTag = assignedTags.first {
@@ -30,11 +31,12 @@ extension CadenceAppModel {
         guard tags.contains(where: { $0.id == tag.id }) else {
             return
         }
+        contextualNavigationHistory.removeAll()
         clearTagEditingSelection()
         selectedDestination = .tags
         selectedTagGroupID = tag.groupID
         selectedTagID = tag.id
-        tagResultScope = .albums
+        tagResultScope = .tracks
         isTagInspectorPresented = false
         isLibraryTagEditingContext = false
     }
@@ -43,6 +45,7 @@ extension CadenceAppModel {
         guard tracks.contains(where: { $0.id == track.id }) else {
             return
         }
+        contextualNavigationHistory.removeAll()
 
         let effectiveTags = effectiveTags(for: track)
         let anchorTag = effectiveTags.first {

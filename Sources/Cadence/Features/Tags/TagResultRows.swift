@@ -12,22 +12,82 @@ struct TagResultTrackRow: View {
     @State private var isHovered = false
 
     var body: some View {
-        Button {
-            model.updateTagEditingSelection(
-                currentTagSelectionGesture(),
-                target: .track(result.track.id)
-            )
-        } label: {
-            trackLabel
-        }
-        .buttonStyle(CadenceRowButtonStyle())
-        .focused($isFocused)
-        .simultaneousGesture(
-            TapGesture(count: 2)
-                .onEnded {
-                    model.play(result.track)
+        HStack(spacing: 10) {
+            trackStatus
+                .font(.caption)
+                .frame(width: 24)
+
+            VStack(alignment: .leading, spacing: 3) {
+                Button {
+                    model.updateTagEditingSelection(
+                        currentTagSelectionGesture(),
+                        target: .track(result.track.id)
+                    )
+                } label: {
+                    Text(result.track.title)
+                        .font(
+                            .body.weight(
+                                isCurrentTrack ? .medium : .regular
+                            )
+                        )
+                        .foregroundStyle(.primary)
+                        .lineLimit(1)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .contentShape(Rectangle())
                 }
-        )
+                .buttonStyle(CadenceRowButtonStyle())
+                .focused($isFocused)
+                .simultaneousGesture(
+                    TapGesture(count: 2)
+                        .onEnded {
+                            model.play(result.track)
+                        }
+                )
+
+                MediaMetadataLink(
+                    result.track.artist,
+                    accessibilityLabel:
+                    "Open artist \(result.track.artist)"
+                ) {
+                    model.requestOpenArtistContextually(
+                        id: result.track.artistID
+                    )
+                }
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            }
+
+            Spacer(minLength: 10)
+
+            VStack(alignment: .trailing, spacing: 3) {
+                MediaMetadataLink(
+                    result.track.album,
+                    accessibilityLabel:
+                    "Open album \(result.track.album)"
+                ) {
+                    model.requestOpenAlbumContextually(
+                        id: result.track.albumID
+                    )
+                }
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+                Label(
+                    result.source.title,
+                    systemImage: result.source.symbolName
+                )
+                .font(.caption2)
+                .foregroundStyle(.tertiary)
+                .lineLimit(1)
+            }
+            .frame(maxWidth: 170, alignment: .trailing)
+
+            Text(result.track.durationText)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .monospacedDigit()
+                .frame(width: 42, alignment: .trailing)
+        }
         .padding(.horizontal, 10)
         .frame(height: 48)
         .background {
@@ -43,56 +103,14 @@ struct TagResultTrackRow: View {
             Button("Edit Tags", systemImage: "tag") {
                 model.openTagInspector(for: .track(result.track.id))
             }
+
+            ArtworkMenuItems(
+                model: model,
+                target: .track(result.track.id),
+                label: "Track Artwork"
+            )
         }
         .accessibilityAddTraits(isSelected ? .isSelected : [])
-    }
-
-    private var trackLabel: some View {
-        HStack(spacing: 10) {
-            trackStatus
-                .font(.caption)
-                .frame(width: 24)
-
-            VStack(alignment: .leading, spacing: 3) {
-                Text(result.track.title)
-                    .font(.body.weight(isCurrentTrack ? .medium : .regular))
-                    .foregroundStyle(.primary)
-                    .lineLimit(1)
-
-                Text(result.track.artist)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-            }
-
-            Spacer(minLength: 10)
-
-            VStack(alignment: .trailing, spacing: 3) {
-                Text(result.track.album)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-
-                Label(result.source.title, systemImage: result.source.symbolName)
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
-                    .lineLimit(1)
-            }
-            .frame(maxWidth: 170, alignment: .trailing)
-
-            Text(result.track.durationText)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .monospacedDigit()
-                .frame(width: 42, alignment: .trailing)
-        }
-        .contentShape(Rectangle())
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(
-            "\(trackNumber), \(result.track.title), \(result.track.artist), "
-                + "\(result.track.durationText)"
-        )
-        .accessibilityValue(accessibilityState)
     }
 
     @ViewBuilder
@@ -158,9 +176,10 @@ struct TagResultAlbumRow: View {
             )
         } label: {
             HStack(spacing: 13) {
-                ArtworkView(
-                    palette: result.album.artworkPalette,
+                MediaArtworkView(
+                    source: model.resolvedArtwork(for: result.album),
                     title: result.album.title,
+                    placeholder: .album,
                     cornerRadius: 7
                 )
                 .frame(width: 56, height: 56)
