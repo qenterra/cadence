@@ -124,6 +124,7 @@ private extension ProductionNowPlayingView {
             .frame(width: 520, height: 520)
             .offset(x: -50, y: -34)
         }
+        .clipped()
     }
 
     private var trackTags: some View {

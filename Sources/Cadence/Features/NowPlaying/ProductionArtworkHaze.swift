@@ -15,24 +15,37 @@ struct ProductionArtworkHaze: View {
                 ZStack {
                     RadialGradient(
                         colors: [
-                            palette.leading.opacity(0.18),
+                            palette.leading.opacity(0.48),
+                            palette.leading.opacity(0.20),
                             .clear,
                         ],
                         center: .topLeading,
-                        startRadius: 12,
-                        endRadius: 260
+                        startRadius: 18,
+                        endRadius: 330
                     )
                     RadialGradient(
                         colors: [
-                            palette.trailing.opacity(0.13),
+                            palette.trailing.opacity(0.40),
+                            palette.trailing.opacity(0.16),
                             .clear,
                         ],
                         center: .bottomTrailing,
-                        startRadius: 8,
-                        endRadius: 240
+                        startRadius: 12,
+                        endRadius: 310
+                    )
+                    LinearGradient(
+                        colors: [
+                            palette.leading.opacity(0.12),
+                            palette.trailing.opacity(0.10),
+                            .clear,
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
                     )
                 }
-                .blur(radius: 54)
+                .saturation(1.12)
+                .blur(radius: 44)
+                .blendMode(.plusLighter)
                 .allowsHitTesting(false)
                 .accessibilityHidden(true)
             }

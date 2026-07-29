@@ -4,8 +4,6 @@ struct PlayerBar: View {
     @Bindable var model: CadenceAppModel
     @State private var pendingSeekProgress: Double?
     @State private var isQualityProfilePresented = false
-    @AppStorage("accentPreset")
-    private var accentRawValue = CadenceAccentPreset.monochrome.rawValue
 
     var body: some View {
         HStack(spacing: 24) {
@@ -110,8 +108,8 @@ private extension PlayerBar {
                     Image(systemName: model.isPlaying ? "pause.fill" : "play.fill")
                         .font(.system(size: 14, weight: .bold))
                         .frame(width: 34, height: 34)
-                        .foregroundStyle(accent.foreground)
-                        .background(accent.color, in: Circle())
+                        .foregroundStyle(CadenceTheme.contentBackground)
+                        .background(CadenceTheme.primaryAccent, in: Circle())
                 }
                 .buttonStyle(CadenceRowButtonStyle())
                 .help(model.isPlaying ? "Pause" : "Play")
@@ -229,10 +227,6 @@ private extension PlayerBar {
         default:
             "speaker.wave.3.fill"
         }
-    }
-
-    private var accent: CadenceAccentPreset {
-        CadenceAccentPreset(rawValue: accentRawValue) ?? .monochrome
     }
 
     private var isQueuePresented: Bool {

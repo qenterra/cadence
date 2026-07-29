@@ -76,7 +76,7 @@ struct NowPlayingLifecycleTests {
 
         #expect(model.presentLyricsEditor())
         #expect(model.playbackWorkspace == .lyricsEditor)
-        #expect(model.lyricDraft?.trackID == currentTrack.id)
+        #expect(model.lyricDraft?.trackID == .preview(currentTrack.id))
         #expect(!model.isLyricDraftDirty)
     }
 
@@ -144,7 +144,7 @@ struct NowPlayingLifecycleTests {
         #expect(model.resolvePendingLyricsTransition(.discard))
         #expect(model.currentTrackID == tracks[1].id)
         #expect(model.playbackWorkspace == .lyricsEditor)
-        #expect(model.lyricDraft?.trackID == tracks[1].id)
+        #expect(model.lyricDraft?.trackID == .preview(tracks[1].id))
     }
 
     @Test("Bottom-player Queue respects a dirty lyric draft")

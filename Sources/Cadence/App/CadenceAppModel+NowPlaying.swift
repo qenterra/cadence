@@ -81,6 +81,14 @@ extension CadenceAppModel {
 
     func requestPlaybackQueueMove(by offset: Int) {
         if currentPlaybackTrack != nil {
+            if playbackWorkspace == .lyricsEditor, isLyricDraftDirty {
+                pendingLyricsTransition = .playbackOffset(offset)
+                return
+            }
+            if playbackWorkspace == .lyricsEditor {
+                lyricDraft = nil
+                playbackWorkspace = .nowPlaying
+            }
             moveProductionQueue(by: offset)
             return
         }
@@ -119,18 +127,35 @@ extension CadenceAppModel {
         switch target {
         case .closeEditor:
             lyricDraft = nil
+            isLoadingLyricDraft = false
+            lyricLoadRequestID = nil
+            lyricPersistenceError = nil
             playbackWorkspace = .nowPlaying
         case let .destination(destination):
             lyricDraft = nil
+            isLoadingLyricDraft = false
+            lyricLoadRequestID = nil
+            lyricPersistenceError = nil
             playbackWorkspace = .hidden
             requestNavigationDestination(destination)
         case let .nowPlayingPanel(panel):
             lyricDraft = nil
+            isLoadingLyricDraft = false
+            lyricLoadRequestID = nil
+            lyricPersistenceError = nil
             preparePlaybackQueueIfNeeded()
             selectedNowPlayingPanel = panel
             playbackWorkspace = .nowPlaying
         case let .playbackOffset(offset):
             lyricDraft = nil
+            isLoadingLyricDraft = false
+            lyricLoadRequestID = nil
+            lyricPersistenceError = nil
+            if currentPlaybackTrack != nil {
+                moveProductionQueue(by: offset)
+                playbackWorkspace = .nowPlaying
+                return
+            }
             performPlaybackQueueMove(by: offset)
             replaceLyricDraftForCurrentTrack()
             playbackWorkspace = .lyricsEditor

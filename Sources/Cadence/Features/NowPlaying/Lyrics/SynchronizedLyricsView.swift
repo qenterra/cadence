@@ -92,22 +92,28 @@ struct SynchronizedLyricsView: View {
                 model.progress = min(max(startTime / track.duration, 0), 1)
                 followsPlayback = true
             } label: {
-                Text(line.text)
-                    .font(
-                        isActive
-                            ? .system(size: 28, weight: .semibold)
-                            : .system(size: 22, weight: .medium)
-                    )
-                    .foregroundStyle(
-                        isActive
-                            ? AnyShapeStyle(Color.primary)
-                            : AnyShapeStyle(
-                                lineColor(for: index)
+                HStack(alignment: .top, spacing: 0) {
+                    Text(line.text)
+                        .font(
+                            .system(
+                                size: 24,
+                                weight: isActive ? .semibold : .medium
                             )
-                    )
-                    .multilineTextAlignment(.leading)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .contentShape(Rectangle())
+                        )
+                        .foregroundStyle(
+                            isActive
+                                ? AnyShapeStyle(Color.primary)
+                                : AnyShapeStyle(
+                                    lineColor(for: index)
+                                )
+                        )
+                        .multilineTextAlignment(.leading)
+                        .lineLimit(nil)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Spacer(minLength: 0)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .accessibilityLabel(line.text)

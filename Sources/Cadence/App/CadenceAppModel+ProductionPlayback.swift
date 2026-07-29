@@ -122,26 +122,6 @@ extension CadenceAppModel {
     func loadProductionLyrics(
         for track: PlaybackTrack
     ) async -> LyricDocument? {
-        guard
-            let relativePath = track.lyricRelativePath,
-            let location = librarySession.location,
-            let url = try? location.resolve(
-                relativePath: relativePath,
-                directoryHint: .notDirectory
-            )
-        else {
-            return nil
-        }
-        return await Task.detached(priority: .utility) {
-            guard
-                let source = try? String(
-                    contentsOf: url,
-                    encoding: .utf8
-                )
-            else {
-                return nil
-            }
-            return try? LineLevelLRC.parse(source, trackID: 0)
-        }.value
+        try? await librarySession.store.lyricsDocument(trackID: track.id)
     }
 }

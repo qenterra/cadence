@@ -8,18 +8,45 @@ struct ProductionLyricsPanel: View {
     @State private var document: LyricDocument?
 
     var body: some View {
-        Group {
-            if let document {
-                lyrics(document)
-            } else {
-                ContentUnavailableView {
-                    Label("No Lyrics", systemImage: "quote.bubble")
-                } description: {
-                    Text("No linked line-level LRC file is available.")
+        VStack(spacing: 0) {
+            HStack {
+                Text(document?.timingStatus.title ?? "Lyrics")
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(.tertiary)
+
+                Spacer()
+
+                Button("Edit Lyrics", systemImage: "pencil") {
+                    model.presentLyricsEditor()
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(.secondary)
+            }
+            .padding(.horizontal, 28)
+            .frame(height: 52)
+
+            Rectangle()
+                .fill(CadenceTheme.separator)
+                .frame(height: 1)
+
+            Group {
+                if let document {
+                    lyrics(document)
+                } else {
+                    ContentUnavailableView {
+                        Label("No Lyrics", systemImage: "quote.bubble")
+                    } description: {
+                        Text("No managed line-level LRC file is available.")
+                    } actions: {
+                        Button("Add Lyrics") {
+                            model.presentLyricsEditor()
+                        }
+                    }
                 }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .task(id: track.id) {
+        .task(id: "\(track.id)-\(model.lyricsRevision)") {
             document = await model.loadProductionLyrics(for: track)
         }
     }
@@ -75,16 +102,13 @@ struct ProductionLyricsPanel: View {
                 model.seekProductionPlayback(to: startTime)
             }
         } label: {
-            ProductionLyricLineLabel(
-                text: line.text,
-                isActive: isActive
-            )
-            .scaleEffect(
-                isActive && !reduceMotion ? 1.015 : 1,
-                anchor: .leading
-            )
-            .multilineTextAlignment(.leading)
-            .lineSpacing(3)
+            HStack(alignment: .top, spacing: 0) {
+                ProductionLyricLineLabel(
+                    text: line.text,
+                    isActive: isActive
+                )
+                Spacer(minLength: 0)
+            }
             .frame(maxWidth: .infinity, alignment: .leading)
             .contentShape(Rectangle())
         }
@@ -109,68 +133,84 @@ struct ProductionLyricsPanel: View {
     }
 }
 
+private extension LyricTimingStatus {
+    var title: String {
+        switch self {
+        case .missing:
+            "No Lyrics"
+        case .unsynchronized:
+            "Static Lyrics"
+        case .partiallySynchronized:
+            "Partially Synchronized"
+        case .synchronized:
+            "Synchronized Lyrics"
+        }
+    }
+}
+
 private struct ProductionLyricLineLabel: View {
     let text: String
     let isActive: Bool
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var shimmerOffset: CGFloat = -220
+    @State private var shimmerPhase = -1.0
 
     var body: some View {
-        baseText
-            .foregroundStyle(isActive ? .primary : .secondary)
+        Text(text)
+            .font(.system(size: 24, weight: .semibold))
+            .multilineTextAlignment(.leading)
+            .lineSpacing(3)
+            .lineLimit(nil)
+            .fixedSize(horizontal: false, vertical: true)
+            .foregroundStyle(foregroundStyle)
             .opacity(isActive ? 1 : 0.58)
-            .overlay {
-                if isActive, !reduceMotion {
-                    LinearGradient(
-                        colors: [
-                            .clear,
-                            Color.primary.opacity(0.42),
-                            .clear,
-                        ],
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    )
-                    .frame(width: 150)
-                    .offset(x: shimmerOffset)
-                    .mask(baseText)
-                    .allowsHitTesting(false)
-                }
-            }
             .shadow(
                 color: isActive
-                    ? Color.primary.opacity(0.16)
+                    ? Color.primary.opacity(0.28)
                     : .clear,
-                radius: isActive ? 9 : 0
+                radius: isActive ? 12 : 0
             )
             .onAppear {
-                guard isActive, !reduceMotion else {
-                    return
-                }
-                withAnimation(
-                    .linear(duration: 2.6)
-                        .repeatForever(autoreverses: false)
-                ) {
-                    shimmerOffset = 520
-                }
+                updateShimmer(isActive)
             }
             .onChange(of: isActive) { _, active in
-                guard active, !reduceMotion else {
-                    shimmerOffset = -220
-                    return
-                }
-                shimmerOffset = -220
-                withAnimation(
-                    .linear(duration: 2.6)
-                        .repeatForever(autoreverses: false)
-                ) {
-                    shimmerOffset = 520
-                }
+                updateShimmer(active)
             }
     }
 
-    private var baseText: some View {
-        Text(text)
-            .font(.system(size: 24, weight: .semibold))
+    private var foregroundStyle: LinearGradient {
+        guard isActive, !reduceMotion else {
+            return LinearGradient(
+                colors: [
+                    isActive ? Color.primary : Color.secondary,
+                    isActive ? Color.primary : Color.secondary,
+                ],
+                startPoint: .leading,
+                endPoint: .trailing
+            )
+        }
+
+        return LinearGradient(
+            colors: [
+                Color.primary.opacity(0.92),
+                Color.white,
+                Color.primary.opacity(0.92),
+            ],
+            startPoint: UnitPoint(x: shimmerPhase - 0.55, y: 0.5),
+            endPoint: UnitPoint(x: shimmerPhase + 0.55, y: 0.5)
+        )
+    }
+
+    private func updateShimmer(_ active: Bool) {
+        shimmerPhase = -0.25
+        guard active, !reduceMotion else {
+            return
+        }
+        withAnimation(
+            .linear(duration: 2.8)
+                .repeatForever(autoreverses: false)
+        ) {
+            shimmerPhase = 1.25
+        }
     }
 }
