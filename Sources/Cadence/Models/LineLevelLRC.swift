@@ -7,11 +7,22 @@ enum LineLevelLRC {
         case emptyDocument
     }
 
-    // swiftlint:disable:next function_body_length
     static func parse(
         _ source: String,
         trackID: TrackPreview.ID
     ) throws -> LyricDocument {
+        let lines = try parseLines(source)
+        return LyricDocument(trackID: trackID, lines: lines)
+    }
+
+    static func validate(_ source: String) throws {
+        _ = try parseLines(source)
+    }
+
+    // swiftlint:disable:next function_body_length
+    private static func parseLines(
+        _ source: String
+    ) throws -> [LyricLine] {
         let timestampPattern = try NSRegularExpression(
             pattern: #"^\[(\d{1,3}):(\d{2})(?:[\.:](\d{1,3}))?\](.*)$"#
         )
@@ -66,11 +77,10 @@ enum LineLevelLRC {
             )
         }
 
-        let document = LyricDocument(trackID: trackID, lines: lines)
-        guard document.timingStatus != .missing else {
+        guard lines.contains(where: { $0.startTime != nil }) else {
             throw Error.emptyDocument
         }
-        return document
+        return lines
     }
 
     static func generate(_ document: LyricDocument) throws -> String {

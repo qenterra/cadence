@@ -1,37 +1,56 @@
 import SwiftUI
 
+enum SmartCollectionsPaneConstraints {
+    static let list = (
+        minimum: CGFloat(220),
+        ideal: CGFloat(250),
+        maximum: CGFloat(380)
+    )
+    static let workspaceMinimum = CGFloat(720)
+    static let builder = (
+        minimum: CGFloat(360),
+        ideal: CGFloat(430),
+        maximum: CGFloat(620)
+    )
+    static let resultsMinimum = CGFloat(360)
+}
+
 struct SmartCollectionsView: View {
     @Bindable var model: CadenceAppModel
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @AppStorage("smartCollections.listWidth")
+    private var listWidth = Double(
+        SmartCollectionsPaneConstraints.list.ideal
+    )
+    @AppStorage("smartCollections.builderWidth")
+    private var builderWidth = Double(
+        SmartCollectionsPaneConstraints.builder.ideal
+    )
 
     var body: some View {
-        GeometryReader { geometry in
-            let widths = SmartCollectionsColumnWidths(
-                totalWidth: geometry.size.width
-            )
-
-            HStack(spacing: 0) {
-                SmartCollectionListColumn(model: model)
-                    .frame(width: widths.collections)
-
-                SmartCollectionsColumnDivider()
-
-                workspace(widths: widths)
-                    .frame(width: widths.content)
-                    .id(model.smartCollectionsPresentationMode)
-                    .transition(.opacity)
-            }
-            .frame(
-                maxWidth: .infinity,
-                maxHeight: .infinity,
-                alignment: .topLeading
-            )
-            .animation(
-                reduceMotion ? nil : .easeOut(duration: 0.16),
-                value: model.smartCollectionsPresentationMode
-            )
+        CadenceResizableSplitView(
+            fixedPane: .leading,
+            fixedWidth: $listWidth,
+            fixedMinimum: SmartCollectionsPaneConstraints.list.minimum,
+            fixedMaximum: SmartCollectionsPaneConstraints.list.maximum,
+            flexibleMinimum: 560
+        ) {
+            SmartCollectionListColumn(model: model)
+        } trailing: {
+            workspace
+                .id(model.smartCollectionsPresentationMode)
+                .transition(.opacity)
         }
+        .frame(
+            maxWidth: .infinity,
+            maxHeight: .infinity,
+            alignment: .topLeading
+        )
+        .animation(
+            reduceMotion ? nil : .easeOut(duration: 0.16),
+            value: model.smartCollectionsPresentationMode
+        )
         .background(CadenceTheme.contentBackground)
         .onExitCommand {
             guard
@@ -80,21 +99,21 @@ struct SmartCollectionsView: View {
     }
 
     @ViewBuilder
-    private func workspace(
-        widths: SmartCollectionsColumnWidths
-    ) -> some View {
+    private var workspace: some View {
         switch model.smartCollectionsPresentationMode {
         case .listening:
             SmartCollectionListeningPage(model: model)
         case .editing:
-            HStack(spacing: 0) {
+            CadenceResizableSplitView(
+                fixedPane: .leading,
+                fixedWidth: $builderWidth,
+                fixedMinimum: SmartCollectionsPaneConstraints.builder.minimum,
+                fixedMaximum: SmartCollectionsPaneConstraints.builder.maximum,
+                flexibleMinimum: SmartCollectionsPaneConstraints.resultsMinimum
+            ) {
                 SmartCollectionRuleBuilder(model: model)
-                    .frame(width: widths.builder)
-
-                SmartCollectionsColumnDivider()
-
+            } trailing: {
                 SmartCollectionResultsColumn(model: model)
-                    .frame(width: widths.results)
             }
         }
     }
@@ -119,40 +138,5 @@ struct SmartCollectionsView: View {
                 }
             }
         )
-    }
-}
-
-struct SmartCollectionsColumnWidths {
-    let collections: CGFloat
-    let content: CGFloat
-    let builder: CGFloat
-    let results: CGFloat
-
-    init(totalWidth: CGFloat) {
-        let availableWidth = max(totalWidth - 1, 1005)
-        collections = (availableWidth * 0.18).clamped(to: 230 ... 260)
-        content = availableWidth - collections
-        builder = (availableWidth * 0.32).clamped(to: 390 ... 460)
-        results = content - builder - 1
-    }
-}
-
-private struct SmartCollectionsColumnDivider: View {
-    @Environment(\.colorSchemeContrast) private var contrast
-
-    var body: some View {
-        Rectangle()
-            .fill(
-                contrast == .increased
-                    ? .primary.opacity(0.42)
-                    : CadenceTheme.separator
-            )
-            .frame(width: 1)
-    }
-}
-
-private extension CGFloat {
-    func clamped(to range: ClosedRange<CGFloat>) -> CGFloat {
-        Swift.min(Swift.max(self, range.lowerBound), range.upperBound)
     }
 }

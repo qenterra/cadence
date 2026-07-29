@@ -10,20 +10,26 @@ Cadence is a native macOS player and manager for local lossless music libraries.
 - CloudKit for a later iCloud sync layer
 - XcodeGen, SwiftFormat, SwiftLint, and Swift Testing for local development
 
-The current product slice implements three connected mock-data workspaces: the Column Library
-(Artists → Albums → Tracks), Tags taxonomy (Tag Groups → Tags → Tracks or Albums), and playback-first Smart
-Collections. Tags supports native-style multi-selection, direct and inherited tag controls, deterministic suggestions
-that require explicit acceptance, and system Undo/Redo. Smart Collections opens as a listening page with deterministic
-album-art mosaics, sortable tracks, Play and Shuffle queue snapshots, and a read-only rule summary. `Edit Rules`
-replaces the listening region with the nested Boolean editor while the Collections list remains stable. Drafts stay
-isolated until Save, and dirty mode or destination changes require Save, Discard, or Cancel. All workspaces share track
-selection, search, and the compact full-width player.
+The production app now owns a versioned SwiftData library and a real
+Empty → Scanning → Review → Importing → Complete workflow. Folder selection and whole-window file/folder drops scan
+without writing, then a confirmed import copies verified originals into `~/Music/Cadence.library` under stable UUID
+filenames. Same-folder matching LRC files are linked, exact duplicates are excluded, possible duplicates remain a
+user choice, and durable manifests recover or roll back interrupted imports.
 
-The editor and playback queue currently mutate preview state in memory. Import, persistence, metadata writing, and
-real AVFoundation playback remain intentionally deferred.
+The production library now plays imported assets through one canonical `PlaybackCoordinator`. Supported stereo
+lossless files use an `AVAudioEngine`/PCM path with conservative compatible-next scheduling; native playback preserves
+system handling for multichannel, spatial, AirPlay, and unsupported PCM formats. The bottom player, Now Playing,
+line-level LRC timing, editable queue, quality profiles, media keys, and Control Center all consume the same playback
+state. Audio Path reports the source, selected backend, route, and whether the next transition is gapless-capable
+without relabelling ordinary spatialized stereo as Dolby Atmos.
+
+Some editor and browsing surfaces remain preview-backed while their durable SwiftData edit paths are migrated. Live
+hardware acceptance for gapless playback, output-route changes, AirPlay, and verified Atmos assets remains explicit
+work; Graph is not part of the active product.
 
 ## Requirements
 
+- macOS 26 or newer
 - Xcode 27 beta or newer
 - Homebrew tools: `xcodegen`, `swiftformat`, `swiftlint`, and `xcbeautify`
 
@@ -53,12 +59,16 @@ Sources/Cadence/
   App/          # observable application state
   Components/   # shared SwiftUI interface components
   DesignSystem/ # monochrome theme and platform compatibility
-  Features/     # library, tags, smart collections, and app shell
+  Features/     # library, listening, tags, smart collections, import, and shell
   Foundation/   # app-wide configuration and infrastructure
-  Models/       # immutable preview models and mock data
+  Import/       # scan, review, transactional copy, manifests, and recovery
+  ManagedLibrary/ # Cadence.library paths and package layout
+  Models/       # immutable UI and preview values
+  Playback/     # coordinator, PCM/native backends, routing, and system media
+  Persistence/  # SwiftData schema, records, repository, and paged store
 Tests/CadenceTests/
   # unit and integration coverage
 ```
 
-The interface uses system components and materials on macOS 15, then adopts Liquid Glass automatically on macOS 26 and
-newer where the platform API is available.
+Cadence targets macOS 26 and newer. The interface uses native Liquid Glass APIs directly, with an opaque
+accessibility-safe surface when Reduce Transparency is enabled.

@@ -154,8 +154,13 @@ extension CadenceAppModel {
             return
         }
         guard destination != selectedDestination else {
+            clearProductionDetailRoute(for: destination)
             return
         }
+        contextualNavigationHistory.removeAll()
+        selectedProductionArtistID = nil
+        selectedProductionAlbumID = nil
+        selectedProductionTagID = nil
 
         let isLeavingEditor = selectedDestination == .smartCollections
             && smartCollectionsPresentationMode == .editing
@@ -169,7 +174,25 @@ extension CadenceAppModel {
             enterSmartCollectionsListening()
         } else if destination == .albums {
             prepareAlbumsDestination()
+        } else if destination == .artists {
+            prepareArtistsDestination()
         }
+    }
+
+    private func clearProductionDetailRoute(
+        for destination: NavigationDestination
+    ) {
+        switch destination {
+        case .artists:
+            selectedProductionArtistID = nil
+        case .albums:
+            selectedProductionAlbumID = nil
+        case .tags:
+            selectedProductionTagID = nil
+        default:
+            return
+        }
+        contextualNavigationHistory.removeAll()
     }
 
     @discardableResult
@@ -272,7 +295,16 @@ extension CadenceAppModel {
         case let .destination(destination):
             enterSmartCollectionsListening()
             selectedDestination = destination
+        case let .contextualRoute(route):
+            finishSmartCollectionTransition(to: route)
         }
+    }
+
+    private func finishSmartCollectionTransition(
+        to route: ContextualMediaRoute
+    ) {
+        enterSmartCollectionsListening()
+        performContextualNavigation(route)
     }
 
     private func enterSmartCollectionsListening() {

@@ -9,6 +9,7 @@ struct SmartCollectionListeningHeader: View {
         if let collection = model.selectedSmartCollection {
             HStack(alignment: .bottom, spacing: 24) {
                 SmartCollectionArtworkMosaic(
+                    model: model,
                     layout: model.selectedSmartCollectionArtwork,
                     title: collection.name
                 )

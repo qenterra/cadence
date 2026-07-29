@@ -78,7 +78,7 @@ private struct SmartCollectionListRow: View {
             model.requestSelectSmartCollection(item.id)
         } label: {
             HStack(spacing: 10) {
-                Image(systemName: item.isTransient ? "circle.dotted" : "slider.horizontal.3")
+                Image(systemName: item.isTransient ? "circle.dotted" : "music.note.list")
                     .font(.system(size: 13, weight: .medium))
                     .foregroundStyle(item.isSelected ? .primary : .tertiary)
                     .frame(width: 20)

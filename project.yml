@@ -3,7 +3,7 @@ name: Cadence
 options:
   bundleIdPrefix: com.qenterra
   deploymentTarget:
-    macOS: "15.0"
+    macOS: "26.0"
   xcodeVersion: "27.0"
 
 settings:
@@ -15,16 +15,32 @@ targets:
   Cadence:
     type: application
     platform: macOS
-    deploymentTarget: "15.0"
+    deploymentTarget: "26.0"
     sources:
       - path: Sources/Cadence
+    info:
+      path: Sources/Cadence/Resources/Info.plist
+      properties:
+        CFBundleDisplayName: Cadence
+        LSApplicationCategoryType: public.app-category.music
+        UTExportedTypeDeclarations:
+          - UTTypeConformsTo:
+              - com.apple.package
+            UTTypeDescription: Cadence Library
+            UTTypeIdentifier: com.qenterra.cadence.library
+            UTTypeTagSpecification:
+              public.filename-extension:
+                - library
+    entitlements:
+      path: Sources/Cadence/Resources/Cadence.entitlements
+      properties:
+        com.apple.security.app-sandbox: true
+        com.apple.security.assets.music.read-write: true
+        com.apple.security.files.user-selected.read-only: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.qenterra.cadence
         PRODUCT_NAME: Cadence
-        GENERATE_INFOPLIST_FILE: YES
-        INFOPLIST_KEY_CFBundleDisplayName: Cadence
-        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.music
         CODE_SIGN_STYLE: Automatic
     scheme:
       testTargets:
@@ -33,7 +49,7 @@ targets:
   CadenceTests:
     type: bundle.unit-test
     platform: macOS
-    deploymentTarget: "15.0"
+    deploymentTarget: "26.0"
     sources:
       - path: Tests/CadenceTests
     dependencies:

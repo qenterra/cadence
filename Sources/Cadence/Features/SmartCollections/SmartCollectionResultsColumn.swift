@@ -94,10 +94,10 @@ struct SmartCollectionResultsColumn: View {
         ContentUnavailableView {
             Label("Library Is Empty", systemImage: "music.note")
         } description: {
-            Text("Import a folder before building a Smart Collection.")
+            Text("Import music before building a Smart Collection.")
         } actions: {
-            Button("Import Folder") {
-                model.requestNavigationDestination(.importFolder)
+            Button("Import Music") {
+                model.requestNavigationDestination(.importMusic)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -119,14 +119,14 @@ private struct SmartCollectionResultTrackRow: View {
     @State private var isHovered = false
 
     var body: some View {
-        Button {
-            model.selectTrack(track)
-        } label: {
-            HStack(spacing: 10) {
-                trackStatus
-                    .frame(width: 20)
+        HStack(spacing: 10) {
+            trackStatus
+                .frame(width: 20)
 
-                VStack(alignment: .leading, spacing: 3) {
+            VStack(alignment: .leading, spacing: 3) {
+                Button {
+                    model.selectTrack(track)
+                } label: {
                     HStack {
                         Text(track.title)
                             .font(.body.weight(isCurrent ? .medium : .regular))
@@ -140,41 +140,66 @@ private struct SmartCollectionResultTrackRow: View {
                             .foregroundStyle(.secondary)
                             .monospacedDigit()
                     }
-
-                    Text(metadata)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-
-                    if !effectiveTagText.isEmpty {
-                        Label(effectiveTagText, systemImage: "tag")
-                            .font(.caption2)
-                            .foregroundStyle(.tertiary)
-                            .lineLimit(1)
-                    }
+                    .contentShape(Rectangle())
                 }
-            }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 8)
-            .frame(minHeight: 62)
-            .background {
-                BrowserRowSurface(
-                    isSelected: model.selectedTrackID == track.id,
-                    isHovered: isHovered,
-                    isFocused: isFocused
+                .buttonStyle(CadenceRowButtonStyle())
+                .focused($isFocused)
+                .simultaneousGesture(
+                    TapGesture(count: 2)
+                        .onEnded {
+                            model.play(track)
+                        }
                 )
-            }
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(CadenceRowButtonStyle())
-        .focused($isFocused)
-        .simultaneousGesture(
-            TapGesture(count: 2)
-                .onEnded {
-                    model.play(track)
+
+                HStack(spacing: 0) {
+                    MediaMetadataLink(
+                        track.artist,
+                        accessibilityLabel: "Open artist \(track.artist)"
+                    ) {
+                        model.requestOpenArtistContextually(id: track.artistID)
+                    }
+
+                    Text(" · ")
+
+                    MediaMetadataLink(
+                        track.album,
+                        accessibilityLabel: "Open album \(track.album)"
+                    ) {
+                        model.requestOpenAlbumContextually(id: track.albumID)
+                    }
+
+                    Text(" · \(track.yearText)")
                 }
-        )
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+
+                effectiveTags
+            }
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
+        .frame(minHeight: 62)
+        .background {
+            BrowserRowSurface(
+                isSelected: model.selectedTrackID == track.id,
+                isHovered: isHovered,
+                isFocused: isFocused
+            )
+        }
+        .contentShape(Rectangle())
         .onHover { isHovered = $0 }
+        .contextMenu {
+            ArtworkMenuItems(
+                model: model,
+                target: .track(track.id),
+                label: "Track Artwork"
+            )
+
+            Button("Edit Tags", systemImage: "tag") {
+                model.openTagEditor(for: track)
+            }
+        }
         .accessibilityLabel(
             "\(track.title), \(track.artist), \(track.album), "
                 + "\(track.yearText), \(track.durationText)"
@@ -207,14 +232,34 @@ private struct SmartCollectionResultTrackRow: View {
         model.currentTrackID == track.id
     }
 
-    private var metadata: String {
-        "\(track.artist) · \(track.album) · \(track.yearText)"
-    }
-
     private var effectiveTagText: String {
         model.effectiveTags(for: track)
             .map(\.displayPath)
             .joined(separator: " · ")
+    }
+
+    @ViewBuilder
+    private var effectiveTags: some View {
+        let tags = model.effectiveTags(for: track)
+
+        if !tags.isEmpty {
+            HStack(spacing: 5) {
+                Image(systemName: "tag")
+
+                ForEach(tags.prefix(2)) { tag in
+                    MediaMetadataLink(
+                        tag.displayPath,
+                        accessibilityLabel:
+                        "Show tracks tagged \(tag.displayPath)"
+                    ) {
+                        model.requestOpenTagContextually(tag)
+                    }
+                }
+            }
+            .font(.caption2)
+            .foregroundStyle(.tertiary)
+            .lineLimit(1)
+        }
     }
 
     private var accessibilityValue: String {

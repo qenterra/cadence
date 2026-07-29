@@ -2,18 +2,43 @@ import SwiftUI
 
 @main
 struct CadenceApp: App {
-    @State private var model = CadenceAppModel()
+    @State private var model = CadenceAppModel.production(
+        librarySession: .startup()
+    )
+    @AppStorage("appearance")
+    private var appearanceRawValue = CadenceAppearance.system.rawValue
+    @AppStorage("accentPreset")
+    private var accentRawValue = CadenceAccentPreset.monochrome.rawValue
 
     var body: some Scene {
         WindowGroup("Cadence") {
             CadenceRootView(model: model)
                 .frame(minWidth: 1080, minHeight: 720)
-                .preferredColorScheme(.dark)
-                .tint(CadenceTheme.accent)
+                .preferredColorScheme(appearance.colorScheme)
+                .tint(accent.color)
         }
         .defaultSize(width: 1512, height: 982)
         .windowToolbarStyle(.unified(showsTitle: true))
         .commands {
+            CommandMenu("Import") {
+                Button("Choose Folder") {
+                    model.chooseImportFolder()
+                }
+                .keyboardShortcut("o", modifiers: .command)
+                .disabled(model.selectedDestination != .importMusic)
+
+                Divider()
+
+                Button("Select All in Review") {
+                    model.selectAllImportCandidates()
+                }
+                .keyboardShortcut("a", modifiers: .command)
+                .disabled(
+                    model.selectedDestination != .importMusic
+                        || model.importPreviewStage != .review
+                )
+            }
+
             CommandMenu("Tags") {
                 Button("Edit Tags") {
                     model.toggleTagInspector()
@@ -84,5 +109,13 @@ struct CadenceApp: App {
                 )
             }
         }
+    }
+
+    private var appearance: CadenceAppearance {
+        CadenceAppearance(rawValue: appearanceRawValue) ?? .system
+    }
+
+    private var accent: CadenceAccentPreset {
+        CadenceAccentPreset(rawValue: accentRawValue) ?? .monochrome
     }
 }

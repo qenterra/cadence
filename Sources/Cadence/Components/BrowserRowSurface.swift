@@ -44,9 +44,7 @@ struct BrowserRowSurface: View {
     }
 
     private var focusColor: Color {
-        contrast == .increased
-            ? .primary.opacity(0.8)
-            : .accentColor.opacity(0.72)
+        .primary.opacity(contrast == .increased ? 0.8 : 0.72)
     }
 
     private var boundaryColor: Color {

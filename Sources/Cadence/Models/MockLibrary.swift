@@ -28,7 +28,7 @@ extension [TrackPreview] {
         mockTrack(24, "Paper Trails", "Soft Archive", "Recovered Light", 337, .lilac),
         mockTrack(25, "Winterlight", "Still North", "White Rooms", 238, .silver),
         mockTrack(26, "Weatherglass", "Still North", "White Rooms", 219, .forest),
-        mockTrack(27, "Echoes Drift", "Nacre", "Low Tide", 411, .ocean),
+        mockTrack(27, "Echoes Drift", "Nacre", "Low Tide", 411, nil),
         mockTrack(28, "Distant Bloom", "Iris Static", "False Spring", 253, .rose),
         mockTrack(29, "Sleepless City", "Neon Census", "Windows at 3 AM", 306, .sunset),
         mockTrack(30, "Hollow Lights", "Relay", "Structures", 284, .amberNoir),
@@ -43,7 +43,7 @@ extension [TrackPreview] {
         _ artist: String,
         _ album: String,
         _ duration: TimeInterval,
-        _ palette: ArtworkPalette
+        _ palette: ArtworkPalette?
     ) -> TrackPreview {
         let year = artist == "North Assembly" ? 2026 : 2024
         return TrackPreview(

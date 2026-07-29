@@ -10,12 +10,13 @@ struct NavigationRail: View {
 
     private let primaryDestinations: [NavigationDestination] = [
         .library,
+        .allTracks,
         .albums,
         .artists,
         .tags,
-        .graph,
         .smartCollections,
-        .importFolder,
+        .playlists,
+        .importMusic,
     ]
 
     var body: some View {
@@ -26,6 +27,7 @@ struct NavigationRail: View {
 
             Spacer(minLength: 12)
 
+            railButton(.trash)
             railButton(.settings)
         }
         .padding(.horizontal, 10)

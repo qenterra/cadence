@@ -25,6 +25,7 @@ enum SmartCollectionTransitionTarget: Hashable, Sendable {
     case listening
     case rename(SmartCollectionPreview.ID)
     case destination(NavigationDestination)
+    case contextualRoute(ContextualMediaRoute)
 }
 
 enum SmartCollectionSwitchResolution: Hashable, Sendable {

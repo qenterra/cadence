@@ -40,9 +40,10 @@ struct AlbumsColumn: View {
             model.selectAlbum(album)
         } label: {
             HStack(spacing: 14) {
-                ArtworkView(
-                    palette: album.artworkPalette,
+                MediaArtworkView(
+                    source: model.resolvedArtwork(for: album),
                     title: album.title,
+                    placeholder: .album,
                     cornerRadius: 7
                 )
                 .frame(width: 80, height: 80)

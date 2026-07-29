@@ -190,6 +190,14 @@ private struct TrackBrowserRow: View {
 
         Divider()
 
+        ArtworkMenuItems(
+            model: model,
+            target: .track(track.id),
+            label: "Track Artwork"
+        )
+
+        Divider()
+
         Button("Show in Finder", systemImage: "folder") {}
             .disabled(true)
 
@@ -205,9 +213,10 @@ private struct TrackSummaryView: View {
 
     var body: some View {
         HStack(spacing: 14) {
-            ArtworkView(
-                palette: track.artworkPalette,
+            MediaArtworkView(
+                source: model.resolvedArtwork(for: track),
                 title: track.album,
+                placeholder: .track,
                 cornerRadius: 7
             )
             .frame(width: 72, height: 72)
@@ -217,16 +226,32 @@ private struct TrackSummaryView: View {
                     .font(.headline)
                     .lineLimit(1)
 
-                Text(track.artist)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
+                MediaMetadataLink(
+                    track.artist,
+                    accessibilityLabel: "Open artist \(track.artist)"
+                ) {
+                    model.requestOpenArtistContextually(id: track.artistID)
+                }
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
 
-                Text(track.libraryPreviewMetadataText)
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
-                    .lineLimit(1)
-                    .help(track.libraryPreviewMetadataText)
+                HStack(spacing: 0) {
+                    MediaMetadataLink(
+                        track.album,
+                        accessibilityLabel: "Open album \(track.album)"
+                    ) {
+                        model.requestOpenAlbumContextually(id: track.albumID)
+                    }
+
+                    Text(
+                        " · \(track.yearText) · \(track.durationText)"
+                            + " · \(track.format)"
+                    )
+                }
+                .font(.caption)
+                .foregroundStyle(.tertiary)
+                .lineLimit(1)
+                .help(track.libraryPreviewMetadataText)
 
                 trackTags
             }
@@ -267,16 +292,28 @@ private struct TrackSummaryView: View {
     @ViewBuilder
     private var trackTags: some View {
         let tags = model.effectiveTags(for: track)
-        let summary = tags.isEmpty
-            ? "No tags"
-            : tags.map(\.displayPath).joined(separator: " · ")
+        if tags.isEmpty {
+            Label("No tags", systemImage: "tag")
+                .font(.caption)
+                .foregroundStyle(.tertiary)
+        } else {
+            HStack(spacing: 5) {
+                Image(systemName: "tag")
 
-        Label(summary, systemImage: "tag")
+                ForEach(tags.prefix(3)) { tag in
+                    MediaMetadataLink(
+                        tag.displayPath,
+                        accessibilityLabel:
+                        "Show tracks tagged \(tag.displayPath)"
+                    ) {
+                        model.requestOpenTagContextually(tag)
+                    }
+                }
+            }
             .font(.caption)
             .foregroundStyle(.tertiary)
             .lineLimit(1)
-            .help("Tags for \(track.title): \(summary)")
-            .accessibilityLabel("Tags for \(track.title): \(summary)")
+        }
     }
 
     private var favoriteActionTitle: String {

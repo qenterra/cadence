@@ -1,9 +1,25 @@
 import Foundation
 import Observation
 
+struct ImportWorkspaceState {
+    var autoAdvanceEnabled = true
+    var scanError: String?
+    var operationError: String?
+    var progress: ManagedImportProgress?
+    var completion: ManagedImportCompletion?
+    let initialCandidates: [ImportCandidatePreview]
+}
+
+struct PendingLibraryDeletion: Equatable, Sendable {
+    let kind: TrashTargetKind
+    let id: UUID
+    let title: String
+}
+
 @MainActor
 @Observable
 final class CadenceAppModel {
+    let librarySession: LibrarySession
     let tracks: [TrackPreview]
     private(set) var tags: [TagPreview]
     private(set) var tagAssignments: Set<TagAssignmentPreview>
@@ -16,6 +32,10 @@ final class CadenceAppModel {
     var selectedArtistID: ArtistPreview.ID?
     var selectedAlbumID: AlbumPreview.ID?
     var selectedTrackID: TrackPreview.ID?
+    var selectedProductionArtistID: UUID?
+    var selectedProductionAlbumID: UUID?
+    var selectedProductionTagID: UUID?
+    var selectedProductionTagEditingTrackID: UUID?
     var selectedTagGroupID: TagGroupID = .all
     var selectedTagID: TagPreview.ID?
     var tagResultScope: TagResultScope = .tracks
@@ -25,11 +45,11 @@ final class CadenceAppModel {
     var currentTrackID: TrackPreview.ID?
     var searchQuery = ""
     var searchScope: LibrarySearchScope = .currentAlbum
-    var isPlaying = false
-    var isShuffleEnabled = false
-    var repeatMode: RepeatMode = .off
-    var progress = 0.32
-    var volume = 0.72
+    var previewIsPlaying = false
+    var previewIsShuffleEnabled = false
+    var previewRepeatMode: RepeatMode = .off
+    var previewProgress = 0.32
+    var previewVolume = 0.72
     var activePlaybackQueue: PlaybackQueue?
     var selectedSmartCollectionID: SmartCollectionPreview.ID?
     var smartCollectionDraft: SmartCollectionDraft?
@@ -55,18 +75,57 @@ final class CadenceAppModel {
     var albumGridScrollAnchors: [AlbumShelfKind: AlbumBrowseAnchor] = [:]
     var albumsFocusedAlbumID: AlbumPreview.ID?
     var favoriteAlbumDates: [AlbumPreview.ID: Date]
+    var artistsPresentation: ArtistsPresentation = .overview
+    var allArtistsSortDescriptor: ArtistSortDescriptor = .allArtists
+    var artistShelfSortDescriptors: [ArtistShelfKind: ArtistSortDescriptor] = [:]
+    var artistSearchQuery = ""
+    var artistsOverviewScrollAnchor: ArtistBrowseAnchor?
+    var artistGridScrollAnchors: [ArtistShelfKind: ArtistBrowseAnchor] = [:]
+    var artistsFocusedArtistID: ArtistPreview.ID?
+    var favoriteArtistDates: [ArtistPreview.ID: Date]
+    let artworkRepository: any ArtworkRepository
+    var artworkRevision = 0
+    var pendingArtworkImportTarget: ArtworkTarget?
+    var isArtworkImporterPresented = false
+    var artworkCropDraft: ArtworkCropDraft?
+    var artworkImportError: String?
+    var contextualNavigationHistory: [ContextualNavigationEntry] = []
+    var importPreviewStage: ImportPreviewStage = .empty
+    var importReviewCategory: ImportReviewCategory = .ready
+    var importCandidates: [ImportCandidatePreview]
+    var includedImportCandidateIDs: Set<ImportCandidatePreview.ID> = []
+    var selectedImportCandidateIDs: Set<ImportCandidatePreview.ID> = []
+    var importSelectionAnchorID: ImportCandidatePreview.ID?
+    var isImportDropTargeted = false
+    var importScanProgress: ImportInspectionProgress = .empty
+    var importWorkspaceState: ImportWorkspaceState
+    var pendingLibraryDeletion: PendingLibraryDeletion?
+    var libraryOperationError: String?
 
     private(set) var favoriteTrackIDs: Set<TrackPreview.ID>
+    let importCoordinator: ImportCoordinator?
+    let importDestination: ManagedLibraryImportDestination?
+    let importRecovery: ManagedLibraryImportRecovery?
+    let playbackCoordinator: PlaybackCoordinator?
 
     init(
-        tracks: [TrackPreview] = .mockLibrary,
-        tags: [TagPreview] = .mockTags,
-        tagAssignments: Set<TagAssignmentPreview> = .mockTagAssignments,
-        tagExclusions: Set<TagExclusionPreview> = .mockTagExclusions,
-        smartCollections: [SmartCollectionPreview] = .mockSmartCollections,
-        lyricDocuments: [TrackPreview.ID: LyricDocument] = .mockLyrics,
-        favoriteAlbumDates: [AlbumPreview.ID: Date] = .mockAlbumFavorites
+        librarySession: LibrarySession,
+        tracks: [TrackPreview],
+        tags: [TagPreview],
+        tagAssignments: Set<TagAssignmentPreview>,
+        tagExclusions: Set<TagExclusionPreview>,
+        smartCollections: [SmartCollectionPreview],
+        lyricDocuments: [TrackPreview.ID: LyricDocument],
+        favoriteAlbumDates: [AlbumPreview.ID: Date],
+        favoriteArtistDates: [ArtistPreview.ID: Date],
+        importCandidates: [ImportCandidatePreview],
+        importCoordinator: ImportCoordinator? = nil,
+        importDestination: ManagedLibraryImportDestination? = nil,
+        importRecovery: ManagedLibraryImportRecovery? = nil,
+        playbackCoordinator: PlaybackCoordinator? = nil,
+        artworkRepository: any ArtworkRepository = InMemoryArtworkRepository()
     ) {
+        self.librarySession = librarySession
         self.tracks = tracks
         self.tags = tags
         self.tagAssignments = tagAssignments
@@ -74,6 +133,16 @@ final class CadenceAppModel {
         self.smartCollections = smartCollections
         self.lyricDocuments = lyricDocuments
         self.favoriteAlbumDates = favoriteAlbumDates
+        self.favoriteArtistDates = favoriteArtistDates
+        self.importCandidates = importCandidates
+        importWorkspaceState = ImportWorkspaceState(
+            initialCandidates: importCandidates
+        )
+        self.importCoordinator = importCoordinator
+        self.importDestination = importDestination
+        self.importRecovery = importRecovery
+        self.playbackCoordinator = playbackCoordinator
+        self.artworkRepository = artworkRepository
         selectedArtistID = tracks.first?.artistID
         selectedAlbumID = tracks.first?.albumID
         selectedTrackID = tracks.first?.id
@@ -85,8 +154,14 @@ final class CadenceAppModel {
         currentTrackID = tracks.first?.id
         favoriteTrackIDs = Set(tracks.filter(\.isFavorite).map(\.id))
         prepareInitialSmartCollection()
+        resetImportPreviewCandidates()
+        importCoordinator?.onStateChange = { [weak self] state in
+            self?.applyImportCoordinatorState(state)
+        }
     }
+}
 
+extension CadenceAppModel {
     var artists: [ArtistPreview] {
         Dictionary(grouping: tracks, by: \.artistID)
             .map { artistID, artistTracks in
@@ -94,8 +169,7 @@ final class CadenceAppModel {
                     id: artistID,
                     name: artistTracks.first?.artist ?? artistID,
                     albumCount: Set(artistTracks.map(\.albumID)).count,
-                    trackCount: artistTracks.count,
-                    artworkPalette: artistTracks.first?.artworkPalette ?? .silver
+                    trackCount: artistTracks.count
                 )
             }
             .sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
@@ -126,7 +200,7 @@ final class CadenceAppModel {
                     dateAdded: albumTracks.map(\.dateAdded).min() ?? .distantPast,
                     trackCount: albumTracks.count,
                     totalDuration: albumTracks.reduce(0) { $0 + $1.duration },
-                    artworkPalette: firstTrack?.artworkPalette ?? .silver,
+                    artworkPalette: albumTracks.compactMap(\.artworkPalette).first,
                     genres: Array(genres.prefix(2))
                 )
             }
@@ -296,80 +370,5 @@ extension CadenceAppModel {
         let originalCount = dismissedTagSuggestions.count
         dismissedTagSuggestions.formUnion(dismissals)
         return dismissedTagSuggestions.count != originalCount
-    }
-}
-
-enum NavigationDestination: String, CaseIterable, Hashable, Identifiable, Sendable {
-    case library
-    case albums
-    case artists
-    case tags
-    case graph
-    case smartCollections
-    case importFolder
-    case settings
-
-    var id: Self {
-        self
-    }
-
-    var title: String {
-        switch self {
-        case .library: "Library"
-        case .albums: "Albums"
-        case .artists: "Artists"
-        case .tags: "Tags"
-        case .graph: "Graph"
-        case .smartCollections: "Smart Collections"
-        case .importFolder: "Import Folder"
-        case .settings: "Settings"
-        }
-    }
-
-    var symbolName: String {
-        switch self {
-        case .library: "music.note.list"
-        case .albums: "square.stack"
-        case .artists: "person.2"
-        case .tags: "tag"
-        case .graph: "point.3.connected.trianglepath.dotted"
-        case .smartCollections: "sparkles.rectangle.stack"
-        case .importFolder: "folder.badge.plus"
-        case .settings: "gearshape"
-        }
-    }
-}
-
-enum RepeatMode: String {
-    case off
-    case all
-    case one
-
-    var next: Self {
-        switch self {
-        case .off: .all
-        case .all: .one
-        case .one: .off
-        }
-    }
-
-    var symbolName: String {
-        self == .one ? "repeat.1" : "repeat"
-    }
-}
-
-enum LibrarySearchScope: String, CaseIterable, Identifiable {
-    case currentAlbum
-    case library
-
-    var id: Self {
-        self
-    }
-
-    var title: String {
-        switch self {
-        case .currentAlbum: "Album"
-        case .library: "Library"
-        }
     }
 }

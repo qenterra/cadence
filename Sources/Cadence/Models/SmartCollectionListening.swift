@@ -11,6 +11,8 @@ enum SmartCollectionSortField: String, CaseIterable, Hashable, Identifiable, Sen
     case artist
     case album
     case year
+    case dateAdded
+    case playCount
     case format
     case duration
 
@@ -25,6 +27,8 @@ enum SmartCollectionSortField: String, CaseIterable, Hashable, Identifiable, Sen
         case .artist: "Artist"
         case .album: "Album"
         case .year: "Year"
+        case .dateAdded: "Date Added"
+        case .playCount: "Plays"
         case .format: "Format"
         case .duration: "Time"
         }
@@ -67,7 +71,7 @@ struct SmartCollectionSortDescriptor: Hashable, Sendable {
 struct SmartCollectionArtworkSlot: Hashable, Sendable {
     let albumID: AlbumPreview.ID
     let albumTitle: String
-    let palette: ArtworkPalette
+    let palette: ArtworkPalette?
 }
 
 struct SmartCollectionArtworkLayout: Hashable, Sendable {
@@ -168,6 +172,10 @@ enum SmartCollectionListeningProjection {
             compare(lhs.album, rhs.album)
         case .year:
             compare(lhs.year, rhs.year)
+        case .dateAdded:
+            compare(lhs.dateAdded, rhs.dateAdded)
+        case .playCount:
+            compare(lhs.playCount, rhs.playCount)
         case .format:
             compare(lhs.format, rhs.format)
         case .duration:

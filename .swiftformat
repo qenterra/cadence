@@ -2,3 +2,4 @@
 --indent 4
 --linebreaks lf
 --exclude Cadence.xcodeproj,.build
+--disable wrapMultilineStatementBraces
