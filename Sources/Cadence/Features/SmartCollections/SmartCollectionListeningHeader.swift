@@ -46,7 +46,11 @@ struct SmartCollectionListeningHeader: View {
     private var controls: some View {
         HStack(spacing: 10) {
             Button {
-                model.playSelectedSmartCollection()
+                if isProduction {
+                    model.playSelectedProductionSmartCollection()
+                } else {
+                    model.playSelectedSmartCollection()
+                }
             } label: {
                 Label("Play", systemImage: "play.fill")
                     .frame(minWidth: 64)
@@ -54,16 +58,22 @@ struct SmartCollectionListeningHeader: View {
             .buttonStyle(.borderedProminent)
             .tint(.white)
             .foregroundStyle(.black)
-            .disabled(model.selectedSmartCollectionCanonicalTracks.isEmpty)
+            .disabled(selectedTracksAreEmpty)
             .keyboardShortcut(.return, modifiers: [.command])
 
             Button {
-                model.shuffleSelectedSmartCollection()
+                if isProduction {
+                    model.playSelectedProductionSmartCollection(
+                        shuffled: true
+                    )
+                } else {
+                    model.shuffleSelectedSmartCollection()
+                }
             } label: {
                 Label("Shuffle", systemImage: "shuffle")
             }
             .buttonStyle(.bordered)
-            .disabled(model.selectedSmartCollectionCanonicalTracks.isEmpty)
+            .disabled(selectedTracksAreEmpty)
 
             Button {
                 isRuleInfoPresented.toggle()
@@ -118,14 +128,21 @@ struct SmartCollectionListeningHeader: View {
     }
 
     private var metadata: String {
-        let count = model.selectedSmartCollectionCanonicalTracks.count
+        let count = isProduction
+            ? model.selectedProductionSmartCollectionTracks.count
+            : model.selectedSmartCollectionCanonicalTracks.count
         let trackText = "\(count) \(count == 1 ? "track" : "tracks")"
         return "\(trackText) · \(durationText) · Updated automatically"
     }
 
     private var durationText: String {
+        let duration = isProduction
+            ? model.selectedProductionSmartCollectionTracks.reduce(0) {
+                $0 + $1.duration
+            }
+            : model.selectedSmartCollectionDuration
         let totalMinutes = max(
-            Int(model.selectedSmartCollectionDuration.rounded()) / 60,
+            Int(duration.rounded()) / 60,
             0
         )
         let hours = totalMinutes / 60
@@ -138,5 +155,16 @@ struct SmartCollectionListeningHeader: View {
             return "\(hours) hr"
         }
         return "\(minutes) min"
+    }
+
+    private var isProduction: Bool {
+        model.librarySession.availability != .preview
+    }
+
+    private var selectedTracksAreEmpty: Bool {
+        if isProduction {
+            return model.selectedProductionSmartCollectionTracks.isEmpty
+        }
+        return model.selectedSmartCollectionCanonicalTracks.isEmpty
     }
 }

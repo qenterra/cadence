@@ -29,7 +29,7 @@ struct SmartCollectionRuleValueEditor: View {
                 Text("Choose Tag").tag(nil as TagPreview.ID?)
 
                 ForEach(sortedTags) { tag in
-                    Text(tag.displayPath).tag(Optional(tag.id))
+                    Text(tag.title).tag(Optional(tag.id))
                 }
             }
             .labelsHidden()
@@ -183,10 +183,30 @@ struct SmartCollectionRuleValueEditor: View {
         )
     }
 
-    private var sortedTags: [TagPreview] {
-        model.tags.sorted {
-            $0.displayPath.localizedStandardCompare($1.displayPath)
+    private var sortedTags: [SmartCollectionTagOption] {
+        let options: [SmartCollectionTagOption] = if model.librarySession.availability == .preview {
+            model.tags.map {
+                SmartCollectionTagOption(
+                    id: $0.id,
+                    title: $0.displayPath
+                )
+            }
+        } else {
+            model.librarySession.store.tags.map {
+                SmartCollectionTagOption(
+                    id: $0.id.uuidString,
+                    title: $0.displayPath
+                )
+            }
+        }
+        return options.sorted {
+            $0.title.localizedStandardCompare($1.title)
                 == .orderedAscending
         }
     }
+}
+
+private struct SmartCollectionTagOption: Identifiable {
+    let id: String
+    let title: String
 }

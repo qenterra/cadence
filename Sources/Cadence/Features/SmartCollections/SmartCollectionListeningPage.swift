@@ -14,8 +14,18 @@ struct SmartCollectionListeningPage: View {
                     .fill(CadenceTheme.separator)
                     .frame(height: 1)
 
-                if model.selectedSmartCollectionCanonicalTracks.isEmpty {
+                if selectedTracksAreEmpty {
                     noMatches
+                } else if isProduction {
+                    ScrollView {
+                        ProductionTrackTable(
+                            model: model,
+                            tracks: model.selectedProductionSmartCollectionTracks,
+                            queueSource: selectedProductionQueueSource
+                        )
+                        .padding(.horizontal, 24)
+                        .padding(.bottom, 24)
+                    }
                 } else {
                     SmartCollectionTrackTable(model: model)
                 }
@@ -51,5 +61,22 @@ struct SmartCollectionListeningPage: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private var isProduction: Bool {
+        model.librarySession.availability != .preview
+    }
+
+    private var selectedTracksAreEmpty: Bool {
+        if isProduction {
+            return model.selectedProductionSmartCollectionTracks.isEmpty
+        }
+        return model.selectedSmartCollectionCanonicalTracks.isEmpty
+    }
+
+    private var selectedProductionQueueSource: PlaybackQueueSource? {
+        model.selectedSmartCollectionID.map {
+            .smartCollection($0)
+        }
     }
 }

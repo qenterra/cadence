@@ -4,8 +4,7 @@ struct PlaylistsView: View {
     @Bindable var model: CadenceAppModel
     @Bindable var store: LibraryStore
 
-    @State private var isCreatingPlaylist = false
-    @State private var isRenamingPlaylist = false
+    @State private var playlistNameOperation: PlaylistNameOperation?
     @State private var isDeletingPlaylist = false
     @State private var playlistName = ""
     @AppStorage("playlists.sidebarWidth")
@@ -28,29 +27,29 @@ struct PlaylistsView: View {
         .task {
             await store.loadPlaylists()
         }
-        .alert("New Playlist", isPresented: $isCreatingPlaylist) {
+        .alert(
+            playlistNameOperation?.title ?? "Playlist",
+            isPresented: playlistNameOperationPresented
+        ) {
             TextField("Playlist Name", text: $playlistName)
-            Button("Create") {
+            Button(playlistNameOperation?.actionTitle ?? "Save") {
+                let operation = playlistNameOperation
                 let name = playlistName
+                playlistNameOperation = nil
                 playlistName = ""
                 Task {
-                    await store.createPlaylist(name: name)
+                    switch operation {
+                    case .create:
+                        await store.createPlaylist(name: name)
+                    case .rename:
+                        await store.renameSelectedPlaylist(to: name)
+                    case nil:
+                        break
+                    }
                 }
             }
             Button("Cancel", role: .cancel) {
-                playlistName = ""
-            }
-        }
-        .alert("Rename Playlist", isPresented: $isRenamingPlaylist) {
-            TextField("Playlist Name", text: $playlistName)
-            Button("Rename") {
-                let name = playlistName
-                playlistName = ""
-                Task {
-                    await store.renameSelectedPlaylist(to: name)
-                }
-            }
-            Button("Cancel", role: .cancel) {
+                playlistNameOperation = nil
                 playlistName = ""
             }
         }
@@ -78,8 +77,8 @@ private extension PlaylistsView {
                     .font(.title2.bold())
                 Spacer()
                 Button {
-                    playlistName = ""
-                    isCreatingPlaylist = true
+                    playlistName = "Untitled Playlist"
+                    playlistNameOperation = .create
                 } label: {
                     Image(systemName: "plus")
                 }
@@ -298,7 +297,7 @@ private extension PlaylistsView {
             Task {
                 await store.selectPlaylist(playlist.id)
                 playlistName = playlist.name
-                isRenamingPlaylist = true
+                playlistNameOperation = .rename
             }
         }
         Button(
@@ -320,10 +319,44 @@ private extension PlaylistsView {
         return store.playlists.first { $0.id == id }
     }
 
+    private var playlistNameOperationPresented: Binding<Bool> {
+        Binding(
+            get: { playlistNameOperation != nil },
+            set: { isPresented in
+                if !isPresented {
+                    playlistNameOperation = nil
+                }
+            }
+        )
+    }
+
     private func timeText(
         _ duration: TimeInterval
     ) -> String {
         let seconds = max(Int(duration.rounded()), 0)
         return String(format: "%d:%02d", seconds / 60, seconds % 60)
+    }
+}
+
+private enum PlaylistNameOperation {
+    case create
+    case rename
+
+    var title: String {
+        switch self {
+        case .create:
+            "New Playlist"
+        case .rename:
+            "Rename Playlist"
+        }
+    }
+
+    var actionTitle: String {
+        switch self {
+        case .create:
+            "Create"
+        case .rename:
+            "Rename"
+        }
     }
 }

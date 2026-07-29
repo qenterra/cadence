@@ -36,7 +36,31 @@ extension CadenceAppModel {
     }
 
     var smartCollectionRuleOptions: SmartCollectionRuleOptions {
-        SmartCollectionRuleOptions(
+        if librarySession.availability != .preview {
+            let productionTracks = librarySession.store.tracks
+            return SmartCollectionRuleOptions(
+                tagIDs: librarySession.store.tags
+                    .sorted {
+                        $0.displayPath.localizedStandardCompare($1.displayPath)
+                            == .orderedAscending
+                    }
+                    .map(\.id.uuidString),
+                artists: Array(Set(productionTracks.map(\.artist))).sorted {
+                    $0.localizedStandardCompare($1) == .orderedAscending
+                },
+                albums: Array(Set(productionTracks.map(\.album))).sorted {
+                    $0.localizedStandardCompare($1) == .orderedAscending
+                },
+                years: Array(
+                    Set(productionTracks.compactMap(\.year))
+                ).sorted(by: >),
+                formats: Array(Set(productionTracks.map(\.codec))).sorted {
+                    $0.localizedStandardCompare($1) == .orderedAscending
+                }
+            )
+        }
+
+        return SmartCollectionRuleOptions(
             tagIDs: tags
                 .sorted {
                     $0.displayPath.localizedStandardCompare($1.displayPath)
@@ -69,6 +93,54 @@ extension CadenceAppModel {
         return lastValidSmartCollectionResultIDs.compactMap {
             tracksByID[$0]
         }
+    }
+
+    var productionSmartCollectionLiveTracks: [LibraryTrackProjection] {
+        guard
+            librarySession.availability != .preview,
+            smartCollectionsPresentationMode == .editing,
+            let smartCollectionDraft,
+            smartCollectionValidation.isValid
+        else {
+            return []
+        }
+        return ProductionSmartCollectionEvaluator().evaluate(
+            root: smartCollectionDraft.rule,
+            index: librarySession.store.smartCollectionIndex
+        )
+    }
+
+    var selectedProductionSmartCollectionTracks:
+        [LibraryTrackProjection] {
+        guard
+            librarySession.availability != .preview,
+            let selectedSmartCollection
+        else {
+            return []
+        }
+        return ProductionSmartCollectionEvaluator().evaluate(
+            root: selectedSmartCollection.rule,
+            index: librarySession.store.smartCollectionIndex
+        )
+    }
+
+    func playSelectedProductionSmartCollection(
+        shuffled: Bool = false
+    ) {
+        var collectionTracks = selectedProductionSmartCollectionTracks
+        if shuffled {
+            collectionTracks.shuffle()
+        }
+        guard let first = collectionTracks.first else {
+            return
+        }
+        playProductionTrack(
+            first,
+            within: collectionTracks,
+            source: selectedSmartCollectionID.map {
+                .smartCollection($0)
+            }
+        )
     }
 
     func renameSmartCollectionDraft(_ name: String) {

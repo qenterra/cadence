@@ -52,6 +52,12 @@ struct SmartCollectionsView: View {
             value: model.smartCollectionsPresentationMode
         )
         .background(CadenceTheme.contentBackground)
+        .task(id: model.librarySession.store.tagRevision) {
+            guard model.librarySession.availability != .preview else {
+                return
+            }
+            await model.librarySession.store.loadSmartCollectionIndex()
+        }
         .onExitCommand {
             guard
                 model.smartCollectionsPresentationMode == .editing,

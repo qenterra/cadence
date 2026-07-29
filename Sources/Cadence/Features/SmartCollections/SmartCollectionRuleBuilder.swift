@@ -10,8 +10,7 @@ struct SmartCollectionRuleBuilder: View {
             VStack(spacing: 0) {
                 header(draft: draft)
 
-                Divider()
-                    .overlay(CadenceTheme.separator)
+                CadenceSeparator()
 
                 ScrollView {
                     VStack(alignment: .leading, spacing: 12) {

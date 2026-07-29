@@ -257,21 +257,24 @@ private struct TagInspectorResizeHandle: View {
     }
 
     private var resizeGesture: some Gesture {
-        DragGesture(minimumDistance: 0)
-            .onChanged { value in
-                if dragStartWidth == nil {
-                    dragStartWidth = width
-                }
-                guard let dragStartWidth else {
-                    return
-                }
-                width = (dragStartWidth - value.translation.width).clamped(
-                    to: TagsWorkspaceLayout.inspectorWidthRange
-                )
+        DragGesture(
+            minimumDistance: 0,
+            coordinateSpace: .global
+        )
+        .onChanged { value in
+            if dragStartWidth == nil {
+                dragStartWidth = width
             }
-            .onEnded { _ in
-                dragStartWidth = nil
+            guard let dragStartWidth else {
+                return
             }
+            width = (dragStartWidth - value.translation.width).clamped(
+                to: TagsWorkspaceLayout.inspectorWidthRange
+            )
+        }
+        .onEnded { _ in
+            dragStartWidth = nil
+        }
     }
 }
 

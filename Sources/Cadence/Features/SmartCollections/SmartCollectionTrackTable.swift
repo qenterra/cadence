@@ -5,46 +5,65 @@ struct SmartCollectionTrackTable: View {
 
     @AppStorage("trackTable.visibleColumns")
     private var visibleColumnsRaw = TrackTableColumn.defaultRawValue
+    @AppStorage("trackTable.songWidth")
+    private var songWidth = TrackTableWidth.song.defaultValue
+    @AppStorage("trackTable.albumWidth")
+    private var albumWidth = TrackTableWidth.album.defaultValue
+    @AppStorage("trackTable.yearWidth")
+    private var yearWidth = TrackTableWidth.year.defaultValue
+    @AppStorage("trackTable.dateAddedWidth")
+    private var dateAddedWidth = TrackTableWidth.dateAdded.defaultValue
+    @AppStorage("trackTable.playCountWidth")
+    private var playCountWidth = TrackTableWidth.playCount.defaultValue
+    @AppStorage("trackTable.timeWidth")
+    private var timeWidth = TrackTableWidth.time.defaultValue
 
     var body: some View {
         ScrollView {
-            LazyVStack(spacing: 0) {
-                header
+            ScrollView(.horizontal) {
+                LazyVStack(spacing: 0) {
+                    header
 
-                ForEach(
-                    model.selectedSmartCollectionVisibleTracks
-                ) { track in
-                    SmartCollectionTrackTableRow(
-                        model: model,
-                        track: track,
-                        columns: visibleColumns
-                    )
+                    ForEach(
+                        model.selectedSmartCollectionVisibleTracks
+                    ) { track in
+                        SmartCollectionTrackTableRow(
+                            model: model,
+                            track: track,
+                            columns: visibleColumns,
+                            widths: widths
+                        )
+                    }
                 }
+                .frame(minWidth: minimumTableWidth, alignment: .leading)
+                .padding(.horizontal, 24)
+                .padding(.bottom, 24)
             }
-            .padding(.horizontal, 24)
-            .padding(.bottom, 24)
+            .scrollIndicators(.hidden)
         }
     }
 
     private var header: some View {
         HStack(spacing: 14) {
-            sortButton(
+            headerCell(
                 title: "Song",
                 field: .title,
+                width: $songWidth,
+                range: TrackTableWidth.song,
                 alignment: .leading
             )
-            .frame(maxWidth: .infinity)
 
             ForEach(visibleColumns) { column in
-                sortButton(
+                headerCell(
                     title: column.title,
                     field: sortField(for: column),
+                    width: widthBinding(for: column),
+                    range: widthRange(for: column),
                     alignment: column == .album ? .leading : .trailing
                 )
-                .frame(
-                    width: width(for: column)
-                )
             }
+
+            Spacer(minLength: 0)
 
             Menu {
                 Text("Columns")
@@ -73,33 +92,30 @@ struct SmartCollectionTrackTable: View {
         }
     }
 
-    private func sortButton(
+    private func headerCell(
         title: String,
         field: SmartCollectionSortField,
+        width: Binding<Double>,
+        range: TrackTableWidthRange,
         alignment: Alignment
     ) -> some View {
         let descriptor = model.selectedSmartCollectionSortDescriptor
         let isActive = descriptor.field == field
 
-        return Button {
-            model.activateSelectedSmartCollectionSort(field)
-        } label: {
-            HStack(spacing: 4) {
-                Text(title)
-                if isActive {
-                    Image(
-                        systemName: descriptor.direction == .ascending
-                            ? "chevron.up"
-                            : "chevron.down"
-                    )
-                    .font(.system(size: 8, weight: .bold))
-                }
+        return TrackTableHeaderCell(
+            title: title,
+            alignment: alignment,
+            isSorted: isActive,
+            direction: descriptor.direction == .ascending
+                ? .ascending
+                : .descending,
+            minimumWidth: range.minimum,
+            maximumWidth: range.maximum,
+            width: width,
+            sortAction: {
+                model.activateSelectedSmartCollectionSort(field)
             }
-            .frame(maxWidth: .infinity, alignment: alignment)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityValue(isActive ? "Sorted" : "Not sorted")
+        )
     }
 
     private var visibleColumns: [TrackTableColumn] {
@@ -134,192 +150,83 @@ struct SmartCollectionTrackTable: View {
         case .time: .duration
         }
     }
-}
 
-private struct SmartCollectionTrackTableRow: View {
-    @Bindable var model: CadenceAppModel
-
-    let track: TrackPreview
-    let columns: [TrackTableColumn]
-
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var isHovered = false
-
-    var body: some View {
-        HStack(spacing: 14) {
-            song
-                .frame(maxWidth: .infinity, alignment: .leading)
-
-            ForEach(columns) { column in
-                columnValue(column)
-                    .frame(
-                        width: width(for: column),
-                        alignment: column == .album ? .leading : .trailing
-                    )
-            }
-
-            Menu {
-                actions
-            } label: {
-                Image(systemName: "ellipsis")
-                    .foregroundStyle(isHovered ? .primary : .tertiary)
-                    .frame(width: 28, height: 28)
-                    .contentShape(Rectangle())
-            }
-            .menuIndicator(.hidden)
-            .menuStyle(.borderlessButton)
-            .help("Track Actions")
-        }
-        .padding(.horizontal, 12)
-        .frame(height: 58)
-        .background(isHovered ? CadenceTheme.hoverFill : .clear)
-        .contentShape(Rectangle())
-        .onHover { isHovered = $0 }
-        .onTapGesture {
-            model.selectTrack(track)
-        }
-        .onTapGesture(count: 2) {
-            model.playSelectedSmartCollectionTrack(track)
-        }
-        .contextMenu {
-            actions
-        }
-        .overlay(alignment: .bottom) {
-            Rectangle()
-                .fill(CadenceTheme.separator)
-                .frame(height: 1)
-                .padding(.leading, 54)
-        }
-        .accessibilityLabel(
-            "\(track.title), \(track.artist), \(track.album), "
-                + "\(track.format), \(track.durationText)"
+    private var widths: SmartCollectionTrackTableWidths {
+        SmartCollectionTrackTableWidths(
+            song: songWidth,
+            album: albumWidth,
+            year: yearWidth,
+            dateAdded: dateAddedWidth,
+            playCount: playCountWidth,
+            time: timeWidth
         )
     }
 
-    private var song: some View {
-        HStack(spacing: 10) {
-            Button {
-                model.playSelectedSmartCollectionTrack(track)
-            } label: {
-                MediaArtworkView(
-                    source: artworkSource,
-                    title: track.title,
-                    placeholder: .track,
-                    cornerRadius: 6
-                )
-                .frame(width: 40, height: 40)
-                .overlay {
-                    if isCurrent {
-                        RoundedRectangle(
-                            cornerRadius: 6,
-                            style: .continuous
-                        )
-                        .fill(.black.opacity(0.34))
-                        Image(
-                            systemName: model.isPlaying
-                                ? "waveform"
-                                : "speaker.fill"
-                        )
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(.white)
-                        .symbolEffect(
-                            .variableColor.iterative,
-                            options: reduceMotion || !model.isPlaying
-                                ? .nonRepeating
-                                : .repeating
-                        )
-                    }
-                }
-            }
-            .buttonStyle(.plain)
-            .help("Play \(track.title)")
-
-            VStack(alignment: .leading, spacing: 3) {
-                HStack(spacing: 7) {
-                    Text(track.title)
-                        .font(.callout.weight(isCurrent ? .semibold : .medium))
-                        .foregroundStyle(.primary)
-                        .lineLimit(1)
-
-                    Text(track.format.uppercased())
-                        .font(.system(size: 9, weight: .bold))
-                        .foregroundStyle(.secondary)
-                        .padding(.horizontal, 5)
-                        .padding(.vertical, 2)
-                        .background(
-                            CadenceTheme.subduedFill,
-                            in: Capsule()
-                        )
-                }
-
-                Button {
-                    model.requestOpenArtistContextually(id: track.artistID)
-                } label: {
-                    Text(track.artist)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                }
-                .buttonStyle(.plain)
-            }
+    private var minimumTableWidth: CGFloat {
+        let columnWidth = visibleColumns.reduce(0.0) {
+            $0 + widths[$1]
         }
+        let itemCount = visibleColumns.count + 3
+        let spacing = Double(max(itemCount - 1, 0)) * 14
+        return CGFloat(songWidth + columnWidth + spacing + 28 + 24)
     }
 
-    @ViewBuilder
-    private func columnValue(
-        _ column: TrackTableColumn
-    ) -> some View {
+    private func widthBinding(
+        for column: TrackTableColumn
+    ) -> Binding<Double> {
         switch column {
-        case .album:
-            Button {
-                model.requestOpenAlbumContextually(id: track.albumID)
-            } label: {
-                Text(track.album)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            .buttonStyle(.plain)
-        case .year:
-            Text(track.yearText)
-        case .dateAdded:
-            Text(track.dateAddedText)
-        case .playCount:
-            Text(track.playCount.formatted())
-        case .time:
-            Text(track.durationText)
+        case .album: $albumWidth
+        case .year: $yearWidth
+        case .dateAdded: $dateAddedWidth
+        case .playCount: $playCountWidth
+        case .time: $timeWidth
         }
     }
 
-    @ViewBuilder
-    private var actions: some View {
-        Button("Play Now", systemImage: "play.fill") {
-            model.playSelectedSmartCollectionTrack(track)
+    private func widthRange(
+        for column: TrackTableColumn
+    ) -> TrackTableWidthRange {
+        switch column {
+        case .album: TrackTableWidth.album
+        case .year: TrackTableWidth.year
+        case .dateAdded: TrackTableWidth.dateAdded
+        case .playCount: TrackTableWidth.playCount
+        case .time: TrackTableWidth.time
         }
-        ArtworkMenuItems(
-            model: model,
-            target: .track(track.id),
-            label: "Track Artwork"
-        )
-        Button("Edit Tags", systemImage: "tag") {
-            model.openTagEditor(for: track)
-        }
-    }
-
-    private var artworkSource: ResolvedArtworkSource {
-        track.artworkPalette.map(ResolvedArtworkSource.catalog)
-            ?? .placeholder(.track)
-    }
-
-    private var isCurrent: Bool {
-        model.currentTrackID == track.id
     }
 }
 
-private func width(
-    for column: TrackTableColumn
-) -> CGFloat {
-    switch column {
-    case .album: 190
-    case .dateAdded: 100
-    case .year, .playCount, .time: 58
+struct SmartCollectionTrackTableWidths {
+    let song: CGFloat
+    let album: CGFloat
+    let year: CGFloat
+    let dateAdded: CGFloat
+    let playCount: CGFloat
+    let time: CGFloat
+
+    init(
+        song: Double,
+        album: Double,
+        year: Double,
+        dateAdded: Double,
+        playCount: Double,
+        time: Double
+    ) {
+        self.song = CGFloat(song)
+        self.album = CGFloat(album)
+        self.year = CGFloat(year)
+        self.dateAdded = CGFloat(dateAdded)
+        self.playCount = CGFloat(playCount)
+        self.time = CGFloat(time)
+    }
+
+    subscript(column: TrackTableColumn) -> CGFloat {
+        switch column {
+        case .album: album
+        case .year: year
+        case .dateAdded: dateAdded
+        case .playCount: playCount
+        case .time: time
+        }
     }
 }

@@ -9,9 +9,9 @@ struct SmartCollectionResultsColumn: View {
 
             if model.smartCollectionDraft == nil {
                 noSelection
-            } else if model.tracks.isEmpty {
+            } else if isLibraryEmpty {
                 emptyLibrary
-            } else if model.smartCollectionLiveTracks.isEmpty {
+            } else if hasNoMatches {
                 noMatches
             } else {
                 results
@@ -57,18 +57,33 @@ struct SmartCollectionResultsColumn: View {
         .padding(.bottom, 10)
     }
 
+    @ViewBuilder
     private var results: some View {
-        ScrollView {
-            LazyVStack(spacing: 2) {
-                ForEach(model.smartCollectionLiveTracks) { track in
-                    SmartCollectionResultTrackRow(
-                        model: model,
-                        track: track
-                    )
-                }
+        if isProduction {
+            ScrollView {
+                ProductionTrackTable(
+                    model: model,
+                    tracks: model.productionSmartCollectionLiveTracks,
+                    showsHeader: false,
+                    compact: true,
+                    queueSource: selectedProductionQueueSource
+                )
+                .padding(.horizontal, 14)
+                .padding(.bottom, 16)
             }
-            .padding(.horizontal, 14)
-            .padding(.bottom, 16)
+        } else {
+            ScrollView {
+                LazyVStack(spacing: 2) {
+                    ForEach(model.smartCollectionLiveTracks) { track in
+                        SmartCollectionResultTrackRow(
+                            model: model,
+                            track: track
+                        )
+                    }
+                }
+                .padding(.horizontal, 14)
+                .padding(.bottom, 16)
+            }
         }
     }
 
@@ -104,8 +119,35 @@ struct SmartCollectionResultsColumn: View {
     }
 
     private var resultCount: String {
-        let count = model.smartCollectionLiveTracks.count
+        let count = isProduction
+            ? model.productionSmartCollectionLiveTracks.count
+            : model.smartCollectionLiveTracks.count
         return "\(count) \(count == 1 ? "track" : "tracks")"
+    }
+
+    private var isProduction: Bool {
+        model.librarySession.availability != .preview
+    }
+
+    private var isLibraryEmpty: Bool {
+        if isProduction {
+            return model.librarySession.store.smartCollectionIndex
+                .tracks.isEmpty
+        }
+        return model.tracks.isEmpty
+    }
+
+    private var hasNoMatches: Bool {
+        if isProduction {
+            return model.productionSmartCollectionLiveTracks.isEmpty
+        }
+        return model.smartCollectionLiveTracks.isEmpty
+    }
+
+    private var selectedProductionQueueSource: PlaybackQueueSource? {
+        model.selectedSmartCollectionID.map {
+            .smartCollection($0)
+        }
     }
 }
 

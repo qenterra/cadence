@@ -42,29 +42,57 @@ extension CadenceAppModel {
                 $0.sourceID == collection.id ? $0 : nil
             }
             let name = selectedDraft?.name ?? collection.name
-            let matchingTracks = selectedDraft == nil
-                ? evaluateSmartCollection(rule: collection.rule)
-                : smartCollectionLiveTracks
+            let matchCount: Int
+            let totalDuration: TimeInterval
+            if librarySession.availability != .preview {
+                let matchingTracks = ProductionSmartCollectionEvaluator()
+                    .evaluate(
+                        root: selectedDraft?.rule ?? collection.rule,
+                        index: librarySession.store.smartCollectionIndex
+                    )
+                matchCount = matchingTracks.count
+                totalDuration = matchingTracks.reduce(0) {
+                    $0 + $1.duration
+                }
+            } else {
+                let matchingTracks = selectedDraft == nil
+                    ? evaluateSmartCollection(rule: collection.rule)
+                    : smartCollectionLiveTracks
+                matchCount = matchingTracks.count
+                totalDuration = SmartCollectionListeningProjection
+                    .totalDuration(of: matchingTracks)
+            }
 
             return SmartCollectionListItem(
                 id: collection.id,
                 name: name,
-                matchCount: matchingTracks.count,
-                totalDuration: SmartCollectionListeningProjection
-                    .totalDuration(of: matchingTracks),
+                matchCount: matchCount,
+                totalDuration: totalDuration,
                 isTransient: false,
                 isSelected: isSelected
             )
         }
 
         if let draft = smartCollectionDraft, draft.sourceID == nil {
+            let matchCount: Int
+            let totalDuration: TimeInterval
+            if librarySession.availability != .preview {
+                let tracks = productionSmartCollectionLiveTracks
+                matchCount = tracks.count
+                totalDuration = tracks.reduce(0) {
+                    $0 + $1.duration
+                }
+            } else {
+                matchCount = smartCollectionLiveTracks.count
+                totalDuration = SmartCollectionListeningProjection
+                    .totalDuration(of: smartCollectionLiveTracks)
+            }
             items.append(
                 SmartCollectionListItem(
                     id: draft.id,
                     name: draft.name,
-                    matchCount: smartCollectionLiveTracks.count,
-                    totalDuration: SmartCollectionListeningProjection
-                        .totalDuration(of: smartCollectionLiveTracks),
+                    matchCount: matchCount,
+                    totalDuration: totalDuration,
                     isTransient: true,
                     isSelected: true
                 )
