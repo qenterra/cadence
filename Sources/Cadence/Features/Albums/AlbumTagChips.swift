@@ -12,7 +12,7 @@ struct AlbumTagChips: View {
             HStack(spacing: 8) {
                 ForEach(assignedTags.prefix(4)) { tag in
                     Button {
-                        model.openTagsDestination(selecting: tag)
+                        model.requestOpenTagContextually(tag)
                     } label: {
                         Label(tag.displayPath, systemImage: "tag")
                             .font(.caption)

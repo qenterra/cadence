@@ -10,7 +10,6 @@ struct AlbumsOverview: View {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 26) {
                     overviewHeader
-                        .id(AlbumBrowseAnchor.section(.recentlyAdded))
 
                     AlbumShelf(
                         model: model,
@@ -115,6 +114,7 @@ struct AlbumSortMenu: View {
             .foregroundStyle(.secondary)
         }
         .menuStyle(.borderlessButton)
+        .menuIndicator(.hidden)
         .fixedSize()
         .help("Sort All Albums")
     }

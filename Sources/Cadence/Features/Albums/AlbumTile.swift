@@ -15,9 +15,10 @@ struct AlbumTile: View {
             model.requestOpenAlbum(album, origin: origin)
         } label: {
             VStack(alignment: .leading, spacing: 0) {
-                ArtworkView(
-                    palette: album.artworkPalette,
+                MediaArtworkView(
+                    source: model.resolvedArtwork(for: album),
                     title: album.title,
+                    placeholder: .album,
                     cornerRadius: 7
                 )
                 .frame(width: width, height: width)

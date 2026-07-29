@@ -12,9 +12,10 @@ struct AlbumListeningHeader: View {
             ).artworkSize
 
             HStack(alignment: .center, spacing: 34) {
-                ArtworkView(
-                    palette: album.artworkPalette,
+                MediaArtworkView(
+                    source: model.resolvedArtwork(for: album),
                     title: album.title,
+                    placeholder: .album,
                     cornerRadius: 10
                 )
                 .frame(width: artworkSize, height: artworkSize)
@@ -26,11 +27,15 @@ struct AlbumListeningHeader: View {
                         .lineLimit(2)
                         .minimumScaleFactor(0.8)
 
-                    Text(album.artist)
-                        .font(.title3)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                        .padding(.top, 6)
+                    MediaMetadataLink(
+                        album.artist,
+                        accessibilityLabel: "Open artist \(album.artist)"
+                    ) {
+                        model.requestOpenArtistContextually(id: album.artist)
+                    }
+                    .font(.title3)
+                    .foregroundStyle(.secondary)
+                    .padding(.top, 6)
 
                     Text(metadata)
                         .font(.callout)
@@ -103,6 +108,14 @@ struct AlbumListeningHeader: View {
             )
 
             Menu {
+                ArtworkMenuItems(
+                    model: model,
+                    target: .album(album.id),
+                    label: "Album Artwork"
+                )
+
+                Divider()
+
                 Button("Edit Album Tags", systemImage: "tag") {
                     model.openTagEditor(for: album)
                 }

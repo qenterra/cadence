@@ -11,6 +11,7 @@ enum AlbumsBrowseOrigin: Hashable, Sendable {
     case overview
     case shelf(AlbumShelfKind)
     case search
+    case artist(ArtistPreview.ID)
 }
 
 enum AlbumShelfKind: String, CaseIterable, Hashable, Identifiable, Sendable {

@@ -13,7 +13,7 @@ struct AlbumDetailView: View {
                         model.requestAlbumsBack()
                     } label: {
                         Label(
-                            "Back to \(model.albumsBackTitle)",
+                            "Back to \(backTitle)",
                             systemImage: "chevron.left"
                         )
                     }
@@ -36,5 +36,11 @@ struct AlbumDetailView: View {
             AlbumTrackTable(model: model, album: album)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+    }
+
+    private var backTitle: String {
+        model.hasContextualBackNavigation
+            ? model.contextualBackTitle
+            : model.albumsBackTitle
     }
 }

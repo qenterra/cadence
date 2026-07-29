@@ -5,7 +5,6 @@ struct ArtistPreview: Identifiable, Hashable, Sendable {
     let name: String
     let albumCount: Int
     let trackCount: Int
-    let artworkPalette: ArtworkPalette
 }
 
 struct AlbumPreview: Identifiable, Hashable, Sendable {
@@ -16,7 +15,7 @@ struct AlbumPreview: Identifiable, Hashable, Sendable {
     let dateAdded: Date
     let trackCount: Int
     let totalDuration: TimeInterval
-    let artworkPalette: ArtworkPalette
+    let artworkPalette: ArtworkPalette?
     let genres: [String]
 
     var yearText: String {

@@ -40,6 +40,13 @@ extension CadenceAppModel {
         ).isEmpty
     }
 
+    var shouldPresentAlbumSearchResults: Bool {
+        guard case .detail = albumsPresentation else {
+            return isAlbumSearchActive
+        }
+        return false
+    }
+
     var presentedAlbum: AlbumPreview? {
         guard case let .detail(albumID, _) = albumsPresentation else {
             return nil
@@ -56,6 +63,8 @@ extension CadenceAppModel {
             return "Albums"
         case let .shelf(kind):
             return kind.title
+        case let .artist(artistID):
+            return artists.first { $0.id == artistID }?.name ?? "Artists"
         }
     }
 
@@ -130,6 +139,7 @@ extension CadenceAppModel {
         ).first?.id
         albumsFocusedAlbumID = album.id
         albumsPresentation = .detail(album.id, origin: origin)
+        selectedDestination = .albums
     }
 
     func requestShowAll(_ kind: AlbumShelfKind) {
@@ -143,6 +153,10 @@ extension CadenceAppModel {
     }
 
     func requestAlbumsBack() {
+        if hasContextualBackNavigation {
+            requestContextualBack()
+            return
+        }
         guard case let .detail(_, origin) = albumsPresentation else {
             albumsPresentation = .overview
             return
@@ -152,6 +166,24 @@ extension CadenceAppModel {
             .overview
         case let .shelf(kind):
             .shelf(kind)
+        case .artist:
+            .overview
+        }
+        if case let .artist(artistID) = origin {
+            let preservesExistingOrigin: Bool = if case let .detail(presentedArtistID, _) = artistsPresentation {
+                presentedArtistID == artistID
+            } else {
+                false
+            }
+            let artistExists = artists.contains { $0.id == artistID }
+
+            if !preservesExistingOrigin, artistExists {
+                artistsPresentation = .detail(
+                    artistID,
+                    origin: .overview
+                )
+            }
+            selectedDestination = .artists
         }
     }
 

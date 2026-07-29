@@ -18,7 +18,7 @@ struct TrackPreview: Identifiable, Hashable, Sendable {
     let lastPlayed: Date?
     let rating: Int
     let isFavorite: Bool
-    let artworkPalette: ArtworkPalette
+    let artworkPalette: ArtworkPalette?
 
     var artistID: String {
         artist

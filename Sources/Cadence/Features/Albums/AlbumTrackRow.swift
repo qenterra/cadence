@@ -42,6 +42,11 @@ struct AlbumTrackRow: View {
                 model.playAlbumTrack(track, in: album)
                 return .handled
             }
+            .accessibilityLabel(
+                "\(track.trackNumber), \(track.title), \(track.format), "
+                    + track.durationText
+            )
+            .accessibilityValue(accessibilityValue)
 
             Button {
                 showsTags.toggle()
@@ -75,12 +80,17 @@ struct AlbumTrackRow: View {
         }
         .contentShape(Rectangle())
         .onHover { isHovered = $0 }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel(
-            "\(track.trackNumber), \(track.title), \(track.format), "
-                + track.durationText
-        )
-        .accessibilityValue(accessibilityValue)
+        .contextMenu {
+            ArtworkMenuItems(
+                model: model,
+                target: .track(track.id),
+                label: "Track Artwork"
+            )
+
+            Button("Edit Tags", systemImage: "tag") {
+                model.openTagEditor(for: track)
+            }
+        }
     }
 
     @ViewBuilder

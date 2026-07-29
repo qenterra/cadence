@@ -7,40 +7,28 @@ struct AlbumsView: View {
 
     var body: some View {
         Group {
-            if model.isAlbumSearchActive {
-                AlbumGrid(
+            if model.librarySession.availability != .preview {
+                ProductionAlbumsView(
                     model: model,
-                    title: "Search Results",
-                    subtitle: searchSubtitle,
-                    albums: model.visibleAlbumSearchResults,
-                    origin: .search,
-                    scrollScope: nil,
-                    showsSortMenu: true
+                    store: model.librarySession.store
                 )
-            } else {
-                switch model.albumsPresentation {
-                case .overview:
-                    AlbumsOverview(model: model)
-                case let .shelf(kind):
-                    AlbumGrid(
-                        model: model,
-                        title: kind.title,
-                        subtitle: shelfSubtitle(kind),
-                        albums: shelfAlbums(kind),
-                        origin: .shelf(kind),
-                        scrollScope: kind,
-                        showsSortMenu: false,
-                        backAction: {
-                            model.albumsPresentation = .overview
-                        }
-                    )
-                case .detail:
-                    if let album = model.presentedAlbum {
-                        AlbumDetailView(model: model, album: album)
-                    } else {
-                        AlbumsOverview(model: model)
-                    }
+            } else if model.tracks.isEmpty {
+                EmptyLibraryView(
+                    title: "No Albums Yet",
+                    description: "Albums will appear here after you import music."
+                ) {
+                    model.requestNavigationDestination(.importMusic)
                 }
+            } else if case .detail = model.albumsPresentation {
+                if let album = model.presentedAlbum {
+                    AlbumDetailView(model: model, album: album)
+                } else {
+                    AlbumsOverview(model: model)
+                }
+            } else if model.shouldPresentAlbumSearchResults {
+                searchResults
+            } else {
+                browseContent
             }
         }
         .id(routeIdentity)
@@ -54,10 +42,46 @@ struct AlbumsView: View {
     }
 
     private var routeIdentity: String {
-        if model.isAlbumSearchActive {
+        if case .detail = model.albumsPresentation {
+            return String(describing: model.albumsPresentation)
+        }
+        if model.shouldPresentAlbumSearchResults {
             return "search"
         }
         return String(describing: model.albumsPresentation)
+    }
+
+    private var searchResults: some View {
+        AlbumGrid(
+            model: model,
+            title: "Search Results",
+            subtitle: searchSubtitle,
+            albums: model.visibleAlbumSearchResults,
+            origin: .search,
+            scrollScope: nil,
+            showsSortMenu: true
+        )
+    }
+
+    @ViewBuilder
+    private var browseContent: some View {
+        switch model.albumsPresentation {
+        case .overview, .detail:
+            AlbumsOverview(model: model)
+        case let .shelf(kind):
+            AlbumGrid(
+                model: model,
+                title: kind.title,
+                subtitle: shelfSubtitle(kind),
+                albums: shelfAlbums(kind),
+                origin: .shelf(kind),
+                scrollScope: kind,
+                showsSortMenu: false,
+                backAction: {
+                    model.albumsPresentation = .overview
+                }
+            )
+        }
     }
 
     private var searchSubtitle: String {
