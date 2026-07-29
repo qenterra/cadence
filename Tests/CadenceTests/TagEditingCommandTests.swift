@@ -6,7 +6,7 @@ import Testing
 struct TagEditingCommandTests {
     @Test("Bulk assignment is one undoable and redoable operation")
     func bulkAssignmentUndo() {
-        let model = CadenceAppModel()
+        let model = CadenceAppModel.preview()
         let undoManager = UndoManager()
         let targets: [TagAssignmentTarget] = [.track(1), .track(2)]
 
@@ -40,7 +40,7 @@ struct TagEditingCommandTests {
 
     @Test("Album batches use the same semantic command path")
     func albumBatchAssignment() {
-        let model = CadenceAppModel()
+        let model = CadenceAppModel.preview()
         let targets = model.albums.prefix(2).map {
             TagAssignmentTarget.album($0.id)
         }
@@ -74,12 +74,12 @@ struct TagEditingCommandTests {
 
     @Test("Removing a direct tag reveals an inherited album tag")
     func removeDirectRevealsInheritance() throws {
-        let base = CadenceAppModel()
+        let base = CadenceAppModel.preview()
         var assignments = base.tagAssignments
         assignments.insert(
             TagAssignmentPreview(tagID: "genre/ambient", target: .track(1))
         )
-        let model = CadenceAppModel(tagAssignments: assignments)
+        let model = CadenceAppModel.preview(tagAssignments: assignments)
 
         #expect(
             model.performTagEdit(
@@ -93,7 +93,7 @@ struct TagEditingCommandTests {
 
     @Test("Exclude and restore mutate only applicable inherited tracks")
     func excludeAndRestore() throws {
-        let model = CadenceAppModel()
+        let model = CadenceAppModel.preview()
         let track = try #require(model.tracks.first { $0.id == 1 })
         let undoManager = UndoManager()
 
@@ -136,7 +136,7 @@ struct TagEditingCommandTests {
 
     @Test("Create and assign normalizes paths and does not duplicate existing tags")
     func createAndAssign() {
-        let model = CadenceAppModel()
+        let model = CadenceAppModel.preview()
         let originalTagCount = model.tags.count
 
         #expect(
@@ -166,7 +166,7 @@ struct TagEditingCommandTests {
 
     @Test("Create and assign undo removes an unreferenced new tag")
     func createAndAssignUndo() {
-        let model = CadenceAppModel()
+        let model = CadenceAppModel.preview()
         let undoManager = UndoManager()
 
         #expect(
@@ -189,7 +189,7 @@ struct TagEditingCommandTests {
 
     @Test("Removing the active result prunes selection and Undo conditionally restores it")
     func activeResultSelectionRestoration() throws {
-        let model = CadenceAppModel()
+        let model = CadenceAppModel.preview()
         let sad = try #require(model.tags.first { $0.id == "mood/sad" })
         let undoManager = UndoManager()
 
@@ -227,7 +227,7 @@ struct TagEditingCommandTests {
 
     @Test("Changing tag group, tag, or scope clears batch selection")
     func browsingContextClearsSelection() throws {
-        let model = CadenceAppModel()
+        let model = CadenceAppModel.preview()
 
         model.openTagInspector(for: .track(1))
         model.updateTagEditingSelection(.toggle, target: .track(1))

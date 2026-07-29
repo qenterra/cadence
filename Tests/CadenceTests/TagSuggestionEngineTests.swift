@@ -6,7 +6,7 @@ import Testing
 struct TagSuggestionEngineTests {
     @Test("Track album peers produce the strongest local evidence")
     func trackAlbumPeers() throws {
-        let model = CadenceAppModel(
+        let model = CadenceAppModel.preview(
             tagAssignments: assignments(
                 adding: "mood/calm",
                 toTracks: [2, 3, 4, 5, 6, 7]
@@ -24,7 +24,7 @@ struct TagSuggestionEngineTests {
 
     @Test("Track artist consistency requires multiple other albums")
     func trackArtistConsistency() throws {
-        let model = CadenceAppModel(
+        let model = CadenceAppModel.preview(
             tagAssignments: assignments(
                 adding: "roadtrip",
                 toTracks: [13, 15, 17]
@@ -41,7 +41,7 @@ struct TagSuggestionEngineTests {
 
     @Test("Track co-occurrence uses an effective seed tag")
     func trackCooccurrence() throws {
-        let model = CadenceAppModel(
+        let model = CadenceAppModel.preview(
             tagAssignments: assignments(
                 adding: "mood/calm",
                 toTracks: Array(1 ... 8)
@@ -59,7 +59,7 @@ struct TagSuggestionEngineTests {
     @Test("Album track consensus suggests an album assignment")
     func albumTrackConsensus() throws {
         let albumID = "North Assembly\u{1F}Signals After Dark"
-        let model = CadenceAppModel(
+        let model = CadenceAppModel.preview(
             tagAssignments: assignments(
                 adding: "mood/sad",
                 toTracks: Array(1 ... 8)
@@ -77,7 +77,7 @@ struct TagSuggestionEngineTests {
     @Test("Album artist consistency uses direct album assignments")
     func albumArtistConsistency() throws {
         let coastalID = "North Assembly\u{1F}Coastal Machines"
-        let model = CadenceAppModel()
+        let model = CadenceAppModel.preview()
         let suggestion = try #require(
             model.tagSuggestions(for: [.album(coastalID)])
                 .first { $0.tag.id == "context/night" }
@@ -89,7 +89,7 @@ struct TagSuggestionEngineTests {
 
     @Test("Suggestions aggregate eligible targets and remain deterministic")
     func aggregationAndOrdering() throws {
-        let model = CadenceAppModel(
+        let model = CadenceAppModel.preview(
             tagAssignments: assignments(
                 adding: "mood/calm",
                 toTracks: [2, 3, 4, 5, 6, 7]
@@ -116,7 +116,7 @@ struct TagSuggestionEngineTests {
         let exclusions: Set<TagExclusionPreview> = [
             TagExclusionPreview(tagID: "mood/calm", trackID: 1),
         ]
-        let excludedModel = CadenceAppModel(
+        let excludedModel = CadenceAppModel.preview(
             tagAssignments: assignments,
             tagExclusions: exclusions
         )
@@ -125,7 +125,7 @@ struct TagSuggestionEngineTests {
                 .allSatisfy { $0.tag.id != "mood/calm" }
         )
 
-        let dismissedModel = CadenceAppModel(tagAssignments: assignments)
+        let dismissedModel = CadenceAppModel.preview(tagAssignments: assignments)
         #expect(
             dismissedModel.performTagEdit(
                 .dismissSuggestion(tagID: "mood/calm", targets: [.track(1)])
@@ -139,7 +139,7 @@ struct TagSuggestionEngineTests {
 
     @Test("Accept remains an explicit undoable operation")
     func acceptUndo() throws {
-        let model = CadenceAppModel(
+        let model = CadenceAppModel.preview(
             tagAssignments: assignments(
                 adding: "mood/calm",
                 toTracks: [2, 3, 4, 5, 6, 7]
@@ -175,7 +175,7 @@ struct TagSuggestionEngineTests {
 
     @Test("Dismiss creates no assignment and supports Undo and Redo")
     func dismissUndo() {
-        let model = CadenceAppModel(
+        let model = CadenceAppModel.preview(
             tagAssignments: assignments(
                 adding: "mood/calm",
                 toTracks: [2, 3, 4, 5, 6, 7]
@@ -211,7 +211,7 @@ struct TagSuggestionEngineTests {
 
     @Test("Accept revalidates a stale suggestion before assigning")
     func staleAccept() {
-        let model = CadenceAppModel(
+        let model = CadenceAppModel.preview(
             tagAssignments: assignments(
                 adding: "mood/calm",
                 toTracks: [2, 3, 4, 5, 6, 7]

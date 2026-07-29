@@ -7,7 +7,7 @@ struct SmartCollectionListeningAppModelTests {
     @Test("Saved projections remain independent from editor live results")
     func savedAndDraftIsolation() throws {
         let collection = allTracksCollection(id: testID(1))
-        let model = CadenceAppModel(smartCollections: [collection])
+        let model = CadenceAppModel.preview(smartCollections: [collection])
         let savedIDs = model.selectedSmartCollectionCanonicalTracks.map(\.id)
 
         model.requestEditSelectedSmartCollection()
@@ -29,7 +29,7 @@ struct SmartCollectionListeningAppModelTests {
     func independentSorting() {
         let first = allTracksCollection(id: testID(10), name: "First")
         let second = allTracksCollection(id: testID(11), name: "Second")
-        let model = CadenceAppModel(smartCollections: [first, second])
+        let model = CadenceAppModel.preview(smartCollections: [first, second])
 
         model.activateSelectedSmartCollectionSort(.title)
         let firstOrder = model.selectedSmartCollectionVisibleTracks.map(\.id)
@@ -49,7 +49,7 @@ struct SmartCollectionListeningAppModelTests {
     @Test("List metadata uses saved matches and transient draft live results")
     func listMetadata() throws {
         let collection = allTracksCollection(id: testID(20))
-        let model = CadenceAppModel(smartCollections: [collection])
+        let model = CadenceAppModel.preview(smartCollections: [collection])
         let savedItem = try #require(model.smartCollectionListItems.first)
 
         #expect(savedItem.matchCount == model.tracks.count)
@@ -72,7 +72,7 @@ struct SmartCollectionListeningAppModelTests {
     @Test("Play uses visible order and keeps a stable queue snapshot")
     func playAndSnapshot() throws {
         let collection = allTracksCollection(id: testID(30))
-        let model = CadenceAppModel(smartCollections: [collection])
+        let model = CadenceAppModel.preview(smartCollections: [collection])
         model.activateSelectedSmartCollectionSort(.title)
         let visibleIDs = model.selectedSmartCollectionVisibleTracks.map(\.id)
         let start = try #require(
@@ -93,7 +93,7 @@ struct SmartCollectionListeningAppModelTests {
     @Test("Row activation and seeded Shuffle create collection queues")
     func rowAndShuffle() throws {
         let collection = allTracksCollection(id: testID(40))
-        let model = CadenceAppModel(smartCollections: [collection])
+        let model = CadenceAppModel.preview(smartCollections: [collection])
         let row = try #require(model.selectedSmartCollectionVisibleTracks.last)
 
         #expect(model.playSelectedSmartCollectionTrack(row))

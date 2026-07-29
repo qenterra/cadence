@@ -5,7 +5,7 @@ import Testing
 struct TagEditingNavigationTests {
     @Test("A library track opens as the exact target in the tag editor")
     func libraryTrackEntryPoint() throws {
-        let model = CadenceAppModel()
+        let model = CadenceAppModel.preview()
         let track = try #require(model.tracks.first { $0.id == 21 })
 
         model.openTagEditor(for: track)
@@ -21,7 +21,7 @@ struct TagEditingNavigationTests {
 
     @Test("An untagged library track remains editable after its first assignment")
     func untaggedLibraryTrackEntryPoint() throws {
-        let model = CadenceAppModel()
+        let model = CadenceAppModel.preview()
         let track = try #require(model.tracks.first { $0.id == 26 })
         #expect(model.effectiveTags(for: track).isEmpty)
 
@@ -39,7 +39,7 @@ struct TagEditingNavigationTests {
 
     @Test("Select All targets every visible result in canonical order")
     func selectAllTagResults() throws {
-        let model = CadenceAppModel()
+        let model = CadenceAppModel.preview()
         let ambient = try #require(
             model.tags.first { $0.id == "genre/ambient" }
         )

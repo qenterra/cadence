@@ -1,40 +1,26 @@
 @testable import Cadence
-import CoreGraphics
 import Testing
 
 struct SmartCollectionsLayoutTests {
-    @Test("Supported widths keep the collection list stable")
-    func minimums() {
-        for totalWidth in [1006.0, 1438.0, 1726.0] {
-            let width = CGFloat(totalWidth)
-            let columns = SmartCollectionsColumnWidths(totalWidth: width)
+    @Test("Listening panes expose practical native split-view limits")
+    func listeningPaneConstraints() {
+        let list = SmartCollectionsPaneConstraints.list
 
-            #expect((230 ... 260).contains(columns.collections))
-            #expect(columns.content >= 775)
-            #expect(
-                abs(
-                    columns.collections + columns.content
-                        - (width - 1)
-                ) < 0.001
-            )
-            #expect((390 ... 460).contains(columns.builder))
-            #expect(columns.results >= 380)
-            #expect(
-                abs(
-                    columns.collections + columns.builder + columns.results
-                        - (width - 2)
-                ) < 0.001
-            )
-        }
+        #expect(list.minimum == 220)
+        #expect(list.ideal == 250)
+        #expect(list.maximum == 380)
+        #expect(
+            SmartCollectionsPaneConstraints.workspaceMinimum == 720
+        )
     }
 
-    @Test("Wide windows cap the list and builder while content expands")
-    func wideWindow() {
-        let columns = SmartCollectionsColumnWidths(totalWidth: 1726)
+    @Test("Editor panes remain independently resizable")
+    func editorPaneConstraints() {
+        let builder = SmartCollectionsPaneConstraints.builder
 
-        #expect(columns.collections == 260)
-        #expect(columns.content == 1465)
-        #expect(columns.builder == 460)
-        #expect(columns.results == 1004)
+        #expect(builder.minimum == 360)
+        #expect(builder.ideal == 430)
+        #expect(builder.maximum == 620)
+        #expect(SmartCollectionsPaneConstraints.resultsMinimum == 360)
     }
 }
