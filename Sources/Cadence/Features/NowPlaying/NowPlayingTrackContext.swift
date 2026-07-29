@@ -12,9 +12,10 @@ struct NowPlayingTrackContext: View {
 
             Spacer(minLength: 16)
 
-            ArtworkView(
-                palette: track.artworkPalette,
+            MediaArtworkView(
+                source: model.resolvedArtwork(for: track),
                 title: track.title,
+                placeholder: .track,
                 cornerRadius: 18,
                 fillsAvailableSpace: true
             )
@@ -58,15 +59,28 @@ struct NowPlayingTrackContext: View {
                 .font(.system(size: 28, weight: .semibold))
                 .lineLimit(2)
 
-            Text(track.artist)
-                .font(.title3.weight(.medium))
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
+            MediaMetadataLink(
+                track.artist,
+                accessibilityLabel: "Open artist \(track.artist)"
+            ) {
+                model.requestOpenArtistContextually(id: track.artistID)
+            }
+            .font(.title3.weight(.medium))
+            .foregroundStyle(.secondary)
 
-            Text("\(track.album) · \(track.yearText)")
-                .font(.callout)
-                .foregroundStyle(.tertiary)
-                .lineLimit(1)
+            HStack(spacing: 0) {
+                MediaMetadataLink(
+                    track.album,
+                    accessibilityLabel: "Open album \(track.album)"
+                ) {
+                    model.requestOpenAlbumContextually(id: track.albumID)
+                }
+
+                Text(" · \(track.yearText)")
+            }
+            .font(.callout)
+            .foregroundStyle(.tertiary)
+            .lineLimit(1)
         }
     }
 
@@ -80,22 +94,30 @@ struct NowPlayingTrackContext: View {
                     .foregroundStyle(.tertiary)
 
                 ForEach(effectiveTags.prefix(3)) { tag in
-                    Text(tag.displayPath)
-                        .font(.caption.weight(.medium))
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                        .padding(.horizontal, 9)
-                        .padding(.vertical, 5)
-                        .background(
-                            CadenceTheme.subduedFill,
-                            in: Capsule()
-                        )
+                    Button {
+                        model.requestOpenTagContextually(tag)
+                    } label: {
+                        Text(tag.displayPath)
+                            .font(.caption.weight(.medium))
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                            .padding(.horizontal, 9)
+                            .padding(.vertical, 5)
+                            .background(
+                                CadenceTheme.subduedFill,
+                                in: Capsule()
+                            )
+                    }
+                    .buttonStyle(.plain)
+                    .help("Show tracks tagged \(tag.displayPath)")
                 }
 
                 if effectiveTags.count > 3 {
                     Menu {
                         ForEach(effectiveTags.dropFirst(3)) { tag in
-                            Text(tag.displayPath)
+                            Button(tag.displayPath) {
+                                model.requestOpenTagContextually(tag)
+                            }
                         }
                     } label: {
                         Text("+\(effectiveTags.count - 3)")
@@ -132,6 +154,14 @@ struct NowPlayingTrackContext: View {
             }
 
             Menu {
+                ArtworkMenuItems(
+                    model: model,
+                    target: .track(track.id),
+                    label: "Track Artwork"
+                )
+
+                Divider()
+
                 Text("\(track.format) · \(track.bitDepth)-bit")
                 Text(track.sampleRateText)
                 Text(track.fileSize)

@@ -102,6 +102,11 @@ extension CadenceAppModel {
     }
 
     func togglePlayback() {
+        if let playbackCoordinator,
+           playbackCoordinator.state.currentTrack != nil {
+            playbackCoordinator.togglePlayback()
+            return
+        }
         guard currentTrackID != nil else {
             if let track = selectedTrack ?? tracks.first {
                 play(track)
@@ -112,10 +117,18 @@ extension CadenceAppModel {
     }
 
     func selectPreviousTrack() {
+        if currentPlaybackTrack != nil {
+            moveProductionQueue(by: -1)
+            return
+        }
         requestPlaybackQueueMove(by: -1)
     }
 
     func selectNextTrack() {
+        if currentPlaybackTrack != nil {
+            moveProductionQueue(by: 1)
+            return
+        }
         requestPlaybackQueueMove(by: 1)
     }
 

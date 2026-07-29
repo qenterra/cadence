@@ -7,7 +7,7 @@ extension CadenceAppModel {
 
     @discardableResult
     func presentNowPlaying() -> Bool {
-        guard let currentTrack else {
+        guard hasCurrentPlaybackItem else {
             return false
         }
 
@@ -25,15 +25,19 @@ extension CadenceAppModel {
         }
 
         preparePlaybackQueueIfNeeded()
-        selectedNowPlayingPanel = lastNowPlayingPanel
-            ?? (lyricDocuments[currentTrack.id] == nil ? .queue : .lyrics)
+        if let currentTrack {
+            selectedNowPlayingPanel = lastNowPlayingPanel
+                ?? (lyricDocuments[currentTrack.id] == nil ? .queue : .lyrics)
+        } else {
+            selectedNowPlayingPanel = lastNowPlayingPanel ?? .queue
+        }
         playbackWorkspace = .nowPlaying
         return true
     }
 
     @discardableResult
     func presentPlaybackQueue() -> Bool {
-        guard currentTrack != nil || activePlaybackQueue != nil else {
+        guard hasCurrentPlaybackItem || activePlaybackQueue != nil else {
             return false
         }
 
@@ -76,6 +80,10 @@ extension CadenceAppModel {
     }
 
     func requestPlaybackQueueMove(by offset: Int) {
+        if currentPlaybackTrack != nil {
+            moveProductionQueue(by: offset)
+            return
+        }
         let requiresConfirmation = playbackWorkspace == .lyricsEditor
             && isLyricDraftDirty
         if requiresConfirmation {

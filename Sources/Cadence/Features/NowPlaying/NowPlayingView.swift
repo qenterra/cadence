@@ -28,9 +28,17 @@ struct NowPlayingView: View {
                         .frame(width: layout.panelWidth)
                 }
                 .background {
-                    ArtworkHaze(palette: track.artworkPalette)
-                        .allowsHitTesting(false)
+                    ArtworkHaze(
+                        palette: model.resolvedArtwork(for: track).palette
+                    )
+                    .allowsHitTesting(false)
                 }
+                .transition(.opacity)
+            } else if let track = model.currentPlaybackTrack {
+                ProductionNowPlayingView(
+                    model: model,
+                    track: track
+                )
                 .transition(.opacity)
             } else {
                 ContentUnavailableView {

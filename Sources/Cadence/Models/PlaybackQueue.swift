@@ -3,6 +3,7 @@ import Foundation
 struct PlaybackQueue: Hashable, Sendable {
     enum Source: Hashable, Sendable {
         case album(AlbumPreview.ID)
+        case artist(ArtistPreview.ID)
         case smartCollection(SmartCollectionPreview.ID)
         case adHoc
     }
