@@ -138,18 +138,6 @@ private extension ProductionLibraryView {
             artistRowLabel(artist)
         }
         .buttonStyle(CadenceRowButtonStyle())
-        .overlay(alignment: .trailing) {
-            Menu {
-                artistActions(artist)
-            } label: {
-                Image(systemName: "ellipsis")
-                    .frame(width: 28, height: 28)
-            }
-            .menuIndicator(.hidden)
-            .menuStyle(.borderlessButton)
-            .padding(.trailing, 8)
-            .help("Artist Actions")
-        }
         .contextMenu {
             artistActions(artist)
         }
@@ -173,18 +161,6 @@ private extension ProductionLibraryView {
             albumRowLabel(album)
         }
         .buttonStyle(CadenceRowButtonStyle())
-        .overlay(alignment: .trailing) {
-            Menu {
-                albumActions(album)
-            } label: {
-                Image(systemName: "ellipsis")
-                    .frame(width: 28, height: 28)
-            }
-            .menuIndicator(.hidden)
-            .menuStyle(.borderlessButton)
-            .padding(.trailing, 8)
-            .help("Album Actions")
-        }
         .contextMenu {
             albumActions(album)
         }

@@ -23,7 +23,8 @@ struct ProductionSearchResultsView: View {
                         tagsSection
                         tracksSection
                     }
-                    .padding(28)
+                    .padding(.horizontal, 28)
+                    .padding(.vertical, 24)
                 }
             }
         }
@@ -33,12 +34,10 @@ struct ProductionSearchResultsView: View {
 
 private extension ProductionSearchResultsView {
     private var header: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("Search")
-                .font(.largeTitle.bold())
-            Text("Results for “\(store.catalogSearchQuery)”")
-                .foregroundStyle(.secondary)
-        }
+        CadencePageHeader(
+            "Search",
+            subtitle: "Results for “\(store.catalogSearchQuery)”"
+        )
     }
 
     @ViewBuilder
@@ -47,21 +46,22 @@ private extension ProductionSearchResultsView {
             resultSection("Artists") {
                 resultGrid {
                     ForEach(store.catalogSearchResults.artists) { artist in
-                        mediaResultButton(
-                            title: artist.name,
-                            subtitle: "\(artist.albumCount) albums · \(artist.trackCount) tracks",
-                            artworkID: artist.customArtworkID,
-                            placeholder: .artist
-                        ) {
-                            model.requestOpenProductionArtistContextually(
-                                id: artist.id
-                            )
-                        }
-                        .overlay(alignment: .trailing) {
-                            mediaActionsMenu {
+                        mediaResultRow(
+                            ProductionSearchMediaResult(
+                                title: artist.name,
+                                subtitle: "\(artist.albumCount) albums · \(artist.trackCount) tracks",
+                                artworkID: artist.customArtworkID,
+                                placeholder: .artist
+                            ),
+                            action: {
+                                model.requestOpenProductionArtistContextually(
+                                    id: artist.id
+                                )
+                            },
+                            actions: {
                                 artistActions(artist)
                             }
-                        }
+                        )
                         .contextMenu {
                             artistActions(artist)
                         }
@@ -77,21 +77,22 @@ private extension ProductionSearchResultsView {
             resultSection("Albums") {
                 resultGrid {
                     ForEach(store.catalogSearchResults.albums) { album in
-                        mediaResultButton(
-                            title: album.title,
-                            subtitle: album.artist,
-                            artworkID: album.customArtworkID,
-                            placeholder: .album
-                        ) {
-                            model.requestOpenProductionAlbumContextually(
-                                id: album.id
-                            )
-                        }
-                        .overlay(alignment: .trailing) {
-                            mediaActionsMenu {
+                        mediaResultRow(
+                            ProductionSearchMediaResult(
+                                title: album.title,
+                                subtitle: album.artist,
+                                artworkID: album.customArtworkID,
+                                placeholder: .album
+                            ),
+                            action: {
+                                model.requestOpenProductionAlbumContextually(
+                                    id: album.id
+                                )
+                            },
+                            actions: {
                                 albumActions(album)
                             }
-                        }
+                        )
                         .contextMenu {
                             albumActions(album)
                         }
@@ -150,7 +151,10 @@ private extension ProductionSearchResultsView {
     ) -> some View {
         LazyVGrid(
             columns: [
-                GridItem(.adaptive(minimum: 220), spacing: 12),
+                GridItem(
+                    .adaptive(minimum: 260, maximum: 420),
+                    spacing: 12
+                ),
             ],
             alignment: .leading,
             spacing: 12
@@ -185,50 +189,51 @@ private extension ProductionSearchResultsView {
         .buttonStyle(.plain)
     }
 
-    private func mediaResultButton(
-        title: String,
-        subtitle: String,
-        artworkID: UUID?,
-        placeholder: ArtworkPlaceholder,
-        action: @escaping () -> Void
+    private func mediaResultRow(
+        _ result: ProductionSearchMediaResult,
+        action: @escaping () -> Void,
+        @ViewBuilder actions: () -> some View
     ) -> some View {
-        Button(action: action) {
-            HStack(spacing: 12) {
-                ProductionArtworkView(
-                    model: model,
-                    artworkID: artworkID,
-                    title: title,
-                    placeholder: placeholder,
-                    cornerRadius: placeholder == .artist ? 17 : 8
-                )
-                .frame(width: 34, height: 34)
-                .clipShape(
-                    placeholder == .artist
-                        ? AnyShape(Circle())
-                        : AnyShape(RoundedRectangle(cornerRadius: 8))
-                )
+        HStack(spacing: 0) {
+            Button(action: action) {
+                HStack(spacing: 12) {
+                    ProductionArtworkView(
+                        model: model,
+                        artworkID: result.artworkID,
+                        title: result.title,
+                        placeholder: result.placeholder,
+                        cornerRadius: result.placeholder == .artist ? 20 : 8
+                    )
+                    .frame(width: 40, height: 40)
+                    .clipShape(
+                        result.placeholder == .artist
+                            ? AnyShape(Circle())
+                            : AnyShape(RoundedRectangle(cornerRadius: 8))
+                    )
 
-                resultLabels(title: title, subtitle: subtitle)
-                Spacer()
+                    resultLabels(
+                        title: result.title,
+                        subtitle: result.subtitle
+                    )
+                    Spacer(minLength: 8)
+                }
+                .padding(.leading, 12)
+                .padding(.vertical, 10)
+                .contentShape(Rectangle())
             }
-            .padding(12)
-            .background(CadenceTheme.hoverFill)
-            .clipShape(RoundedRectangle(cornerRadius: 10))
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-    }
+            .buttonStyle(.plain)
 
-    private func mediaActionsMenu(
-        @ViewBuilder content: () -> some View
-    ) -> some View {
-        Menu(content: content) {
-            Image(systemName: "ellipsis")
-                .frame(width: 30, height: 30)
+            Menu(content: actions) {
+                Image(systemName: "ellipsis")
+                    .frame(width: 30, height: 30)
+            }
+            .menuIndicator(.hidden)
+            .menuStyle(.borderlessButton)
+            .padding(.trailing, 8)
+            .help("More Actions")
         }
-        .menuIndicator(.hidden)
-        .padding(.trailing, 10)
-        .help("More Actions")
+        .background(CadenceTheme.subduedFill)
+        .clipShape(RoundedRectangle(cornerRadius: 10))
     }
 
     @ViewBuilder
@@ -303,4 +308,11 @@ private extension ProductionSearchResultsView {
                 .lineLimit(1)
         }
     }
+}
+
+private struct ProductionSearchMediaResult {
+    let title: String
+    let subtitle: String
+    let artworkID: UUID?
+    let placeholder: ArtworkPlaceholder
 }

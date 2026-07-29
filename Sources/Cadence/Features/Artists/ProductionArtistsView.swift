@@ -55,13 +55,10 @@ struct ProductionArtistsView: View {
     }
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("Artists")
-                .font(.largeTitle.bold())
-            Text("\(store.artists.count) artists")
-                .font(.callout)
-                .foregroundStyle(.secondary)
-        }
+        CadencePageHeader(
+            "Artists",
+            subtitle: "\(store.artists.count) artists"
+        )
     }
 
     private func artistTile(
@@ -137,19 +134,6 @@ private struct ProductionArtistTile: View {
         }
         .buttonStyle(CadenceRowButtonStyle())
         .onHover { isHovered = $0 }
-        .overlay(alignment: .topTrailing) {
-            Menu {
-                artistActions
-            } label: {
-                Image(systemName: "ellipsis")
-                    .frame(width: 30, height: 30)
-                    .background(.regularMaterial, in: Circle())
-            }
-            .menuIndicator(.hidden)
-            .padding(18)
-            .opacity(isHovered ? 1 : 0.72)
-            .help("Artist Actions")
-        }
         .contextMenu {
             artistActions
         }

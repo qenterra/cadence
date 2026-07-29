@@ -115,7 +115,7 @@ struct ContextualNavigationTests {
     }
 
     @Test("Production routes use UUID identities and restore their source")
-    func productionRouteRoundTrip() {
+    func productionRouteRoundTrip() async {
         let model = CadenceAppModel.production(
             librarySession: .startup(
                 location: ManagedLibraryLocation(
@@ -126,16 +126,19 @@ struct ContextualNavigationTests {
         )
         let artistID = UUID()
         model.selectedDestination = .library
+        await model.librarySession.store.searchCatalog("North")
 
         model.requestOpenProductionArtistContextually(id: artistID)
 
         #expect(model.selectedDestination == .artists)
         #expect(model.selectedProductionArtistID == artistID)
         #expect(model.hasContextualBackNavigation)
+        #expect(model.librarySession.store.catalogSearchQuery.isEmpty)
 
         model.requestContextualBack()
 
         #expect(model.selectedDestination == .library)
         #expect(model.selectedProductionArtistID == nil)
+        #expect(model.librarySession.store.catalogSearchQuery == "North")
     }
 }

@@ -79,35 +79,41 @@ struct TrackTableSortDescriptor {
     }
 }
 
+struct TrackTableWidthRange {
+    let minimum: Double
+    let defaultValue: Double
+    let maximum: Double
+}
+
 enum TrackTableWidth {
-    static let song = (
+    static let song = TrackTableWidthRange(
         minimum: 220.0,
-        default: 360.0,
+        defaultValue: 360.0,
         maximum: 720.0
     )
-    static let album = (
+    static let album = TrackTableWidthRange(
         minimum: 130.0,
-        default: 220.0,
+        defaultValue: 220.0,
         maximum: 520.0
     )
-    static let year = (
+    static let year = TrackTableWidthRange(
         minimum: 54.0,
-        default: 72.0,
+        defaultValue: 72.0,
         maximum: 120.0
     )
-    static let dateAdded = (
+    static let dateAdded = TrackTableWidthRange(
         minimum: 90.0,
-        default: 120.0,
+        defaultValue: 120.0,
         maximum: 220.0
     )
-    static let playCount = (
+    static let playCount = TrackTableWidthRange(
         minimum: 54.0,
-        default: 76.0,
+        defaultValue: 76.0,
         maximum: 140.0
     )
-    static let time = (
+    static let time = TrackTableWidthRange(
         minimum: 54.0,
-        default: 72.0,
+        defaultValue: 72.0,
         maximum: 120.0
     )
 }
@@ -162,23 +168,26 @@ struct TrackTableHeaderCell: View {
                     }
                 }
                 .gesture(
-                    DragGesture(minimumDistance: 1)
-                        .onChanged { value in
-                            if dragStartWidth == nil {
-                                dragStartWidth = width
-                            }
-                            let start = dragStartWidth ?? width
-                            width = min(
-                                max(
-                                    start + Double(value.translation.width),
-                                    minimumWidth
-                                ),
-                                maximumWidth
-                            )
+                    DragGesture(
+                        minimumDistance: 1,
+                        coordinateSpace: .global
+                    )
+                    .onChanged { value in
+                        if dragStartWidth == nil {
+                            dragStartWidth = width
                         }
-                        .onEnded { _ in
-                            dragStartWidth = nil
-                        }
+                        let start = dragStartWidth ?? width
+                        width = min(
+                            max(
+                                start + Double(value.translation.width),
+                                minimumWidth
+                            ),
+                            maximumWidth
+                        )
+                    }
+                    .onEnded { _ in
+                        dragStartWidth = nil
+                    }
                 )
                 .onHover { isInside in
                     if isInside, !isResizerHovered {
@@ -187,6 +196,12 @@ struct TrackTableHeaderCell: View {
                         NSCursor.pop()
                     }
                     isResizerHovered = isInside
+                }
+                .onDisappear {
+                    if isResizerHovered {
+                        NSCursor.pop()
+                        isResizerHovered = false
+                    }
                 }
         }
         .accessibilityValue(

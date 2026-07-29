@@ -96,6 +96,8 @@ extension CadenceAppModel {
     }
 
     private func applyContextualRoute(_ route: ContextualMediaRoute) {
+        librarySession.store.clearCatalogSearch()
+
         switch route {
         case let .artist(artistID):
             guard let artist = artists.first(where: { $0.id == artistID }) else {
@@ -164,6 +166,7 @@ extension CadenceAppModel {
     private func makeContextualSnapshot() -> ContextualNavigationSnapshot {
         ContextualNavigationSnapshot(
             sourceTitle: currentContextTitle,
+            catalogSearchQuery: librarySession.store.catalogSearchQuery,
             selectedDestination: selectedDestination,
             selectedArtistID: selectedArtistID,
             selectedAlbumID: selectedAlbumID,
@@ -208,6 +211,9 @@ extension CadenceAppModel {
     private func restoreContextualSnapshot(
         _ snapshot: ContextualNavigationSnapshot
     ) {
+        librarySession.store.restoreCatalogSearch(
+            snapshot.catalogSearchQuery
+        )
         selectedDestination = snapshot.selectedDestination
         selectedArtistID = snapshot.selectedArtistID
         selectedAlbumID = snapshot.selectedAlbumID

@@ -7,6 +7,7 @@ struct ProductionAlbumDetailView: View {
 
     @State private var album: LibraryAlbumProjection?
     @State private var tracks: [LibraryTrackProjection] = []
+    @State private var albumTags: [LibraryTagProjection] = []
     @State private var isLoading = true
 
     var body: some View {
@@ -16,7 +17,7 @@ struct ProductionAlbumDetailView: View {
                     LazyVStack(alignment: .leading, spacing: 24) {
                         backButton
                         header(album)
-                        Divider()
+                        CadenceSeparator()
                         ProductionTrackList(model: model, tracks: tracks)
                     }
                     .padding(28)
@@ -33,12 +34,14 @@ struct ProductionAlbumDetailView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-        .task(id: albumID) {
+        .task(id: "\(albumID.uuidString)-\(store.tagRevision)") {
             isLoading = true
             async let loadedAlbum = store.album(id: albumID)
             async let loadedTracks = store.tracks(albumID: albumID)
+            async let loadedTags = try? store.tags(albumID: albumID)
             album = await loadedAlbum
             tracks = await loadedTracks
+            albumTags = await loadedTags ?? []
             isLoading = false
         }
     }
@@ -86,6 +89,8 @@ struct ProductionAlbumDetailView: View {
                 Text(albumMetadata(album))
                     .font(.callout)
                     .foregroundStyle(.tertiary)
+
+                albumTagChips
             }
             Spacer()
             Menu {
@@ -95,6 +100,35 @@ struct ProductionAlbumDetailView: View {
             }
             .menuIndicator(.hidden)
             .help("Album Actions")
+        }
+    }
+
+    @ViewBuilder
+    private var albumTagChips: some View {
+        if !albumTags.isEmpty {
+            ScrollView(.horizontal) {
+                HStack(spacing: 7) {
+                    ForEach(albumTags) { tag in
+                        Button {
+                            model.requestOpenProductionTagContextually(
+                                id: tag.id
+                            )
+                        } label: {
+                            Label(tag.displayPath, systemImage: "tag")
+                                .font(.caption.weight(.medium))
+                                .padding(.horizontal, 9)
+                                .frame(height: 28)
+                                .background(
+                                    CadenceTheme.subduedFill,
+                                    in: Capsule()
+                                )
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+            .scrollIndicators(.hidden)
+            .padding(.top, 4)
         }
     }
 

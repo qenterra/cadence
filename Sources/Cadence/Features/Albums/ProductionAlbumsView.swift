@@ -55,13 +55,10 @@ struct ProductionAlbumsView: View {
     }
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("Albums")
-                .font(.largeTitle.bold())
-            Text("\(store.albums.count) albums")
-                .font(.callout)
-                .foregroundStyle(.secondary)
-        }
+        CadencePageHeader(
+            "Albums",
+            subtitle: "\(store.albums.count) albums"
+        )
     }
 
     private func albumTile(
@@ -133,22 +130,6 @@ private struct ProductionAlbumTile: View {
         }
         .buttonStyle(CadenceRowButtonStyle())
         .onHover { isHovered = $0 }
-        .overlay(alignment: .topTrailing) {
-            Menu {
-                albumActions
-            } label: {
-                Image(systemName: "ellipsis")
-                    .frame(width: 30, height: 30)
-                    .background(
-                        .regularMaterial,
-                        in: Circle()
-                    )
-            }
-            .menuIndicator(.hidden)
-            .padding(18)
-            .opacity(isHovered ? 1 : 0.72)
-            .help("Album Actions")
-        }
         .contextMenu {
             albumActions
         }

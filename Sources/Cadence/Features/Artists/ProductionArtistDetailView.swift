@@ -17,12 +17,12 @@ struct ProductionArtistDetailView: View {
                     LazyVStack(alignment: .leading, spacing: 24) {
                         backButton
                         header(artist)
-                        Divider()
+                        CadenceSeparator()
                         if !albums.isEmpty {
                             Text("Albums")
                                 .font(.title2.bold())
                             albumGrid
-                            Divider()
+                            CadenceSeparator()
                         }
                         Text("Tracks")
                             .font(.title2.bold())
@@ -72,9 +72,6 @@ struct ProductionArtistDetailView: View {
             albumTileLabel(album)
         }
         .buttonStyle(.plain)
-        .overlay(alignment: .topTrailing) {
-            albumMenu(album)
-        }
         .contextMenu {
             albumActions(album)
         }
@@ -104,21 +101,6 @@ struct ProductionArtistDetailView: View {
             .foregroundStyle(.secondary)
         }
         .contentShape(Rectangle())
-    }
-
-    private func albumMenu(
-        _ album: LibraryAlbumProjection
-    ) -> some View {
-        Menu {
-            albumActions(album)
-        } label: {
-            Image(systemName: "ellipsis")
-                .frame(width: 30, height: 30)
-                .background(.regularMaterial, in: Circle())
-        }
-        .menuIndicator(.hidden)
-        .padding(8)
-        .help("Album Actions")
     }
 
     private var backButton: some View {

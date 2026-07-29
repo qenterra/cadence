@@ -12,6 +12,7 @@ enum ContextualMediaRoute: Hashable, Sendable {
 
 struct ContextualNavigationSnapshot: Sendable {
     let sourceTitle: String
+    let catalogSearchQuery: String
     let selectedDestination: NavigationDestination
     let selectedArtistID: ArtistPreview.ID?
     let selectedAlbumID: AlbumPreview.ID?
