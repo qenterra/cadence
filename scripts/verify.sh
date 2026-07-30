@@ -33,10 +33,17 @@ swiftlint lint \
     --config .swiftlint.yml \
     --cache-path "$project_root/.build/swiftlint-cache"
 
+if [[ "${CADENCE_SKIP_XCODEBUILD:-0}" == "1" ]]; then
+    echo "Skipping xcodebuild because CADENCE_SKIP_XCODEBUILD=1."
+    exit 0
+fi
+
 DEVELOPER_DIR="$developer_dir" xcodebuild \
     -project Cadence.xcodeproj \
     -scheme Cadence \
     -configuration Debug \
     -derivedDataPath "$project_root/.build/DerivedData" \
     -destination 'platform=macOS' \
+    -jobs 2 \
+    -parallel-testing-enabled NO \
     test | xcbeautify

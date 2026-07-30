@@ -10,6 +10,8 @@ settings:
   base:
     SWIFT_VERSION: "6.0"
     SWIFT_STRICT_CONCURRENCY: complete
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
 
 targets:
   Cadence:
@@ -18,11 +20,16 @@ targets:
     deploymentTarget: "26.0"
     sources:
       - path: Sources/Cadence
+      - path: brand/icon-composer/Cadence.icon
     info:
       path: Sources/Cadence/Resources/Info.plist
       properties:
         CFBundleDisplayName: Cadence
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         LSApplicationCategoryType: public.app-category.music
+        LSMinimumSystemVersion: $(MACOSX_DEPLOYMENT_TARGET)
+        NSHumanReadableCopyright: Copyright © 2026 QenTerra
         UTExportedTypeDeclarations:
           - UTTypeConformsTo:
               - com.apple.package
@@ -41,7 +48,10 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.qenterra.cadence
         PRODUCT_NAME: Cadence
+        INFOPLIST_KEY_CFBundleDisplayName: Cadence
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.music
         CODE_SIGN_STYLE: Automatic
+        ASSETCATALOG_COMPILER_APPICON_NAME: Cadence
     scheme:
       testTargets:
         - CadenceTests

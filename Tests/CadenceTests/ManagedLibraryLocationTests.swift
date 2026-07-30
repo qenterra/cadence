@@ -6,7 +6,7 @@ struct ManagedLibraryLocationTests {
     @Test("Managed library resolves to the injected Music directory")
     func canonicalPackageURL() {
         let musicDirectory = URL(
-            filePath: "/Users/example/Music",
+            filePath: "/Users/Shared/ExampleMusic",
             directoryHint: .isDirectory
         )
         let location = ManagedLibraryLocation(
@@ -41,7 +41,7 @@ struct ManagedLibraryLocationTests {
     func pathContainment() throws {
         let location = ManagedLibraryLocation(
             musicDirectory: URL(
-                filePath: "/Users/example/Music",
+                filePath: "/Users/Shared/ExampleMusic",
                 directoryHint: .isDirectory
             )
         )
@@ -188,7 +188,7 @@ struct ManagedLibraryLocationTests {
     func managedAssetNames() throws {
         let location = ManagedLibraryLocation(
             musicDirectory: URL(
-                filePath: "/Users/example/Music",
+                filePath: "/Users/Shared/ExampleMusic",
                 directoryHint: .isDirectory
             )
         )

@@ -6,14 +6,9 @@ xcuserdata/
 *.xcuserstate
 *.xccheckout
 *.xcscmblueprint
-
-# XcodeGen output
-Cadence.xcodeproj/
+Cadence.xcodeproj/**/xcuserdata/
 
 # Local configuration and credentials
 *.mobileprovision
 *.provisionprofile
 Secrets.xcconfig
-
-# Local design brainstorming sessions
-.superpowers/
