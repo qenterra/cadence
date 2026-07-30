@@ -29,7 +29,9 @@ cd "$project_root"
 
 xcodegen generate --spec project.yml
 swiftformat Sources Tests --lint
-swiftlint lint --config .swiftlint.yml
+swiftlint lint \
+    --config .swiftlint.yml \
+    --cache-path "$project_root/.build/swiftlint-cache"
 
 DEVELOPER_DIR="$developer_dir" xcodebuild \
     -project Cadence.xcodeproj \

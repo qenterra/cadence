@@ -34,19 +34,10 @@ struct AllTracksView: View {
     }
 
     private var header: some View {
-        HStack(alignment: .bottom) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("All Tracks")
-                    .font(.largeTitle.bold())
-                Text(
-                    "\(store.catalogCounts.liveTrackCount) tracks"
-                )
-                .font(.callout)
-                .foregroundStyle(.secondary)
-            }
-
-            Spacer()
-
+        CadencePageHeader(
+            "All Tracks",
+            subtitle: "\(store.catalogCounts.liveTrackCount) tracks"
+        ) {
             Button("Shuffle", systemImage: "shuffle") {
                 guard let first = store.tracks.randomElement() else {
                     return

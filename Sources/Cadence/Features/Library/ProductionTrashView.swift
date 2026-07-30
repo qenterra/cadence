@@ -13,7 +13,7 @@ struct ProductionTrashView: View {
     var body: some View {
         VStack(spacing: 0) {
             header
-            Divider()
+            CadenceSeparator()
             if store.trashOperations.isEmpty {
                 ContentUnavailableView(
                     "Trash Is Empty",

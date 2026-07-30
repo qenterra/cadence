@@ -67,6 +67,11 @@ final class CadenceAppModel {
     var lastNowPlayingPanel: NowPlayingPanel?
     var lyricDraft: LyricDraft?
     var pendingLyricsTransition: LyricsTransitionTarget?
+    var isLoadingLyricDraft = false
+    var isSavingLyricDraft = false
+    var lyricPersistenceError: String?
+    var lyricsRevision = 0
+    var lyricLoadRequestID: UUID?
     var albumsPresentation: AlbumsPresentation = .overview
     var allAlbumsSortDescriptor: AlbumSortDescriptor = .allAlbums
     var albumShelfSortDescriptors: [AlbumShelfKind: AlbumSortDescriptor] = [:]

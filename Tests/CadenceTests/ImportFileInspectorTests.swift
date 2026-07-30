@@ -42,7 +42,7 @@ struct ImportFileInspectorTests {
             fixture.remove()
         }
         let lyricURL = fixture.root.appending(path: "Signal.lrc")
-        try "not timed lyrics".write(
+        try "[00:99.00]Invalid timestamp".write(
             to: lyricURL,
             atomically: true,
             encoding: .utf8

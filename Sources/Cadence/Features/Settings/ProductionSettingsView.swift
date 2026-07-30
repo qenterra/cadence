@@ -4,8 +4,11 @@ struct ProductionSettingsView: View {
     @Bindable var model: CadenceAppModel
     @AppStorage("appearance")
     private var appearanceRawValue = CadenceAppearance.system.rawValue
-    @AppStorage("accentPreset")
-    private var accentRawValue = CadenceAccentPreset.monochrome.rawValue
+    @AppStorage("navigationRail.order")
+    private var navigationOrderRawValue =
+        NavigationRailConfiguration.defaultOrderRawValue
+    @AppStorage("navigationRail.hidden")
+    private var hiddenNavigationRawValue = ""
 
     private var store: LibraryStore {
         model.librarySession.store
@@ -76,43 +79,72 @@ struct ProductionSettingsView: View {
                     }
                     .pickerStyle(.segmented)
 
-                    LabeledContent("Accent") {
-                        HStack(spacing: 10) {
-                            ForEach(CadenceAccentPreset.allCases) { preset in
-                                Button {
-                                    accentRawValue = preset.rawValue
-                                } label: {
-                                    Circle()
-                                        .fill(preset.color)
-                                        .frame(width: 18, height: 18)
-                                        .overlay {
-                                            if accentPreset == preset {
-                                                Circle()
-                                                    .strokeBorder(
-                                                        .primary,
-                                                        lineWidth: 2
-                                                    )
-                                                    .padding(-4)
-                                            }
-                                        }
-                                }
-                                .buttonStyle(.plain)
-                                .help(preset.title)
-                                .accessibilityLabel(preset.title)
-                                .accessibilityValue(
-                                    accentPreset == preset
-                                        ? "Selected"
-                                        : ""
-                                )
-                            }
-                        }
-                    }
                     Text(
-                        "Cadence follows reduced-motion and accessibility "
-                            + "preferences from macOS automatically."
+                        "Cadence keeps its monochrome accent and follows "
+                            + "reduced-motion and accessibility preferences "
+                            + "from macOS automatically."
                     )
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                }
+
+                SettingsCard(
+                    title: "Sidebar",
+                    symbol: "sidebar.left"
+                ) {
+                    Text(
+                        "Choose which destinations appear and drag their "
+                            + "priority with the arrow controls."
+                    )
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+                    ForEach(
+                        Array(orderedNavigationDestinations.enumerated()),
+                        id: \.element
+                    ) { index, destination in
+                        HStack(spacing: 12) {
+                            Toggle(
+                                isOn: navigationVisibilityBinding(
+                                    for: destination
+                                )
+                            ) {
+                                Label(
+                                    destination.title,
+                                    systemImage: destination.symbolName
+                                )
+                            }
+
+                            Spacer(minLength: 8)
+
+                            Button {
+                                moveNavigationDestination(
+                                    at: index,
+                                    offset: -1
+                                )
+                            } label: {
+                                Image(systemName: "chevron.up")
+                            }
+                            .buttonStyle(.borderless)
+                            .disabled(index == 0)
+                            .help("Move \(destination.title) Up")
+
+                            Button {
+                                moveNavigationDestination(
+                                    at: index,
+                                    offset: 1
+                                )
+                            } label: {
+                                Image(systemName: "chevron.down")
+                            }
+                            .buttonStyle(.borderless)
+                            .disabled(
+                                index == orderedNavigationDestinations.count - 1
+                            )
+                            .help("Move \(destination.title) Down")
+                        }
+                        .frame(minHeight: 30)
+                    }
                 }
             }
             .frame(maxWidth: 760, alignment: .leading)
@@ -140,8 +172,51 @@ struct ProductionSettingsView: View {
         )
     }
 
-    private var accentPreset: CadenceAccentPreset {
-        CadenceAccentPreset(rawValue: accentRawValue) ?? .monochrome
+    private var orderedNavigationDestinations: [NavigationDestination] {
+        NavigationRailConfiguration.orderedDestinations(
+            from: navigationOrderRawValue
+        )
+    }
+
+    private func navigationVisibilityBinding(
+        for destination: NavigationDestination
+    ) -> Binding<Bool> {
+        Binding(
+            get: {
+                !NavigationRailConfiguration.hiddenDestinations(
+                    from: hiddenNavigationRawValue
+                ).contains(destination)
+            },
+            set: { isVisible in
+                var hidden = NavigationRailConfiguration.hiddenDestinations(
+                    from: hiddenNavigationRawValue
+                )
+                if isVisible {
+                    hidden.remove(destination)
+                } else {
+                    hidden.insert(destination)
+                }
+                hiddenNavigationRawValue =
+                    NavigationRailConfiguration.encode(hidden)
+            }
+        )
+    }
+
+    private func moveNavigationDestination(
+        at index: Int,
+        offset: Int
+    ) {
+        var destinations = orderedNavigationDestinations
+        let targetIndex = index + offset
+        guard
+            destinations.indices.contains(index),
+            destinations.indices.contains(targetIndex)
+        else {
+            return
+        }
+        destinations.swapAt(index, targetIndex)
+        navigationOrderRawValue =
+            NavigationRailConfiguration.encode(destinations)
     }
 
     private var libraryPath: String {

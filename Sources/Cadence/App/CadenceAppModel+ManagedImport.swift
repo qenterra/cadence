@@ -46,6 +46,7 @@ extension CadenceAppModel {
         librarySession.beginRecovery()
         do {
             _ = try await importRecovery.recover()
+            _ = try await librarySession.store.recoverLyricsEdits()
             if let repository = await importDestination.currentRepository() {
                 await librarySession.activate(repository: repository)
             } else {

@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 @main
@@ -7,18 +8,23 @@ struct CadenceApp: App {
     )
     @AppStorage("appearance")
     private var appearanceRawValue = CadenceAppearance.system.rawValue
-    @AppStorage("accentPreset")
-    private var accentRawValue = CadenceAccentPreset.monochrome.rawValue
 
     var body: some Scene {
         WindowGroup("Cadence") {
             CadenceRootView(model: model)
                 .frame(minWidth: 1080, minHeight: 720)
                 .preferredColorScheme(appearance.colorScheme)
-                .tint(accent.color)
+                .tint(CadenceTheme.primaryAccent)
+                .onChange(
+                    of: appearanceRawValue,
+                    initial: true
+                ) { _, _ in
+                    NSApplication.shared.appearance =
+                        appearance.appKitAppearance
+                }
         }
         .defaultSize(width: 1512, height: 982)
-        .windowToolbarStyle(.unified(showsTitle: true))
+        .windowToolbarStyle(.unifiedCompact(showsTitle: false))
         .commands {
             CommandMenu("Import") {
                 Button("Choose Folder") {
@@ -113,9 +119,5 @@ struct CadenceApp: App {
 
     private var appearance: CadenceAppearance {
         CadenceAppearance(rawValue: appearanceRawValue) ?? .system
-    }
-
-    private var accent: CadenceAccentPreset {
-        CadenceAccentPreset(rawValue: accentRawValue) ?? .monochrome
     }
 }

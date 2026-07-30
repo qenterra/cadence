@@ -66,7 +66,7 @@ struct ManagedLibraryImporterTests {
             audioURL: audioURL,
             lyricURL: lyricURL
         )
-        try Data("not an lrc".utf8).write(to: lyricURL)
+        try Data("[00:99.00]Invalid timestamp".utf8).write(to: lyricURL)
         let destination = ManagedLibraryImportDestination(
             package: fixture.package,
             repository: nil

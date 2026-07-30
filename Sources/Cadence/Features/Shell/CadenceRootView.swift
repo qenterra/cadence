@@ -3,9 +3,6 @@ import SwiftUI
 struct CadenceRootView: View {
     @Bindable var model: CadenceAppModel
 
-    @FocusState private var isSearchFocused: Bool
-    @State private var isSearchPresented = false
-
     var body: some View {
         VStack(spacing: 0) {
             ZStack {
@@ -14,7 +11,9 @@ struct CadenceRootView: View {
                         selection: navigationSelection,
                         suppressesSelection: model.isPlaybackWorkspacePresented
                     )
-                    Divider()
+                    Rectangle()
+                        .fill(CadenceTheme.separator)
+                        .frame(width: 1)
                     workspaceContent
                 }
 
@@ -35,21 +34,22 @@ struct CadenceRootView: View {
                 model.setImportDropTargeted(isTargeted)
             }
 
-            Divider()
+            Rectangle()
+                .fill(CadenceTheme.separator)
+                .frame(height: 1)
             PlayerBar(model: model)
         }
         .background(CadenceTheme.contentBackground)
-        .toolbarBackground(
-            CadenceTheme.contentBackground,
-            for: .windowToolbar
+        .modifier(
+            CadenceSearchModifier(
+                isEnabled: model.playbackWorkspace == .hidden
+                    && supportsSearch,
+                text: activeSearchBinding,
+                prompt: searchHelp
+            )
         )
-        .toolbarBackgroundVisibility(.visible, for: .windowToolbar)
         .toolbar {
             ToolbarItemGroup(placement: .primaryAction) {
-                if model.playbackWorkspace == .hidden, supportsSearch {
-                    searchButton
-                }
-
                 Menu {
                     Button("Import Music", systemImage: "folder.badge.plus") {
                         model.requestNavigationDestination(.importMusic)
@@ -138,7 +138,10 @@ private extension CadenceRootView {
 
     @ViewBuilder
     private var destinationContent: some View {
-        if case let .failed(failure) = model.librarySession.availability {
+        if model.librarySession.availability == .recovering {
+            ProgressView("Opening Cadence.library…")
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else if case let .failed(failure) = model.librarySession.availability {
             LibraryUnavailableView(failure: failure)
         } else if shouldPresentProductionSearch {
             ProductionSearchResultsView(
@@ -184,56 +187,6 @@ private extension CadenceRootView {
             true
         case .importMusic, .trash, .settings:
             false
-        }
-    }
-
-    private var searchButton: some View {
-        Button {
-            isSearchPresented.toggle()
-        } label: {
-            Image(
-                systemName: activeSearchQuery.isEmpty
-                    ? "magnifyingglass"
-                    : "magnifyingglass.circle.fill"
-            )
-        }
-        .help(searchHelp)
-        .keyboardShortcut("f", modifiers: .command)
-        .popover(isPresented: $isSearchPresented, arrowEdge: .bottom) {
-            VStack(alignment: .leading, spacing: 12) {
-                if isProductionCatalog {
-                    TextField(
-                        "Search Library",
-                        text: productionSearchBinding
-                    )
-                    .textFieldStyle(.roundedBorder)
-                    .focused($isSearchFocused)
-                } else if model.selectedDestination == .albums {
-                    TextField("Search Albums", text: $model.albumSearchQuery)
-                        .textFieldStyle(.roundedBorder)
-                        .focused($isSearchFocused)
-                } else if model.selectedDestination == .artists {
-                    TextField("Search Artists", text: $model.artistSearchQuery)
-                        .textFieldStyle(.roundedBorder)
-                        .focused($isSearchFocused)
-                } else {
-                    TextField("Search Library", text: $model.searchQuery)
-                        .textFieldStyle(.roundedBorder)
-                        .focused($isSearchFocused)
-
-                    Picker("Scope", selection: $model.searchScope) {
-                        ForEach(LibrarySearchScope.allCases) { scope in
-                            Text(scope.title).tag(scope)
-                        }
-                    }
-                    .pickerStyle(.segmented)
-                }
-            }
-            .padding(16)
-            .frame(width: 280)
-            .onAppear {
-                isSearchFocused = true
-            }
         }
     }
 
@@ -288,6 +241,20 @@ private extension CadenceRootView {
         )
     }
 
+    private var activeSearchBinding: Binding<String> {
+        if isProductionCatalog {
+            return productionSearchBinding
+        }
+        return switch model.selectedDestination {
+        case .albums:
+            $model.albumSearchQuery
+        case .artists:
+            $model.artistSearchQuery
+        default:
+            $model.searchQuery
+        }
+    }
+
     private var libraryDeletionPresented: Binding<Bool> {
         Binding(
             get: { model.pendingLibraryDeletion != nil },
@@ -308,5 +275,23 @@ private extension CadenceRootView {
                 }
             }
         )
+    }
+}
+
+private struct CadenceSearchModifier: ViewModifier {
+    let isEnabled: Bool
+    @Binding var text: String
+    let prompt: String
+
+    func body(content: Content) -> some View {
+        if isEnabled {
+            content.searchable(
+                text: $text,
+                placement: .toolbar,
+                prompt: Text(prompt)
+            )
+        } else {
+            content
+        }
     }
 }

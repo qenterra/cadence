@@ -21,46 +21,15 @@ enum CadenceAppearance: String, CaseIterable, Identifiable {
         case .dark: .dark
         }
     }
-}
 
-enum CadenceAccentPreset: String, CaseIterable, Identifiable {
-    case monochrome
-    case blue
-    case teal
-    case amber
-    case rose
-
-    var id: Self {
-        self
-    }
-
-    var title: String {
-        rawValue.capitalized
-    }
-
-    var color: Color {
+    var appKitAppearance: NSAppearance? {
         switch self {
-        case .monochrome:
-            CadenceTheme.primaryAccent
-        case .blue:
-            Color(red: 0.16, green: 0.48, blue: 0.96)
-        case .teal:
-            Color(red: 0.05, green: 0.57, blue: 0.55)
-        case .amber:
-            Color(red: 0.88, green: 0.48, blue: 0.06)
-        case .rose:
-            Color(red: 0.86, green: 0.27, blue: 0.42)
-        }
-    }
-
-    var foreground: Color {
-        switch self {
-        case .monochrome:
-            CadenceTheme.contentBackground
-        case .blue, .rose:
-            .white
-        case .teal, .amber:
-            .black
+        case .system:
+            nil
+        case .light:
+            NSAppearance(named: .aqua)
+        case .dark:
+            NSAppearance(named: .darkAqua)
         }
     }
 }
