@@ -1,0 +1,28 @@
+included:
+  - Sources
+  - Tests
+
+excluded:
+  - Cadence.xcodeproj
+
+opt_in_rules:
+  - empty_count
+  - explicit_init
+  - first_where
+  - implicitly_unwrapped_optional
+  - sorted_first_last
+
+analyzer_rules:
+  - unused_import
+
+line_length:
+  warning: 120
+  error: 160
+
+identifier_name:
+  min_length: 2
+  excluded:
+    - id
+
+trailing_comma:
+  mandatory_comma: true

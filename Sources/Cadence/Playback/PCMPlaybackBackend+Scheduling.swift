@@ -1,0 +1,246 @@
+import AVFAudio
+import Foundation
+
+extension PCMPlaybackBackend {
+    var currentPlayerSampleTime: AVAudioFramePosition? {
+        guard
+            let renderTime = playerNode.lastRenderTime,
+            let playerTime = playerNode.playerTime(forNodeTime: renderTime)
+        else {
+            return nil
+        }
+        return playerTime.sampleTime
+    }
+
+    var currentPlaybackTime: TimeInterval {
+        guard let currentItem,
+              let playerSampleTime = currentPlayerSampleTime
+        else {
+            return lastKnownPlaybackTime
+        }
+        let elapsedFrames = max(
+            playerSampleTime - currentStartSample,
+            0
+        )
+        let playbackTime = logicalStartTime
+            + Double(elapsedFrames) / currentItem.sampleRate
+        lastKnownPlaybackTime = playbackTime
+        return playbackTime
+    }
+
+    func freezePlaybackTimeline(
+        at time: TimeInterval,
+        playerSampleTime: AVAudioFramePosition?
+    ) {
+        logicalStartTime = time
+        lastKnownPlaybackTime = time
+        if let playerSampleTime {
+            currentStartSample = playerSampleTime
+        }
+    }
+
+    func configureSchedule(
+        current: ResolvedPlaybackTrack,
+        next: ResolvedPlaybackTrack?,
+        startTime: TimeInterval,
+        autoplay: Bool
+    ) throws {
+        let wasRunning = engine.isRunning
+        scheduleGeneration &+= 1
+        let generation = scheduleGeneration
+        playerNode.stop()
+
+        let currentItem = try scheduledItem(
+            current,
+            startTime: startTime
+        )
+        self.currentItem = currentItem
+        preparedItem = nil
+        currentStartSample = 0
+        logicalStartTime = startTime
+        lastKnownPlaybackTime = startTime
+        applyGain()
+        schedule(currentItem, generation: generation)
+
+        if let next {
+            let nextItem = try scheduledItem(next, startTime: 0)
+            if isGaplessCompatible(currentItem, nextItem) {
+                preparedItem = nextItem
+                schedule(nextItem, generation: generation)
+            }
+        }
+
+        if autoplay, !wasRunning {
+            try engine.start()
+        }
+        isPlaying = autoplay
+        if autoplay {
+            playerNode.play()
+        }
+        startProgressUpdates()
+    }
+
+    func scheduledItem(
+        _ resolved: ResolvedPlaybackTrack,
+        startTime: TimeInterval
+    ) throws -> ScheduledPCMItem {
+        let file = try AVAudioFile(forReading: resolved.mediaURL)
+        let startFrame = min(
+            max(
+                AVAudioFramePosition(
+                    startTime * file.processingFormat.sampleRate
+                ),
+                0
+            ),
+            file.length
+        )
+        let remaining = max(file.length - startFrame, 0)
+        guard remaining <= AVAudioFramePosition(UInt32.max) else {
+            throw PlaybackFailure(
+                trackID: resolved.track.id,
+                message: "The PCM asset is too large to schedule safely."
+            )
+        }
+        return ScheduledPCMItem(
+            resolved: resolved,
+            file: file,
+            startingFrame: startFrame,
+            frameCount: AVAudioFrameCount(remaining)
+        )
+    }
+
+    func schedule(
+        _ item: ScheduledPCMItem,
+        generation: Int? = nil
+    ) {
+        let trackID = item.resolved.track.id
+        let generation = generation ?? scheduleGeneration
+        playerNode.scheduleSegment(
+            item.file,
+            startingFrame: item.startingFrame,
+            frameCount: item.frameCount,
+            at: nil,
+            completionCallbackType: .dataPlayedBack
+        ) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                self?.handleFinished(
+                    trackID: trackID,
+                    generation: generation
+                )
+            }
+        }
+    }
+
+    func isGaplessCompatible(
+        _ current: ScheduledPCMItem,
+        _ next: ScheduledPCMItem
+    ) -> Bool {
+        current.sampleRate == next.sampleRate
+            && current.file.processingFormat.channelCount
+            == next.file.processingFormat.channelCount
+    }
+
+    func handleFinished(
+        trackID: UUID,
+        generation: Int? = nil
+    ) {
+        guard generation ?? scheduleGeneration == scheduleGeneration else {
+            return
+        }
+        guard currentItem?.resolved.track.id == trackID else {
+            return
+        }
+        let finishedFrameCount = currentItem?.frameCount ?? 0
+        if let preparedItem {
+            currentItem = preparedItem
+            self.preparedItem = nil
+            currentStartSample += AVAudioFramePosition(finishedFrameCount)
+            logicalStartTime = 0
+            lastKnownPlaybackTime = 0
+            applyGain()
+            onEvent?(
+                .finished(
+                    trackID: trackID,
+                    successorStarted: preparedItem.resolved.track.id
+                )
+            )
+        } else {
+            onEvent?(
+                .finished(
+                    trackID: trackID,
+                    successorStarted: nil
+                )
+            )
+        }
+    }
+
+    func applyGain() {
+        applyGain(duration: .milliseconds(12))
+    }
+
+    func applyGain(
+        duration: Duration
+    ) {
+        let scalar = replayGainDecibels.map {
+            pow(10, $0 / 20)
+        } ?? 1
+        playerNode.volume = min(max(Float(scalar), 0), 1)
+        let targetScalar = min(
+            max(userVolume * presentationGain, 0),
+            1
+        )
+        let targetDecibels = targetScalar > 0.000_01
+            ? 20 * log10(targetScalar)
+            : -96
+        guard
+            let parameter = gainUnit.auAudioUnit.parameterTree?
+            .parameter(
+                withAddress: AUParameterAddress(
+                    kAUNBandEQParam_GlobalGain
+                )
+            )
+        else {
+            gainUnit.globalGain = targetDecibels
+            return
+        }
+        let sampleRate = max(
+            engine.outputNode.outputFormat(forBus: 0).sampleRate,
+            44100
+        )
+        let seconds = Double(duration.components.seconds)
+            + Double(duration.components.attoseconds) / 1e18
+        let frameCount = AVAudioFrameCount(
+            min(max(seconds * sampleRate, 0), Double(UInt32.max))
+        )
+        gainUnit.auAudioUnit.scheduleParameterBlock(
+            AUEventSampleTimeImmediate,
+            frameCount,
+            parameter.address,
+            targetDecibels
+        )
+    }
+
+    func startProgressUpdates() {
+        progressTask?.cancel()
+        progressTask = Task { @MainActor [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .milliseconds(100))
+                guard !Task.isCancelled, let self else {
+                    return
+                }
+                onEvent?(.time(currentPlaybackTime))
+            }
+        }
+    }
+
+    func emitFailure(_ error: Error) {
+        onEvent?(
+            .failed(
+                PlaybackFailure(
+                    trackID: currentItem?.resolved.track.id,
+                    message: error.localizedDescription
+                )
+            )
+        )
+    }
+}

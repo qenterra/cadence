@@ -1,0 +1,138 @@
+import AppKit
+import SwiftUI
+
+@main
+struct CadenceApp: App {
+    @State private var model = Self.makeInitialModel()
+    @AppStorage("appearance")
+    private var appearanceRawValue = CadenceAppearance.system.rawValue
+
+    var body: some Scene {
+        WindowGroup("Cadence") {
+            CadenceRootView(model: model)
+                .frame(minWidth: 1080, minHeight: 720)
+                .preferredColorScheme(appearance.colorScheme)
+                .tint(CadenceTheme.primaryAccent)
+                .onChange(
+                    of: appearanceRawValue,
+                    initial: true
+                ) { _, _ in
+                    NSApplication.shared.appearance =
+                        appearance.appKitAppearance
+                }
+        }
+        .defaultSize(width: 1512, height: 982)
+        .windowToolbarStyle(.unifiedCompact(showsTitle: false))
+        .commands {
+            CommandMenu("Import") {
+                Button("Choose Folder") {
+                    model.chooseImportFolder()
+                }
+                .keyboardShortcut("o", modifiers: .command)
+                .disabled(model.selectedDestination != .importMusic)
+
+                Divider()
+
+                Button("Select All in Review") {
+                    model.selectAllImportCandidates()
+                }
+                .keyboardShortcut("a", modifiers: .command)
+                .disabled(
+                    model.selectedDestination != .importMusic
+                        || model.importPreviewStage != .review
+                )
+            }
+
+            CommandMenu("Tags") {
+                Button("Edit Tags") {
+                    model.toggleTagInspector()
+                }
+                .keyboardShortcut("t", modifiers: [.option, .command])
+                .disabled(
+                    model.selectedDestination != .tags
+                        || model.tagEditingSelection.isEmpty
+                )
+
+                Divider()
+
+                Button("Select All \(model.tagResultScope.title)") {
+                    model.selectAllTagResults()
+                }
+                .keyboardShortcut("a", modifiers: .command)
+                .disabled(
+                    model.selectedDestination != .tags
+                        || !model.canSelectAllTagResults
+                )
+            }
+
+            CommandMenu("Smart Collections") {
+                Button("New Smart Collection") {
+                    model.requestNavigationDestination(.smartCollections)
+                    model.requestNewSmartCollection()
+                }
+                .keyboardShortcut("n", modifiers: [.option, .command])
+
+                Divider()
+
+                Button("Edit Rules") {
+                    model.requestEditSelectedSmartCollection()
+                }
+                .disabled(
+                    model.selectedDestination != .smartCollections
+                        || model.smartCollectionsPresentationMode != .listening
+                        || model.selectedSmartCollection == nil
+                )
+
+                Button("Done Editing") {
+                    model.requestFinishSmartCollectionEditing()
+                }
+                .disabled(
+                    model.selectedDestination != .smartCollections
+                        || model.smartCollectionsPresentationMode != .editing
+                )
+
+                Divider()
+
+                Button("Save Smart Collection") {
+                    model.saveSmartCollectionDraft()
+                }
+                .keyboardShortcut("s", modifiers: .command)
+                .disabled(
+                    model.selectedDestination != .smartCollections
+                        || model.smartCollectionsPresentationMode != .editing
+                        || !model.canSaveSmartCollectionDraft
+                )
+
+                Button("Revert Smart Collection") {
+                    model.revertSmartCollectionDraft()
+                }
+                .disabled(
+                    model.selectedDestination != .smartCollections
+                        || model.smartCollectionsPresentationMode != .editing
+                        || !model.canRevertSmartCollectionDraft
+                )
+            }
+        }
+    }
+
+    private var appearance: CadenceAppearance {
+        CadenceAppearance(rawValue: appearanceRawValue) ?? .system
+    }
+
+    private static func makeInitialModel() -> CadenceAppModel {
+        #if DEBUG
+            let usesPublicFixture =
+                ProcessInfo.processInfo.arguments.contains("--public-preview")
+                    || (
+                        Bundle.main.object(
+                            forInfoDictionaryKey: "CadencePublicPreview"
+                        ) as? Bool
+                    ) == true
+            if usesPublicFixture {
+                return .preview()
+            }
+        #endif
+
+        return .production(librarySession: .startup())
+    }
+}

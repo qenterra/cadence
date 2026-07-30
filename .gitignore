@@ -1,0 +1,14 @@
+.DS_Store
+.build/
+DerivedData/
+build/
+xcuserdata/
+*.xcuserstate
+*.xccheckout
+*.xcscmblueprint
+Cadence.xcodeproj/**/xcuserdata/
+
+# Local configuration and credentials
+*.mobileprovision
+*.provisionprofile
+Secrets.xcconfig
