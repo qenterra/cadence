@@ -146,6 +146,8 @@ struct ProductionSettingsView: View {
                         .frame(minHeight: 30)
                     }
                 }
+
+                SettingsAboutCard()
             }
             .frame(maxWidth: 760, alignment: .leading)
             .padding(32)
@@ -233,6 +235,86 @@ struct ProductionSettingsView: View {
         case .immersive:
             "Uses the system playback path for spatial and multichannel content."
         }
+    }
+}
+
+private struct SettingsLink: View {
+    let title: String
+    let symbol: String
+    let destination: URL
+
+    var body: some View {
+        Link(destination: destination) {
+            HStack {
+                Label(title, systemImage: symbol)
+                Spacer()
+                Image(systemName: "arrow.up.right")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(.primary)
+    }
+}
+
+private struct SettingsAboutCard: View {
+    var body: some View {
+        SettingsCard(title: "About Cadence", symbol: "info.circle") {
+            LabeledContent("Version") {
+                Text(appVersion)
+                    .foregroundStyle(.secondary)
+            }
+
+            Link(destination: AppConfiguration.creatorURL) {
+                Label(
+                    "Created by \(AppConfiguration.creatorName)",
+                    systemImage: "person.crop.circle"
+                )
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(.primary)
+
+            Divider()
+
+            SettingsLink(
+                title: "Source Code",
+                symbol: "chevron.left.forwardslash.chevron.right",
+                destination: AppConfiguration.projectURL
+            )
+            SettingsLink(
+                title: "License",
+                symbol: "doc.plaintext",
+                destination: AppConfiguration.licenseURL
+            )
+            SettingsLink(
+                title: "Documentation & Wiki",
+                symbol: "book.pages",
+                destination: AppConfiguration.wikiURL
+            )
+
+            Divider()
+
+            Link(destination: AppConfiguration.supportURL) {
+                Label(
+                    "Support on Buy Me a Coffee",
+                    systemImage: "cup.and.saucer"
+                )
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(.primary)
+        }
+    }
+
+    private var appVersion: String {
+        let version = Bundle.main.object(
+            forInfoDictionaryKey: "CFBundleShortVersionString"
+        ) as? String ?? "0.1.0"
+        let build = Bundle.main.object(
+            forInfoDictionaryKey: "CFBundleVersion"
+        ) as? String ?? "1"
+        return "\(version) (\(build))"
     }
 }
 
