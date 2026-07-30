@@ -60,6 +60,11 @@ git diff --check
 The script regenerates the project, checks formatting and linting, builds the
 app, and runs unit and integration tests.
 
+GitHub Actions runs project generation, SwiftFormat, and SwiftLint. The hosted
+macOS image currently provides Xcode 26.6, which cannot build this Xcode 27
+project. Run the complete gate locally until the hosted image includes a
+compatible toolchain.
+
 ## Local-only paths
 
 Do not commit:

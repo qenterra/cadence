@@ -38,6 +38,10 @@ git diff --check
 The script generates the project, checks SwiftFormat and SwiftLint, builds the
 app, and runs the test target.
 
+GitHub Actions runs the project-generation, SwiftFormat, and SwiftLint portion.
+Its hosted macOS image currently provides Xcode 26.6; contributors must run the
+complete build and test gate locally with Xcode 27.
+
 Playback glitches, AirPlay, Bluetooth route changes, spatial audio, gapless
 transitions, media keys, reduced motion, VoiceOver, and large real libraries
 still need manual acceptance on relevant hardware.

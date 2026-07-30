@@ -129,6 +129,11 @@ Run the complete local gate before submitting a change:
 bash scripts/verify.sh
 ```
 
+GitHub Actions regenerates the project and runs SwiftFormat and SwiftLint.
+The hosted macOS runner currently provides Xcode 26.6, so the complete build
+and test gate must be run locally with Xcode 27 until GitHub adds a compatible
+toolchain.
+
 `project.yml` is the source of truth for Xcode configuration. Regenerate the
 committed `Cadence.xcodeproj` after changing targets, files, entitlements, or
 build settings.
