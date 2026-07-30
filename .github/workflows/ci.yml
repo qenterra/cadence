@@ -10,8 +10,10 @@ jobs:
   verify:
     runs-on: macos-26
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install developer tools
         run: brew install xcodegen swiftformat swiftlint xcbeautify
+      - name: Show Xcode version
+        run: xcodebuild -version
       - name: Generate, lint, and test
         run: bash scripts/verify.sh

@@ -39,4 +39,6 @@ DEVELOPER_DIR="$developer_dir" xcodebuild \
     -configuration Debug \
     -derivedDataPath "$project_root/.build/DerivedData" \
     -destination 'platform=macOS' \
+    -jobs 2 \
+    -parallel-testing-enabled NO \
     test | xcbeautify
