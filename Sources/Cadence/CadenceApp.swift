@@ -3,9 +3,7 @@ import SwiftUI
 
 @main
 struct CadenceApp: App {
-    @State private var model = CadenceAppModel.production(
-        librarySession: .startup()
-    )
+    @State private var model = Self.makeInitialModel()
     @AppStorage("appearance")
     private var appearanceRawValue = CadenceAppearance.system.rawValue
 
@@ -119,5 +117,22 @@ struct CadenceApp: App {
 
     private var appearance: CadenceAppearance {
         CadenceAppearance(rawValue: appearanceRawValue) ?? .system
+    }
+
+    private static func makeInitialModel() -> CadenceAppModel {
+        #if DEBUG
+            let usesPublicFixture =
+                ProcessInfo.processInfo.arguments.contains("--public-preview")
+                    || (
+                        Bundle.main.object(
+                            forInfoDictionaryKey: "CadencePublicPreview"
+                        ) as? Bool
+                    ) == true
+            if usesPublicFixture {
+                return .preview()
+            }
+        #endif
+
+        return .production(librarySession: .startup())
     }
 }
