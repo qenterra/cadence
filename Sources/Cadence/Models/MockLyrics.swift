@@ -45,9 +45,9 @@ extension [TrackPreview.ID: LyricDocument] {
         )
 
         return [
-            synchronized.trackID: synchronized,
-            unsynchronized.trackID: unsynchronized,
-            partial.trackID: partial,
+            1: synchronized,
+            2: unsynchronized,
+            3: partial,
         ]
     }()
 

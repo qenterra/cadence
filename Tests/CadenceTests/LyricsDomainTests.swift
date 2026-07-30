@@ -99,13 +99,14 @@ struct LyricsDomainTests {
         #expect(document.lines[0].startTime == 4.2)
         #expect(document.lines[1].startTime == nil)
         #expect(document.lines[2].startTime == 8.005)
+        #expect(document.metadataLines == ["[ar:North Assembly]"])
     }
 
-    @Test("Malformed LRC fails without returning partial content")
+    @Test("Malformed timestamp fails without returning partial content")
     func malformedLRC() {
         #expect(throws: LineLevelLRC.Error.self) {
             try LineLevelLRC.parse(
-                "[00:04.20]Valid\n[broken]Nope",
+                "[00:04.20]Valid\n[00:99.000]Nope",
                 trackID: 8
             )
         }
@@ -122,21 +123,56 @@ struct LyricsDomainTests {
         let output = try LineLevelLRC.generate(original)
         let parsed = try LineLevelLRC.parse(output, trackID: 9)
 
-        #expect(output == "[00:04.200]First\n\n[01:08.005]Second")
+        #expect(output == "[00:04.200]First\n\n[01:08.005]Second\n")
         #expect(parsed.lines.map(\.text) == original.lines.map(\.text))
         #expect(parsed.lines.map(\.startTime) == original.lines.map(\.startTime))
     }
 
-    @Test("Incomplete lyrics cannot be exported as synchronized LRC")
-    func incompleteGeneration() {
+    @Test("Partial lyrics round trip timed and untimed lines")
+    func partialGeneration() throws {
         let lyrics = document(
             texts: ["First", "Second"],
             times: [1, nil]
         )
 
-        #expect(throws: LineLevelLRC.Error.self) {
-            try LineLevelLRC.generate(lyrics)
-        }
+        let output = try LineLevelLRC.generate(lyrics)
+        let parsed = try LineLevelLRC.parse(output, trackID: 1)
+
+        #expect(output == "[00:01.000]First\nSecond\n")
+        #expect(parsed.timingStatus == .partiallySynchronized)
+        #expect(parsed.lines.map(\.text) == ["First", "Second"])
+        #expect(parsed.lines.map(\.startTime) == [1, nil])
+    }
+
+    @Test("Metadata and repeated timestamps survive parsing and generation")
+    func metadataAndRepeatedTimestamps() throws {
+        let source = """
+        [ar:North Assembly]
+        [al:Signals]
+        [00:01.00][00:03.500]Echo
+        Untimed
+        """
+
+        let document = try LineLevelLRC.parse(source, trackID: 1)
+        let output = try LineLevelLRC.generate(document)
+
+        #expect(document.metadataLines == [
+            "[ar:North Assembly]",
+            "[al:Signals]",
+        ])
+        #expect(document.lines.map(\.text) == ["Echo", "Echo", "Untimed"])
+        #expect(document.lines.map(\.startTime) == [1, 3.5, nil])
+        #expect(
+            output
+                == """
+                [ar:North Assembly]
+                [al:Signals]
+                [00:01.000]Echo
+                [00:03.500]Echo
+                Untimed
+
+                """
+        )
     }
 
     @Test("Timestamp formatting is deterministic")

@@ -16,6 +16,14 @@ struct TapToSyncPanel: View {
                     .font(.callout)
                     .foregroundStyle(.secondary)
                     .padding(.top, 5)
+            } else if let track = model.currentPlaybackTrack {
+                Text(
+                    "\(track.title) · "
+                        + LyricTimestampFormatter.display(track.duration)
+                )
+                .font(.callout)
+                .foregroundStyle(.secondary)
+                .padding(.top, 5)
             }
 
             Rectangle()
@@ -155,12 +163,12 @@ struct TapToSyncPanel: View {
     }
 
     private var currentTimeText: String {
-        guard let track = model.currentTrack else {
-            return "0:00.000"
+        if let track = model.currentTrack {
+            return LyricTimestampFormatter.display(
+                track.duration * model.progress
+            )
         }
-        return LyricTimestampFormatter.display(
-            track.duration * model.progress
-        )
+        return LyricTimestampFormatter.display(model.playbackCurrentTime)
     }
 
     private func keyboardHint(

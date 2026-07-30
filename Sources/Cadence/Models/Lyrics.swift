@@ -1,5 +1,10 @@
 import Foundation
 
+enum LyricTrackIdentity: Hashable, Sendable {
+    case preview(TrackPreview.ID)
+    case managed(UUID)
+}
+
 struct LyricLine: Identifiable, Hashable, Sendable {
     let id: UUID
     var text: String
@@ -57,8 +62,43 @@ struct LyricValidationIssue: Identifiable, Hashable, Sendable {
 }
 
 struct LyricDocument: Hashable, Sendable {
-    let trackID: TrackPreview.ID
+    let trackID: LyricTrackIdentity
     var lines: [LyricLine]
+    var metadataLines: [String]
+
+    init(
+        trackID: LyricTrackIdentity,
+        lines: [LyricLine],
+        metadataLines: [String] = []
+    ) {
+        self.trackID = trackID
+        self.lines = lines
+        self.metadataLines = metadataLines
+    }
+
+    init(
+        trackID: TrackPreview.ID,
+        lines: [LyricLine],
+        metadataLines: [String] = []
+    ) {
+        self.init(
+            trackID: .preview(trackID),
+            lines: lines,
+            metadataLines: metadataLines
+        )
+    }
+
+    init(
+        trackID: UUID,
+        lines: [LyricLine],
+        metadataLines: [String] = []
+    ) {
+        self.init(
+            trackID: .managed(trackID),
+            lines: lines,
+            metadataLines: metadataLines
+        )
+    }
 
     var timingStatus: LyricTimingStatus {
         let contentLines = lines.filter { !$0.isBlank }
@@ -153,33 +193,56 @@ struct LyricDocument: Hashable, Sendable {
 }
 
 struct LyricDraft: Hashable, Sendable {
-    let trackID: TrackPreview.ID
+    let trackID: LyricTrackIdentity
     private(set) var savedLines: [LyricLine]
+    private(set) var savedMetadataLines: [String]
     var lines: [LyricLine]
+    var metadataLines: [String]
     var activeLineID: LyricLine.ID?
 
     init(
-        trackID: TrackPreview.ID,
+        trackID: LyricTrackIdentity,
         document: LyricDocument?
     ) {
         let sourceLines = document?.lines ?? [LyricLine(text: "")]
         self.trackID = trackID
         savedLines = sourceLines
+        savedMetadataLines = document?.metadataLines ?? []
         lines = sourceLines
+        metadataLines = document?.metadataLines ?? []
         activeLineID = sourceLines.first(where: { !$0.isBlank })?.id
             ?? sourceLines.first?.id
     }
 
+    init(
+        trackID: TrackPreview.ID,
+        document: LyricDocument?
+    ) {
+        self.init(trackID: .preview(trackID), document: document)
+    }
+
+    init(
+        trackID: UUID,
+        document: LyricDocument?
+    ) {
+        self.init(trackID: .managed(trackID), document: document)
+    }
+
     var isDirty: Bool {
-        lines != savedLines
+        lines != savedLines || metadataLines != savedMetadataLines
     }
 
     var document: LyricDocument {
-        LyricDocument(trackID: trackID, lines: lines)
+        LyricDocument(
+            trackID: trackID,
+            lines: lines,
+            metadataLines: metadataLines
+        )
     }
 
     mutating func markSaved() {
         savedLines = lines
+        savedMetadataLines = metadataLines
     }
 
     @discardableResult

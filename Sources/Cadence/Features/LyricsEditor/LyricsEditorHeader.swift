@@ -46,8 +46,10 @@ struct LyricsEditorHeader: View {
                 model.requestCloseLyricsEditor()
             }
 
-            Button("Save") {
-                model.saveLyricDraft()
+            Button(model.isSavingLyricDraft ? "Saving…" : "Save") {
+                Task {
+                    await model.saveLyricDraftPersisting()
+                }
             }
             .buttonStyle(.borderedProminent)
             .tint(.white)

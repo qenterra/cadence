@@ -60,7 +60,7 @@ enum StoredLyricParsingStatus: String, Codable, Sendable {
     case malformed
 }
 
-private extension LyricTimingStatus {
+extension LyricTimingStatus {
     init?(storageRawValue: String) {
         switch storageRawValue {
         case "missing":

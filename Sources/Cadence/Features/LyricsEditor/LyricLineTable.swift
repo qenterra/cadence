@@ -60,12 +60,12 @@ struct LyricLineTable: View {
             LyricsExportPreview(source: exportPreview ?? "")
         }
         .alert(
-            "LRC Preview Could Not Be Imported",
+            "LRC Could Not Be Imported",
             isPresented: $importFailed
         ) {
             Button("OK") {}
         } message: {
-            Text("The preview parser rejected malformed or incomplete content.")
+            Text("The clipboard does not contain a valid line-level LRC document.")
         }
     }
 
@@ -93,10 +93,18 @@ struct LyricLineTable: View {
                 )
             }
 
-            Menu("LRC Preview") {
-                Button("Import Seeded Preview") {
+            Menu("LRC") {
+                Button("Import from Clipboard") {
+                    guard
+                        let source = NSPasteboard.general.string(
+                            forType: .string
+                        )
+                    else {
+                        importFailed = true
+                        return
+                    }
                     importFailed = !model.replaceLyricDraftWithLRC(
-                        seededLRC,
+                        source,
                         undoManager: undoManager
                     )
                 }
@@ -112,7 +120,25 @@ struct LyricLineTable: View {
                 }
                 .disabled(
                     model.lyricDraft?.document.timingStatus
-                        != .synchronized
+                        == .missing
+                )
+
+                Button("Copy LRC") {
+                    guard
+                        let document = model.lyricDraft?.document,
+                        let source = try? LineLevelLRC.generate(document)
+                    else {
+                        return
+                    }
+                    NSPasteboard.general.clearContents()
+                    NSPasteboard.general.setString(
+                        source,
+                        forType: .string
+                    )
+                }
+                .disabled(
+                    model.lyricDraft?.document.timingStatus
+                        == .missing
                 )
             }
 
@@ -147,16 +173,6 @@ struct LyricLineTable: View {
         .foregroundStyle(.tertiary)
         .padding(.horizontal, 24)
         .frame(height: 34)
-    }
-
-    private var seededLRC: String {
-        """
-        [00:07.200]We kept the signal low
-        [00:13.400]While the city disappeared
-
-        [00:20.800]Static blooming in the dark
-        [00:27.100]Every frequency was clear
-        """
     }
 
     private func issue(
@@ -212,7 +228,8 @@ private struct LyricLineEditorRow: View {
                         set: { text in
                             model.updateLyricText(
                                 lineID: line.id,
-                                text: text
+                                text: text,
+                                undoManager: undoManager
                             )
                         }
                     )

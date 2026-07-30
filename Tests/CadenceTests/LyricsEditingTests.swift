@@ -19,7 +19,7 @@ struct LyricsEditingTests {
         model.currentTrackID = missingTrack.id
         model.presentLyricsEditor()
 
-        #expect(model.lyricDraft?.trackID == missingTrack.id)
+        #expect(model.lyricDraft?.trackID == .preview(missingTrack.id))
         #expect(model.lyricDraft?.lines.count == 1)
         #expect(model.lyricDraft?.document.timingStatus == .missing)
     }
@@ -111,7 +111,7 @@ struct LyricsEditingTests {
         model.presentLyricsEditor()
         let originalLines = try #require(model.lyricDraft?.lines)
 
-        #expect(!model.replaceLyricDraftWithLRC("[broken]"))
+        #expect(!model.replaceLyricDraftWithLRC("[00:99.000]broken"))
         #expect(model.lyricDraft?.lines == originalLines)
 
         #expect(

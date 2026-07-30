@@ -12,16 +12,28 @@ struct LyricsDraftTransitionAlert: ViewModifier {
             )
         ) {
             Button("Save") {
-                model.resolvePendingLyricsTransition(.save)
+                Task {
+                    await model.resolvePendingLyricsTransitionPersisting(
+                        .save
+                    )
+                }
             }
             .disabled(!model.canSaveLyricDraft)
 
             Button("Discard", role: .destructive) {
-                model.resolvePendingLyricsTransition(.discard)
+                Task {
+                    await model.resolvePendingLyricsTransitionPersisting(
+                        .discard
+                    )
+                }
             }
 
             Button("Cancel", role: .cancel) {
-                model.resolvePendingLyricsTransition(.cancel)
+                Task {
+                    await model.resolvePendingLyricsTransitionPersisting(
+                        .cancel
+                    )
+                }
             }
         } message: {
             Text("Your unsaved line text and timing changes will be lost.")

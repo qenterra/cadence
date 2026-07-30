@@ -13,32 +13,64 @@ extension CadenceAppModel {
     }
 
     var lyricDraftValidationIssues: [LyricValidationIssue] {
-        guard
-            let draft = lyricDraft,
-            let track = tracks.first(where: { $0.id == draft.trackID })
-        else {
+        guard let draft = lyricDraft else {
             return []
         }
+        let duration: TimeInterval
+        switch draft.trackID {
+        case let .preview(trackID):
+            guard let track = tracks.first(where: { $0.id == trackID }) else {
+                return []
+            }
+            duration = track.duration
+        case let .managed(trackID):
+            guard currentPlaybackTrack?.id == trackID else {
+                return []
+            }
+            duration = playbackDuration
+        }
         return draft.document.validationIssues(
-            trackDuration: track.duration
+            trackDuration: duration
         )
     }
 
     var canSaveLyricDraft: Bool {
-        isLyricDraftDirty && lyricDraftValidationIssues.isEmpty
+        isLyricDraftDirty
+            && lyricDraftValidationIssues.isEmpty
+            && !isLoadingLyricDraft
+            && !isSavingLyricDraft
     }
 
     @discardableResult
     func presentLyricsEditor() -> Bool {
-        guard let currentTrack else {
+        if let currentTrack {
+            lyricLoadRequestID = nil
+            isLoadingLyricDraft = false
+            lyricDraft = LyricDraft(
+                trackID: currentTrack.id,
+                document: lyricDocuments[currentTrack.id]
+            )
+            pendingLyricsTransition = nil
+            lyricPersistenceError = nil
+            playbackWorkspace = .lyricsEditor
+            return true
+        }
+        guard let playbackTrack = currentPlaybackTrack else {
             return false
         }
-        lyricDraft = LyricDraft(
-            trackID: currentTrack.id,
-            document: lyricDocuments[currentTrack.id]
-        )
+        lyricDraft = nil
         pendingLyricsTransition = nil
+        lyricPersistenceError = nil
+        isLoadingLyricDraft = true
+        let requestID = UUID()
+        lyricLoadRequestID = requestID
         playbackWorkspace = .lyricsEditor
+        Task {
+            await loadProductionLyricDraft(
+                trackID: playbackTrack.id,
+                requestID: requestID
+            )
+        }
         return true
     }
 
@@ -210,8 +242,8 @@ extension CadenceAppModel {
         else {
             return false
         }
-        replaceLyricDraftLines(
-            document.lines,
+        replaceLyricDraftDocument(
+            document,
             actionName: "Import LRC",
             undoManager: undoManager
         )
@@ -238,10 +270,22 @@ extension CadenceAppModel {
     func stampActiveLyricLine(
         undoManager: UndoManager? = nil
     ) {
-        guard let currentTrack else {
+        guard let draft = lyricDraft else {
             return
         }
-        let playbackTime = currentTrack.duration * progress
+        let playbackTime: TimeInterval
+        switch draft.trackID {
+        case .preview:
+            guard let currentTrack else {
+                return
+            }
+            playbackTime = currentTrack.duration * progress
+        case let .managed(trackID):
+            guard currentPlaybackTrack?.id == trackID else {
+                return
+            }
+            playbackTime = playbackCurrentTime
+        }
         updateLyricDraft(
             actionName: "Stamp Lyric Line",
             undoManager: undoManager
@@ -256,64 +300,6 @@ extension CadenceAppModel {
         }
         draft.moveActiveLine(by: offset)
         lyricDraft = draft
-    }
-
-    @discardableResult
-    func saveLyricDraft() -> Bool {
-        guard
-            var draft = lyricDraft,
-            lyricDraftValidationIssues.isEmpty
-        else {
-            return false
-        }
-
-        if draft.document.timingStatus == .missing {
-            lyricDocuments.removeValue(forKey: draft.trackID)
-        } else {
-            lyricDocuments[draft.trackID] = draft.document
-        }
-        draft.markSaved()
-        lyricDraft = draft
-        return true
-    }
-
-    @discardableResult
-    func resolvePendingLyricsTransition(
-        _ resolution: LyricsDraftResolution
-    ) -> Bool {
-        guard let target = pendingLyricsTransition else {
-            return false
-        }
-
-        switch resolution {
-        case .cancel:
-            pendingLyricsTransition = nil
-            return true
-        case .discard:
-            pendingLyricsTransition = nil
-            performLyricsTransition(target)
-            return true
-        case .save:
-            guard saveLyricDraft() else {
-                return false
-            }
-            pendingLyricsTransition = nil
-            performLyricsTransition(target)
-            return true
-        }
-    }
-
-    func replaceLyricDraftForCurrentTrack() {
-        guard
-            playbackWorkspace == .lyricsEditor,
-            let currentTrack
-        else {
-            return
-        }
-        lyricDraft = LyricDraft(
-            trackID: currentTrack.id,
-            document: lyricDocuments[currentTrack.id]
-        )
     }
 
     private func replaceLyricDraftLines(
@@ -331,6 +317,30 @@ extension CadenceAppModel {
             draft.lines = lines
             draft.activeLineID = lines.first(where: { !$0.isBlank })?.id
                 ?? lines.first?.id
+            return true
+        }
+    }
+
+    private func replaceLyricDraftDocument(
+        _ document: LyricDocument,
+        actionName: String,
+        undoManager: UndoManager?
+    ) {
+        updateLyricDraft(
+            actionName: actionName,
+            undoManager: undoManager
+        ) { draft in
+            guard
+                draft.lines != document.lines
+                || draft.metadataLines != document.metadataLines
+            else {
+                return false
+            }
+            draft.lines = document.lines
+            draft.metadataLines = document.metadataLines
+            draft.activeLineID = document.lines.first {
+                !$0.isBlank
+            }?.id ?? document.lines.first?.id
             return true
         }
     }
