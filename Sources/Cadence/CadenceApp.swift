@@ -120,19 +120,6 @@ struct CadenceApp: App {
     }
 
     private static func makeInitialModel() -> CadenceAppModel {
-        #if DEBUG
-            let usesPublicFixture =
-                ProcessInfo.processInfo.arguments.contains("--public-preview")
-                    || (
-                        Bundle.main.object(
-                            forInfoDictionaryKey: "CadencePublicPreview"
-                        ) as? Bool
-                    ) == true
-            if usesPublicFixture {
-                return .preview()
-            }
-        #endif
-
-        return .production(librarySession: .startup())
+        .production(librarySession: .startup())
     }
 }

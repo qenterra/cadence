@@ -28,11 +28,18 @@ struct NavigationRail: View {
             railButton(.trash)
             railButton(.settings)
         }
-        .frame(width: 200, alignment: .leading)
-        .padding(.horizontal, 10)
-        .padding(.vertical, 14)
         .frame(
-            width: isExpanded ? 220 : 72,
+            width: NavigationRailMetrics.contentWidth(
+                isExpanded: isExpanded
+            ),
+            alignment: .leading
+        )
+        .padding(.horizontal, NavigationRailMetrics.horizontalInset)
+        .padding(.vertical, NavigationRailMetrics.verticalInset)
+        .frame(
+            width: NavigationRailMetrics.totalWidth(
+                isExpanded: isExpanded
+            ),
             alignment: .leading
         )
         .clipped()
@@ -73,8 +80,13 @@ struct NavigationRail: View {
                 Spacer(minLength: 0)
             }
             .foregroundStyle(.secondary)
-            .frame(width: 180, height: 42, alignment: .leading)
-            .padding(.horizontal, 10)
+            .frame(
+                maxWidth: .infinity,
+                minHeight: NavigationRailMetrics.rowHeight,
+                maxHeight: NavigationRailMetrics.rowHeight,
+                alignment: .leading
+            )
+            .padding(.horizontal, NavigationRailMetrics.rowInset)
             .contentShape(Rectangle())
         }
         .buttonStyle(CadenceRowButtonStyle())
@@ -101,8 +113,13 @@ struct NavigationRail: View {
                 Spacer(minLength: 0)
             }
             .foregroundStyle(isSelected ? .primary : .secondary)
-            .frame(width: 180, height: 42, alignment: .leading)
-            .padding(.horizontal, 10)
+            .frame(
+                maxWidth: .infinity,
+                minHeight: NavigationRailMetrics.rowHeight,
+                maxHeight: NavigationRailMetrics.rowHeight,
+                alignment: .leading
+            )
+            .padding(.horizontal, NavigationRailMetrics.rowInset)
             .background {
                 BrowserRowSurface(
                     isSelected: isSelected,
@@ -119,5 +136,22 @@ struct NavigationRail: View {
         .help(destination.title)
         .accessibilityLabel(destination.title)
         .accessibilityValue(isSelected ? "Selected" : "")
+    }
+}
+
+enum NavigationRailMetrics {
+    static let collapsedWidth: CGFloat = 72
+    static let expandedWidth: CGFloat = 220
+    static let horizontalInset: CGFloat = 10
+    static let verticalInset: CGFloat = 14
+    static let rowInset: CGFloat = 10
+    static let rowHeight: CGFloat = 42
+
+    static func totalWidth(isExpanded: Bool) -> CGFloat {
+        isExpanded ? expandedWidth : collapsedWidth
+    }
+
+    static func contentWidth(isExpanded: Bool) -> CGFloat {
+        totalWidth(isExpanded: isExpanded) - horizontalInset * 2
     }
 }

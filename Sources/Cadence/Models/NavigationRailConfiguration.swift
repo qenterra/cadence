@@ -55,6 +55,28 @@ enum NavigationRailConfiguration {
         }
     }
 
+    static func moving(
+        _ source: NavigationDestination,
+        to target: NavigationDestination,
+        in destinations: [NavigationDestination]
+    ) -> [NavigationDestination] {
+        guard
+            source != target,
+            let sourceIndex = destinations.firstIndex(of: source),
+            let targetIndex = destinations.firstIndex(of: target)
+        else {
+            return destinations
+        }
+
+        var reordered = destinations
+        let destination = reordered.remove(at: sourceIndex)
+        reordered.insert(
+            destination,
+            at: min(targetIndex, reordered.endIndex)
+        )
+        return reordered
+    }
+
     static func encode(
         _ destinations: some Sequence<NavigationDestination>
     ) -> String {

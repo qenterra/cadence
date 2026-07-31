@@ -11,6 +11,10 @@ struct AppConfigurationTests {
     @Test("Public project links point to QenTerra-owned destinations")
     func publicLinks() {
         #expect(
+            AppConfiguration.creatorName
+                == "Nikita Melnychenko (QenTerra)"
+        )
+        #expect(
             AppConfiguration.projectURL.absoluteString
                 == "https://github.com/QenTerra/cadence"
         )
@@ -21,6 +25,10 @@ struct AppConfigurationTests {
         #expect(
             AppConfiguration.wikiURL.absoluteString
                 == "https://github.com/QenTerra/cadence/wiki"
+        )
+        #expect(
+            AppConfiguration.thirdPartyNoticesURL.absoluteString
+                == "https://github.com/QenTerra/cadence/blob/main/THIRD_PARTY_NOTICES.md"
         )
         #expect(
             AppConfiguration.supportURL.absoluteString

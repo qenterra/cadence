@@ -57,15 +57,15 @@ extension CadenceAppModel {
     }
 
     static func preview(
-        tracks: [TrackPreview] = .mockLibrary,
-        tags: [TagPreview] = .mockTags,
-        tagAssignments: Set<TagAssignmentPreview> = .mockTagAssignments,
-        tagExclusions: Set<TagExclusionPreview> = .mockTagExclusions,
-        smartCollections: [SmartCollectionPreview] = .mockSmartCollections,
-        lyricDocuments: [TrackPreview.ID: LyricDocument] = .mockLyrics,
-        favoriteAlbumDates: [AlbumPreview.ID: Date] = .mockAlbumFavorites,
-        favoriteArtistDates: [ArtistPreview.ID: Date] = .mockArtistFavorites,
-        importCandidates: [ImportCandidatePreview] = .mockImportCandidates,
+        tracks: [TrackPreview] = [],
+        tags: [TagPreview] = [],
+        tagAssignments: Set<TagAssignmentPreview> = [],
+        tagExclusions: Set<TagExclusionPreview> = [],
+        smartCollections: [SmartCollectionPreview] = [],
+        lyricDocuments: [TrackPreview.ID: LyricDocument] = [:],
+        favoriteAlbumDates: [AlbumPreview.ID: Date] = [:],
+        favoriteArtistDates: [ArtistPreview.ID: Date] = [:],
+        importCandidates: [ImportCandidatePreview] = [],
         artworkRepository: any ArtworkRepository = InMemoryArtworkRepository()
     ) -> CadenceAppModel {
         CadenceAppModel(

@@ -88,66 +88,12 @@ struct ProductionSettingsView: View {
                     .foregroundStyle(.secondary)
                 }
 
-                SettingsCard(
-                    title: "Sidebar",
-                    symbol: "sidebar.left"
-                ) {
-                    Text(
-                        "Choose which destinations appear and drag their "
-                            + "priority with the arrow controls."
-                    )
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                SettingsSidebarCard(
+                    orderRawValue: $navigationOrderRawValue,
+                    hiddenRawValue: $hiddenNavigationRawValue
+                )
 
-                    ForEach(
-                        Array(orderedNavigationDestinations.enumerated()),
-                        id: \.element
-                    ) { index, destination in
-                        HStack(spacing: 12) {
-                            Toggle(
-                                isOn: navigationVisibilityBinding(
-                                    for: destination
-                                )
-                            ) {
-                                Label(
-                                    destination.title,
-                                    systemImage: destination.symbolName
-                                )
-                            }
-
-                            Spacer(minLength: 8)
-
-                            Button {
-                                moveNavigationDestination(
-                                    at: index,
-                                    offset: -1
-                                )
-                            } label: {
-                                Image(systemName: "chevron.up")
-                            }
-                            .buttonStyle(.borderless)
-                            .disabled(index == 0)
-                            .help("Move \(destination.title) Up")
-
-                            Button {
-                                moveNavigationDestination(
-                                    at: index,
-                                    offset: 1
-                                )
-                            } label: {
-                                Image(systemName: "chevron.down")
-                            }
-                            .buttonStyle(.borderless)
-                            .disabled(
-                                index == orderedNavigationDestinations.count - 1
-                            )
-                            .help("Move \(destination.title) Down")
-                        }
-                        .frame(minHeight: 30)
-                    }
-                }
-
-                SettingsAboutCard()
+                SettingsAboutSection()
             }
             .frame(maxWidth: 760, alignment: .leading)
             .padding(32)
@@ -174,53 +120,6 @@ struct ProductionSettingsView: View {
         )
     }
 
-    private var orderedNavigationDestinations: [NavigationDestination] {
-        NavigationRailConfiguration.orderedDestinations(
-            from: navigationOrderRawValue
-        )
-    }
-
-    private func navigationVisibilityBinding(
-        for destination: NavigationDestination
-    ) -> Binding<Bool> {
-        Binding(
-            get: {
-                !NavigationRailConfiguration.hiddenDestinations(
-                    from: hiddenNavigationRawValue
-                ).contains(destination)
-            },
-            set: { isVisible in
-                var hidden = NavigationRailConfiguration.hiddenDestinations(
-                    from: hiddenNavigationRawValue
-                )
-                if isVisible {
-                    hidden.remove(destination)
-                } else {
-                    hidden.insert(destination)
-                }
-                hiddenNavigationRawValue =
-                    NavigationRailConfiguration.encode(hidden)
-            }
-        )
-    }
-
-    private func moveNavigationDestination(
-        at index: Int,
-        offset: Int
-    ) {
-        var destinations = orderedNavigationDestinations
-        let targetIndex = index + offset
-        guard
-            destinations.indices.contains(index),
-            destinations.indices.contains(targetIndex)
-        else {
-            return
-        }
-        destinations.swapAt(index, targetIndex)
-        navigationOrderRawValue =
-            NavigationRailConfiguration.encode(destinations)
-    }
-
     private var libraryPath: String {
         model.librarySession.location?.packageURL.path
             ?? "~/Music/Cadence.library"
@@ -238,87 +137,7 @@ struct ProductionSettingsView: View {
     }
 }
 
-private struct SettingsLink: View {
-    let title: String
-    let symbol: String
-    let destination: URL
-
-    var body: some View {
-        Link(destination: destination) {
-            HStack {
-                Label(title, systemImage: symbol)
-                Spacer()
-                Image(systemName: "arrow.up.right")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .foregroundStyle(.primary)
-    }
-}
-
-private struct SettingsAboutCard: View {
-    var body: some View {
-        SettingsCard(title: "About Cadence", symbol: "info.circle") {
-            LabeledContent("Version") {
-                Text(appVersion)
-                    .foregroundStyle(.secondary)
-            }
-
-            Link(destination: AppConfiguration.creatorURL) {
-                Label(
-                    "Created by \(AppConfiguration.creatorName)",
-                    systemImage: "person.crop.circle"
-                )
-            }
-            .buttonStyle(.plain)
-            .foregroundStyle(.primary)
-
-            Divider()
-
-            SettingsLink(
-                title: "Source Code",
-                symbol: "chevron.left.forwardslash.chevron.right",
-                destination: AppConfiguration.projectURL
-            )
-            SettingsLink(
-                title: "License",
-                symbol: "doc.plaintext",
-                destination: AppConfiguration.licenseURL
-            )
-            SettingsLink(
-                title: "Documentation & Wiki",
-                symbol: "book.pages",
-                destination: AppConfiguration.wikiURL
-            )
-
-            Divider()
-
-            Link(destination: AppConfiguration.supportURL) {
-                Label(
-                    "Support on Buy Me a Coffee",
-                    systemImage: "cup.and.saucer"
-                )
-            }
-            .buttonStyle(.plain)
-            .foregroundStyle(.primary)
-        }
-    }
-
-    private var appVersion: String {
-        let version = Bundle.main.object(
-            forInfoDictionaryKey: "CFBundleShortVersionString"
-        ) as? String ?? "0.1.0"
-        let build = Bundle.main.object(
-            forInfoDictionaryKey: "CFBundleVersion"
-        ) as? String ?? "1"
-        return "\(version) (\(build))"
-    }
-}
-
-private struct SettingsCard<Content: View>: View {
+struct SettingsCard<Content: View>: View {
     let title: String
     let symbol: String
     @ViewBuilder let content: Content

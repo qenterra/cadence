@@ -22,7 +22,8 @@ playback preferences through macOS preferences.
 ## Data that stays on your Mac
 
 Cadence does not transmit your library, listening activity, tags, playlists,
-artwork, lyrics, search queries, or preferences to QenTerra or another service.
+artwork, lyrics, search queries, or preferences to Nikita Melnychenko
+(QenTerra) or another service.
 The app opens a URL in your default browser only after you select a GitHub,
 Wiki, license, or Buy Me a Coffee link in Settings.
 
