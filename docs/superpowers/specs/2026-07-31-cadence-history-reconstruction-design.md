@@ -13,24 +13,30 @@ including the uncommitted cleanup and layout changes, while keeping every
 public revision free of internal agent material, private data, temporary
 artifacts, and discarded experiments.
 
-This is a reconstruction, not a recovery of the deleted Git objects. It must
-not claim that recreated object IDs or inferred timestamps are original.
+The original pre-public Git objects were recovered in the verified bundle
+`cadence-pre-public.bundle`. It contains a complete 34-commit `main` history,
+four additional Codex checkpoint trees, one capture tree, and the exact
+original author dates. The public history remains a reconstruction because
+cleaning private paths, changing the private author email, splitting the large
+checkpoint, and appending the current working tree necessarily produce new
+object IDs.
 
 ## Evidence hierarchy
 
 Commit boundaries and descriptions use the strongest available evidence in
 this order:
 
-1. surviving Git objects and exact command output;
-2. Codex session records containing commit output, patches, or file snapshots;
-3. dated Cadence entries in the Obsidian changelog;
-4. approved specifications and public architecture documentation;
-5. dependency analysis of the approved final source tree.
+1. the verified pre-public Git bundle and its exact trees;
+2. checkpoint trees retained under the bundle's `refs/codex/turn-diffs`;
+3. Codex session records containing commit output, patches, or file snapshots;
+4. dated Cadence entries in the Obsidian changelog;
+5. approved specifications and public architecture documentation;
+6. dependency analysis of the approved final source tree.
 
-The changelog establishes the product chronology but is not sufficient on its
-own to recreate exact file contents. A milestone is omitted or merged with an
-adjacent milestone when its implementation cannot be supported by the
-available evidence.
+The changelog establishes the product chronology but is not used in place of
+an available Git tree. A milestone is omitted or merged with an adjacent
+milestone when its implementation cannot be supported by the recovered trees
+or session evidence.
 
 ## Reconstruction ledger
 
@@ -51,8 +57,11 @@ Cadence branch.
 
 ## Commit model
 
-The target is approximately 30 to 45 atomic Conventional Commits. The exact
-count follows the evidence and dependency graph rather than a quota.
+The target is approximately 30 to 45 atomic Conventional Commits. The recovered
+history provides 34 original commits and exact timestamps, but internal
+design-only commits may disappear while the 44,862-line stabilization
+checkpoint is split into product milestones. The final count follows the
+evidence and dependency graph rather than a quota.
 
 ### Phase 1 — Foundation
 
@@ -142,8 +151,8 @@ architecture decisions, or reconstructed-history disclosure. Messages do not
 mention agents, prompts, chat instructions, or implementation theatrics.
 
 The root commit body states once that the public history was reconstructed
-from dated project records after the original local Git objects were removed.
-Individual commits do not repeat that disclaimer.
+from the verified pre-public bundle and dated project records after the
+original public reset. Individual commits do not repeat that disclaimer.
 
 ## Clean-tree policy
 
@@ -181,12 +190,13 @@ Known-broken historical states are not reproduced for nostalgia.
 Before reconstruction:
 
 1. record the local and remote tip object IDs;
-2. create and verify a full Git bundle of all current refs;
-3. create a protected local backup ref for the old `main`;
-4. archive the complete dirty working tree, including untracked files;
-5. generate a SHA-256 manifest for the archive;
-6. store the current staged, unstaged, and untracked inventories;
-7. build the new history in a separate temporary repository or worktree.
+2. preserve and reverify the recovered pre-public bundle;
+3. create and verify a new full Git bundle of all current refs;
+4. create a protected local backup ref for the old `main`;
+5. archive the complete dirty working tree, including untracked files;
+6. generate a SHA-256 manifest for every backup;
+7. store the current staged, unstaged, and untracked inventories;
+8. build the new history in a separate temporary repository or worktree.
 
 The user's active Cadence directory remains untouched while the candidate
 history is assembled.
