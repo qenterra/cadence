@@ -25,11 +25,13 @@ targets:
       path: Sources/Cadence/Resources/Info.plist
       properties:
         CFBundleDisplayName: Cadence
+        CFBundleIconFile: Cadence
+        CFBundleIconName: Cadence
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         LSApplicationCategoryType: public.app-category.music
         LSMinimumSystemVersion: $(MACOSX_DEPLOYMENT_TARGET)
-        NSHumanReadableCopyright: Copyright © 2026 QenTerra
+        NSHumanReadableCopyright: Copyright © 2026 Nikita Melnychenko (QenTerra)
         UTExportedTypeDeclarations:
           - UTTypeConformsTo:
               - com.apple.package

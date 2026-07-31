@@ -47,3 +47,12 @@ DEVELOPER_DIR="$developer_dir" xcodebuild \
     -jobs 2 \
     -parallel-testing-enabled NO \
     test | xcbeautify
+
+app_bundle="$project_root/.build/DerivedData/Build/Products/Debug/Cadence.app"
+info_plist="$app_bundle/Contents/Info.plist"
+icon_file="$app_bundle/Contents/Resources/Cadence.icns"
+
+[[ -f "$info_plist" ]]
+[[ -f "$icon_file" ]]
+[[ "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIconFile' "$info_plist")" == "Cadence" ]]
+[[ "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIconName' "$info_plist")" == "Cadence" ]]
