@@ -1,3 +1,4 @@
+@testable import Cadence
 import Foundation
 
 extension [SmartCollectionPreview] {
