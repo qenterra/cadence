@@ -1,6 +1,13 @@
 import Foundation
 
 extension LibraryStore {
+    func tracksForTagPicker() async throws -> [LibraryTrackProjection] {
+        guard let repository else {
+            return []
+        }
+        return try await repository.tracksForTagPicker()
+    }
+
     @discardableResult
     func createTag(
         displayPath: String
@@ -47,6 +54,27 @@ extension LibraryStore {
             assigned: assigned,
             trackID: trackID
         )
+        tagRevision &+= 1
+        await refreshTags()
+    }
+
+    func directlyAssignedTrackIDs(
+        tagID: UUID
+    ) async throws -> Set<UUID> {
+        guard let repository else {
+            return []
+        }
+        return try await repository.directlyAssignedTrackIDs(tagID: tagID)
+    }
+
+    func assignTag(
+        _ tagID: UUID,
+        trackIDs: [UUID]
+    ) async throws {
+        guard let repository else {
+            return
+        }
+        try await repository.assignTag(tagID, trackIDs: trackIDs)
         tagRevision &+= 1
         await refreshTags()
     }

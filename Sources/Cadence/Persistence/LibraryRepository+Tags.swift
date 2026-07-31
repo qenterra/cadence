@@ -19,6 +19,7 @@ enum ProductionTagEditError: Error, LocalizedError, Sendable {
     case invalidPath
     case missingTag
     case missingTrack
+    case missingTracks
 
     var errorDescription: String? {
         switch self {
@@ -28,6 +29,8 @@ enum ProductionTagEditError: Error, LocalizedError, Sendable {
             "The tag no longer exists."
         case .missingTrack:
             "The track is no longer in the library."
+        case .missingTracks:
+            "One or more selected tracks are no longer in the library."
         }
     }
 }

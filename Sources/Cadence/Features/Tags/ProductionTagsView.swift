@@ -8,6 +8,7 @@ struct ProductionTagsView: View {
     @State private var isLoadingTracks = false
     @State private var tagDialog: ProductionTagDialog?
     @State private var newTagPath = ""
+    @State private var isTrackPickerPresented = false
     @AppStorage("tags.sidebarWidth")
     private var sidebarWidth = 300.0
     @AppStorage("tags.inspectorWidth")
@@ -45,6 +46,15 @@ struct ProductionTagsView: View {
             }
         }
         .background(CadenceTheme.contentBackground)
+        .sheet(isPresented: $isTrackPickerPresented) {
+            if let selectedTag {
+                TagTrackPickerSheet(
+                    model: model,
+                    store: store,
+                    tag: selectedTag
+                )
+            }
+        }
         .task(id: "\(selectedTagID?.uuidString ?? "none")-\(store.tagRevision)") {
             guard let selectedTagID else {
                 taggedTracks = []
@@ -92,8 +102,8 @@ private extension ProductionTagsView {
         CadenceResizableSplitView(
             fixedPane: .leading,
             fixedWidth: $sidebarWidth,
-            fixedMinimum: 220,
-            fixedMaximum: 420,
+            fixedMinimum: WorkspaceLayout.paneMinimumWidth,
+            fixedMaximum: WorkspaceLayout.paneMaximumWidth,
             flexibleMinimum: 360
         ) {
             tagSidebar
@@ -104,10 +114,7 @@ private extension ProductionTagsView {
 
     private var tagSidebar: some View {
         VStack(alignment: .leading, spacing: 0) {
-            HStack {
-                Text("Tags")
-                    .font(.title2.bold())
-                Spacer()
+            WorkspacePaneHeader("Tags") {
                 Button {
                     newTagPath = ""
                     tagDialog = .create
@@ -117,12 +124,6 @@ private extension ProductionTagsView {
                 .buttonStyle(.plain)
                 .help("New Tag")
             }
-            .padding(.horizontal, 18)
-            .frame(height: 68)
-
-            Rectangle()
-                .fill(CadenceTheme.separator)
-                .frame(height: 1)
 
             ScrollView {
                 LazyVStack(spacing: 4) {
@@ -130,7 +131,8 @@ private extension ProductionTagsView {
                         tagButton(tag)
                     }
                 }
-                .padding(.horizontal, 10)
+                .padding(.horizontal, WorkspaceLayout.listInset)
+                .padding(.top, WorkspaceLayout.listInset)
                 .padding(.bottom, 16)
             }
         }
@@ -186,7 +188,7 @@ private extension ProductionTagsView {
                 }
             }
         }
-        .padding(24)
+        .padding(WorkspaceLayout.pageInset)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
 
@@ -208,7 +210,13 @@ private extension ProductionTagsView {
             CadencePageHeader(
                 selectedTag?.displayPath ?? "Tags",
                 subtitle: "\(taggedTracks.count) tracks"
-            )
+            ) {
+                if selectedTag != nil {
+                    Button("Add Tracks", systemImage: "plus") {
+                        isTrackPickerPresented = true
+                    }
+                }
+            }
         }
     }
 
@@ -229,7 +237,7 @@ private extension ProductionTagsView {
                 selectedTagID == tag.id ? .primary : .secondary
             )
             .padding(.horizontal, 12)
-            .frame(height: 46)
+            .frame(height: WorkspaceLayout.rowHeight)
             .background {
                 BrowserRowSurface(
                     isSelected: selectedTagID == tag.id,
