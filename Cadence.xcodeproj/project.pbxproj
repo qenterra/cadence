@@ -80,6 +80,7 @@
 		32856669153533BFDB55A6E8 /* AlbumListeningHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68AABE3CF8C23D03EE10CFFC /* AlbumListeningHeader.swift */; };
 		334DBDA80AFB10C03ED1666E /* AlbumsListening.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D354C6C3935747B57B440B7 /* AlbumsListening.swift */; };
 		3374401AD49A72D02214AF15 /* LyricsEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E64E9038CF3BF2F5F32D7495 /* LyricsEditorView.swift */; };
+		33D47D02472A1A51145FC511 /* Cadence.icon in Resources */ = {isa = PBXBuildFile; fileRef = C1CB7D7F4ADC8C2E093DC9C7 /* Cadence.icon */; };
 		341C494471941EB0F8767F83 /* CadenceAppModel+ArtistPlayback.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95C274E0C0A9F5F20C770FD8 /* CadenceAppModel+ArtistPlayback.swift */; };
 		34FDED1C680EED1A8DA59A09 /* SmartCollectionTrackTableRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F826B12F8E7929DC0E90FB8 /* SmartCollectionTrackTableRow.swift */; };
 		35063C2FB1AB401BA42F3C2C /* ManagedLibraryPackage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A8D40327F7D2E2937CA611A /* ManagedLibraryPackage.swift */; };
@@ -118,7 +119,6 @@
 		47E7987A4DD8636934D0D1F5 /* TagGroupsColumn.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4BE5AC7D5B64ACF2E08B3C0 /* TagGroupsColumn.swift */; };
 		48767EED958931ABF5EADA41 /* PlaylistsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996FE1B8EB51A59BD6777505 /* PlaylistsView.swift */; };
 		489ACD6E46A7B586194D0836 /* CadenceAppModel+SmartCollections.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9630F218866B3DC748DB6F68 /* CadenceAppModel+SmartCollections.swift */; };
-		48D7EC4FC2A3953AB38C0763 /* Cadence.icon in Resources */ = {isa = PBXBuildFile; fileRef = E287CAA137C04D6708154B4F /* Cadence.icon */; };
 		4978705807ECC753145E1C28 /* PlaybackCoordinator+BackendTransition.swift in Sources */ = {isa = PBXBuildFile; fileRef = F225906E53EB8F02894E4EA2 /* PlaybackCoordinator+BackendTransition.swift */; };
 		49D923FF647AF2DE026D80F5 /* TagSelectionSummaryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6484AACC544C7FD29070DBE /* TagSelectionSummaryTests.swift */; };
 		4A2B770BCA19D9A68D778193 /* ProductionPlaybackAppModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB1B326A905A38F0D23EAAA8 /* ProductionPlaybackAppModelTests.swift */; };
@@ -621,6 +621,7 @@
 		BCA23B76857147DABCD9D339 /* PlaybackQueueCoordinatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackQueueCoordinatorTests.swift; sourceTree = "<group>"; };
 		BD99BBEAABD46454410FCB0C /* ImportMusicScanningState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportMusicScanningState.swift; sourceTree = "<group>"; };
 		BE7B9397CE27D399B3333F07 /* SmartCollectionRuleTreeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartCollectionRuleTreeTests.swift; sourceTree = "<group>"; };
+		C1CB7D7F4ADC8C2E093DC9C7 /* Cadence.icon */ = {isa = PBXFileReference; lastKnownFileType = wrapper.icon; path = Cadence.icon; sourceTree = "<group>"; };
 		C2088ADCFF099782A727EBFE /* PlaybackTestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackTestSupport.swift; sourceTree = "<group>"; };
 		C21EA280F7503B09B4EA5639 /* ImportMusicDropOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportMusicDropOverlay.swift; sourceTree = "<group>"; };
 		C242AA8975128797A1B1E6B5 /* NowPlayingLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingLayoutTests.swift; sourceTree = "<group>"; };
@@ -669,7 +670,6 @@
 		E0930A86A0AF7E46943945C6 /* CadenceAppModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CadenceAppModelTests.swift; sourceTree = "<group>"; };
 		E19B1B77C472ED7BEB2DE7A5 /* SmartCollectionListeningLifecycleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartCollectionListeningLifecycleTests.swift; sourceTree = "<group>"; };
 		E1EDC4C2C7E9E165F6A03E67 /* CadenceAppModel+TagSummaries.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CadenceAppModel+TagSummaries.swift"; sourceTree = "<group>"; };
-		E287CAA137C04D6708154B4F /* Cadence.icon */ = {isa = PBXFileReference; lastKnownFileType = wrapper.icon; path = Cadence.icon; sourceTree = "<group>"; };
 		E40D3BF7A8D8BBFAE9ADB975 /* CadenceAppModelFactoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CadenceAppModelFactoryTests.swift; sourceTree = "<group>"; };
 		E4E3357A37CB38423F0DFDDD /* MetadataReader+Artwork.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MetadataReader+Artwork.swift"; sourceTree = "<group>"; };
 		E58947A7A402EF9F02EE1F57 /* NowPlayingLayoutMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingLayoutMetrics.swift; sourceTree = "<group>"; };
@@ -802,15 +802,6 @@
 			path = ManagedLibrary;
 			sourceTree = "<group>";
 		};
-		329CD8AA7DF5239B7C37F206 /* icon-composer */ = {
-			isa = PBXGroup;
-			children = (
-				E287CAA137C04D6708154B4F /* Cadence.icon */,
-			);
-			name = "icon-composer";
-			path = "brand/icon-composer";
-			sourceTree = "<group>";
-		};
 		333C7D26D7155D5E1AFEF4CE /* Persistence */ = {
 			isa = PBXGroup;
 			children = (
@@ -866,6 +857,14 @@
 				53E51EB60B7DB9B8BD4BFAB0 /* MockTags.swift */,
 			);
 			path = Fixtures;
+			sourceTree = "<group>";
+		};
+		40B05C598A537F98B9AD5898 /* icon */ = {
+			isa = PBXGroup;
+			children = (
+				C1CB7D7F4ADC8C2E093DC9C7 /* Cadence.icon */,
+			);
+			path = icon;
 			sourceTree = "<group>";
 		};
 		474DB1E3FA7ECC764925DA48 /* CadenceTests */ = {
@@ -1048,7 +1047,7 @@
 			children = (
 				FD48710B608BE6A57DA448D7 /* Cadence */,
 				474DB1E3FA7ECC764925DA48 /* CadenceTests */,
-				329CD8AA7DF5239B7C37F206 /* icon-composer */,
+				40B05C598A537F98B9AD5898 /* icon */,
 				ADFE63F9A7B11522B6C8E81A /* Products */,
 			);
 			sourceTree = "<group>";
@@ -1427,7 +1426,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				48D7EC4FC2A3953AB38C0763 /* Cadence.icon in Resources */,
+				33D47D02472A1A51145FC511 /* Cadence.icon in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

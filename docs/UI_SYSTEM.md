@@ -70,7 +70,7 @@ by the production `LibraryStore`, not preview fixtures.
 
 ## App icon
 
-`brand/icon-composer/Cadence.icon` remains the canonical source. XcodeGen sets
+`icon/Cadence.icon` remains the canonical source. XcodeGen sets
 the app-icon compiler name and writes both `CFBundleIconFile` and
 `CFBundleIconName` as `Cadence`. Verification checks the built application
 bundle, not merely the project configuration.

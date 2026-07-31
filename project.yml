@@ -20,7 +20,7 @@ targets:
     deploymentTarget: "26.0"
     sources:
       - path: Sources/Cadence
-      - path: brand/icon-composer/Cadence.icon
+      - path: icon/Cadence.icon
     info:
       path: Sources/Cadence/Resources/Info.plist
       properties:

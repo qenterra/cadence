@@ -27,6 +27,16 @@ fi
 
 cd "$project_root"
 
+icon_source="$project_root/icon/Cadence.icon"
+icon_manifest="$icon_source/icon.json"
+
+[[ -d "$icon_source" ]]
+[[ -f "$icon_manifest" ]]
+[[ "$(plutil -extract 'supported-platforms.squares' raw -o - "$icon_manifest")" == "shared" ]]
+[[ "$(plutil -extract 'supported-platforms.circles.0' raw -o - "$icon_manifest")" == "watchOS" ]]
+[[ "$(plutil -extract 'groups.0.layers.0.fill-specializations.1.appearance' raw -o - "$icon_manifest")" == "light" ]]
+[[ "$(plutil -extract 'groups.0.layers.0.fill-specializations.1.value' raw -o - "$icon_manifest")" == "system-dark" ]]
+
 xcodegen generate --spec project.yml
 swiftformat Sources Tests --lint
 swiftlint lint \
@@ -51,8 +61,16 @@ DEVELOPER_DIR="$developer_dir" xcodebuild \
 app_bundle="$project_root/.build/DerivedData/Build/Products/Debug/Cadence.app"
 info_plist="$app_bundle/Contents/Info.plist"
 icon_file="$app_bundle/Contents/Resources/Cadence.icns"
+asset_catalog="$app_bundle/Contents/Resources/Assets.car"
 
 [[ -f "$info_plist" ]]
 [[ -f "$icon_file" ]]
+[[ -f "$asset_catalog" ]]
 [[ "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIconFile' "$info_plist")" == "Cadence" ]]
 [[ "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIconName' "$info_plist")" == "Cadence" ]]
+
+asset_catalog_info="$(DEVELOPER_DIR="$developer_dir" xcrun assetutil --info "$asset_catalog")"
+[[ "$asset_catalog_info" == *'"Appearance" : "NSAppearanceNameAqua"'* ]]
+[[ "$asset_catalog_info" == *'"Appearance" : "NSAppearanceNameDarkAqua"'* ]]
+[[ "$asset_catalog_info" == *'"Name" : "Cadence_Assets\/system-light"'* ]]
+[[ "$asset_catalog_info" == *'"Name" : "Cadence_Assets\/system-dark"'* ]]
