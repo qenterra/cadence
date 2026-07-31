@@ -16,7 +16,7 @@ struct SmartCollectionAppModelTests {
             name: "Mara",
             condition: artistCondition("Mara Vale")
         )
-        let model = CadenceAppModel.preview(smartCollections: [first, second])
+        let model = CadenceAppModel.testFixture(smartCollections: [first, second])
 
         #expect(model.selectedSmartCollectionID == first.id)
         #expect(model.smartCollectionDraft == nil)
@@ -30,7 +30,7 @@ struct SmartCollectionAppModelTests {
 
     @Test("A new draft remains transient until valid Save")
     func createAndSave() throws {
-        let model = CadenceAppModel.preview(smartCollections: [])
+        let model = CadenceAppModel.testFixture(smartCollections: [])
         let draftID = smartCollectionTestID(210)
         let rootID = smartCollectionTestID(211)
 
@@ -56,7 +56,7 @@ struct SmartCollectionAppModelTests {
 
     @Test("Valid edits update live results and invalid edits preserve the last valid IDs")
     func liveAndInvalidPreview() throws {
-        let model = CadenceAppModel.preview(smartCollections: [])
+        let model = CadenceAppModel.testFixture(smartCollections: [])
         model.requestNewSmartCollection(
             draftID: smartCollectionTestID(220),
             rootID: smartCollectionTestID(221)
@@ -92,7 +92,7 @@ struct SmartCollectionAppModelTests {
             name: "Second",
             condition: artistCondition("Mara Vale")
         )
-        let model = CadenceAppModel.preview(smartCollections: [first, second])
+        let model = CadenceAppModel.testFixture(smartCollections: [first, second])
         model.requestEditSelectedSmartCollection()
         model.renameSmartCollectionDraft("Changed")
 
@@ -137,7 +137,7 @@ struct SmartCollectionAppModelTests {
             name: "Second",
             condition: artistCondition("Mara Vale")
         )
-        let model = CadenceAppModel.preview(smartCollections: [first, second])
+        let model = CadenceAppModel.testFixture(smartCollections: [first, second])
         model.requestEditSelectedSmartCollection()
         model.renameSmartCollectionDraft("Changed")
 
@@ -167,7 +167,7 @@ struct SmartCollectionAppModelTests {
                 value: .boolean(true)
             )
         )
-        let model = CadenceAppModel.preview(smartCollections: [favorite])
+        let model = CadenceAppModel.testFixture(smartCollections: [favorite])
         let originalCount = model.smartCollectionMatchCount(for: favorite)
         let track = try #require(model.tracks.first)
 

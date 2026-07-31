@@ -237,6 +237,40 @@ struct LibraryRepositoryTests {
                 .allSatisfy(\.isEmpty)
         )
     }
+
+    @Test("Batch tag assignment saves every missing direct assignment once")
+    func batchTagAssignment() async throws {
+        let container = try makeContainer(trackCount: 3)
+        let context = ModelContext(container)
+        let trackIDs = try context.fetch(
+            FetchDescriptor<TrackRecord>(
+                sortBy: [SortDescriptor(\.normalizedTitle)]
+            )
+        ).map(\.id)
+        let repository = LibraryRepository(modelContainer: container)
+        let tagID = try await repository.createTag(
+            displayPath: "Mood / Calm"
+        )
+
+        try await repository.assignTag(
+            tagID,
+            trackIDs: [trackIDs[0], trackIDs[1], trackIDs[0]]
+        )
+        try await repository.assignTag(
+            tagID,
+            trackIDs: [trackIDs[1], trackIDs[2]]
+        )
+
+        #expect(
+            try await repository.directlyAssignedTrackIDs(tagID: tagID)
+                == Set(trackIDs)
+        )
+        #expect(
+            try await repository.tracks(tagID: tagID).items.map(\.id)
+                .sorted { $0.uuidString < $1.uuidString }
+                == trackIDs.sorted { $0.uuidString < $1.uuidString }
+        )
+    }
 }
 
 private extension LibraryRepositoryTests {

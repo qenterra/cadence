@@ -28,7 +28,7 @@ struct TagPreviewTests {
 struct CadenceTagModelTests {
     @Test("Tag groups keep virtual groups and localized canonical order")
     func groupOrdering() {
-        let model = CadenceAppModel.preview()
+        let model = CadenceAppModel.testFixture()
 
         #expect(
             model.tagGroups.map(\.title)
@@ -46,7 +46,7 @@ struct CadenceTagModelTests {
 
     @Test("Album tags are inherited without copied track assignments")
     func albumInheritance() throws {
-        let model = CadenceAppModel.preview()
+        let model = CadenceAppModel.testFixture()
         let track = try #require(model.tracks.first { $0.id == 1 })
 
         #expect(model.tagMatchSource(for: track, tagID: "genre/ambient") == .inherited)
@@ -62,7 +62,7 @@ struct CadenceTagModelTests {
 
     @Test("Track assignments combine with inheritance")
     func directAndInheritedTags() throws {
-        let model = CadenceAppModel.preview()
+        let model = CadenceAppModel.testFixture()
         let track = try #require(model.tracks.first { $0.id == 1 })
         let effectiveTagIDs = Set(model.effectiveTags(for: track).map(\.id))
 
@@ -74,7 +74,7 @@ struct CadenceTagModelTests {
 
     @Test("Track exclusions remove only inherited album tags")
     func inheritedExclusion() throws {
-        let model = CadenceAppModel.preview()
+        let model = CadenceAppModel.testFixture()
         let excludedTrack = try #require(model.tracks.first { $0.id == 9 })
         let inheritedTrack = try #require(model.tracks.first { $0.id == 1 })
 
@@ -85,7 +85,7 @@ struct CadenceTagModelTests {
 
     @Test("Tag results distinguish album and track assignment sources")
     func resultSources() throws {
-        let model = CadenceAppModel.preview()
+        let model = CadenceAppModel.testFixture()
         let ambient = try #require(model.tags.first { $0.id == "genre/ambient" })
         model.selectTag(ambient)
 
@@ -106,7 +106,7 @@ struct CadenceTagModelTests {
 
     @Test("Library search includes effective tag paths")
     func searchByTag() {
-        let model = CadenceAppModel.preview()
+        let model = CadenceAppModel.testFixture()
         model.searchScope = .library
         model.searchQuery = "mood/sad"
 

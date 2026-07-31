@@ -6,7 +6,7 @@ import Testing
 struct ArtistsListeningAppModelTests {
     @Test("Artists start at overview with independent favorite state")
     func initialState() throws {
-        let model = CadenceAppModel.preview(
+        let model = CadenceAppModel.testFixture(
             favoriteAlbumDates: [:],
             favoriteArtistDates: ["North Assembly": .distantPast]
         )
@@ -25,7 +25,7 @@ struct ArtistsListeningAppModelTests {
 
     @Test("Artist favorite commands are idempotent and ignore stale artists")
     func favoriteCommands() throws {
-        let model = CadenceAppModel.preview(favoriteArtistDates: [:])
+        let model = CadenceAppModel.testFixture(favoriteArtistDates: [:])
         let artist = try #require(model.artists.first)
         let timestamp = Date(timeIntervalSince1970: 123)
 
@@ -46,7 +46,7 @@ struct ArtistsListeningAppModelTests {
 
     @Test("Artists routing retains origin, sorting, and search")
     func routing() throws {
-        let model = CadenceAppModel.preview()
+        let model = CadenceAppModel.testFixture()
         let artist = try #require(model.artists.first)
         model.activateAllArtistsSort(.trackCount)
         model.artistSearchQuery = artist.name
@@ -70,7 +70,7 @@ struct ArtistsListeningAppModelTests {
 
     @Test("Artist derived tags include effective accepted tags")
     func derivedTags() throws {
-        let model = CadenceAppModel.preview()
+        let model = CadenceAppModel.testFixture()
         let artist = try #require(
             model.artists.first { $0.id == "North Assembly" }
         )
@@ -82,7 +82,7 @@ struct ArtistsListeningAppModelTests {
 
     @Test("Custom artist image can be replaced and removed in memory")
     func customImage() throws {
-        let model = CadenceAppModel.preview()
+        let model = CadenceAppModel.testFixture()
         let artist = try #require(model.artists.first)
         let first = ArtistImageAsset(data: Data([1, 2, 3]))
         let second = ArtistImageAsset(
@@ -102,7 +102,7 @@ struct ArtistsListeningAppModelTests {
 
     @Test("Artist playback remains a stable canonical snapshot")
     func playbackSnapshot() throws {
-        let model = CadenceAppModel.preview(favoriteArtistDates: [:])
+        let model = CadenceAppModel.testFixture(favoriteArtistDates: [:])
         let artist = try #require(
             model.artists.first { $0.id == "North Assembly" }
         )
@@ -122,7 +122,7 @@ struct ArtistsListeningAppModelTests {
 
     @Test("Album detail opened from Artists returns to the exact artist origin")
     func albumReturn() throws {
-        let model = CadenceAppModel.preview()
+        let model = CadenceAppModel.testFixture()
         let artist = try #require(
             model.artists.first { $0.id == "North Assembly" }
         )

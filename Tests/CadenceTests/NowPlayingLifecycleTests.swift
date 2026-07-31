@@ -5,7 +5,7 @@ import Testing
 struct NowPlayingLifecycleTests {
     @Test("Now Playing chooses Lyrics or Queue from the current track")
     func firstOpenPanel() throws {
-        let model = CadenceAppModel.preview()
+        let model = CadenceAppModel.testFixture()
 
         #expect(model.presentNowPlaying())
         #expect(model.playbackWorkspace == .nowPlaying)
@@ -23,7 +23,7 @@ struct NowPlayingLifecycleTests {
 
     @Test("Ordinary opening remembers explicit panel selection")
     func panelMemory() {
-        let model = CadenceAppModel.preview()
+        let model = CadenceAppModel.testFixture()
         model.presentNowPlaying()
 
         model.selectNowPlayingPanel(.queue)
@@ -35,7 +35,7 @@ struct NowPlayingLifecycleTests {
 
     @Test("Queue entry overrides but does not replace remembered panel")
     func queueOverride() {
-        let model = CadenceAppModel.preview()
+        let model = CadenceAppModel.testFixture()
         model.presentNowPlaying()
         model.selectNowPlayingPanel(.lyrics)
         model.dismissNowPlaying()
@@ -50,7 +50,7 @@ struct NowPlayingLifecycleTests {
 
     @Test("Now Playing requires a current track")
     func requiresCurrentTrack() {
-        let model = CadenceAppModel.preview()
+        let model = CadenceAppModel.testFixture()
         model.currentTrackID = nil
 
         #expect(!model.presentNowPlaying())
@@ -59,7 +59,7 @@ struct NowPlayingLifecycleTests {
 
     @Test("Rail navigation closes the playback workspace")
     func destinationNavigation() {
-        let model = CadenceAppModel.preview()
+        let model = CadenceAppModel.testFixture()
         model.presentNowPlaying()
 
         model.requestNavigationDestination(.tags)
@@ -70,7 +70,7 @@ struct NowPlayingLifecycleTests {
 
     @Test("Lyrics Editor targets the exact current track")
     func editorTarget() throws {
-        let model = CadenceAppModel.preview()
+        let model = CadenceAppModel.testFixture()
         let currentTrack = try #require(model.currentTrack)
         model.presentNowPlaying()
 
@@ -82,7 +82,7 @@ struct NowPlayingLifecycleTests {
 
     @Test("Dirty editor Back supports Cancel and Discard")
     func dirtyBackGuard() throws {
-        let model = CadenceAppModel.preview()
+        let model = CadenceAppModel.testFixture()
         model.presentNowPlaying()
         model.presentLyricsEditor()
         let lineID = try #require(model.lyricDraft?.lines.first?.id)
@@ -105,7 +105,7 @@ struct NowPlayingLifecycleTests {
 
     @Test("Save commits a lyric draft before navigation")
     func saveBeforeDestination() throws {
-        let model = CadenceAppModel.preview()
+        let model = CadenceAppModel.testFixture()
         let track = try #require(model.currentTrack)
         model.presentNowPlaying()
         model.presentLyricsEditor()
@@ -123,7 +123,7 @@ struct NowPlayingLifecycleTests {
 
     @Test("Dirty editor defers queue traversal until resolution")
     func trackChangeGuard() throws {
-        let model = CadenceAppModel.preview()
+        let model = CadenceAppModel.testFixture()
         let tracks = Array(model.tracks.prefix(3))
         let first = try #require(tracks.first)
         model.startPlaybackQueue(
@@ -149,7 +149,7 @@ struct NowPlayingLifecycleTests {
 
     @Test("Bottom-player Queue respects a dirty lyric draft")
     func queueEntryGuard() throws {
-        let model = CadenceAppModel.preview()
+        let model = CadenceAppModel.testFixture()
         model.presentNowPlaying()
         model.presentLyricsEditor()
         let lineID = try #require(model.lyricDraft?.lines.first?.id)

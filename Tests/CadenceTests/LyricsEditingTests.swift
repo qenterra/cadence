@@ -6,7 +6,7 @@ import Testing
 struct LyricsEditingTests {
     @Test("Editor creates isolated drafts for existing and missing lyrics")
     func draftCreation() throws {
-        let model = CadenceAppModel.preview()
+        let model = CadenceAppModel.testFixture()
         let savedDocument = try #require(model.currentLyricDocument)
 
         #expect(model.presentLyricsEditor())
@@ -26,7 +26,7 @@ struct LyricsEditingTests {
 
     @Test("Text, row, and timestamp operations mutate only the draft")
     func draftMutations() throws {
-        let model = CadenceAppModel.preview()
+        let model = CadenceAppModel.testFixture()
         let track = try #require(model.currentTrack)
         let savedText = model.lyricDocuments[track.id]?.lines.first?.text
         model.presentLyricsEditor()
@@ -53,7 +53,7 @@ struct LyricsEditingTests {
 
     @Test("Tap to Sync stamps mock playback time and advances")
     func tapToSync() throws {
-        let model = CadenceAppModel.preview()
+        let model = CadenceAppModel.testFixture()
         let track = try #require(model.currentTrack)
         model.presentLyricsEditor()
         let lines = try #require(model.lyricDraft?.lines.filter { !$0.isBlank })
@@ -74,7 +74,7 @@ struct LyricsEditingTests {
 
     @Test("Clear timing preserves lyric text")
     func clearTiming() throws {
-        let model = CadenceAppModel.preview()
+        let model = CadenceAppModel.testFixture()
         model.presentLyricsEditor()
         let texts = try #require(model.lyricDraft?.lines.map(\.text))
 
@@ -91,7 +91,7 @@ struct LyricsEditingTests {
 
     @Test("Blocking timestamp errors prevent Save")
     func invalidSave() throws {
-        let model = CadenceAppModel.preview()
+        let model = CadenceAppModel.testFixture()
         let track = try #require(model.currentTrack)
         model.presentLyricsEditor()
         let firstLine = try #require(model.lyricDraft?.lines.first)
@@ -107,7 +107,7 @@ struct LyricsEditingTests {
 
     @Test("LRC replacement is atomic when parsing fails")
     func atomicLRCImport() throws {
-        let model = CadenceAppModel.preview()
+        let model = CadenceAppModel.testFixture()
         model.presentLyricsEditor()
         let originalLines = try #require(model.lyricDraft?.lines)
 
@@ -124,7 +124,7 @@ struct LyricsEditingTests {
 
     @Test("Structural draft edits register one-step Undo")
     func structuralUndo() throws {
-        let model = CadenceAppModel.preview()
+        let model = CadenceAppModel.testFixture()
         let undoManager = UndoManager()
         model.presentLyricsEditor()
         let originalLines = try #require(model.lyricDraft?.lines)

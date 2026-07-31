@@ -8,7 +8,7 @@ struct SmartCollectionListeningLifecycleTests {
     func initialListeningState() {
         let first = collection(id: testID(1), name: "First")
         let second = collection(id: testID(2), name: "Second")
-        let model = CadenceAppModel.preview(smartCollections: [first, second])
+        let model = CadenceAppModel.testFixture(smartCollections: [first, second])
 
         #expect(model.smartCollectionsPresentationMode == .listening)
         #expect(model.selectedSmartCollectionID == first.id)
@@ -22,7 +22,7 @@ struct SmartCollectionListeningLifecycleTests {
     @Test("Edit Rules creates an isolated draft and clean Done returns to listening")
     func cleanEditing() {
         let saved = collection(id: testID(10), name: "Saved")
-        let model = CadenceAppModel.preview(smartCollections: [saved])
+        let model = CadenceAppModel.testFixture(smartCollections: [saved])
 
         #expect(model.requestEditSelectedSmartCollection())
         #expect(model.smartCollectionsPresentationMode == .editing)
@@ -39,7 +39,7 @@ struct SmartCollectionListeningLifecycleTests {
     @Test("Dirty Done supports Cancel, Discard, and Save")
     func guardedDone() {
         let saved = collection(id: testID(20), name: "Saved")
-        let model = CadenceAppModel.preview(smartCollections: [saved])
+        let model = CadenceAppModel.testFixture(smartCollections: [saved])
         model.requestEditSelectedSmartCollection()
         model.renameSmartCollectionDraft("Changed")
 
@@ -72,7 +72,7 @@ struct SmartCollectionListeningLifecycleTests {
     @Test("A new transient draft opens editing and Discard restores prior selection")
     func newDraft() {
         let saved = collection(id: testID(30), name: "Saved")
-        let model = CadenceAppModel.preview(smartCollections: [saved])
+        let model = CadenceAppModel.testFixture(smartCollections: [saved])
         let draftID = testID(31)
 
         model.requestNewSmartCollection(
@@ -98,7 +98,7 @@ struct SmartCollectionListeningLifecycleTests {
     func editingSwitch() {
         let first = collection(id: testID(40), name: "First")
         let second = collection(id: testID(41), name: "Second")
-        let model = CadenceAppModel.preview(smartCollections: [first, second])
+        let model = CadenceAppModel.testFixture(smartCollections: [first, second])
         model.requestEditSelectedSmartCollection()
 
         model.requestSelectSmartCollection(second.id)
@@ -122,7 +122,7 @@ struct SmartCollectionListeningLifecycleTests {
     @Test("Dirty destination navigation resolves before leaving Smart Collections")
     func guardedNavigation() {
         let saved = collection(id: testID(50), name: "Saved")
-        let model = CadenceAppModel.preview(smartCollections: [saved])
+        let model = CadenceAppModel.testFixture(smartCollections: [saved])
         model.selectedDestination = .smartCollections
         model.requestEditSelectedSmartCollection()
         model.renameSmartCollectionDraft("Dirty")
@@ -152,7 +152,7 @@ struct SmartCollectionListeningLifecycleTests {
     @Test("Rename enters editing and emits a one-shot focus request")
     func rename() {
         let saved = collection(id: testID(60), name: "Saved")
-        let model = CadenceAppModel.preview(smartCollections: [saved])
+        let model = CadenceAppModel.testFixture(smartCollections: [saved])
 
         model.requestRenameSmartCollection(saved.id)
         let request = model.smartCollectionNameFocusRequest
@@ -169,7 +169,7 @@ struct SmartCollectionListeningLifecycleTests {
     func deletion() {
         let first = collection(id: testID(70), name: "First")
         let second = collection(id: testID(71), name: "Second")
-        let model = CadenceAppModel.preview(smartCollections: [first, second])
+        let model = CadenceAppModel.testFixture(smartCollections: [first, second])
         model.requestEditSelectedSmartCollection()
 
         model.requestDeleteSmartCollection(first.id)

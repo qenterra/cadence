@@ -5,7 +5,7 @@ import Testing
 struct TagSelectionSummaryTests {
     @Test("Track summaries distinguish direct, mixed, inherited, and excluded sources")
     func trackSummaries() throws {
-        let model = CadenceAppModel.preview()
+        let model = CadenceAppModel.testFixture()
 
         model.updateTagEditingSelection(.replace, target: .track(1))
         model.updateTagEditingSelection(.toggle, target: .track(2))
@@ -36,7 +36,7 @@ struct TagSelectionSummaryTests {
 
     @Test("Album summaries contain direct and mixed states without inheritance")
     func albumSummaries() throws {
-        let model = CadenceAppModel.preview()
+        let model = CadenceAppModel.testFixture()
         let signalsID = "North Assembly\u{1F}Signals After Dark"
         let midnightID = "North Assembly\u{1F}Midnight Static"
         let transientID = "North Assembly\u{1F}Transient Lines"
@@ -63,7 +63,7 @@ struct TagSelectionSummaryTests {
 
     @Test("Empty and stale selections produce no summaries")
     func emptySelection() {
-        let model = CadenceAppModel.preview()
+        let model = CadenceAppModel.testFixture()
 
         #expect(model.tagSelectionSummaries.isEmpty)
 

@@ -7,7 +7,7 @@ struct AlbumsListeningAppModelTests {
     @Test("Albums start at overview with independent favorite state")
     func initialState() throws {
         let favoriteID = "Mara Vale\u{1F}Quiet Machines"
-        let model = CadenceAppModel.preview(
+        let model = CadenceAppModel.testFixture(
             favoriteAlbumDates: [favoriteID: .distantPast]
         )
         let favorite = try #require(
@@ -26,7 +26,7 @@ struct AlbumsListeningAppModelTests {
 
     @Test("Favorite commands are idempotent and ignore stale albums")
     func favoriteCommands() throws {
-        let model = CadenceAppModel.preview(favoriteAlbumDates: [:])
+        let model = CadenceAppModel.testFixture(favoriteAlbumDates: [:])
         let album = try #require(model.albums.first)
         let timestamp = Date(timeIntervalSince1970: 123)
 
@@ -52,7 +52,7 @@ struct AlbumsListeningAppModelTests {
 
     @Test("Albums routing retains origin, sorting, and search")
     func routing() throws {
-        let model = CadenceAppModel.preview()
+        let model = CadenceAppModel.testFixture()
         let album = try #require(model.albums.first)
         model.activateAllAlbumsSort(.title)
         model.albumSearchQuery = album.title
@@ -74,7 +74,7 @@ struct AlbumsListeningAppModelTests {
 
     @Test("Album tags describe direct, inherited, and excluded states")
     func albumTags() throws {
-        let model = CadenceAppModel.preview()
+        let model = CadenceAppModel.testFixture()
         let album = try #require(
             model.albums.first { $0.title == "Signals After Dark" }
         )
@@ -90,7 +90,7 @@ struct AlbumsListeningAppModelTests {
 
     @Test("Album playback remains a stable canonical snapshot")
     func playbackSnapshot() throws {
-        let model = CadenceAppModel.preview(favoriteAlbumDates: [:])
+        let model = CadenceAppModel.testFixture(favoriteAlbumDates: [:])
         let album = try #require(
             model.albums.first { $0.title == "Signals After Dark" }
         )

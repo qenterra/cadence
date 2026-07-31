@@ -135,7 +135,7 @@ struct PlaybackQueueTests {
 struct PlaybackQueueAppModelTests {
     @Test("A model queue starts at selection and drives transport")
     func appModelTraversal() throws {
-        let model = CadenceAppModel.preview()
+        let model = CadenceAppModel.testFixture()
         let tracks = Array(model.tracks.prefix(4))
         let start = try #require(tracks.dropFirst().first)
 
@@ -163,7 +163,7 @@ struct PlaybackQueueAppModelTests {
 
     @Test("Starting outside the queue falls back to its first track")
     func appModelFallback() throws {
-        let model = CadenceAppModel.preview()
+        let model = CadenceAppModel.testFixture()
         let tracks = Array(model.tracks.suffix(3))
         let first = try #require(tracks.first)
 
@@ -178,7 +178,7 @@ struct PlaybackQueueAppModelTests {
 
     @Test("Album Play captures an album queue without changing canonical order")
     func albumQueue() throws {
-        let model = CadenceAppModel.preview()
+        let model = CadenceAppModel.testFixture()
         let track = try #require(model.tracks.dropFirst().first)
         let expectedIDs = model.tracks
             .filter { $0.albumID == track.albumID }
@@ -193,7 +193,7 @@ struct PlaybackQueueAppModelTests {
 
     @Test("A queue is a snapshot independent from later source changes")
     func snapshot() throws {
-        let model = CadenceAppModel.preview()
+        let model = CadenceAppModel.testFixture()
         var sourceIDs = Array(model.tracks.prefix(3)).map(\.id)
         let firstID = try #require(sourceIDs.first)
 
@@ -212,7 +212,7 @@ struct PlaybackQueueAppModelTests {
 
     @Test("Queue edits register one understandable Undo operation")
     func queueUndo() throws {
-        let model = CadenceAppModel.preview()
+        let model = CadenceAppModel.testFixture()
         let tracks = Array(model.tracks.prefix(4))
         let start = try #require(tracks.first)
         let undoManager = UndoManager()
@@ -240,7 +240,7 @@ struct PlaybackQueueAppModelTests {
 
     @Test("Queue edits never mutate canonical album ordering")
     func queueEditIsolation() throws {
-        let model = CadenceAppModel.preview()
+        let model = CadenceAppModel.testFixture()
         let track = try #require(model.tracks.first)
         let originalAlbumOrder = model.selectedAlbumTracks.map(\.id)
         model.play(track)

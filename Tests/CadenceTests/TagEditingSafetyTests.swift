@@ -19,7 +19,7 @@ struct TagEditingSafetyTests {
         )
         exclusions.insert(staleExclusion)
 
-        let model = CadenceAppModel.preview(
+        let model = CadenceAppModel.testFixture(
             tagAssignments: assignments,
             tagExclusions: exclusions
         )

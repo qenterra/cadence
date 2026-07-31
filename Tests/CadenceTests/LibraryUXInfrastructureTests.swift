@@ -53,6 +53,55 @@ struct LibraryUXInfrastructureTests {
         )
     }
 
+    @Test("Navigation rail destinations move to the dropped row")
+    func navigationReordering() {
+        let destinations = [
+            NavigationDestination.library,
+            .albums,
+            .artists,
+            .tags,
+        ]
+
+        #expect(
+            NavigationRailConfiguration.moving(
+                .library,
+                to: .artists,
+                in: destinations
+            ) == [.albums, .artists, .library, .tags]
+        )
+        #expect(
+            NavigationRailConfiguration.moving(
+                .tags,
+                to: .albums,
+                in: destinations
+            ) == [.library, .tags, .albums, .artists]
+        )
+        #expect(
+            NavigationRailConfiguration.moving(
+                .albums,
+                to: .albums,
+                in: destinations
+            ) == destinations
+        )
+    }
+
+    @Test("Navigation rail rows stay inside collapsed and expanded bounds")
+    func navigationRailGeometry() {
+        #expect(
+            NavigationRailMetrics.contentWidth(isExpanded: false)
+                == NavigationRailMetrics.collapsedWidth
+                - NavigationRailMetrics.horizontalInset * 2
+        )
+        #expect(
+            NavigationRailMetrics.contentWidth(isExpanded: true)
+                == NavigationRailMetrics.expandedWidth
+                - NavigationRailMetrics.horizontalInset * 2
+        )
+        #expect(
+            NavigationRailMetrics.contentWidth(isExpanded: false) == 52
+        )
+    }
+
     @Test("Production Smart Collections match inherited tag descendants")
     func productionSmartCollectionTags() {
         let genreID = UUID()

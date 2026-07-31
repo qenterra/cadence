@@ -150,7 +150,7 @@ struct MediaArtworkTests {
 
     @Test("Album overrides flow to tracks until a track override exists")
     func modelInheritance() throws {
-        let model = CadenceAppModel.preview()
+        let model = CadenceAppModel.testFixture()
         let track = try #require(model.tracks.first)
         let album = try #require(
             model.albums.first { $0.id == track.albumID }
@@ -186,7 +186,7 @@ struct MediaArtworkTests {
 
     @Test("Removing an album override restores catalog fallback")
     func removeFallback() throws {
-        let model = CadenceAppModel.preview()
+        let model = CadenceAppModel.testFixture()
         let album = try #require(
             model.albums.first { $0.artworkPalette != nil }
         )

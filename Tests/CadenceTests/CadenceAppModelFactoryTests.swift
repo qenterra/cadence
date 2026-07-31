@@ -36,7 +36,7 @@ struct CadenceAppModelFactoryTests {
 
     @Test("Preview keeps explicit visual fixtures")
     func previewKeepsFixtures() {
-        let model = CadenceAppModel.preview()
+        let model = CadenceAppModel.testFixture()
 
         #expect(!model.tracks.isEmpty)
         #expect(!model.tags.isEmpty)
@@ -45,6 +45,19 @@ struct CadenceAppModelFactoryTests {
         #expect(model.importCoordinator == nil)
         #expect(model.isImportPreviewMode)
         #expect(model.librarySession.availability == .preview)
+    }
+
+    @Test("Preview defaults are honest and empty")
+    func previewDefaultsAreEmpty() {
+        let model = CadenceAppModel.preview()
+
+        #expect(model.tracks.isEmpty)
+        #expect(model.tags.isEmpty)
+        #expect(model.smartCollections.isEmpty)
+        #expect(model.lyricDocuments.isEmpty)
+        #expect(model.favoriteAlbumDates.isEmpty)
+        #expect(model.favoriteArtistDates.isEmpty)
+        #expect(model.importCandidates.isEmpty)
     }
 
     @Test("A damaged existing package blocks startup without replacement")

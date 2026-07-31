@@ -5,7 +5,7 @@ import Testing
 struct ImportPreviewAppModelTests {
     @Test("Preview lifecycle stays deterministic and in memory")
     func lifecycle() {
-        let model = CadenceAppModel.preview()
+        let model = CadenceAppModel.testFixture()
 
         model.startImportPreview()
         #expect(model.importPreviewStage == .scanning)
@@ -23,7 +23,7 @@ struct ImportPreviewAppModelTests {
 
     @Test("Cancel returns scanning to an empty preview")
     func cancel() {
-        let model = CadenceAppModel.preview()
+        let model = CadenceAppModel.testFixture()
 
         model.startImportPreview()
         model.cancelImportPreviewScan()
@@ -34,7 +34,7 @@ struct ImportPreviewAppModelTests {
 
     @Test("Review tabs expose their own canonical candidates")
     func reviewTabs() {
-        let model = CadenceAppModel.preview()
+        let model = CadenceAppModel.testFixture()
         model.showImportPreviewStage(.review)
 
         #expect(
@@ -54,7 +54,7 @@ struct ImportPreviewAppModelTests {
 
     @Test("Select All targets only eligible candidates in the active tab")
     func selectAll() {
-        let model = CadenceAppModel.preview()
+        let model = CadenceAppModel.testFixture()
         model.showImportPreviewStage(.review)
         model.selectImportReviewCategory(.duplicates)
 
@@ -67,7 +67,7 @@ struct ImportPreviewAppModelTests {
 
     @Test("Inclusion ignores exact duplicates and blocking issues")
     func inclusionSafety() {
-        let model = CadenceAppModel.preview()
+        let model = CadenceAppModel.testFixture()
 
         model.toggleImportCandidateInclusion("exact-night-drive")
         model.toggleImportCandidateInclusion("unsupported-demo")
@@ -82,7 +82,7 @@ struct ImportPreviewAppModelTests {
 
     @Test("Summary derives from included candidates")
     func summary() {
-        let model = CadenceAppModel.preview()
+        let model = CadenceAppModel.testFixture()
         let initialSummary = model.importPreviewSummary
 
         model.toggleImportCandidateInclusion("possible-afterimage")
@@ -100,7 +100,7 @@ struct ImportPreviewAppModelTests {
 
     @Test("View Imported Tracks returns to Library")
     func viewImportedTracks() {
-        let model = CadenceAppModel.preview()
+        let model = CadenceAppModel.testFixture()
         model.requestNavigationDestination(.importMusic)
         model.showImportPreviewStage(.complete)
 
@@ -112,7 +112,7 @@ struct ImportPreviewAppModelTests {
 
     @Test("Preview State holds transient stages for inspection")
     func previewStateInspector() {
-        let model = CadenceAppModel.preview()
+        let model = CadenceAppModel.testFixture()
 
         model.showImportPreviewStage(.scanning)
 
@@ -126,7 +126,7 @@ struct ImportPreviewAppModelTests {
 
     @Test("Accepted drop opens deterministic scanning preview")
     func acceptedDrop() {
-        let model = CadenceAppModel.preview()
+        let model = CadenceAppModel.testFixture()
         model.setImportDropTargeted(true)
 
         model.acceptImportPreviewDrop()

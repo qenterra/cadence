@@ -6,7 +6,7 @@ import Testing
 struct ContextualNavigationTests {
     @Test("Now Playing album link restores exact playback context")
     func nowPlayingRoundTrip() throws {
-        let model = CadenceAppModel.preview()
+        let model = CadenceAppModel.testFixture()
         let track = try #require(model.currentTrack)
         let album = try #require(
             model.albums.first { $0.id == track.albumID }
@@ -38,7 +38,7 @@ struct ContextualNavigationTests {
 
     @Test("Nested artist and album routes unwind in order")
     func nestedRoutes() throws {
-        let model = CadenceAppModel.preview()
+        let model = CadenceAppModel.testFixture()
         let firstAlbum = try #require(model.albums.first)
         let secondTrack = try #require(
             model.tracks.first { $0.artistID != firstAlbum.artist }
@@ -65,7 +65,7 @@ struct ContextualNavigationTests {
 
     @Test("Tag routes always open the Tracks scope")
     func tagScope() throws {
-        let model = CadenceAppModel.preview()
+        let model = CadenceAppModel.testFixture()
         let tag = try #require(model.tags.first)
         model.tagResultScope = .albums
         #expect(model.presentNowPlaying())
@@ -82,7 +82,7 @@ struct ContextualNavigationTests {
 
     @Test("Invalid contextual targets are ignored")
     func invalidTargets() {
-        let model = CadenceAppModel.preview()
+        let model = CadenceAppModel.testFixture()
 
         model.requestOpenAlbumContextually(id: "missing")
         model.requestOpenArtistContextually(id: "missing")
@@ -93,7 +93,7 @@ struct ContextualNavigationTests {
 
     @Test("Dirty Smart Collection asks before contextual navigation")
     func dirtySmartCollectionGuard() throws {
-        let model = CadenceAppModel.preview()
+        let model = CadenceAppModel.testFixture()
         let album = try #require(model.albums.first)
         model.requestNavigationDestination(.smartCollections)
         #expect(model.requestEditSelectedSmartCollection())

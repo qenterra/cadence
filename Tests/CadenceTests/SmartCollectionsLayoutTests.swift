@@ -6,9 +6,9 @@ struct SmartCollectionsLayoutTests {
     func listeningPaneConstraints() {
         let list = SmartCollectionsPaneConstraints.list
 
-        #expect(list.minimum == 220)
-        #expect(list.ideal == 250)
-        #expect(list.maximum == 380)
+        #expect(list.minimum == WorkspaceLayout.paneMinimumWidth)
+        #expect(list.ideal == 270)
+        #expect(list.maximum == WorkspaceLayout.paneMaximumWidth)
         #expect(
             SmartCollectionsPaneConstraints.workspaceMinimum == 720
         )
