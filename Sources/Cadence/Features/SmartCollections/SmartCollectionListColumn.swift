@@ -19,7 +19,8 @@ struct SmartCollectionListColumn: View {
                             )
                         }
                     }
-                    .padding(.horizontal, 10)
+                    .padding(.horizontal, WorkspaceLayout.listInset)
+                    .padding(.top, WorkspaceLayout.listInset)
                     .padding(.bottom, 14)
                 }
             }
@@ -28,12 +29,7 @@ struct SmartCollectionListColumn: View {
     }
 
     private var header: some View {
-        HStack {
-            Text("Smart Collections")
-                .font(.title3.weight(.semibold))
-
-            Spacer()
-
+        WorkspacePaneHeader("Smart Collections") {
             Button {
                 model.requestNewSmartCollection()
             } label: {
@@ -43,9 +39,6 @@ struct SmartCollectionListColumn: View {
             .help("New Smart Collection")
             .accessibilityLabel("New Smart Collection")
         }
-        .padding(.horizontal, 14)
-        .padding(.top, 16)
-        .padding(.bottom, 10)
     }
 
     private var emptyState: some View {
@@ -104,7 +97,7 @@ private struct SmartCollectionListRow: View {
                 }
             }
             .padding(.horizontal, 10)
-            .frame(height: 52)
+            .frame(height: WorkspaceLayout.rowHeight)
             .background {
                 BrowserRowSurface(
                     isSelected: item.isSelected,

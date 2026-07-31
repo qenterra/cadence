@@ -34,6 +34,12 @@ struct ProductionAlbumDetailView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
+        .frame(
+            maxWidth: .infinity,
+            maxHeight: .infinity,
+            alignment: .topLeading
+        )
+        .background(CadenceTheme.contentBackground)
         .task(id: "\(albumID.uuidString)-\(store.tagRevision)") {
             isLoading = true
             async let loadedAlbum = store.album(id: albumID)

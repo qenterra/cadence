@@ -2,9 +2,9 @@ import SwiftUI
 
 enum SmartCollectionsPaneConstraints {
     static let list = (
-        minimum: CGFloat(220),
-        ideal: CGFloat(250),
-        maximum: CGFloat(380)
+        minimum: WorkspaceLayout.paneMinimumWidth,
+        ideal: CGFloat(270),
+        maximum: WorkspaceLayout.paneMaximumWidth
     )
     static let workspaceMinimum = CGFloat(720)
     static let builder = (

@@ -15,7 +15,17 @@ struct CadenceRootView: View {
                         .fill(CadenceTheme.separator)
                         .frame(width: 1)
                     workspaceContent
+                        .frame(
+                            maxWidth: .infinity,
+                            maxHeight: .infinity,
+                            alignment: .topLeading
+                        )
                 }
+                .frame(
+                    maxWidth: .infinity,
+                    maxHeight: .infinity,
+                    alignment: .topLeading
+                )
 
                 if model.isImportDropTargeted {
                     ImportMusicDropOverlay()
@@ -40,6 +50,11 @@ struct CadenceRootView: View {
             PlayerBar(model: model)
         }
         .background(CadenceTheme.contentBackground)
+        .toolbarBackground(
+            CadenceTheme.opaqueSurface,
+            for: .windowToolbar
+        )
+        .toolbarBackgroundVisibility(.visible, for: .windowToolbar)
         .modifier(
             CadenceSearchModifier(
                 isEnabled: model.playbackWorkspace == .hidden

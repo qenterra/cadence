@@ -30,6 +30,11 @@ struct AllTracksView: View {
                 }
             }
         }
+        .frame(
+            maxWidth: .infinity,
+            maxHeight: .infinity,
+            alignment: .topLeading
+        )
         .background(CadenceTheme.contentBackground)
     }
 

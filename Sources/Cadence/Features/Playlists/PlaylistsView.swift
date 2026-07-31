@@ -14,8 +14,8 @@ struct PlaylistsView: View {
         CadenceResizableSplitView(
             fixedPane: .leading,
             fixedWidth: $sidebarWidth,
-            fixedMinimum: 230,
-            fixedMaximum: 400,
+            fixedMinimum: WorkspaceLayout.paneMinimumWidth,
+            fixedMaximum: WorkspaceLayout.paneMaximumWidth,
             flexibleMinimum: 520
         ) {
             sidebar
@@ -72,10 +72,7 @@ struct PlaylistsView: View {
 private extension PlaylistsView {
     private var sidebar: some View {
         VStack(spacing: 0) {
-            HStack {
-                Text("Playlists")
-                    .font(.title2.bold())
-                Spacer()
+            WorkspacePaneHeader("Playlists") {
                 Button {
                     playlistName = "Untitled Playlist"
                     playlistNameOperation = .create
@@ -85,12 +82,6 @@ private extension PlaylistsView {
                 .buttonStyle(.plain)
                 .help("New Playlist")
             }
-            .padding(.horizontal, 18)
-            .frame(height: 68)
-
-            Rectangle()
-                .fill(CadenceTheme.separator)
-                .frame(height: 1)
 
             if store.playlists.isEmpty {
                 ContentUnavailableView(
@@ -107,7 +98,9 @@ private extension PlaylistsView {
                             playlistRow(playlist)
                         }
                     }
-                    .padding(10)
+                    .padding(.horizontal, WorkspaceLayout.listInset)
+                    .padding(.top, WorkspaceLayout.listInset)
+                    .padding(.bottom, 16)
                 }
             }
         }
@@ -148,9 +141,24 @@ private extension PlaylistsView {
                 }
             }
         } else {
-            ContentUnavailableView(
-                "Choose a Playlist",
-                systemImage: "music.note.list"
+            VStack(alignment: .leading, spacing: 28) {
+                CadencePageHeader(
+                    "Playlists",
+                    subtitle: "Choose a playlist to view its tracks."
+                )
+
+                ContentUnavailableView(
+                    "Choose a Playlist",
+                    systemImage: "music.note.list"
+                )
+                .frame(maxWidth: .infinity)
+                .padding(.top, 28)
+            }
+            .padding(WorkspaceLayout.pageInset)
+            .frame(
+                maxWidth: .infinity,
+                maxHeight: .infinity,
+                alignment: .topLeading
             )
         }
     }
@@ -192,7 +200,7 @@ private extension PlaylistsView {
                 .menuStyle(.borderlessButton)
             }
             .padding(.horizontal, 10)
-            .frame(height: 54)
+            .frame(height: WorkspaceLayout.rowHeight)
             .background {
                 BrowserRowSurface(
                     isSelected: store.selectedPlaylistID == playlist.id,
