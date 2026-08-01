@@ -10,20 +10,10 @@ actor LibraryRepository {
         search: String? = nil,
         limit: Int = maximumPageSize
     ) throws -> LibraryPage<LibraryTrackProjection> {
-        let boundedLimit = min(max(limit, 1), Self.maximumPageSize)
-        var descriptor = LibraryFetchDescriptors.tracks(
+        try tracksPage(
+            query: LibraryTrackQuery(search: search ?? ""),
             after: cursor,
-            search: SearchNormalizer.normalize(search ?? "")
-        )
-        descriptor.fetchLimit = boundedLimit + 1
-
-        let records = try modelContext.fetch(descriptor)
-        return LibraryPageBuilder.page(
-            records: records,
-            limit: boundedLimit,
-            sortValue: \.normalizedTitle,
-            identity: \.sortIdentity,
-            projection: LibraryProjectionFactory.track
+            limit: limit
         )
     }
 

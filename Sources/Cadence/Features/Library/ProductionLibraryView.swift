@@ -34,7 +34,27 @@ struct ProductionLibraryView: View {
             }
         }
         .onChange(of: store.artists, initial: true) {
-            repairSelection()
+            repairArtistSelection()
+        }
+        .task(id: selectedArtistID) {
+            await store.browseAlbums(artistID: selectedArtistID)
+            guard selectedArtistID == store.browserArtistID else {
+                return
+            }
+            repairAlbumSelection()
+        }
+        .onChange(of: store.browserAlbums) {
+            repairAlbumSelection()
+        }
+        .task(id: selectedAlbumID) {
+            await store.browseTracks(albumID: selectedAlbumID)
+            guard selectedAlbumID == store.browserAlbumID else {
+                return
+            }
+            repairTrackSelection()
+        }
+        .onChange(of: store.browserTracks) {
+            repairTrackSelection()
         }
     }
 
@@ -80,7 +100,10 @@ struct ProductionLibraryView: View {
                             showsHeader: false,
                             compact: true,
                             onReachEnd: {
-                                await store.loadNextTracks()
+                                await store.loadNextBrowserTracks()
+                            },
+                            repositorySortAction: { sort in
+                                await store.sortBrowserTracks(sort)
                             }
                         )
                         .padding(.horizontal, 14)
@@ -93,17 +116,17 @@ struct ProductionLibraryView: View {
     }
 
     var visibleAlbums: [LibraryAlbumProjection] {
-        guard let selectedArtistID else {
-            return store.albums
+        guard selectedArtistID == store.browserArtistID else {
+            return []
         }
-        return store.albums.filter { $0.artistID == selectedArtistID }
+        return store.browserAlbums
     }
 
     var visibleTracks: [LibraryTrackProjection] {
-        guard let selectedAlbumID else {
-            return store.tracks
+        guard selectedAlbumID == store.browserAlbumID else {
+            return []
         }
-        return store.tracks.filter { $0.albumID == selectedAlbumID }
+        return store.browserTracks
     }
 
     private func projectionColumn(
@@ -152,11 +175,8 @@ private extension ProductionLibraryView {
         _ album: LibraryAlbumProjection
     ) -> some View {
         Button {
-            selectedArtistID = album.artistID
             selectedAlbumID = album.id
-            selectedTrackID = store.tracks.first {
-                $0.albumID == album.id
-            }?.id
+            selectedTrackID = nil
         } label: {
             albumRowLabel(album)
         }
@@ -166,7 +186,7 @@ private extension ProductionLibraryView {
         }
         .task {
             if album.id == visibleAlbums.last?.id {
-                await store.loadNextAlbums()
+                await store.loadNextBrowserAlbums()
             }
         }
     }
@@ -250,12 +270,8 @@ private extension ProductionLibraryView {
 
     func selectArtist(_ artist: LibraryArtistProjection) {
         selectedArtistID = artist.id
-        selectedAlbumID = store.albums.first {
-            $0.artistID == artist.id
-        }?.id
-        selectedTrackID = store.tracks.first {
-            $0.albumID == selectedAlbumID
-        }?.id
+        selectedAlbumID = nil
+        selectedTrackID = nil
     }
 
     var productionDivider: some View {

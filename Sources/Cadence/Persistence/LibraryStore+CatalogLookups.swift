@@ -18,7 +18,24 @@ extension LibraryStore {
     }
 
     func tracks(artistID: UUID) async -> [LibraryTrackProjection] {
-        await (try? repository?.tracks(artistID: artistID).items) ?? []
+        guard let repository else {
+            return []
+        }
+        var projections: [LibraryTrackProjection] = []
+        var cursor: LibraryPageCursor?
+        do {
+            repeat {
+                let page = try await repository.tracksPage(
+                    query: LibraryTrackQuery(scope: .artist(artistID)),
+                    after: cursor
+                )
+                projections.append(contentsOf: page.items)
+                cursor = page.nextCursor
+            } while cursor != nil
+            return deduplicatedTracks(projections)
+        } catch {
+            return []
+        }
     }
 
     func albums(artistID: UUID) async -> [LibraryAlbumProjection] {

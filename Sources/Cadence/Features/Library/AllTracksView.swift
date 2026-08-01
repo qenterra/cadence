@@ -23,6 +23,9 @@ struct AllTracksView: View {
                         queueSource: .allTracks,
                         onReachEnd: {
                             await store.loadNextTracks()
+                        },
+                        repositorySortAction: { sort in
+                            await store.sortTracks(sort)
                         }
                     )
                     .padding(.horizontal, 28)
