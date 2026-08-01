@@ -6,79 +6,176 @@ import Testing
 struct ManagedArtworkEditingTests {
     @Test("Managed artwork replacement persists one current asset")
     func replaceAndRemoveArtwork() async throws {
-        let root = FileManager.default.temporaryDirectory.appending(
+        let fixture = try ManagedArtworkFixture()
+        defer { fixture.remove() }
+
+        let firstID = try await fixture.service.setArtwork(
+            fixture.request(scale: 1.25)
+        )
+        let first = try #require(
+            try await fixture.repository.artwork(id: firstID)
+        )
+        #expect(try fixture.location.resolve(relativePath: first.relativePath).exists)
+        #expect(
+            try await fixture.repository.album(id: fixture.albumID)?
+                .customArtworkID == firstID
+        )
+
+        let replacementID = try await fixture.service.setArtwork(
+            fixture.request(scale: 1)
+        )
+        #expect(replacementID != firstID)
+        #expect(!fixture.package.packageURL.appending(path: first.relativePath).exists)
+        #expect(
+            try await fixture.repository.album(id: fixture.albumID)?
+                .customArtworkID == replacementID
+        )
+
+        try await fixture.service.removeArtwork(
+            ownerKind: .album,
+            ownerID: fixture.albumID
+        )
+        #expect(
+            try await fixture.repository.album(id: fixture.albumID)?
+                .customArtworkID == nil
+        )
+    }
+}
+
+struct ManagedArtworkRecoveryTests {
+    @Test("Recovery commits an installed artwork file idempotently")
+    func recoversInstalledArtwork() async throws {
+        let fixture = try ManagedArtworkFixture()
+        defer { fixture.remove() }
+        let manifest = try fixture.manifest(state: .fileInstalled)
+        try fixture.installNewFile(for: manifest)
+        try fixture.store.save(manifest)
+
+        let first = try await fixture.service.recover()
+        let second = try await fixture.service.recover()
+
+        #expect(first.recoveredOperationIDs == [manifest.operationID])
+        #expect(second == .empty)
+        #expect(
+            try await fixture.repository.album(id: fixture.albumID)?
+                .customArtworkID == manifest.newArtwork?.id
+        )
+    }
+
+    @Test("Prepared recovery removes staged work and preserves metadata")
+    func preparedRecoveryRollsBack() async throws {
+        let fixture = try ManagedArtworkFixture()
+        defer { fixture.remove() }
+        let manifest = try fixture.manifest(state: .prepared)
+        try fixture.store.save(manifest)
+        try fixture.image.write(
+            to: fixture.store.stagedURL(manifest.operationID)
+        )
+
+        let result = try await fixture.service.recover()
+
+        #expect(result.rolledBackOperationIDs == [manifest.operationID])
+        #expect(
+            try await fixture.repository.album(id: fixture.albumID)?
+                .customArtworkID == nil
+        )
+        #expect(!fixture.store.operationURL(manifest.operationID).exists)
+    }
+
+    @Test("Committed recovery cleans the previous artwork file")
+    func committedRecoveryCleansPreviousFile() async throws {
+        let fixture = try ManagedArtworkFixture()
+        defer { fixture.remove() }
+        let previousID = try await fixture.service.setArtwork(
+            fixture.request(scale: 1)
+        )
+        let previous = try #require(
+            try await fixture.repository.artworkEditSnapshot(
+                ownerKind: .album,
+                ownerID: fixture.albumID
+            )
+        )
+        let previousURL = try fixture.location.resolve(
+            relativePath: previous.relativeOriginalPath
+        )
+        #expect(previous.id == previousID)
+        #expect(previousURL.exists)
+
+        let installed = try fixture.manifest(
+            state: .fileInstalled,
+            previousArtwork: previous
+        )
+        try fixture.installNewFile(for: installed)
+        try await fixture.repository.applyArtworkEdit(installed)
+        let committed = installed.advancing(to: .metadataCommitted)
+        try fixture.store.save(committed)
+
+        let result = try await fixture.service.recover()
+
+        #expect(result.recoveredOperationIDs == [committed.operationID])
+        #expect(!previousURL.exists)
+        #expect(
+            try await fixture.repository.album(id: fixture.albumID)?
+                .customArtworkID == committed.newArtwork?.id
+        )
+    }
+
+    @Test("Hash mismatch is quarantined without deleting the unexpected file")
+    func hashMismatchIsQuarantined() async throws {
+        let fixture = try ManagedArtworkFixture()
+        defer { fixture.remove() }
+        let manifest = try fixture.manifest(state: .fileInstalled)
+        let target = try #require(manifest.newArtwork).relativeOriginalPath
+        let targetURL = try fixture.location.resolve(relativePath: target)
+        try Data("unexpected".utf8).write(to: targetURL)
+        try fixture.store.save(manifest)
+
+        await #expect(throws: ManagedArtworkEditError.self) {
+            try await fixture.service.recover()
+        }
+
+        #expect(try Data(contentsOf: targetURL) == Data("unexpected".utf8))
+        #expect(
+            fixture.store.quarantineRootURL.appending(
+                path: manifest.operationID.uuidString
+            ).exists
+        )
+    }
+}
+
+private struct ManagedArtworkFixture {
+    let root: URL
+    let location: ManagedLibraryLocation
+    let package: ManagedLibraryPackage
+    let repository: LibraryRepository
+    let service: ManagedArtworkService
+    let store: ManagedArtworkEditManifestStore
+    let albumID: UUID
+    let image: Data
+
+    init() throws {
+        root = FileManager.default.temporaryDirectory.appending(
             path: "Cadence-Artwork-\(UUID().uuidString)",
             directoryHint: .isDirectory
         )
-        defer { try? FileManager.default.removeItem(at: root) }
-
-        let location = ManagedLibraryLocation(musicDirectory: root)
-        try ManagedLibraryPackage(location: location)
-            .bootstrapForConfirmedImport()
-        let container = try artworkContainer()
+        location = ManagedLibraryLocation(musicDirectory: root)
+        package = ManagedLibraryPackage(location: location)
+        try package.bootstrapForConfirmedImport()
+        let container = try LibraryContainerFactory.inMemory()
         let context = ModelContext(container)
-        let albumID = try #require(
-            try context.fetch(FetchDescriptor<AlbumRecord>()).first?.id
+        let artist = ArtistRecord(name: "Artwork Artist")
+        let album = AlbumRecord(title: "Artwork Album", artist: artist)
+        context.insert(artist)
+        context.insert(album)
+        try context.save()
+        albumID = album.id
+        repository = LibraryRepository(modelContainer: container)
+        service = ManagedArtworkService(
+            package: package,
+            repository: repository
         )
-        let repository = LibraryRepository(modelContainer: container)
-        let image = try artworkImage()
-
-        let firstID = try await setAlbumArtwork(
-            repository,
-            albumID: albumID,
-            image: image,
-            scale: 1.25,
-            location: location
-        )
-        let first = try #require(
-            try await repository.artwork(id: firstID)
-        )
-        #expect(try location.resolve(relativePath: first.relativePath).exists)
-        #expect(try await repository.album(id: albumID)?.customArtworkID == firstID)
-
-        let replacementID = try await setAlbumArtwork(
-            repository,
-            albumID: albumID,
-            image: image,
-            scale: 1,
-            location: location
-        )
-        #expect(replacementID != firstID)
-        #expect(!location.packageURL.appending(path: first.relativePath).exists)
-        #expect(
-            try await repository.album(id: albumID)?.customArtworkID
-                == replacementID
-        )
-
-        try await repository.removeArtwork(
-            ownerKind: .album,
-            ownerID: albumID,
-            location: location
-        )
-        #expect(try await repository.album(id: albumID)?.customArtworkID == nil)
-    }
-
-    private func setAlbumArtwork(
-        _ repository: LibraryRepository,
-        albumID: UUID,
-        image: Data,
-        scale: CGFloat,
-        location: ManagedLibraryLocation
-    ) async throws -> UUID {
-        try await repository.setArtwork(
-            ManagedArtworkEditRequest(
-                ownerKind: .album,
-                ownerID: albumID,
-                data: image,
-                scale: scale,
-                normalizedOffset: .zero
-            ),
-            location: location
-        )
-    }
-
-    private func artworkImage() throws -> Data {
-        try #require(
+        store = ManagedArtworkEditManifestStore(package: package)
+        image = try #require(
             Data(
                 base64Encoded:
                 "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAA"
@@ -87,15 +184,59 @@ struct ManagedArtworkEditingTests {
         )
     }
 
-    private func artworkContainer() throws -> ModelContainer {
-        let container = try LibraryContainerFactory.inMemory()
-        let context = ModelContext(container)
-        let artist = ArtistRecord(name: "Artwork Artist")
-        let album = AlbumRecord(title: "Artwork Album", artist: artist)
-        context.insert(artist)
-        context.insert(album)
-        try context.save()
-        return container
+    func request(scale: CGFloat) -> ManagedArtworkEditRequest {
+        ManagedArtworkEditRequest(
+            ownerKind: .album,
+            ownerID: albumID,
+            data: image,
+            scale: scale,
+            normalizedOffset: .zero
+        )
+    }
+
+    func manifest(
+        state: ManagedArtworkEditManifest.State,
+        previousArtwork: ManagedArtworkDescriptor? = nil
+    ) throws -> ManagedArtworkEditManifest {
+        let payload = try #require(
+            MetadataReader().artworkPayload(data: image)
+        )
+        let id = UUID()
+        return ManagedArtworkEditManifest(
+            operationID: UUID(),
+            ownerKind: .album,
+            ownerID: albumID,
+            mutationKind: .set,
+            previousArtwork: previousArtwork,
+            newArtwork: ManagedArtworkDescriptor(
+                id: id,
+                ownerKind: .album,
+                ownerID: albumID,
+                relativeOriginalPath: "Artwork/Original/\(id.uuidString)."
+                    + payload.metadata.format,
+                relativeThumbnailPath: nil,
+                format: payload.metadata.format,
+                pixelWidth: payload.metadata.pixelWidth,
+                pixelHeight: payload.metadata.pixelHeight,
+                cropScale: 1,
+                normalizedOffsetX: 0,
+                normalizedOffsetY: 0,
+                contentHash: payload.metadata.contentHash,
+                revision: 0
+            ),
+            state: state
+        )
+    }
+
+    func installNewFile(for manifest: ManagedArtworkEditManifest) throws {
+        let artwork = try #require(manifest.newArtwork)
+        try image.write(
+            to: location.resolve(relativePath: artwork.relativeOriginalPath)
+        )
+    }
+
+    func remove() {
+        try? FileManager.default.removeItem(at: root)
     }
 }
 

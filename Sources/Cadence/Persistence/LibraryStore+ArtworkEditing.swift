@@ -6,17 +6,14 @@ extension LibraryStore {
         _ request: ManagedArtworkEditRequest,
         location: ManagedLibraryLocation?
     ) async throws {
-        guard let repository, let location else {
+        guard let artworkService, location != nil else {
             throw ManagedArtworkEditError.unavailableLibrary
         }
         let previousArtworkID = currentArtworkID(
             ownerKind: request.ownerKind,
             ownerID: request.ownerID
         )
-        let newArtworkID = try await repository.setArtwork(
-            request,
-            location: location
-        )
+        let newArtworkID = try await artworkService.setArtwork(request)
         previousArtworkID.map(artworkAssetCache.invalidate(id:))
         artworkAssetCache.invalidate(id: newArtworkID)
         await loadInitialLibrary()
@@ -27,20 +24,26 @@ extension LibraryStore {
         ownerID: UUID,
         location: ManagedLibraryLocation?
     ) async throws {
-        guard let repository, let location else {
+        guard let artworkService, location != nil else {
             throw ManagedArtworkEditError.unavailableLibrary
         }
         let previousArtworkID = currentArtworkID(
             ownerKind: ownerKind,
             ownerID: ownerID
         )
-        try await repository.removeArtwork(
+        try await artworkService.removeArtwork(
             ownerKind: ownerKind,
-            ownerID: ownerID,
-            location: location
+            ownerID: ownerID
         )
         previousArtworkID.map(artworkAssetCache.invalidate(id:))
         await loadInitialLibrary()
+    }
+
+    func recoverArtworkEdits() async throws -> ManagedArtworkRecoveryResult {
+        guard let artworkService else {
+            return .empty
+        }
+        return try await artworkService.recover()
     }
 
     private func currentArtworkID(

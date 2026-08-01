@@ -2,10 +2,13 @@ import CoreGraphics
 import Foundation
 import SwiftData
 
-enum ManagedArtworkEditError: Error, LocalizedError, Sendable {
+enum ManagedArtworkEditError: Error, Equatable, LocalizedError, Sendable {
     case invalidImage
     case missingOwner
     case unavailableLibrary
+    case inconsistentMetadata
+    case contentHashMismatch
+    case inconsistentRecovery(UUID)
 
     var errorDescription: String? {
         switch self {
@@ -15,6 +18,12 @@ enum ManagedArtworkEditError: Error, LocalizedError, Sendable {
             "The selected library item no longer exists."
         case .unavailableLibrary:
             "The managed library is unavailable."
+        case .inconsistentMetadata:
+            "The existing artwork metadata is inconsistent."
+        case .contentHashMismatch:
+            "The managed artwork file failed integrity verification."
+        case let .inconsistentRecovery(operationID):
+            "Artwork recovery \(operationID.uuidString) is inconsistent."
         }
     }
 }
@@ -28,85 +37,66 @@ struct ManagedArtworkEditRequest: Sendable {
 }
 
 extension LibraryRepository {
-    func setArtwork(
-        _ request: ManagedArtworkEditRequest,
-        location: ManagedLibraryLocation
-    ) throws -> UUID {
-        guard
-            let payload = MetadataReader().artworkPayload(data: request.data)
-        else {
-            throw ManagedArtworkEditError.invalidImage
+    func artworkEditSnapshot(
+        ownerKind: ArtworkOwnerKind,
+        ownerID: UUID
+    ) throws -> ManagedArtworkDescriptor? {
+        guard let artworkID = try ownerArtworkID(
+            ownerKind: ownerKind,
+            ownerID: ownerID
+        ) else {
+            return nil
         }
-        let id = UUID()
-        let relativePath = "Artwork/Original/\(id.uuidString)."
-            + payload.metadata.format
-        let fileURL = try location.resolve(relativePath: relativePath)
-        try FileManager.default.createDirectory(
-            at: fileURL.deletingLastPathComponent(),
-            withIntermediateDirectories: true
+        guard let artwork = try artworkRecord(id: artworkID) else {
+            throw ManagedArtworkEditError.inconsistentMetadata
+        }
+        return ManagedArtworkDescriptor(
+            id: artwork.id,
+            ownerKind: artwork.ownerKind,
+            ownerID: artwork.ownerID,
+            relativeOriginalPath: artwork.relativeOriginalPath,
+            relativeThumbnailPath: artwork.relativeThumbnailPath,
+            format: artwork.format,
+            pixelWidth: artwork.pixelWidth,
+            pixelHeight: artwork.pixelHeight,
+            cropScale: artwork.cropScale,
+            normalizedOffsetX: artwork.normalizedOffsetX,
+            normalizedOffsetY: artwork.normalizedOffsetY,
+            contentHash: artwork.contentHash,
+            revision: artwork.revision
         )
-        try request.data.write(to: fileURL, options: .atomic)
-
-        do {
-            let oldID = try replaceOwnerArtworkID(
-                ownerKind: request.ownerKind,
-                ownerID: request.ownerID,
-                artworkID: id
-            )
-            let oldArtwork = try oldID.flatMap {
-                try artworkRecord(id: $0)
-            }
-            let oldPaths = artworkPaths(oldArtwork)
-            modelContext.insert(
-                ArtworkRecord(
-                    id: id,
-                    ownerKind: request.ownerKind,
-                    ownerID: request.ownerID,
-                    relativeOriginalPath: relativePath,
-                    format: payload.metadata.format,
-                    pixelWidth: payload.metadata.pixelWidth,
-                    pixelHeight: payload.metadata.pixelHeight,
-                    cropScale: Double(request.scale),
-                    normalizedOffsetX: request.normalizedOffset.width,
-                    normalizedOffsetY: request.normalizedOffset.height,
-                    contentHash: payload.metadata.contentHash
-                )
-            )
-            if let oldArtwork {
-                modelContext.delete(oldArtwork)
-            }
-            try modelContext.save()
-            removeFiles(at: oldPaths, location: location)
-            return id
-        } catch {
-            modelContext.rollback()
-            try? FileManager.default.removeItem(at: fileURL)
-            throw error
-        }
     }
 
-    func removeArtwork(
-        ownerKind: ArtworkOwnerKind,
-        ownerID: UUID,
-        location: ManagedLibraryLocation
+    func applyArtworkEdit(
+        _ manifest: ManagedArtworkEditManifest
     ) throws {
-        let oldID = try replaceOwnerArtworkID(
-            ownerKind: ownerKind,
-            ownerID: ownerID,
-            artworkID: nil
-        )
-        guard let oldID else {
-            return
-        }
-        guard let oldArtwork = try artworkRecord(id: oldID) else {
-            try modelContext.save()
-            return
-        }
-        let oldPaths = artworkPaths(oldArtwork)
-        modelContext.delete(oldArtwork)
+        let manifest = try manifest.validated()
         do {
+            let currentID = try ownerArtworkID(
+                ownerKind: manifest.ownerKind,
+                ownerID: manifest.ownerID
+            )
+            let previousID = manifest.previousArtwork?.id
+            let desiredID = manifest.newArtwork?.id
+            guard currentID == previousID || currentID == desiredID else {
+                throw ManagedArtworkEditError.inconsistentMetadata
+            }
+
+            if currentID != desiredID {
+                try setOwnerArtworkID(
+                    desiredID,
+                    ownerKind: manifest.ownerKind,
+                    ownerID: manifest.ownerID
+                )
+            }
+            if let newArtwork = manifest.newArtwork {
+                try upsertArtwork(newArtwork)
+            }
+            if let previousID, previousID != desiredID,
+               let previous = try artworkRecord(id: previousID) {
+                modelContext.delete(previous)
+            }
             try modelContext.save()
-            removeFiles(at: oldPaths, location: location)
         } catch {
             modelContext.rollback()
             throw error
@@ -115,10 +105,9 @@ extension LibraryRepository {
 }
 
 private extension LibraryRepository {
-    func replaceOwnerArtworkID(
+    func ownerArtworkID(
         ownerKind: ArtworkOwnerKind,
-        ownerID: UUID,
-        artworkID: UUID?
+        ownerID: UUID
     ) throws -> UUID? {
         switch ownerKind {
         case .artist:
@@ -128,9 +117,7 @@ private extension LibraryRepository {
             ).first else {
                 throw ManagedArtworkEditError.missingOwner
             }
-            let previous = owner.customArtworkID
-            owner.customArtworkID = artworkID
-            return previous
+            return owner.customArtworkID
         case .album:
             let predicate = #Predicate<AlbumRecord> { $0.id == ownerID }
             guard let owner = try modelContext.fetch(
@@ -138,9 +125,7 @@ private extension LibraryRepository {
             ).first else {
                 throw ManagedArtworkEditError.missingOwner
             }
-            let previous = owner.customArtworkID
-            owner.customArtworkID = artworkID
-            return previous
+            return owner.customArtworkID
         case .track:
             let predicate = #Predicate<TrackRecord> { $0.id == ownerID }
             guard let owner = try modelContext.fetch(
@@ -148,9 +133,40 @@ private extension LibraryRepository {
             ).first else {
                 throw ManagedArtworkEditError.missingOwner
             }
-            let previous = owner.customArtworkID
+            return owner.customArtworkID
+        }
+    }
+
+    func setOwnerArtworkID(
+        _ artworkID: UUID?,
+        ownerKind: ArtworkOwnerKind,
+        ownerID: UUID
+    ) throws {
+        switch ownerKind {
+        case .artist:
+            let predicate = #Predicate<ArtistRecord> { $0.id == ownerID }
+            guard let owner = try modelContext.fetch(
+                FetchDescriptor(predicate: predicate)
+            ).first else {
+                throw ManagedArtworkEditError.missingOwner
+            }
             owner.customArtworkID = artworkID
-            return previous
+        case .album:
+            let predicate = #Predicate<AlbumRecord> { $0.id == ownerID }
+            guard let owner = try modelContext.fetch(
+                FetchDescriptor(predicate: predicate)
+            ).first else {
+                throw ManagedArtworkEditError.missingOwner
+            }
+            owner.customArtworkID = artworkID
+        case .track:
+            let predicate = #Predicate<TrackRecord> { $0.id == ownerID }
+            guard let owner = try modelContext.fetch(
+                FetchDescriptor(predicate: predicate)
+            ).first else {
+                throw ManagedArtworkEditError.missingOwner
+            }
+            owner.customArtworkID = artworkID
         }
     }
 
@@ -161,27 +177,36 @@ private extension LibraryRepository {
         return try modelContext.fetch(descriptor).first
     }
 
-    func artworkPaths(
-        _ artwork: ArtworkRecord?
-    ) -> [String] {
-        guard let artwork else {
-            return []
-        }
-        return [
-            artwork.relativeOriginalPath,
-            artwork.relativeThumbnailPath,
-        ].compactMap(\.self)
-    }
-
-    func removeFiles(
-        at paths: [String],
-        location: ManagedLibraryLocation
-    ) {
-        for path in paths {
-            guard let url = try? location.resolve(relativePath: path) else {
-                continue
+    func upsertArtwork(
+        _ artwork: ManagedArtworkDescriptor
+    ) throws {
+        if let existing = try artworkRecord(id: artwork.id) {
+            guard
+                existing.ownerKind == artwork.ownerKind,
+                existing.ownerID == artwork.ownerID,
+                existing.relativeOriginalPath == artwork.relativeOriginalPath,
+                existing.contentHash == artwork.contentHash
+            else {
+                throw ManagedArtworkEditError.inconsistentMetadata
             }
-            try? FileManager.default.removeItem(at: url)
+            return
         }
+        modelContext.insert(
+            ArtworkRecord(
+                id: artwork.id,
+                ownerKind: artwork.ownerKind,
+                ownerID: artwork.ownerID,
+                relativeOriginalPath: artwork.relativeOriginalPath,
+                relativeThumbnailPath: artwork.relativeThumbnailPath,
+                format: artwork.format,
+                pixelWidth: artwork.pixelWidth,
+                pixelHeight: artwork.pixelHeight,
+                cropScale: artwork.cropScale,
+                normalizedOffsetX: artwork.normalizedOffsetX,
+                normalizedOffsetY: artwork.normalizedOffsetY,
+                contentHash: artwork.contentHash,
+                revision: artwork.revision
+            )
+        )
     }
 }
