@@ -99,6 +99,7 @@ struct ImportMusicView: View {
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
             }
+            .guideAnchor(.importMusic)
 
             Spacer(minLength: 16)
 

@@ -4,22 +4,26 @@ import SwiftUI
 @main
 struct CadenceApp: App {
     @State private var model = Self.makeInitialModel()
+    @State private var guideCoordinator = GuideCoordinator()
     @AppStorage("appearance")
     private var appearanceRawValue = CadenceAppearance.system.rawValue
 
     var body: some Scene {
         WindowGroup("Cadence") {
-            CadenceRootView(model: model)
-                .frame(minWidth: 1080, minHeight: 720)
-                .preferredColorScheme(appearance.colorScheme)
-                .tint(CadenceTheme.primaryAccent)
-                .onChange(
-                    of: appearanceRawValue,
-                    initial: true
-                ) { _, _ in
-                    NSApplication.shared.appearance =
-                        appearance.appKitAppearance
-                }
+            CadenceRootView(
+                model: model,
+                guideCoordinator: guideCoordinator
+            )
+            .frame(minWidth: 1080, minHeight: 720)
+            .preferredColorScheme(appearance.colorScheme)
+            .tint(CadenceTheme.primaryAccent)
+            .onChange(
+                of: appearanceRawValue,
+                initial: true
+            ) { _, _ in
+                NSApplication.shared.appearance =
+                    appearance.appKitAppearance
+            }
         }
         .defaultSize(width: 1512, height: 982)
         .windowToolbarStyle(.unifiedCompact(showsTitle: false))
@@ -111,6 +115,13 @@ struct CadenceApp: App {
                         || model.smartCollectionsPresentationMode != .editing
                         || !model.canRevertSmartCollectionDraft
                 )
+            }
+
+            CommandGroup(before: .help) {
+                Button("Cadence Guide") {
+                    guideCoordinator.presentChapterPicker()
+                }
+                .keyboardShortcut("?", modifiers: [.option, .command])
             }
         }
     }

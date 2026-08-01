@@ -13,6 +13,7 @@ struct PlayerBar: View {
             transport
                 .frame(maxWidth: .infinity)
                 .layoutPriority(1)
+                .guideAnchor(.playerBar)
 
             outputControls
                 .frame(width: 244, alignment: .trailing)

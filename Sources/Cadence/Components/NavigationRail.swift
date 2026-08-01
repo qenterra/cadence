@@ -17,11 +17,7 @@ struct NavigationRail: View {
 
     var body: some View {
         VStack(spacing: 8) {
-            expansionButton
-
-            ForEach(primaryDestinations) { destination in
-                railButton(destination)
-            }
+            primaryNavigation
 
             Spacer(minLength: 12)
 
@@ -44,6 +40,17 @@ struct NavigationRail: View {
         )
         .clipped()
         .background(.thinMaterial)
+    }
+
+    private var primaryNavigation: some View {
+        VStack(spacing: 8) {
+            expansionButton
+
+            ForEach(primaryDestinations) { destination in
+                railButton(destination)
+            }
+        }
+        .guideAnchor(.sidebar)
     }
 
     private var primaryDestinations: [NavigationDestination] {
@@ -80,13 +87,15 @@ struct NavigationRail: View {
                 Spacer(minLength: 0)
             }
             .foregroundStyle(.secondary)
+            .padding(.horizontal, NavigationRailMetrics.rowInset)
             .frame(
-                maxWidth: .infinity,
-                minHeight: NavigationRailMetrics.rowHeight,
-                maxHeight: NavigationRailMetrics.rowHeight,
+                width: NavigationRailMetrics.rowWidth(
+                    isExpanded: isExpanded
+                ),
+                height: NavigationRailMetrics.rowHeight,
                 alignment: .leading
             )
-            .padding(.horizontal, NavigationRailMetrics.rowInset)
+            .clipped()
             .contentShape(Rectangle())
         }
         .buttonStyle(CadenceRowButtonStyle())
@@ -113,13 +122,15 @@ struct NavigationRail: View {
                 Spacer(minLength: 0)
             }
             .foregroundStyle(isSelected ? .primary : .secondary)
+            .padding(.horizontal, NavigationRailMetrics.rowInset)
             .frame(
-                maxWidth: .infinity,
-                minHeight: NavigationRailMetrics.rowHeight,
-                maxHeight: NavigationRailMetrics.rowHeight,
+                width: NavigationRailMetrics.rowWidth(
+                    isExpanded: isExpanded
+                ),
+                height: NavigationRailMetrics.rowHeight,
                 alignment: .leading
             )
-            .padding(.horizontal, NavigationRailMetrics.rowInset)
+            .clipped()
             .background {
                 BrowserRowSurface(
                     isSelected: isSelected,
@@ -153,5 +164,9 @@ enum NavigationRailMetrics {
 
     static func contentWidth(isExpanded: Bool) -> CGFloat {
         totalWidth(isExpanded: isExpanded) - horizontalInset * 2
+    }
+
+    static func rowWidth(isExpanded: Bool) -> CGFloat {
+        contentWidth(isExpanded: isExpanded)
     }
 }

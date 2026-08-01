@@ -124,6 +124,7 @@ private extension ProductionTagsView {
                 .buttonStyle(.plain)
                 .help("New Tag")
             }
+            .guideAnchor(.tags)
 
             ScrollView {
                 LazyVStack(spacing: 4) {

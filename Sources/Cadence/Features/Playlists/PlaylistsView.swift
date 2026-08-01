@@ -82,6 +82,7 @@ private extension PlaylistsView {
                 .buttonStyle(.plain)
                 .help("New Playlist")
             }
+            .guideAnchor(.playlists)
 
             if store.playlists.isEmpty {
                 ContentUnavailableView(

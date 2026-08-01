@@ -112,6 +112,7 @@ struct ProductionTrackTable: View {
                 )
             }
         }
+        .guideAnchor(.trackTable)
     }
 
     private var visibleColumns: [TrackTableColumn] {

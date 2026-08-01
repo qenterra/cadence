@@ -2,6 +2,7 @@ import SwiftUI
 
 struct CadenceRootView: View {
     @Bindable var model: CadenceAppModel
+    @Bindable var guideCoordinator: GuideCoordinator
 
     var body: some View {
         VStack(spacing: 0) {
@@ -85,6 +86,10 @@ struct CadenceRootView: View {
         }
         .lyricsDraftTransitionAlert(model: model)
         .artworkManagement(model: model)
+        .cadenceGuideHost(
+            model: model,
+            coordinator: guideCoordinator
+        )
         .confirmationDialog(
             "Move to Trash?",
             isPresented: libraryDeletionPresented,
@@ -124,6 +129,7 @@ struct CadenceRootView: View {
                 await model.librarySession.store.loadInitialLibrary()
             }
             await model.librarySession.store.loadPlaylists()
+            guideCoordinator.presentWelcomeIfNeeded()
         }
         .onDisappear {
             model.shutdownPlayback()

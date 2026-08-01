@@ -6,6 +6,7 @@ struct LyricsEditorView: View {
     var body: some View {
         VStack(spacing: 0) {
             LyricsEditorHeader(model: model)
+                .guideAnchor(.lyricsEditor)
 
             Rectangle()
                 .fill(CadenceTheme.separator)

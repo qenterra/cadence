@@ -91,6 +91,7 @@ not open the developer's music library.
 ### Browse and organize
 
 - Browse all tracks, albums, artists, tags, playlists, and smart collections.
+- Learn the interface through a first-run welcome and replayable Help chapters.
 - Sort and resize reusable track-table columns.
 - Assign hierarchical tags such as `genre/ambient` or standalone tags such as
   `childhood`.

@@ -79,6 +79,7 @@ struct PlaybackQueuePanel: View {
             }
             .disabled(model.activePlaybackQueue?.upNextTrackIDs.isEmpty != false)
         }
+        .guideAnchor(.queue)
         .buttonStyle(.borderless)
         .padding(.horizontal, 24)
         .frame(height: 58)

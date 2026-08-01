@@ -19,6 +19,7 @@ struct NowPlayingView: View {
                         artworkSize: layout.artworkSize
                     )
                     .frame(width: layout.contextWidth)
+                    .guideAnchor(.nowPlaying)
 
                     Rectangle()
                         .fill(CadenceTheme.separator)
@@ -71,6 +72,11 @@ struct NowPlayingView: View {
             }
             .padding(.horizontal, 28)
             .frame(height: 76)
+            .guideAnchor(
+                model.selectedNowPlayingPanel == .lyrics
+                    ? .lyrics
+                    : .queue
+            )
 
             Rectangle()
                 .fill(CadenceTheme.separator)

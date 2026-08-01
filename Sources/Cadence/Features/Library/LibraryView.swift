@@ -41,6 +41,12 @@ struct LibraryView: View {
             }
         }
         .background(CadenceTheme.contentBackground)
+        .overlay(alignment: .top) {
+            Color.clear
+                .frame(height: 76)
+                .guideAnchor(.library)
+                .allowsHitTesting(false)
+        }
     }
 }
 

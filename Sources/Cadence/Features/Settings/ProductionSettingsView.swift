@@ -19,6 +19,7 @@ struct ProductionSettingsView: View {
             VStack(alignment: .leading, spacing: 24) {
                 Text("Settings")
                     .font(.largeTitle.bold())
+                    .guideAnchor(.settings)
 
                 SettingsCard(
                     title: "Playback",
@@ -140,12 +141,14 @@ struct ProductionSettingsView: View {
 struct SettingsCard<Content: View>: View {
     let title: String
     let symbol: String
+    var guideAnchor: GuideAnchor?
     @ViewBuilder let content: Content
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             Label(title, systemImage: symbol)
                 .font(.headline)
+                .guideAnchor(guideAnchor)
             content
         }
         .padding(20)

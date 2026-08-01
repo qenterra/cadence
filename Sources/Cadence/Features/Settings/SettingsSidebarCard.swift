@@ -10,7 +10,8 @@ struct SettingsSidebarCard: View {
     var body: some View {
         SettingsCard(
             title: "Sidebar",
-            symbol: "sidebar.left"
+            symbol: "sidebar.left",
+            guideAnchor: .sidebarSettings
         ) {
             Text(
                 "Choose which destinations appear. Drag a row to change "

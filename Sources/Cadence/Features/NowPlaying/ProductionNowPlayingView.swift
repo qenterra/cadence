@@ -19,6 +19,7 @@ struct ProductionNowPlayingView: View {
             HStack(spacing: 0) {
                 trackContext
                     .frame(width: layout.contextWidth)
+                    .guideAnchor(.nowPlaying)
 
                 Rectangle()
                     .fill(CadenceTheme.separator)
@@ -317,6 +318,11 @@ private extension ProductionNowPlayingView {
             }
             .padding(.horizontal, 28)
             .frame(height: 76)
+            .guideAnchor(
+                model.selectedNowPlayingPanel == .lyrics
+                    ? .lyrics
+                    : .queue
+            )
 
             Rectangle()
                 .fill(CadenceTheme.separator)

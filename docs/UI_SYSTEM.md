@@ -102,6 +102,23 @@ Cadence follows the current Unspool About pattern:
 - creator attribution remains `Nikita Melnychenko (QenTerra)`;
 - the visible version omits the build number.
 
+## Welcome and in-app guide
+
+- First launch presents three short pages after the library session opens.
+- Completion is recorded only after `Start Tour` or `Explore on My Own`; simply
+  dismissing the sheet does not silently opt the user out.
+- `Help > Cadence Guide` reopens a compact two-column chapter picker containing
+  the complete Essentials tour and five focused chapters.
+- Guide steps reuse production navigation and anchor preferences. They may
+  reveal a destination, but never import, play, edit, delete, or create data.
+- Missing targets use a centered explanatory card, so an empty library cannot
+  trap the user in the tour.
+- Keyboard navigation, accessibility focus, increased contrast, reduced
+  transparency, and Reduce Motion are supported by the same overlay.
+
+The detailed behavior and lifecycle contract lives in
+[`ONBOARDING_GUIDE.md`](ONBOARDING_GUIDE.md).
+
 ## Verification
 
 The implementation is complete only after:

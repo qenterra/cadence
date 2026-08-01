@@ -39,6 +39,7 @@ struct SmartCollectionListColumn: View {
             .help("New Smart Collection")
             .accessibilityLabel("New Smart Collection")
         }
+        .guideAnchor(.smartCollections)
     }
 
     private var emptyState: some View {
