@@ -72,10 +72,12 @@ struct CadenceAppModelFactoryTests {
 
             let session = LibrarySession.startup(location: location)
 
-            guard case .failed = session.availability else {
+            guard case let .failed(failure) = session.availability else {
                 Issue.record("Expected a blocking startup failure.")
                 return
             }
+            #expect(failure.kind == .blockingPackageFile)
+            #expect(failure.revealURL == location.packageURL)
             #expect(
                 try Data(contentsOf: location.packageURL)
                     == Data("not a package".utf8)

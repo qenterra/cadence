@@ -163,7 +163,11 @@ private extension CadenceRootView {
             ProgressView("Opening Cadence.library…")
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else if case let .failed(failure) = model.librarySession.availability {
-            LibraryUnavailableView(failure: failure)
+            LibraryUnavailableView(failure: failure) {
+                Task {
+                    await model.retryManagedLibrary()
+                }
+            }
         } else if shouldPresentProductionSearch {
             ProductionSearchResultsView(
                 model: model,

@@ -10,7 +10,17 @@ enum LibrarySessionAvailability: Equatable, Sendable {
 }
 
 struct LibrarySessionFailure: Equatable, Sendable {
+    enum Kind: Equatable, Sendable {
+        case locationUnavailable
+        case blockingPackageFile
+        case missingMetadataStore
+        case openFailed
+        case recoveryFailed
+    }
+
+    let kind: Kind
     let message: String
+    let revealURL: URL?
 }
 
 @MainActor
@@ -41,6 +51,7 @@ final class LibrarySession {
         } catch {
             return failed(
                 location: nil,
+                kind: .locationUnavailable,
                 message: error.localizedDescription
             )
         }
@@ -66,6 +77,7 @@ final class LibrarySession {
         guard isDirectory.boolValue else {
             return failed(
                 location: location,
+                kind: .blockingPackageFile,
                 message: "A file blocks \(ManagedLibraryLocation.packageFilename)."
             )
         }
@@ -75,6 +87,7 @@ final class LibrarySession {
         ) else {
             return failed(
                 location: location,
+                kind: .missingMetadataStore,
                 message: "Cadence.library is missing its metadata store."
             )
         }
@@ -94,6 +107,7 @@ final class LibrarySession {
         } catch {
             return failed(
                 location: location,
+                kind: .openFailed,
                 message: error.localizedDescription
             )
         }
@@ -122,7 +136,11 @@ final class LibrarySession {
         await store.loadInitialLibrary()
         if case let .failed(failure) = store.availability {
             availability = .failed(
-                LibrarySessionFailure(message: failure.message)
+                LibrarySessionFailure(
+                    kind: .openFailed,
+                    message: failure.message,
+                    revealURL: location?.packageURL
+                )
             )
         } else {
             availability = .ready
@@ -134,22 +152,32 @@ final class LibrarySession {
     }
 
     func fail(
+        kind: LibrarySessionFailure.Kind = .recoveryFailed,
         message: String
     ) {
         availability = .failed(
-            LibrarySessionFailure(message: message)
+            LibrarySessionFailure(
+                kind: kind,
+                message: message,
+                revealURL: location?.packageURL
+            )
         )
     }
 
     private static func failed(
         location: ManagedLibraryLocation?,
+        kind: LibrarySessionFailure.Kind,
         message: String
     ) -> LibrarySession {
         LibrarySession(
             location: location,
             store: LibraryStore(),
             availability: .failed(
-                LibrarySessionFailure(message: message)
+                LibrarySessionFailure(
+                    kind: kind,
+                    message: message,
+                    revealURL: location?.packageURL
+                )
             )
         )
     }

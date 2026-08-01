@@ -37,22 +37,37 @@ extension CadenceAppModel {
 
     func recoverManagedLibraryIfNeeded() async {
         guard
-            librarySession.availability != .preview,
-            let importRecovery,
-            let importDestination
+            librarySession.availability == .recovering
         else {
+            return
+        }
+        await openAndRecoverManagedLibrary()
+    }
+
+    func retryManagedLibrary() async {
+        guard case .failed = librarySession.availability else {
+            return
+        }
+        await openAndRecoverManagedLibrary()
+    }
+
+    private func openAndRecoverManagedLibrary() async {
+        guard let importRecovery, let importDestination else {
             return
         }
         librarySession.beginRecovery()
         do {
+            let repository = try await importDestination.prepareRepository()
+            librarySession.store.attach(
+                repository: repository,
+                package: librarySession.location.map(
+                    ManagedLibraryPackage.init
+                )
+            )
             _ = try await importRecovery.recover()
             _ = try await librarySession.store.recoverLyricsEdits()
             _ = try await librarySession.store.recoverArtworkEdits()
-            if let repository = await importDestination.currentRepository() {
-                await librarySession.activate(repository: repository)
-            } else {
-                librarySession.finishRecoveryWithoutLibrary()
-            }
+            await librarySession.activate(repository: repository)
         } catch {
             librarySession.fail(message: error.localizedDescription)
         }
