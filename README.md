@@ -1,8 +1,8 @@
 <p align="center">
   <img
     src="docs/images/cadence-icon-dark.png"
-    width="144"
-    height="144"
+    width="128"
+    height="128"
     alt="Cadence app icon"
   >
 </p>
@@ -18,13 +18,14 @@
   <img alt="macOS 26 or later" src="https://img.shields.io/badge/macOS-26%2B-f2f2f2">
   <img alt="Swift 6" src="https://img.shields.io/badge/Swift-6-f2f2f2">
   <img alt="Version 0.1.0" src="https://img.shields.io/badge/version-0.1.0-f2f2f2">
+  <a href="https://buymeacoffee.com/qenterra"><img alt="Buy Me a Coffee" src="https://img.shields.io/badge/Buy%20Me%20a%20Coffee-FFDD00?logo=buymeacoffee&logoColor=000000"></a>
 </p>
 
 <p align="center">
   <a href="#interface">Interface</a> ·
   <a href="#features">Features</a> ·
-  <a href="#build-from-source">Build from source</a> ·
-  <a href="https://github.com/QenTerra/cadence/wiki">Wiki</a>
+  <a href="#quick-start">Quick start</a> ·
+  <a href="#documentation">Documentation</a>
 </p>
 
 Cadence imports local audio into a managed library, keeps the source files
@@ -105,14 +106,16 @@ synthetic; the capture process cannot open the developer's music library.
 - Edit text and line timestamps in the built-in Lyrics Editor.
 - Import, crop, replace, or remove track, album, and artist artwork.
 
-## Requirements
+## Quick start
+
+### Requirements
 
 - macOS 26 or later
 - Xcode 27 or later with a compatible macOS SDK
 - Homebrew
 - Apple silicon Mac for the documented local test destination
 
-## Build from source
+### Build from source
 
 ```sh
 git clone https://github.com/QenTerra/cadence.git
@@ -139,7 +142,23 @@ toolchain.
 committed `Cadence.xcodeproj` after changing targets, files, entitlements, or
 build settings.
 
-## Project structure
+## Permissions and privacy
+
+Cadence does not contain analytics, ads, tracking, or a network client. It opens
+external project links only when you select one in Settings. Your music,
+artwork, lyrics, tags, playlists, and playback history stay on your Mac.
+
+- [Privacy](PRIVACY.md)
+- [Terms of Use](TERMS_OF_USE.md)
+- [Security](SECURITY.md)
+- [Third-party notices](THIRD_PARTY_NOTICES.md)
+
+You are responsible for using audio, artwork, metadata, and lyrics you have the
+right to copy and play.
+
+## Development
+
+### Project structure
 
 ```text
 Sources/Cadence/
@@ -160,36 +179,36 @@ Read the [architecture](docs/ARCHITECTURE.md),
 [build guide](docs/BUILDING.md), [dependency policy](docs/DEPENDENCIES.md), or
 the [GitHub Wiki](https://github.com/QenTerra/cadence/wiki) for more detail.
 
-## Privacy and legal
+## Current limitations
 
-Cadence does not contain analytics, ads, tracking, or a network client. It opens
-external project links only when you select one in Settings. Your music,
-artwork, lyrics, tags, playlists, and playback history stay on your Mac.
+- Cadence is available as source only; there is no signed or notarized binary.
+- The complete Xcode 27 build and test gate remains local while the hosted
+  GitHub runner provides an older toolchain.
+- Output-device behavior, long playback, VoiceOver, spatial audio, and large
+  real libraries remain hardware or manual release gates.
 
-- [Privacy](PRIVACY.md)
+## Documentation
+
+- [Complete product and engineering Wiki](https://github.com/QenTerra/cadence/wiki)
+- [Documentation index](docs/README.md)
+- [Building from source](docs/BUILDING.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [Dependencies](docs/DEPENDENCIES.md)
+- [Troubleshooting](docs/TROUBLESHOOTING.md)
+- [UI system](docs/UI_SYSTEM.md)
+- [Contributing](CONTRIBUTING.md)
+- [Changelog](CHANGELOG.md)
+- [Privacy Policy](PRIVACY.md)
 - [Terms of Use](TERMS_OF_USE.md)
-- [Security](SECURITY.md)
+- [Security Policy](SECURITY.md)
 - [Third-party notices](THIRD_PARTY_NOTICES.md)
+- [MIT License](LICENSE)
 
-You are responsible for using audio, artwork, metadata, and lyrics you have the
-right to copy and play.
-
-## Support the project
+## Support
 
 Cadence is created and maintained by
-[Nikita Melnychenko (QenTerra)](https://github.com/QenTerra).
-
-<p>
-  <a href="https://buymeacoffee.com/qenterra">
-    <img
-      src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png"
-      height="48"
-      alt="Buy Me a Coffee"
-    >
-  </a>
-</p>
-
-## Contributing
+[Nikita Melnychenko (QenTerra)](https://github.com/QenTerra). If it saves you
+time, you can [buy me a coffee](https://buymeacoffee.com/qenterra).
 
 Bug reports and focused pull requests are welcome. Read
 [CONTRIBUTING.md](CONTRIBUTING.md) before opening one. Report security issues
