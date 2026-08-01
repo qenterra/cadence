@@ -91,11 +91,15 @@ struct TagSmartCollectionRemediationTests {
 
         let repository = LibraryRepository(modelContainer: container)
         let data = try await repository.productionSmartCollectionRuleData()
+        let pickerPage = try await repository.tracksForTagPicker(
+            search: "zulu facet"
+        )
 
         #expect(data.options.artists.contains("Zulu Facet Artist"))
         #expect(data.options.albums.contains("Zulu Facet Album"))
         #expect(data.options.years.contains(2037))
         #expect(data.options.formats.contains("DSD"))
+        #expect(pickerPage.items.map(\.id) == [lateTrack.id])
     }
 
     @Test("Repository Smart Collections preserve inheritance and exclusions")

@@ -54,10 +54,18 @@ extension LibraryRepository {
         search: String? = nil,
         limit: Int = maximumPageSize
     ) throws -> LibraryPage<LibraryTrackProjection> {
-        try tracksPage(
+        let boundedLimit = min(max(limit, 1), Self.maximumPageSize)
+        var descriptor = tagPickerDescriptor(
             after: cursor,
-            search: search,
-            limit: limit
+            search: SearchNormalizer.normalize(search ?? "")
+        )
+        descriptor.fetchLimit = boundedLimit + 1
+        return try LibraryPageBuilder.page(
+            records: modelContext.fetch(descriptor),
+            limit: boundedLimit,
+            sortValue: \.normalizedTitle,
+            identity: \.sortIdentity,
+            projection: LibraryProjectionFactory.track
         )
     }
 
@@ -118,6 +126,45 @@ extension LibraryRepository {
         var descriptor = FetchDescriptor(predicate: predicate)
         descriptor.fetchLimit = 1
         return try !modelContext.fetch(descriptor).isEmpty
+    }
+
+    private func tagPickerDescriptor(
+        after cursor: LibraryPageCursor?,
+        search: String
+    ) -> FetchDescriptor<TrackRecord> {
+        let sort = [
+            SortDescriptor(\TrackRecord.normalizedTitle),
+            SortDescriptor(\TrackRecord.sortIdentity),
+        ]
+        if let cursor {
+            let cursorValue = cursor.sortValue
+            let cursorIdentity = cursor.identity
+            let predicate = #Predicate<TrackRecord> { record in
+                (
+                    search.isEmpty
+                        || record.normalizedTitle.contains(search)
+                        || record.artist?.normalizedName.contains(search) == true
+                        || record.album?.normalizedTitle.contains(search) == true
+                )
+                    && (
+                        record.normalizedTitle > cursorValue
+                            || (
+                                record.normalizedTitle == cursorValue
+                                    && record.sortIdentity > cursorIdentity
+                            )
+                    )
+            }
+            return FetchDescriptor(predicate: predicate, sortBy: sort)
+        }
+        guard !search.isEmpty else {
+            return FetchDescriptor(sortBy: sort)
+        }
+        let predicate = #Predicate<TrackRecord> { record in
+            record.normalizedTitle.contains(search)
+                || record.artist?.normalizedName.contains(search) == true
+                || record.album?.normalizedTitle.contains(search) == true
+        }
+        return FetchDescriptor(predicate: predicate, sortBy: sort)
     }
 
     private func existingDirectAssignmentIDs(
