@@ -69,6 +69,35 @@ struct LibraryRepositoryTests {
         #expect(projections.allSatisfy { $0.relativeMediaPath.hasPrefix("Media/") })
     }
 
+    @Test("Queue projections preserve 401 requested IDs and unavailable rows")
+    func completeOrderedQueueProjection() async throws {
+        let container = try makeContainer(trackCount: 401)
+        let context = ModelContext(container)
+        let records = try context.fetch(
+            FetchDescriptor<TrackRecord>(
+                sortBy: [SortDescriptor(\.normalizedTitle)]
+            )
+        )
+        let unavailableID = UUID()
+        let requestedIDs = Array(records.reversed().map(\.id).prefix(201))
+            + [unavailableID]
+            + Array(records.map(\.id).prefix(200))
+        let repository = LibraryRepository(modelContainer: container)
+
+        let projections = try await repository.playbackQueueTracks(
+            ids: requestedIDs
+        )
+
+        #expect(projections.map(\.id) == requestedIDs)
+        #expect(projections.count == 402)
+        #expect(projections[201].state == .unavailable)
+        #expect(
+            projections.enumerated().allSatisfy { index, projection in
+                index == 201 || projection.track?.id == requestedIDs[index]
+            }
+        )
+    }
+
     @Test("Exact hash lookup is explicit and committed data stays immutable")
     func exactHashLookup() async throws {
         let container = try makeContainer(trackCount: 1)
