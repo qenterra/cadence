@@ -140,7 +140,7 @@ private extension PlayerBar {
             }
             .frame(minWidth: 220, idealWidth: 300, maxWidth: 360)
             .font(.caption2)
-            .foregroundStyle(.secondary)
+            .foregroundStyle(CadenceTheme.primaryAccent.opacity(0.7))
             .monospacedDigit()
         }
     }
@@ -270,11 +270,11 @@ private extension PlayerBar {
         VStack(alignment: .leading, spacing: 3) {
             Text(title)
                 .font(.subheadline.weight(.medium))
-                .foregroundStyle(.primary)
+                .foregroundStyle(CadenceTheme.primaryAccent)
                 .lineLimit(1)
             Text(artist)
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(CadenceTheme.primaryAccent.opacity(0.68))
                 .lineLimit(1)
         }
     }
