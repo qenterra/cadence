@@ -29,7 +29,8 @@ final class LibraryStore {
     private(set) var lyricsService: ManagedLyricsService?
     private var trackCursor: LibraryPageCursor?
     private var catalogSearchGeneration = 0
-    @ObservationIgnored var artworkAssetCache: [UUID: ArtworkAsset] = [:]
+    @ObservationIgnored let artworkAssetCache = ArtworkAssetCache()
+    @ObservationIgnored var artworkDataLoads: [ArtworkAssetCache.Key: Task<Data?, Never>] = [:]
     var artistCursor: LibraryPageCursor?
     var albumCursor: LibraryPageCursor?
 

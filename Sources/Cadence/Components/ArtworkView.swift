@@ -257,6 +257,7 @@ private final class ArtworkImageCache {
 
     private init() {
         cache.countLimit = 80
+        cache.totalCostLimit = 128 * 1024 * 1024
     }
 
     func image(for asset: ArtworkAsset) -> NSImage? {
@@ -267,7 +268,14 @@ private final class ArtworkImageCache {
         guard let image = NSImage(data: asset.data) else {
             return nil
         }
-        cache.setObject(image, forKey: key)
+        let pixelCost = image.representations.reduce(0) { result, imageRep in
+            result + imageRep.pixelsWide * imageRep.pixelsHigh * 4
+        }
+        cache.setObject(
+            image,
+            forKey: key,
+            cost: max(pixelCost, asset.data.count)
+        )
         return image
     }
 }
