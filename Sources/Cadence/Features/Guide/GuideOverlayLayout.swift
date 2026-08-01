@@ -1,7 +1,7 @@
 import CoreGraphics
 
 enum GuideOverlayLayout {
-    static let cardSize = CGSize(width: 370, height: 238)
+    static let cardSize = CGSize(width: 370, height: 320)
     static let margin = CGFloat(22)
     static let spacing = CGFloat(18)
     static let spotlightMargin = CGFloat(12)

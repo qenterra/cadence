@@ -36,6 +36,7 @@ struct CadenceGuideOverlay: View {
                         advance: coordinator.advance
                     )
                     .frame(width: 370)
+                    .frame(maxHeight: GuideOverlayLayout.cardSize.height)
                     .position(
                         GuideOverlayLayout.cardCenter(
                             viewportSize: geometry.size,
@@ -198,6 +199,31 @@ private struct GuideCard: View {
     let advance: () -> Void
 
     var body: some View {
+        ViewThatFits(in: .vertical) {
+            cardContent
+            ScrollView {
+                cardContent
+            }
+            .scrollBounceBehavior(.basedOnSize)
+        }
+        .frame(maxHeight: GuideOverlayLayout.cardSize.height)
+        .background(
+            CadenceTheme.opaqueSurface,
+            in: RoundedRectangle(cornerRadius: 18, style: .continuous)
+        )
+        .overlay {
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .strokeBorder(CadenceTheme.strongSeparator, lineWidth: 0.75)
+        }
+        .shadow(color: .black.opacity(0.28), radius: 28, y: 12)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(
+            "\(step.title). \(message). \(progress)"
+        )
+        .accessibilityIdentifier("Cadence.Guide.Card.\(step.id)")
+    }
+
+    private var cardContent: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack {
                 Text(chapterTitle)
@@ -235,19 +261,5 @@ private struct GuideCard: View {
             }
         }
         .padding(20)
-        .background(
-            CadenceTheme.opaqueSurface,
-            in: RoundedRectangle(cornerRadius: 18, style: .continuous)
-        )
-        .overlay {
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .strokeBorder(CadenceTheme.strongSeparator, lineWidth: 0.75)
-        }
-        .shadow(color: .black.opacity(0.28), radius: 28, y: 12)
-        .accessibilityElement(children: .contain)
-        .accessibilityLabel(
-            "\(step.title). \(message). \(progress)"
-        )
-        .accessibilityIdentifier("Cadence.Guide.Card.\(step.id)")
     }
 }

@@ -36,6 +36,18 @@ struct GuideLayoutTests {
         #expect(rect?.width == 320 + GuideOverlayLayout.spotlightPadding)
     }
 
+    @Test("Guide card reserves a bounded scrollable content height")
+    func boundedCardHeight() {
+        #expect(GuideOverlayLayout.cardSize.height == 320)
+
+        let frame = GuideOverlayLayout.cardFrame(
+            viewportSize: CGSize(width: 1080, height: 720),
+            target: nil,
+            placement: .center
+        )
+        #expect(frame.height == 320)
+    }
+
     @Test("Collapsed rail selection keeps the required trailing inset")
     func collapsedRailSelectionWidth() {
         let rowWidth = NavigationRailMetrics.rowWidth(isExpanded: false)
