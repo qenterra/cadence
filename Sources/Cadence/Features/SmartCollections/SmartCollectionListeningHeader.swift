@@ -120,11 +120,11 @@ struct SmartCollectionListeningHeader: View {
     }
 
     private var smartCollectionTagTitles: [String: String] {
-        return Dictionary(
+        Dictionary(
             uniqueKeysWithValues: model.librarySession.store
                 .smartCollectionRuleData.tags.map {
                     ($0.id.uuidString, $0.displayPath)
-            }
+                }
         )
     }
 
