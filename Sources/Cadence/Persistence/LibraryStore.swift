@@ -29,12 +29,16 @@ final class LibraryStore {
     private(set) var lyricsService: ManagedLyricsService?
     private var trackCursor: LibraryPageCursor?
     private var catalogSearchGeneration = 0
+    private var playbackQueueProjectionGeneration = 0
     @ObservationIgnored var artworkAssetCache: [UUID: ArtworkAsset] = [:]
     var artistCursor: LibraryPageCursor?
     var albumCursor: LibraryPageCursor?
 
     var availability: LibraryAvailability
     private(set) var tracks: [LibraryTrackProjection] = []
+    private(set) var playbackQueueTracks: [PlaybackQueueTrackProjection] = []
+    private(set) var isLoadingPlaybackQueueTracks = false
+    private(set) var playbackQueueProjectionError: LibraryStoreFailure?
     var artists: [LibraryArtistProjection] = []
     var albums: [LibraryAlbumProjection] = []
     var tags: [LibraryTagProjection] = []
@@ -207,6 +211,71 @@ final class LibraryStore {
 
     func allTrackIDs() async -> [UUID] {
         await (try? repository?.allTrackIDs()) ?? tracks.map(\.id)
+    }
+
+    func loadPlaybackQueueTracks(
+        ids: [UUID]
+    ) async {
+        playbackQueueProjectionGeneration += 1
+        let generation = playbackQueueProjectionGeneration
+
+        guard !ids.isEmpty else {
+            playbackQueueTracks = []
+            playbackQueueProjectionError = nil
+            isLoadingPlaybackQueueTracks = false
+            return
+        }
+
+        let currentByID = Dictionary(
+            playbackQueueTracks.map { ($0.id, $0) },
+            uniquingKeysWith: { current, _ in current }
+        )
+        playbackQueueTracks = ids.map { id in
+            currentByID[id] ?? PlaybackQueueTrackProjection(
+                id: id,
+                state: .loading
+            )
+        }
+        playbackQueueProjectionError = nil
+
+        guard let repository else {
+            playbackQueueTracks = ids.map {
+                PlaybackQueueTrackProjection(id: $0, state: .unavailable)
+            }
+            isLoadingPlaybackQueueTracks = false
+            return
+        }
+
+        isLoadingPlaybackQueueTracks = true
+        do {
+            let projections = try await repository.playbackQueueTracks(
+                ids: ids
+            )
+            guard generation == playbackQueueProjectionGeneration else {
+                return
+            }
+            playbackQueueTracks = projections
+            isLoadingPlaybackQueueTracks = false
+        } catch {
+            guard generation == playbackQueueProjectionGeneration else {
+                return
+            }
+            let message = error.localizedDescription
+            playbackQueueTracks = ids.map { id in
+                if let current = currentByID[id], current.track != nil {
+                    current
+                } else {
+                    PlaybackQueueTrackProjection(
+                        id: id,
+                        state: .failed(message)
+                    )
+                }
+            }
+            playbackQueueProjectionError = LibraryStoreFailure(
+                message: message
+            )
+            isLoadingPlaybackQueueTracks = false
+        }
     }
 
     func loadSmartCollectionIndex() async {

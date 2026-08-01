@@ -169,6 +169,7 @@
 		6C5E0F4296BA65DE8B0CD526 /* NowPlayingLifecycleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 321D160AD0715E1A950EAA30 /* NowPlayingLifecycleTests.swift */; };
 		6C8D55E860C8869F619504E9 /* ManagedArtworkEditingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91D574EBD922DD08F738A8EC /* ManagedArtworkEditingTests.swift */; };
 		6DDFAA6AFFE4BB598F817D9B /* ProductionAlbumsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C5876692737E5FEF9C3625 /* ProductionAlbumsView.swift */; };
+		6E0A4A6BA0B00A0AE5671941 /* LibraryRepository+PlaybackQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3DFFBA8F87D9381BA6B0770 /* LibraryRepository+PlaybackQueue.swift */; };
 		6EE11984695F6E7B24ABD8F8 /* AlbumsListeningDomainTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 259DFCE94240747140738361 /* AlbumsListeningDomainTests.swift */; };
 		6F348588C71FBF0D26C96CE4 /* MetadataRepairTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 871C857E551172D8D61C52E5 /* MetadataRepairTests.swift */; };
 		6FC24A9D7008997B2740BA62 /* ArtistsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A7088E84C919599EF3C1B2B /* ArtistsView.swift */; };
@@ -669,6 +670,7 @@
 		D02B268C7A3D533F32213E5C /* LibraryRepository+Lyrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LibraryRepository+Lyrics.swift"; sourceTree = "<group>"; };
 		D27670E168AB75C222E527BD /* PlaybackRoutingPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackRoutingPolicy.swift; sourceTree = "<group>"; };
 		D2796C69514D69DE4CA5E217 /* NavigationRailConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationRailConfiguration.swift; sourceTree = "<group>"; };
+		D3DFFBA8F87D9381BA6B0770 /* LibraryRepository+PlaybackQueue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LibraryRepository+PlaybackQueue.swift"; sourceTree = "<group>"; };
 		D4E182CECE435E3D2A01CE42 /* AlbumsOverview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlbumsOverview.swift; sourceTree = "<group>"; };
 		D58F9A3A47BD1B7958333D49 /* LibraryStore+Artists.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LibraryStore+Artists.swift"; sourceTree = "<group>"; };
 		D5C9FB019AAFE95F488C1FD2 /* TagsColumn.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TagsColumn.swift; sourceTree = "<group>"; };
@@ -859,6 +861,7 @@
 				9C69C07B398C0729E74EA82C /* LibraryRepository+ManagedImport.swift */,
 				8DFFCD6DD51731C4A3B77857 /* LibraryRepository+ManagedImportMatching.swift */,
 				D74F1EE9BBC843894AE7F472 /* LibraryRepository+MetadataRepair.swift */,
+				D3DFFBA8F87D9381BA6B0770 /* LibraryRepository+PlaybackQueue.swift */,
 				298BDBD8DF23EB17F1944E7F /* LibraryRepository+Playlists.swift */,
 				1E73EFEC2027D0BEA506F09E /* LibraryRepository+TagBatchAssignment.swift */,
 				9853273BBEB512E550628A11 /* LibraryRepository+TagCreation.swift */,
@@ -1595,6 +1598,7 @@
 				BE9E7B5F1A8016A8724FF745 /* LibraryRepository+ManagedImport.swift in Sources */,
 				43E98921F9EE2F94B0C84731 /* LibraryRepository+ManagedImportMatching.swift in Sources */,
 				C4C2EB73A70700EABDF59158 /* LibraryRepository+MetadataRepair.swift in Sources */,
+				6E0A4A6BA0B00A0AE5671941 /* LibraryRepository+PlaybackQueue.swift in Sources */,
 				EC03AF9B71AFFD09C12E6488 /* LibraryRepository+Playlists.swift in Sources */,
 				3F36FBEE20D3C965C0E1FD05 /* LibraryRepository+TagBatchAssignment.swift in Sources */,
 				647982BF5B371DFC4D01BE1E /* LibraryRepository+TagCreation.swift in Sources */,

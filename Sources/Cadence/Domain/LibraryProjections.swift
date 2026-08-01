@@ -32,6 +32,25 @@ struct LibraryTrackProjection: Identifiable, Hashable, Sendable {
     let playCount: Int
 }
 
+enum PlaybackQueueTrackState: Hashable, Sendable {
+    case loading
+    case available(LibraryTrackProjection)
+    case unavailable
+    case failed(String)
+}
+
+struct PlaybackQueueTrackProjection: Identifiable, Hashable, Sendable {
+    let id: UUID
+    let state: PlaybackQueueTrackState
+
+    var track: LibraryTrackProjection? {
+        guard case let .available(track) = state else {
+            return nil
+        }
+        return track
+    }
+}
+
 struct LibraryArtistProjection: Identifiable, Hashable, Sendable {
     let id: UUID
     let name: String
