@@ -2,15 +2,16 @@ import Foundation
 import SwiftData
 
 extension LibraryRepository {
-    func tracksForTagPicker() throws -> [LibraryTrackProjection] {
-        try modelContext.fetch(
-            FetchDescriptor<TrackRecord>(
-                sortBy: [
-                    SortDescriptor(\.normalizedTitle),
-                    SortDescriptor(\.sortIdentity),
-                ]
-            )
-        ).map(LibraryProjectionFactory.track)
+    func tracksForTagPicker(
+        after cursor: LibraryPageCursor? = nil,
+        search: String? = nil,
+        limit: Int = maximumPageSize
+    ) throws -> LibraryPage<LibraryTrackProjection> {
+        try tracksPage(
+            after: cursor,
+            search: search,
+            limit: limit
+        )
     }
 
     func directlyAssignedTrackIDs(
@@ -41,30 +42,16 @@ extension LibraryRepository {
             throw ProductionTagEditError.missingTag
         }
 
-        let trackPredicate = #Predicate<TrackRecord> {
-            requestedIDs.contains($0.id)
-        }
         let liveTrackIDs = try Set(
-            modelContext.fetch(
-                FetchDescriptor(predicate: trackPredicate)
-            )
-            .map(\.id)
+            tagTrackRecordsByID(ids: requestedIDs).keys
         )
         guard liveTrackIDs.count == requestedIDs.count else {
             throw ProductionTagEditError.missingTracks
         }
 
-        let targetKind = TagTargetKind.track.rawValue
-        let assignmentPredicate = #Predicate<TagAssignmentRecord> {
-            $0.tagID == tagID
-                && requestedIDs.contains($0.targetID)
-                && $0.targetKindRawValue == targetKind
-        }
-        let existingIDs = try Set(
-            modelContext.fetch(
-                FetchDescriptor(predicate: assignmentPredicate)
-            )
-            .map(\.targetID)
+        let existingIDs = try existingDirectAssignmentIDs(
+            tagID: tagID,
+            trackIDs: requestedIDs
         )
 
         for trackID in requestedIDs where !existingIDs.contains(trackID) {
@@ -84,5 +71,26 @@ extension LibraryRepository {
         var descriptor = FetchDescriptor(predicate: predicate)
         descriptor.fetchLimit = 1
         return try !modelContext.fetch(descriptor).isEmpty
+    }
+
+    private func existingDirectAssignmentIDs(
+        tagID: UUID,
+        trackIDs: [UUID]
+    ) throws -> Set<UUID> {
+        let targetKind = TagTargetKind.track.rawValue
+        var existingIDs: Set<UUID> = []
+        for idChunk in tagPredicateChunks(trackIDs) {
+            let predicate = #Predicate<TagAssignmentRecord> {
+                $0.tagID == tagID
+                    && idChunk.contains($0.targetID)
+                    && $0.targetKindRawValue == targetKind
+            }
+            try existingIDs.formUnion(
+                modelContext.fetch(
+                    FetchDescriptor(predicate: predicate)
+                ).map(\.targetID)
+            )
+        }
+        return existingIDs
     }
 }

@@ -130,6 +130,12 @@ private extension ProductionTagsView {
                 LazyVStack(spacing: 4) {
                     ForEach(store.tags) { tag in
                         tagButton(tag)
+                            .task {
+                                guard tag.id == store.tags.last?.id else {
+                                    return
+                                }
+                                await store.loadNextTags()
+                            }
                     }
                 }
                 .padding(.horizontal, WorkspaceLayout.listInset)

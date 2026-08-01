@@ -114,16 +114,10 @@ extension LibraryRepository {
             .filter { $0.targetKind == .album }
             .map(\.targetID)
 
-        var recordsByID: [UUID: TrackRecord] = [:]
-        for trackID in directTrackIDs {
-            if let track = try trackRecord(id: trackID) {
-                recordsByID[track.id] = track
-            }
-        }
-        for albumID in albumIDs {
-            guard let album = try albumRecord(id: albumID) else {
-                continue
-            }
+        var recordsByID = try tagTrackRecordsByID(
+            ids: Array(directTrackIDs)
+        )
+        for album in try tagAlbumRecords(ids: albumIDs) {
             for track in album.tracks {
                 recordsByID[track.id] = track
             }
@@ -254,5 +248,54 @@ private extension LibraryRepository {
             identity: \.sortIdentity,
             projection: LibraryProjectionFactory.track
         )
+    }
+}
+
+extension LibraryRepository {
+    func tagTrackRecordsByID(
+        ids: [UUID]
+    ) throws -> [UUID: TrackRecord] {
+        var recordsByID: [UUID: TrackRecord] = [:]
+        for idChunk in tagPredicateChunks(ids) {
+            let predicate = #Predicate<TrackRecord> {
+                idChunk.contains($0.id)
+            }
+            let records = try modelContext.fetch(
+                FetchDescriptor(predicate: predicate)
+            )
+            for record in records {
+                recordsByID[record.id] = record
+            }
+        }
+        return recordsByID
+    }
+
+    func tagAlbumRecords(
+        ids: [UUID]
+    ) throws -> [AlbumRecord] {
+        var records: [AlbumRecord] = []
+        for idChunk in tagPredicateChunks(ids) {
+            let predicate = #Predicate<AlbumRecord> {
+                idChunk.contains($0.id)
+            }
+            try records.append(
+                contentsOf: modelContext.fetch(
+                    FetchDescriptor(predicate: predicate)
+                )
+            )
+        }
+        return records
+    }
+
+    func tagPredicateChunks<Element>(
+        _ values: [Element]
+    ) -> [[Element]] {
+        let maximumCount = 100
+        guard !values.isEmpty else {
+            return []
+        }
+        return stride(from: 0, to: values.count, by: maximumCount).map {
+            Array(values[$0 ..< min($0 + maximumCount, values.count)])
+        }
     }
 }

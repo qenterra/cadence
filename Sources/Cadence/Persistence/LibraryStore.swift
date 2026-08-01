@@ -35,6 +35,9 @@ final class LibraryStore {
     private(set) var artworkService: ManagedArtworkService?
     var trackCursor: LibraryPageCursor?
     var trackRequestGeneration = 0
+    var tagCursor: LibraryPageCursor?
+    var tagGeneration = 0
+    private var isLoadingNextTags = false
     private var catalogSearchGeneration = 0
     private var playbackQueueProjectionGeneration = 0
     @ObservationIgnored var trackPageLoader: LibraryTrackPageLoader?
@@ -130,6 +133,10 @@ final class LibraryStore {
 
     var canLoadMoreAlbums: Bool {
         albumCursor != nil
+    }
+
+    var canLoadMoreTags: Bool {
+        tagCursor != nil
     }
 
     func attach(
@@ -319,6 +326,43 @@ final class LibraryStore {
             )
         }
     }
+
+    func loadNextTags() async {
+        guard
+            !isLoadingNextTags,
+            let repository,
+            let tagCursor
+        else {
+            return
+        }
+
+        isLoadingNextTags = true
+        let generation = tagGeneration
+        defer {
+            isLoadingNextTags = false
+        }
+
+        do {
+            let page = try await repository.tagsPage(after: tagCursor)
+            guard generation == tagGeneration else {
+                return
+            }
+            let existingIDs = Set(tags.map(\.id))
+            tags.append(
+                contentsOf: page.items.filter {
+                    !existingIDs.contains($0.id)
+                }
+            )
+            self.tagCursor = page.nextCursor
+        } catch {
+            guard generation == tagGeneration else {
+                return
+            }
+            availability = .failed(
+                LibraryStoreFailure(message: error.localizedDescription)
+            )
+        }
+    }
 }
 
 private extension LibraryStore {
@@ -353,6 +397,8 @@ private extension LibraryStore {
         albums = snapshot.albums.items
         albumCursor = snapshot.albums.nextCursor
         tags = snapshot.tags.items
+        tagCursor = snapshot.tags.nextCursor
+        tagGeneration &+= 1
         catalogCounts = snapshot.counts
         trashOperations = snapshot.trashOperations
         availability = .ready
@@ -373,6 +419,8 @@ private extension LibraryStore {
         isLoadingNextTracks = false
         artistCursor = nil
         albumCursor = nil
+        tagCursor = nil
+        tagGeneration &+= 1
         self.availability = availability
     }
 }
