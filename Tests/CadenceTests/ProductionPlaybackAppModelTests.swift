@@ -83,6 +83,67 @@ struct ProductionPlaybackAppModelTests {
         #expect(model.progress == 0.4)
     }
 
+    @Test("Production queue edits support Undo and Redo in Up Next only")
+    func productionQueueUndoRedo() async {
+        let resolved = (0 ..< 5).map {
+            playbackTestTrack(id: UUID(), title: "Track \($0)")
+        }
+        let coordinator = PlaybackCoordinator(
+            resolver: PlaybackTestResolver(tracks: resolved),
+            backends: [PlaybackTestBackend(kind: .pcm)]
+        )
+        let model = CadenceAppModel(
+            librarySession: .preview(),
+            tracks: [],
+            tags: [],
+            tagAssignments: [],
+            tagExclusions: [],
+            smartCollections: [],
+            lyricDocuments: [:],
+            favoriteAlbumDates: [:],
+            favoriteArtistDates: [:],
+            importCandidates: [],
+            playbackCoordinator: coordinator
+        )
+        let ids = resolved.map(\.track.id)
+        await coordinator.startQueue(
+            source: .adHoc,
+            trackIDs: ids,
+            startingAt: ids[1]
+        )
+        coordinator.receive(.time(23), from: .pcm)
+        let undoManager = UndoManager()
+
+        #expect(
+            model.removeFromProductionQueue(
+                [ids[0], ids[1], ids[3]],
+                undoManager: undoManager
+            )
+        )
+        #expect(coordinator.state.queue?.orderedTrackIDs == [
+            ids[0],
+            ids[1],
+            ids[2],
+            ids[4],
+        ])
+        #expect(coordinator.state.currentTime == 23)
+
+        undoManager.undo()
+        #expect(coordinator.state.queue?.orderedTrackIDs == ids)
+        #expect(coordinator.state.queue?.currentTrackID == ids[1])
+        #expect(coordinator.state.currentTime == 23)
+
+        undoManager.redo()
+        #expect(coordinator.state.queue?.orderedTrackIDs == [
+            ids[0],
+            ids[1],
+            ids[2],
+            ids[4],
+        ])
+        #expect(coordinator.state.currentTrack?.id == ids[1])
+        #expect(coordinator.state.currentTime == 23)
+    }
+
     @Test("Production Lyrics Editor saves the exact playback UUID")
     func productionLyricsEditorSaves() async throws {
         let fixture = try ProductionLyricsFixture(registerTrack: true)

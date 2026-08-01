@@ -57,6 +57,25 @@ extension PlaybackCoordinator {
         }
     }
 
+    @discardableResult
+    func restoreQueueSnapshot(
+        _ snapshot: PlaybackQueueState
+    ) -> Bool {
+        guard
+            let currentQueue = state.queue,
+            snapshot.currentTrackID == currentQueue.currentTrackID,
+            snapshot.currentTrackID == state.currentTrack?.id
+        else {
+            return false
+        }
+        state.queue = snapshot
+        publishState()
+        Task {
+            await prepareFollowingTrack()
+        }
+        return true
+    }
+
     private func updateQueue(
         mutation: (inout PlaybackQueueState) -> Bool
     ) -> Bool {

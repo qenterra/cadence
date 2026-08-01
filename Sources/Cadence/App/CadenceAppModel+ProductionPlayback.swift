@@ -34,21 +34,14 @@ extension CadenceAppModel {
         currentPlaybackTrack?.id == trackID
     }
 
-    var productionPlaybackQueueTracks: [LibraryTrackProjection] {
-        guard
-            let queue = playbackCoordinator?.state.queue,
-            !librarySession.store.tracks.isEmpty
-        else {
-            return []
-        }
-        let tracksByID = Dictionary(
-            uniqueKeysWithValues: librarySession.store.tracks.map {
-                ($0.id, $0)
-            }
+    var productionPlaybackQueueTracks: [PlaybackQueueTrackProjection] {
+        librarySession.store.playbackQueueTracks
+    }
+
+    func loadProductionPlaybackQueueTracks() async {
+        await librarySession.store.loadPlaybackQueueTracks(
+            ids: playbackCoordinator?.state.queue?.orderedTrackIDs ?? []
         )
-        return queue.orderedTrackIDs.compactMap {
-            tracksByID[$0]
-        }
     }
 
     func moveProductionQueue(
@@ -91,24 +84,43 @@ extension CadenceAppModel {
     @discardableResult
     func reorderProductionQueue(
         _ trackIDs: [UUID],
-        before targetTrackID: UUID?
+        before targetTrackID: UUID?,
+        undoManager: UndoManager? = nil
     ) -> Bool {
-        playbackCoordinator?.reorderUpNext(
-            trackIDs,
-            before: targetTrackID
-        ) ?? false
+        updateProductionQueue(
+            actionName: "Reorder Queue",
+            undoManager: undoManager
+        ) { coordinator in
+            coordinator.reorderUpNext(
+                trackIDs,
+                before: targetTrackID
+            )
+        }
     }
 
     @discardableResult
     func removeFromProductionQueue(
-        _ trackIDs: [UUID]
+        _ trackIDs: [UUID],
+        undoManager: UndoManager? = nil
     ) -> Bool {
-        playbackCoordinator?.removeUpNext(trackIDs) ?? false
+        updateProductionQueue(
+            actionName: "Remove from Queue",
+            undoManager: undoManager
+        ) { coordinator in
+            coordinator.removeUpNext(trackIDs)
+        }
     }
 
     @discardableResult
-    func clearProductionQueue() -> Bool {
-        playbackCoordinator?.clearUpNext() ?? false
+    func clearProductionQueue(
+        undoManager: UndoManager? = nil
+    ) -> Bool {
+        updateProductionQueue(
+            actionName: "Clear Up Next",
+            undoManager: undoManager
+        ) { coordinator in
+            coordinator.clearUpNext()
+        }
     }
 
     func activateSystemMediaSession() {
@@ -123,5 +135,51 @@ extension CadenceAppModel {
         for track: PlaybackTrack
     ) async -> LyricDocument? {
         try? await librarySession.store.lyricsDocument(trackID: track.id)
+    }
+
+    private func updateProductionQueue(
+        actionName: String,
+        undoManager: UndoManager?,
+        mutation: (PlaybackCoordinator) -> Bool
+    ) -> Bool {
+        guard
+            let playbackCoordinator,
+            let previous = playbackCoordinator.state.queue,
+            mutation(playbackCoordinator)
+        else {
+            return false
+        }
+        registerProductionQueueUndo(
+            restoring: previous,
+            actionName: actionName,
+            undoManager: undoManager
+        )
+        return true
+    }
+
+    private func registerProductionQueueUndo(
+        restoring snapshot: PlaybackQueueState,
+        actionName: String,
+        undoManager: UndoManager?
+    ) {
+        guard let undoManager else {
+            return
+        }
+        undoManager.registerUndo(withTarget: self) { [weak undoManager] model in
+            guard
+                let undoManager,
+                let coordinator = model.playbackCoordinator,
+                let redoSnapshot = coordinator.state.queue,
+                coordinator.restoreQueueSnapshot(snapshot)
+            else {
+                return
+            }
+            model.registerProductionQueueUndo(
+                restoring: redoSnapshot,
+                actionName: actionName,
+                undoManager: undoManager
+            )
+        }
+        undoManager.setActionName(actionName)
     }
 }
