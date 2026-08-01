@@ -1,0 +1,197 @@
+import Foundation
+
+extension LibraryStore {
+    func loadSmartCollectionRuleData() async {
+        guard let repository else {
+            smartCollectionRuleData = .empty
+            return
+        }
+        smartCollectionRuleDataGeneration &+= 1
+        let generation = smartCollectionRuleDataGeneration
+        isLoadingSmartCollectionData = true
+        defer {
+            isLoadingSmartCollectionData = false
+        }
+        do {
+            let data = try await repository
+                .productionSmartCollectionRuleData()
+            guard generation == smartCollectionRuleDataGeneration else {
+                return
+            }
+            smartCollectionRuleData = data
+        } catch {
+            guard generation == smartCollectionRuleDataGeneration else {
+                return
+            }
+            availability = .failed(
+                LibraryStoreFailure(message: error.localizedDescription)
+            )
+        }
+    }
+
+    func loadSmartCollectionSummaries(
+        rules: [SmartCollectionRuleGroup]
+    ) async {
+        guard let repository else {
+            smartCollectionSummaries = [:]
+            return
+        }
+        smartCollectionSummaryGeneration &+= 1
+        let generation = smartCollectionSummaryGeneration
+        var summaries: [
+            SmartCollectionRuleGroup: ProductionSmartCollectionSummary
+        ] = [:]
+        for rule in Set(rules) {
+            do {
+                let evaluation = try await repository
+                    .evaluateProductionSmartCollection(root: rule)
+                guard generation == smartCollectionSummaryGeneration else {
+                    return
+                }
+                summaries[rule] = ProductionSmartCollectionSummary(
+                    count: evaluation.count,
+                    totalDuration: evaluation.totalDuration
+                )
+            } catch {
+                availability = .failed(
+                    LibraryStoreFailure(message: error.localizedDescription)
+                )
+                return
+            }
+        }
+        smartCollectionSummaries = summaries
+    }
+
+    func loadSmartCollectionResult(
+        rule: SmartCollectionRuleGroup
+    ) async {
+        guard let repository else {
+            smartCollectionResults[rule] = nil
+            return
+        }
+        smartCollectionResultGeneration &+= 1
+        let generation = smartCollectionResultGeneration
+        do {
+            let evaluation = try await repository
+                .evaluateProductionSmartCollection(root: rule)
+            let page = try await repository
+                .productionSmartCollectionTrackPage(
+                    orderedIDs: evaluation.orderedTrackIDs
+                )
+            guard generation == smartCollectionResultGeneration else {
+                return
+            }
+            smartCollectionSummaries[rule] = ProductionSmartCollectionSummary(
+                count: evaluation.count,
+                totalDuration: evaluation.totalDuration
+            )
+            smartCollectionResults = [
+                rule: ProductionSmartCollectionStoreResult(
+                    evaluation: evaluation,
+                    tracks: page.items,
+                    nextOffset: page.nextOffset
+                ),
+            ]
+        } catch {
+            guard generation == smartCollectionResultGeneration else {
+                return
+            }
+            availability = .failed(
+                LibraryStoreFailure(message: error.localizedDescription)
+            )
+        }
+    }
+
+    func loadNextSmartCollectionResult(
+        rule: SmartCollectionRuleGroup
+    ) async {
+        guard
+            !isLoadingNextSmartCollectionResult,
+            let repository,
+            var result = smartCollectionResults[rule],
+            let offset = result.nextOffset
+        else {
+            return
+        }
+        isLoadingNextSmartCollectionResult = true
+        let generation = smartCollectionResultGeneration
+        defer {
+            isLoadingNextSmartCollectionResult = false
+        }
+        do {
+            let page = try await repository
+                .productionSmartCollectionTrackPage(
+                    orderedIDs: result.evaluation.orderedTrackIDs,
+                    offset: offset
+                )
+            guard generation == smartCollectionResultGeneration else {
+                return
+            }
+            let existingIDs = Set(result.tracks.map(\.id))
+            result.tracks.append(
+                contentsOf: page.items.filter {
+                    !existingIDs.contains($0.id)
+                }
+            )
+            result.nextOffset = page.nextOffset
+            smartCollectionResults[rule] = result
+        } catch {
+            availability = .failed(
+                LibraryStoreFailure(message: error.localizedDescription)
+            )
+        }
+    }
+
+    func smartCollectionSummary(
+        for rule: SmartCollectionRuleGroup
+    ) -> ProductionSmartCollectionSummary {
+        smartCollectionSummaries[rule] ?? .empty
+    }
+
+    func smartCollectionTracks(
+        for rule: SmartCollectionRuleGroup
+    ) -> [LibraryTrackProjection] {
+        smartCollectionResults[rule]?.tracks ?? []
+    }
+
+    func completeSmartCollectionTracks(
+        for rule: SmartCollectionRuleGroup
+    ) async -> [LibraryTrackProjection] {
+        guard let repository else {
+            return []
+        }
+        do {
+            let evaluation = try await repository
+                .evaluateProductionSmartCollection(root: rule)
+            return try await completeSmartCollectionTracks(
+                evaluation: evaluation,
+                repository: repository
+            )
+        } catch {
+            availability = .failed(
+                LibraryStoreFailure(message: error.localizedDescription)
+            )
+            return []
+        }
+    }
+
+    private func completeSmartCollectionTracks(
+        evaluation: ProductionSmartCollectionEvaluation,
+        repository: LibraryRepository
+    ) async throws -> [LibraryTrackProjection] {
+        var tracks: [LibraryTrackProjection] = []
+        var offset = 0
+        while offset < evaluation.count {
+            let page = try await repository.productionSmartCollectionTrackPage(
+                orderedIDs: evaluation.orderedTrackIDs,
+                offset: offset
+            )
+            tracks.append(contentsOf: page.items)
+            guard let nextOffset = page.nextOffset else {
+                break
+            }
+            offset = nextOffset
+        }
+        return tracks
+    }
+}

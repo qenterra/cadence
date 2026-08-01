@@ -192,7 +192,7 @@ struct SmartCollectionRuleValueEditor: View {
                 )
             }
         } else {
-            model.librarySession.store.tags.map {
+            model.librarySession.store.smartCollectionRuleData.tags.map {
                 SmartCollectionTagOption(
                     id: $0.id.uuidString,
                     title: $0.displayPath

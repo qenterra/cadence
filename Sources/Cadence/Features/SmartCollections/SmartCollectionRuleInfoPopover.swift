@@ -2,12 +2,12 @@ import SwiftUI
 
 struct SmartCollectionRuleInfoPopover: View {
     let collection: SmartCollectionPreview
-    let tags: [TagPreview]
+    let tagTitlesByID: [String: String]
 
     private var rows: [SmartCollectionRuleSummaryRow] {
         SmartCollectionRuleSummary.rows(
             for: collection.rule,
-            tags: tags
+            tagTitlesByID: tagTitlesByID
         )
     }
 

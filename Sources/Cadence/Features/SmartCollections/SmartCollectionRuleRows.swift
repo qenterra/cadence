@@ -134,7 +134,7 @@ private struct SmartCollectionConditionRow: View {
                 .accessibilityValue(condition.isNegated ? "Enabled" : "Disabled")
 
                 Picker("Field", selection: fieldBinding) {
-                    ForEach(SmartCollectionRuleField.allCases) { field in
+                    ForEach(availableFields) { field in
                         Text(field.title).tag(field)
                     }
                 }
@@ -195,6 +195,13 @@ private struct SmartCollectionConditionRow: View {
                 + "\(condition.isNegated ? "not " : "")"
                 + "\(condition.field.title) \(condition.operator.title)"
         )
+    }
+
+    private var availableFields: [SmartCollectionRuleField] {
+        guard model.librarySession.availability != .preview else {
+            return SmartCollectionRuleField.allCases
+        }
+        return SmartCollectionRuleField.productionCases
     }
 
     private var fieldBinding: Binding<SmartCollectionRuleField> {

@@ -27,6 +27,26 @@ typealias LibraryTrackPageLoader = @Sendable (
     _ cursor: LibraryPageCursor?
 ) async throws -> LibraryPage<LibraryTrackProjection>
 
+struct ProductionSmartCollectionSummary: Sendable {
+    let count: Int
+    let totalDuration: TimeInterval
+
+    static let empty = ProductionSmartCollectionSummary(
+        count: 0,
+        totalDuration: 0
+    )
+
+    var isEmpty: Bool {
+        count < 1
+    }
+}
+
+struct ProductionSmartCollectionStoreResult: Sendable {
+    let evaluation: ProductionSmartCollectionEvaluation
+    var tracks: [LibraryTrackProjection]
+    var nextOffset: Int?
+}
+
 @MainActor
 @Observable
 final class LibraryStore {
@@ -37,7 +57,7 @@ final class LibraryStore {
     var trackRequestGeneration = 0
     var tagCursor: LibraryPageCursor?
     var tagGeneration = 0
-    private var isLoadingNextTags = false
+    var isLoadingNextTags = false
     private var catalogSearchGeneration = 0
     private var playbackQueueProjectionGeneration = 0
     @ObservationIgnored var trackPageLoader: LibraryTrackPageLoader?
@@ -55,9 +75,17 @@ final class LibraryStore {
     var albums: [LibraryAlbumProjection] = []
     var tags: [LibraryTagProjection] = []
     var playlists: [LibraryPlaylistProjection] = []
-    private(set) var smartCollectionIndex =
-        ProductionSmartCollectionIndex.empty
-    private(set) var isLoadingSmartCollectionIndex = false
+    var smartCollectionRuleData =
+        ProductionSmartCollectionRuleData.empty
+    var smartCollectionSummaries:
+        [SmartCollectionRuleGroup: ProductionSmartCollectionSummary] = [:]
+    var smartCollectionResults:
+        [SmartCollectionRuleGroup: ProductionSmartCollectionStoreResult] = [:]
+    var smartCollectionRuleDataGeneration = 0
+    var smartCollectionSummaryGeneration = 0
+    var smartCollectionResultGeneration = 0
+    var isLoadingNextSmartCollectionResult = false
+    var isLoadingSmartCollectionData = false
     var selectedPlaylistID: UUID?
     var selectedPlaylistTracks: [LibraryTrackProjection] = []
     var tagRevision = 0
@@ -305,25 +333,6 @@ final class LibraryStore {
                 message: message
             )
             isLoadingPlaybackQueueTracks = false
-        }
-    }
-
-    func loadSmartCollectionIndex() async {
-        guard let repository else {
-            smartCollectionIndex = .empty
-            return
-        }
-        isLoadingSmartCollectionIndex = true
-        defer {
-            isLoadingSmartCollectionIndex = false
-        }
-        do {
-            smartCollectionIndex =
-                try await repository.productionSmartCollectionIndex()
-        } catch {
-            availability = .failed(
-                LibraryStoreFailure(message: error.localizedDescription)
-            )
         }
     }
 

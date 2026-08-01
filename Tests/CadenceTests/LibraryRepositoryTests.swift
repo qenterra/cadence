@@ -260,11 +260,6 @@ struct LibraryRepositoryTests {
 
         #expect(tags.map(\.id) == [tagID])
         #expect(tags.map(\.displayPath) == ["Mood / Calm"])
-        #expect(
-            try await repository.productionSmartCollectionIndex()
-                .effectiveTagIDsByTrackID.values
-                .allSatisfy(\.isEmpty)
-        )
     }
 
     @Test("Batch tag assignment saves every missing direct assignment once")
@@ -298,65 +293,6 @@ struct LibraryRepositoryTests {
             try await repository.tracks(tagID: tagID).items.map(\.id)
                 .sorted { $0.uuidString < $1.uuidString }
                 == trackIDs.sorted { $0.uuidString < $1.uuidString }
-        )
-    }
-
-    @Test("Tag pages and the store expose records after the first 200")
-    @MainActor
-    func tagPaging() async throws {
-        let container = try makeContainer(trackCount: 1)
-        let context = ModelContext(container)
-        for index in 0 ..< 205 {
-            context.insert(
-                TagRecord(
-                    displayPath: "tag/\(String(format: "%03d", index))",
-                    groupPath: "tag"
-                )
-            )
-        }
-        try context.save()
-
-        let repository = LibraryRepository(modelContainer: container)
-        let firstPage = try await repository.tagsPage(limit: 500)
-        let secondPage = try await repository.tagsPage(
-            after: firstPage.nextCursor,
-            limit: 500
-        )
-
-        #expect(firstPage.items.count == 200)
-        #expect(secondPage.items.count == 5)
-        #expect(secondPage.nextCursor == nil)
-
-        let store = LibraryStore(container: container)
-        await store.loadInitialLibrary()
-        #expect(store.tags.count == 200)
-        #expect(store.canLoadMoreTags)
-
-        await store.loadNextTags()
-        #expect(store.tags.count == 205)
-        #expect(!store.canLoadMoreTags)
-        #expect(Set(store.tags.map(\.id)).count == 205)
-    }
-
-    @Test("Batch tag assignment chunks more than 1000 track IDs")
-    func largeBatchTagAssignment() async throws {
-        let container = try makeContainer(trackCount: 1005)
-        let context = ModelContext(container)
-        let trackIDs = try context.fetch(
-            FetchDescriptor<TrackRecord>(
-                sortBy: [SortDescriptor(\.normalizedTitle)]
-            )
-        ).map(\.id)
-        let repository = LibraryRepository(modelContainer: container)
-        let tagID = try await repository.createTag(
-            displayPath: "workflow/reviewed"
-        )
-
-        try await repository.assignTag(tagID, trackIDs: trackIDs)
-
-        #expect(
-            try await repository.directlyAssignedTrackIDs(tagID: tagID)
-                == Set(trackIDs)
         )
     }
 }

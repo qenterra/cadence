@@ -33,6 +33,10 @@ enum SmartCollectionRuleField: String, CaseIterable, Identifiable, Hashable, Sen
         rawValue.localizedCapitalized
     }
 
+    static var productionCases: [Self] {
+        allCases.filter { $0 != .rating }
+    }
+
     var allowedOperators: [SmartCollectionRuleOperator] {
         switch self {
         case .tag, .favorite:

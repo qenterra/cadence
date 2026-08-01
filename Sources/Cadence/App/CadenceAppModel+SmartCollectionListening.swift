@@ -45,15 +45,11 @@ extension CadenceAppModel {
             let matchCount: Int
             let totalDuration: TimeInterval
             if librarySession.availability != .preview {
-                let matchingTracks = ProductionSmartCollectionEvaluator()
-                    .evaluate(
-                        root: selectedDraft?.rule ?? collection.rule,
-                        index: librarySession.store.smartCollectionIndex
-                    )
-                matchCount = matchingTracks.count
-                totalDuration = matchingTracks.reduce(0) {
-                    $0 + $1.duration
-                }
+                let summary = librarySession.store.smartCollectionSummary(
+                    for: selectedDraft?.rule ?? collection.rule
+                )
+                matchCount = summary.count
+                totalDuration = summary.totalDuration
             } else {
                 let matchingTracks = selectedDraft == nil
                     ? evaluateSmartCollection(rule: collection.rule)
@@ -77,11 +73,9 @@ extension CadenceAppModel {
             let matchCount: Int
             let totalDuration: TimeInterval
             if librarySession.availability != .preview {
-                let tracks = productionSmartCollectionLiveTracks
-                matchCount = tracks.count
-                totalDuration = tracks.reduce(0) {
-                    $0 + $1.duration
-                }
+                matchCount = productionSmartCollectionLiveSummary.count
+                totalDuration = productionSmartCollectionLiveSummary
+                    .totalDuration
             } else {
                 matchCount = smartCollectionLiveTracks.count
                 totalDuration = SmartCollectionListeningProjection

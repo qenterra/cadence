@@ -35,83 +35,7 @@ enum ProductionTagEditError: Error, LocalizedError, Sendable {
     }
 }
 
-private struct ProductionSmartCollectionRecords {
-    let tracks: [TrackRecord]
-    let assignments: [TagAssignmentRecord]
-    let exclusions: [TagExclusionRecord]
-    let tags: [TagRecord]
-}
-
 extension LibraryRepository {
-    func productionSmartCollectionIndex() throws
-        -> ProductionSmartCollectionIndex {
-        let records = try productionSmartCollectionRecords()
-
-        let directByTrackID = Dictionary(
-            grouping: records.assignments.filter { $0.targetKind == .track },
-            by: \.targetID
-        ).mapValues { Set($0.map(\.tagID)) }
-        let inheritedByAlbumID = Dictionary(
-            grouping: records.assignments.filter { $0.targetKind == .album },
-            by: \.targetID
-        ).mapValues { Set($0.map(\.tagID)) }
-        let exclusionsByTrackID = Dictionary(
-            grouping: records.exclusions,
-            by: \.trackID
-        ).mapValues { Set($0.map(\.tagID)) }
-
-        let effectiveTags = Dictionary(
-            uniqueKeysWithValues: records.tracks.map { track in
-                let direct = directByTrackID[track.id] ?? []
-                let inherited = track.album.flatMap {
-                    inheritedByAlbumID[$0.id]
-                } ?? []
-                let excluded = exclusionsByTrackID[track.id] ?? []
-                return (
-                    track.id,
-                    direct.union(inherited.subtracting(excluded))
-                )
-            }
-        )
-        let tags = records.tags.map(LibraryProjectionFactory.tag)
-        return ProductionSmartCollectionIndex(
-            tracks: records.tracks.map(LibraryProjectionFactory.track),
-            effectiveTagIDsByTrackID: effectiveTags,
-            tagsByID: Dictionary(
-                uniqueKeysWithValues: tags.map { ($0.id, $0) }
-            )
-        )
-    }
-
-    private func productionSmartCollectionRecords() throws
-        -> ProductionSmartCollectionRecords {
-        let tracks = try modelContext.fetch(
-            FetchDescriptor<TrackRecord>(
-                sortBy: [
-                    SortDescriptor(\.normalizedTitle),
-                    SortDescriptor(\.sortIdentity),
-                ]
-            )
-        )
-        let assignments = try modelContext.fetch(
-            FetchDescriptor<TagAssignmentRecord>()
-        )
-        let exclusions = try modelContext.fetch(
-            FetchDescriptor<TagExclusionRecord>()
-        )
-        let tags = try modelContext.fetch(
-            FetchDescriptor<TagRecord>(
-                sortBy: [SortDescriptor(\.normalizedPath)]
-            )
-        )
-        return ProductionSmartCollectionRecords(
-            tracks: tracks,
-            assignments: assignments,
-            exclusions: exclusions,
-            tags: tags
-        )
-    }
-
     func tags(
         albumID: UUID
     ) throws -> [LibraryTagProjection] {
@@ -123,18 +47,8 @@ extension LibraryRepository {
         let tagIDs = try modelContext.fetch(
             FetchDescriptor(predicate: predicate)
         ).map(\.tagID)
-        guard !tagIDs.isEmpty else {
-            return []
-        }
-        let tagPredicate = #Predicate<TagRecord> {
-            tagIDs.contains($0.id)
-        }
-        return try modelContext.fetch(
-            FetchDescriptor(
-                predicate: tagPredicate,
-                sortBy: [SortDescriptor(\.normalizedPath)]
-            )
-        ).map(LibraryProjectionFactory.tag)
+        return try tagRecords(ids: tagIDs)
+            .map(LibraryProjectionFactory.tag)
     }
 
     func tagStates(
@@ -154,16 +68,7 @@ extension LibraryRepository {
         guard !effectiveIDs.isEmpty else {
             return []
         }
-        let requestedIDs = Array(effectiveIDs)
-        let tagPredicate = #Predicate<TagRecord> {
-            requestedIDs.contains($0.id)
-        }
-        return try modelContext.fetch(
-            FetchDescriptor(
-                predicate: tagPredicate,
-                sortBy: [SortDescriptor(\.normalizedPath)]
-            )
-        ).map { record in
+        return try tagRecords(ids: Array(effectiveIDs)).map { record in
             ProductionTrackTagState(
                 tag: LibraryProjectionFactory.tag(record),
                 source: assignmentIDs.direct.contains(record.id)
@@ -306,6 +211,25 @@ private extension LibraryRepository {
             )
             .map(\.tagID)
         )
+    }
+
+    func tagRecords(
+        ids: [UUID]
+    ) throws -> [TagRecord] {
+        var records: [TagRecord] = []
+        for idChunk in tagPredicateChunks(ids) {
+            let predicate = #Predicate<TagRecord> {
+                idChunk.contains($0.id)
+            }
+            try records.append(
+                contentsOf: modelContext.fetch(
+                    FetchDescriptor(predicate: predicate)
+                )
+            )
+        }
+        return records.sorted {
+            $0.normalizedPath < $1.normalizedPath
+        }
     }
 
     func trackRecordForTagging(id: UUID) throws -> TrackRecord? {
