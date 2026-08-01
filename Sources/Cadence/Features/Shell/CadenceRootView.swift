@@ -119,6 +119,20 @@ struct CadenceRootView: View {
         } message: {
             Text(model.libraryOperationError ?? "Unknown error")
         }
+        .alert(
+            model.librarySession.store.operationFailure?.title
+                ?? "Library Operation Failed",
+            isPresented: storeOperationFailurePresented
+        ) {
+            Button("Dismiss") {
+                model.librarySession.store.dismissOperationFailure()
+            }
+        } message: {
+            Text(
+                model.librarySession.store.operationFailure?.message
+                    ?? "Unknown error"
+            )
+        }
         .task {
             model.activateSystemMediaSession()
             await model.recoverManagedLibraryIfNeeded()
@@ -297,6 +311,17 @@ private extension CadenceRootView {
             set: {
                 if !$0 {
                     model.dismissLibraryOperationError()
+                }
+            }
+        )
+    }
+
+    private var storeOperationFailurePresented: Binding<Bool> {
+        Binding(
+            get: { model.librarySession.store.operationFailure != nil },
+            set: {
+                if !$0 {
+                    model.librarySession.store.dismissOperationFailure()
                 }
             }
         )

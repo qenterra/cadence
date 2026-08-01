@@ -13,9 +13,8 @@ extension LibraryStore {
             self.albumCursor = page.nextCursor
             availability = .ready
         } catch {
-            availability = .failed(
-                LibraryStoreFailure(message: error.localizedDescription)
-            )
+            availability = .ready
+            recordOperationFailure(.albumPage, error: error)
         }
     }
 
@@ -34,11 +33,8 @@ extension LibraryStore {
             albumCursor = page.nextCursor
             availability = .ready
         } catch {
-            albums = []
-            albumCursor = nil
-            availability = .failed(
-                LibraryStoreFailure(message: error.localizedDescription)
-            )
+            availability = .ready
+            recordOperationFailure(.albumPage, error: error)
         }
     }
 }

@@ -59,9 +59,8 @@ extension LibraryStore {
                 return
             }
             isLoadingNextTracks = false
-            availability = .failed(
-                LibraryStoreFailure(message: error.localizedDescription)
-            )
+            availability = .ready
+            recordOperationFailure(.trackPage, error: error)
         }
     }
 
@@ -106,11 +105,8 @@ extension LibraryStore {
             guard generation == trackRequestGeneration else {
                 return
             }
-            tracks = []
-            trackCursor = nil
-            availability = .failed(
-                LibraryStoreFailure(message: error.localizedDescription)
-            )
+            availability = .ready
+            recordOperationFailure(.trackPage, error: error)
         }
     }
 
@@ -132,11 +128,8 @@ extension LibraryStore {
             searchQuery = ""
             availability = .ready
         } catch {
-            tracks = []
-            trackCursor = nil
-            availability = .failed(
-                LibraryStoreFailure(message: error.localizedDescription)
-            )
+            availability = .ready
+            recordOperationFailure(.trackPage, error: error)
         }
     }
 }

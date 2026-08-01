@@ -23,9 +23,7 @@ extension LibraryStore {
             guard generation == smartCollectionRuleDataGeneration else {
                 return
             }
-            availability = .failed(
-                LibraryStoreFailure(message: error.localizedDescription)
-            )
+            recordOperationFailure(.smartCollections, error: error)
         }
     }
 
@@ -53,9 +51,7 @@ extension LibraryStore {
                     totalDuration: evaluation.totalDuration
                 )
             } catch {
-                availability = .failed(
-                    LibraryStoreFailure(message: error.localizedDescription)
-                )
+                recordOperationFailure(.smartCollections, error: error)
                 return
             }
         }
@@ -96,9 +92,7 @@ extension LibraryStore {
             guard generation == smartCollectionResultGeneration else {
                 return
             }
-            availability = .failed(
-                LibraryStoreFailure(message: error.localizedDescription)
-            )
+            recordOperationFailure(.smartCollections, error: error)
         }
     }
 
@@ -136,9 +130,7 @@ extension LibraryStore {
             result.nextOffset = page.nextOffset
             smartCollectionResults[rule] = result
         } catch {
-            availability = .failed(
-                LibraryStoreFailure(message: error.localizedDescription)
-            )
+            recordOperationFailure(.smartCollections, error: error)
         }
     }
 
@@ -168,9 +160,7 @@ extension LibraryStore {
                 repository: repository
             )
         } catch {
-            availability = .failed(
-                LibraryStoreFailure(message: error.localizedDescription)
-            )
+            recordOperationFailure(.smartCollections, error: error)
             return []
         }
     }

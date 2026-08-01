@@ -94,6 +94,7 @@ final class LibraryStore {
     private(set) var catalogSearchQuery = ""
     private(set) var catalogSearchResults = CatalogSearchResults.empty
     private(set) var isCatalogSearching = false
+    var operationFailure: LibraryOperationFailure?
     var searchQuery = ""
     var trackQuery = LibraryTrackQuery.allTracks
     var isLoadingNextTracks = false
@@ -239,10 +240,10 @@ final class LibraryStore {
             guard generation == catalogSearchGeneration else {
                 return
             }
-            catalogSearchResults = .empty
             isCatalogSearching = false
-            availability = .failed(
-                LibraryStoreFailure(message: error.localizedDescription)
+            recordOperationFailure(
+                .catalogSearch,
+                error: error
             )
         }
     }

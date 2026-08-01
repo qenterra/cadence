@@ -41,9 +41,7 @@ extension LibraryStore {
             guard generation == browserAlbumGeneration else {
                 return
             }
-            availability = .failed(
-                LibraryStoreFailure(message: error.localizedDescription)
-            )
+            recordOperationFailure(.browserAlbums, error: error)
         }
     }
 
@@ -83,9 +81,7 @@ extension LibraryStore {
                 return
             }
             isLoadingNextBrowserAlbums = false
-            availability = .failed(
-                LibraryStoreFailure(message: error.localizedDescription)
-            )
+            recordOperationFailure(.browserAlbums, error: error)
         }
     }
 
@@ -125,9 +121,7 @@ extension LibraryStore {
             guard generation == browserTrackGeneration else {
                 return
             }
-            availability = .failed(
-                LibraryStoreFailure(message: error.localizedDescription)
-            )
+            recordOperationFailure(.browserTracks, error: error)
         }
     }
 
@@ -178,9 +172,7 @@ extension LibraryStore {
                 return
             }
             isLoadingNextBrowserTracks = false
-            availability = .failed(
-                LibraryStoreFailure(message: error.localizedDescription)
-            )
+            recordOperationFailure(.browserTracks, error: error)
         }
     }
 }

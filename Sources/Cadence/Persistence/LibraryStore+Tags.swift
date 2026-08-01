@@ -32,9 +32,7 @@ extension LibraryStore {
             guard generation == tagGeneration else {
                 return
             }
-            availability = .failed(
-                LibraryStoreFailure(message: error.localizedDescription)
-            )
+            recordOperationFailure(.tagPage, error: error)
         }
     }
 
@@ -161,9 +159,7 @@ extension LibraryStore {
             tagCursor = page.nextCursor
             tagGeneration &+= 1
         } catch {
-            availability = .failed(
-                LibraryStoreFailure(message: error.localizedDescription)
-            )
+            recordOperationFailure(.tagPage, error: error)
         }
     }
 }

@@ -13,9 +13,8 @@ extension LibraryStore {
             self.artistCursor = page.nextCursor
             availability = .ready
         } catch {
-            availability = .failed(
-                LibraryStoreFailure(message: error.localizedDescription)
-            )
+            availability = .ready
+            recordOperationFailure(.artistPage, error: error)
         }
     }
 
@@ -34,11 +33,8 @@ extension LibraryStore {
             artistCursor = page.nextCursor
             availability = .ready
         } catch {
-            artists = []
-            artistCursor = nil
-            availability = .failed(
-                LibraryStoreFailure(message: error.localizedDescription)
-            )
+            availability = .ready
+            recordOperationFailure(.artistPage, error: error)
         }
     }
 }
