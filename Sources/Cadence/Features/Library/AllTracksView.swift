@@ -3,6 +3,7 @@ import SwiftUI
 struct AllTracksView: View {
     @Bindable var model: CadenceAppModel
     @Bindable var store: LibraryStore
+    @State private var selection: Set<UUID> = []
 
     var body: some View {
         VStack(spacing: 0) {
@@ -26,7 +27,8 @@ struct AllTracksView: View {
                         },
                         repositorySortAction: { sort in
                             await store.sortTracks(sort)
-                        }
+                        },
+                        selection: $selection
                     )
                     .padding(.horizontal, 28)
                     .padding(.bottom, 24)

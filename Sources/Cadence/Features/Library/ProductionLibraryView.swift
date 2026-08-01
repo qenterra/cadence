@@ -104,7 +104,13 @@ struct ProductionLibraryView: View {
                             },
                             repositorySortAction: { sort in
                                 await store.sortBrowserTracks(sort)
-                            }
+                            },
+                            selection: Binding(
+                                get: {
+                                    selectedTrackID.map { Set([$0]) } ?? []
+                                },
+                                set: { selectedTrackID = $0.first }
+                            )
                         )
                         .padding(.horizontal, 14)
                         .padding(.bottom, 16)

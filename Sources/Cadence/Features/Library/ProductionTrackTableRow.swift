@@ -28,6 +28,9 @@ struct ProductionTrackTableRow: View {
     let playlistID: UUID?
     let queueSource: PlaybackQueueSource?
     let reorderAction: (([UUID]) -> Void)?
+    let isSelected: Bool
+    let isFocused: Bool
+    let select: () -> Void
 
     @State private var isHovered = false
 
@@ -61,20 +64,20 @@ struct ProductionTrackTableRow: View {
         .padding(.horizontal, 12)
         .frame(height: 58)
         .background {
-            if isHovered {
-                RoundedRectangle(
-                    cornerRadius: 9,
-                    style: .continuous
-                )
-                .fill(CadenceTheme.hoverFill)
-                .padding(.vertical, 3)
-            }
+            BrowserRowSurface(
+                isSelected: isSelected,
+                isHovered: isHovered,
+                isFocused: isFocused
+            )
+            .padding(.vertical, 3)
         }
         .contentShape(Rectangle())
         .onHover { isHovered = $0 }
+        .onTapGesture(count: 1, perform: select)
         .onTapGesture(count: 2) {
             play()
         }
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
         .contextMenu {
             actions
         }

@@ -83,7 +83,13 @@ struct LibraryColumnWidths {
     let tracks: CGFloat
 
     init(totalWidth: CGFloat) {
-        let availableWidth = max(totalWidth - 2, 950)
+        let availableWidth = max(totalWidth - 2, 0)
+        if availableWidth < 950 {
+            artists = (availableWidth * 0.27).clamped(to: 190 ... 260)
+            albums = (availableWidth * 0.31).clamped(to: 230 ... 300)
+            tracks = max(availableWidth - artists - albums, 0)
+            return
+        }
         let proposedArtists = (availableWidth * 0.29).clamped(to: 260 ... 410)
         let proposedAlbums = (availableWidth * 0.32).clamped(to: 300 ... 460)
         let proposedTracks = availableWidth - proposedArtists - proposedAlbums

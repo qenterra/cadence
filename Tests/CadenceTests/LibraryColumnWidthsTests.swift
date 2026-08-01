@@ -25,4 +25,16 @@ struct LibraryColumnWidthsTests {
         #expect(widths.albums == 460)
         #expect(widths.tracks == 854)
     }
+
+    @Test("Compact widths use the actual workspace instead of inventing space")
+    func compactWidth() {
+        let widths = LibraryColumnWidths(totalWidth: 900)
+
+        #expect(widths.artists >= 190)
+        #expect(widths.albums >= 230)
+        #expect(widths.tracks >= 300)
+        #expect(
+            abs(widths.artists + widths.albums + widths.tracks - 898) < 0.001
+        )
+    }
 }

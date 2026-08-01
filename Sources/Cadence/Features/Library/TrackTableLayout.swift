@@ -161,11 +161,13 @@ struct TrackTableHeaderCell: View {
                 .frame(width: 9)
                 .contentShape(Rectangle())
                 .overlay {
-                    if isResizerHovered {
-                        Rectangle()
-                            .fill(CadenceTheme.strongSeparator)
-                            .frame(width: 1)
-                    }
+                    Rectangle()
+                        .fill(
+                            isResizerHovered || dragStartWidth != nil
+                                ? CadenceTheme.strongSeparator
+                                : CadenceTheme.separator
+                        )
+                        .frame(width: 1)
                 }
                 .gesture(
                     DragGesture(
@@ -209,5 +211,9 @@ struct TrackTableHeaderCell: View {
                 ? direction == .ascending ? "Ascending" : "Descending"
                 : "Not sorted"
         )
+        .accessibilityAdjustableAction { direction in
+            let delta = direction == .increment ? 16.0 : -16.0
+            width = min(max(width + delta, minimumWidth), maximumWidth)
+        }
     }
 }

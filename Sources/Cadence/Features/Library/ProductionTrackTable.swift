@@ -10,6 +10,10 @@ struct ProductionTrackTable: View {
     var reorderAction: (([UUID]) -> Void)?
     var onReachEnd: (() async -> Void)?
     var repositorySortAction: ((LibraryTrackSort) async -> Void)?
+    var selection: Binding<Set<UUID>>?
+
+    @State private var localSelection: Set<UUID> = []
+    @FocusState private var tableHasFocus: Bool
 
     @AppStorage("trackTable.visibleColumns")
     private var visibleColumnsRaw = TrackTableColumn.defaultRawValue
@@ -46,7 +50,16 @@ struct ProductionTrackTable: View {
                         widths: widths,
                         playlistID: playlistID,
                         queueSource: queueSource,
-                        reorderAction: reorderAction
+                        reorderAction: reorderAction,
+                        isSelected: selectedTrackIDs.wrappedValue.contains(
+                            track.id
+                        ),
+                        isFocused: tableHasFocus
+                            && selectedTrackIDs.wrappedValue.contains(track.id),
+                        select: {
+                            selectedTrackIDs.wrappedValue = [track.id]
+                            tableHasFocus = true
+                        }
                     )
                     .task {
                         guard track.id == displayedTracks.last?.id else {
@@ -63,8 +76,27 @@ struct ProductionTrackTable: View {
         .task(id: repositorySort) {
             await repositorySortAction?(repositorySort)
         }
+        .focusable()
+        .focusEffectDisabled()
+        .focused($tableHasFocus)
+        .onKeyPress(.return, phases: .down) { _ in
+            playSelectedTrack() ? .handled : .ignored
+        }
+        .onKeyPress(.upArrow, phases: .down) { _ in
+            moveSelection(by: -1) ? .handled : .ignored
+        }
+        .onKeyPress(.downArrow, phases: .down) { _ in
+            moveSelection(by: 1) ? .handled : .ignored
+        }
+        .onChange(of: displayedTracks.map(\.id), initial: true) {
+            selectedTrackIDs.wrappedValue.formIntersection(
+                displayedTracks.map(\.id)
+            )
+        }
     }
+}
 
+private extension ProductionTrackTable {
     private var header: some View {
         HStack(spacing: 14) {
             headerCell(
@@ -132,6 +164,39 @@ struct ProductionTrackTable: View {
             return tracks
         }
         return sortDescriptor.sorted(tracks)
+    }
+
+    private var selectedTrackIDs: Binding<Set<UUID>> {
+        selection ?? $localSelection
+    }
+
+    private func playSelectedTrack() -> Bool {
+        guard let track = displayedTracks.first(where: {
+            selectedTrackIDs.wrappedValue.contains($0.id)
+        }) else {
+            return false
+        }
+        model.playProductionTrack(
+            track,
+            within: displayedTracks,
+            source: queueSource ?? .adHoc
+        )
+        return true
+    }
+
+    private func moveSelection(by offset: Int) -> Bool {
+        guard !displayedTracks.isEmpty else {
+            return false
+        }
+        let selectedIndex = displayedTracks.firstIndex {
+            selectedTrackIDs.wrappedValue.contains($0.id)
+        } ?? (offset > 0 ? -1 : displayedTracks.count)
+        let targetIndex = min(
+            max(selectedIndex + offset, 0),
+            displayedTracks.count - 1
+        )
+        selectedTrackIDs.wrappedValue = [displayedTracks[targetIndex].id]
+        return true
     }
 
     private var repositorySort: LibraryTrackSort {
