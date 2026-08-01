@@ -43,6 +43,28 @@ struct LibraryStoreTests {
         #expect(store.searchQuery == "echo")
     }
 
+    @Test("Queue projections do not depend on the loaded catalog page")
+    func independentQueueProjection() async throws {
+        let container = try makeContainer(trackCount: 401)
+        let context = ModelContext(container)
+        let requestedIDs = try context.fetch(
+            FetchDescriptor<TrackRecord>(
+                sortBy: [SortDescriptor(\.normalizedTitle, order: .reverse)]
+            )
+        ).map(\.id)
+        let store = LibraryStore(container: container)
+
+        #expect(store.tracks.isEmpty)
+        await store.loadPlaybackQueueTracks(ids: requestedIDs)
+
+        #expect(store.tracks.isEmpty)
+        #expect(store.playbackQueueTracks.map(\.id) == requestedIDs)
+        #expect(store.playbackQueueTracks.count == 401)
+        #expect(store.playbackQueueTracks.allSatisfy { $0.track != nil })
+        #expect(!store.isLoadingPlaybackQueueTracks)
+        #expect(store.playbackQueueProjectionError == nil)
+    }
+
     @Test("Initial library loading publishes bounded artist, album, and track pages")
     func initialLibraryLoading() async throws {
         let container = try makeContainer(trackCount: 205)

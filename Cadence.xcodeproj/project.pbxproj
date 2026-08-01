@@ -180,6 +180,7 @@
 		7159D190F4267C089AA6BF24 /* SmartCollectionDraft.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8B065AD78184CD8994D3EAC /* SmartCollectionDraft.swift */; };
 		7180F451249D5A799791CB2F /* SmartCollectionListColumn.swift in Sources */ = {isa = PBXBuildFile; fileRef = D88DC4A992D1F00CF8E8661E /* SmartCollectionListColumn.swift */; };
 		71FDC05D3C699DE5FBCE4507 /* LibraryStore+Albums.swift in Sources */ = {isa = PBXBuildFile; fileRef = 905E4602E03EF68E4C8FBCF1 /* LibraryStore+Albums.swift */; };
+		7216D17AC22B777792C538DA /* ProductionPlaybackQueueRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56F1C8C5080F9E90F0020C03 /* ProductionPlaybackQueueRow.swift */; };
 		7301C5440E1951A4978B4163 /* CadenceSeparator.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB739AB0D973E1C97B848F6A /* CadenceSeparator.swift */; };
 		73F60DF31F955C89C907E5B2 /* BrowserRowSurface.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85CB99CDF9830D943E2FA53D /* BrowserRowSurface.swift */; };
 		740188C02F94B0AA1B2FB046 /* CadenceRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B76CE96E3D8EEB8EA4410FFF /* CadenceRootView.swift */; };
@@ -506,6 +507,7 @@
 		55F9C83F7BA8469C565BE5A2 /* ManagedLibraryImportDestination.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManagedLibraryImportDestination.swift; sourceTree = "<group>"; };
 		5615C5DAE97EF6578D4E498A /* ImportPreviewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportPreviewTests.swift; sourceTree = "<group>"; };
 		56DD7B11016C579EFD79BF0D /* ProductionArtworkView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductionArtworkView.swift; sourceTree = "<group>"; };
+		56F1C8C5080F9E90F0020C03 /* ProductionPlaybackQueueRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductionPlaybackQueueRow.swift; sourceTree = "<group>"; };
 		578B6D85A6B68F8E3AA32EA1 /* CadenceAppModel+LyricsPersistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CadenceAppModel+LyricsPersistence.swift"; sourceTree = "<group>"; };
 		579BC077DE607E056E90DCAC /* AudioRouteProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRouteProvider.swift; sourceTree = "<group>"; };
 		57C3905C97DE716F95B01C0F /* ManagedImportManifest+Validation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ManagedImportManifest+Validation.swift"; sourceTree = "<group>"; };
@@ -791,6 +793,7 @@
 				F2B6C4214013CB1C48E60B14 /* ProductionLyricsPanel.swift */,
 				604C39B5BF15D15C9510911C /* ProductionNowPlayingView.swift */,
 				734B10E1689744454CF913A9 /* ProductionPlaybackQueuePanel.swift */,
+				56F1C8C5080F9E90F0020C03 /* ProductionPlaybackQueueRow.swift */,
 				CA96C7F50680B6DCEBE44B8D /* Lyrics */,
 				C96849A4AF031509B7969E7F /* Queue */,
 			);
@@ -1717,6 +1720,7 @@
 				AEC8996CFAA09DF6B8F91C55 /* ProductionLyricsPanel.swift in Sources */,
 				9A3310D5DE3A62C6C759D834 /* ProductionNowPlayingView.swift in Sources */,
 				8FBF064B7F43D2F6E4454CA2 /* ProductionPlaybackQueuePanel.swift in Sources */,
+				7216D17AC22B777792C538DA /* ProductionPlaybackQueueRow.swift in Sources */,
 				8EE1CD0EB9DB4FCACE4D3799 /* ProductionSearchResultsView.swift in Sources */,
 				70F8DBD8BAD8199BA9C013F9 /* ProductionSettingsView.swift in Sources */,
 				373AF8FD9F8DCDC95DC0D96E /* ProductionSmartCollectionEvaluator.swift in Sources */,

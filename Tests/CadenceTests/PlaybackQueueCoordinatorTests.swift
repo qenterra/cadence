@@ -63,4 +63,33 @@ struct PlaybackQueueCoordinatorTests {
         let didPlayMissing = await coordinator.playQueueItem(id: UUID())
         #expect(!didPlayMissing)
     }
+
+    @Test("Restoring an edited queue preserves transport and position")
+    func restoreEditedQueue() async {
+        let tracks = (0 ..< 4).map {
+            playbackTestTrack(id: UUID(), title: "Track \($0)")
+        }
+        let coordinator = PlaybackCoordinator(
+            resolver: PlaybackTestResolver(tracks: tracks),
+            backends: [PlaybackTestBackend(kind: .pcm)]
+        )
+        await coordinator.startQueue(
+            source: .adHoc,
+            trackIDs: tracks.map(\.track.id),
+            startingAt: tracks[1].track.id
+        )
+        coordinator.receive(.time(37), from: .pcm)
+        let original = coordinator.state.queue
+        _ = coordinator.removeUpNext([tracks[2].track.id])
+
+        let didRestore = original.map(
+            coordinator.restoreQueueSnapshot
+        ) ?? false
+
+        #expect(didRestore)
+        #expect(coordinator.state.queue == original)
+        #expect(coordinator.state.currentTrack?.id == tracks[1].track.id)
+        #expect(coordinator.state.currentTime == 37)
+        #expect(coordinator.isPlaying)
+    }
 }
