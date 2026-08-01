@@ -104,7 +104,7 @@ struct PlaybackCoordinatorTests {
         #expect(pcm.loadRequests.last?.startTime == 0)
     }
 
-    @Test("Unavailable tracks are skipped once without an infinite loop")
+    @Test("Unavailable tracks wait for an explicit Retry or Skip")
     func unavailable() async {
         let tracks = [
             playbackTestTrack(id: UUID(), title: "Missing"),
@@ -123,9 +123,24 @@ struct PlaybackCoordinatorTests {
             trackIDs: tracks.map(\.track.id)
         )
 
+        #expect(coordinator.state.queue?.currentTrackID == tracks[0].track.id)
+        #expect(coordinator.state.failure != nil)
+        #expect(coordinator.state.transport == .failed)
+        #expect(native.loadRequests.isEmpty)
+
+        resolver.unavailableIDs = []
+        #expect(await coordinator.retryFailedCurrent())
+        #expect(coordinator.state.currentTrack?.id == tracks[0].track.id)
+        #expect(coordinator.state.failure == nil)
+
+        coordinator.failCurrent(
+            with: PlaybackFailure(
+                trackID: tracks[0].track.id,
+                message: "Failed again"
+            )
+        )
+        await coordinator.skipFailedTrack()
         #expect(coordinator.state.currentTrack?.id == tracks[1].track.id)
-        #expect(native.loadRequests.count == 1)
-        #expect(resolver.requests.count == 2)
     }
 
     @Test("System media commands forward exactly once")

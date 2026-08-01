@@ -127,6 +127,33 @@ extension CadenceAppModel {
         playbackCoordinator?.activateSystemMediaSession()
     }
 
+    var playbackOutputRoute: AudioRouteSnapshot {
+        playbackCoordinator?.state.audioPath?.outputRoute
+            ?? playbackCoordinator?.outputRoute
+            ?? .unknown
+    }
+
+    var playbackPathStatus: String {
+        guard let path = playbackCoordinator?.state.audioPath else {
+            return "No active playback path"
+        }
+        return path.backend == .pcm
+            ? "Cadence PCM renderer"
+            : "System native renderer"
+    }
+
+    func retryPlaybackFailure() {
+        Task {
+            _ = await playbackCoordinator?.retryFailedCurrent()
+        }
+    }
+
+    func skipPlaybackFailure() {
+        Task {
+            await playbackCoordinator?.skipFailedTrack()
+        }
+    }
+
     func shutdownPlayback() {
         playbackCoordinator?.shutdown()
     }

@@ -54,7 +54,6 @@ extension PlaybackCoordinator {
                 return false
             }
             failCurrent(with: error)
-            await skipFailedCurrent()
             return false
         }
     }

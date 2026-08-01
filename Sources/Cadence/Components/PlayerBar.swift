@@ -83,8 +83,7 @@ private extension PlayerBar {
                 "Show Now Playing for \(track.title) by \(track.artist)"
             )
         } else {
-            Label("Nothing Playing", systemImage: "music.note")
-                .foregroundStyle(.secondary)
+            emptyPlaybackGuidance
         }
     }
 
@@ -94,12 +93,17 @@ private extension PlayerBar {
                 controlButton(
                     symbol: "shuffle",
                     label: "Shuffle",
-                    isActive: model.isShuffleEnabled
+                    isActive: model.isShuffleEnabled,
+                    isEnabled: hasPlaybackItem
                 ) {
                     model.isShuffleEnabled.toggle()
                 }
 
-                controlButton(symbol: "backward.fill", label: "Previous") {
+                controlButton(
+                    symbol: "backward.fill",
+                    label: "Previous",
+                    isEnabled: hasPlaybackItem
+                ) {
                     model.selectPreviousTrack()
                 }
 
@@ -114,15 +118,21 @@ private extension PlayerBar {
                 }
                 .buttonStyle(CadenceRowButtonStyle())
                 .help(model.isPlaying ? "Pause" : "Play")
+                .disabled(!hasPlaybackItem)
 
-                controlButton(symbol: "forward.fill", label: "Next") {
+                controlButton(
+                    symbol: "forward.fill",
+                    label: "Next",
+                    isEnabled: hasPlaybackItem
+                ) {
                     model.selectNextTrack()
                 }
 
                 controlButton(
                     symbol: model.repeatMode.symbolName,
                     label: repeatLabel,
-                    isActive: model.repeatMode != .off
+                    isActive: model.repeatMode != .off,
+                    isEnabled: hasPlaybackItem
                 ) {
                     model.cycleRepeatMode()
                 }
@@ -152,6 +162,7 @@ private extension PlayerBar {
                 }
                 .tint(.primary)
                 .accessibilityLabel("Playback progress")
+                .disabled(!hasPlaybackItem)
                 Text(durationText)
             }
             .frame(minWidth: 220, idealWidth: 300, maxWidth: 360)
@@ -163,14 +174,7 @@ private extension PlayerBar {
 
     private var outputControls: some View {
         HStack(spacing: 12) {
-            if let failure = model.playbackCoordinator?.state.failure {
-                Image(systemName: "exclamationmark.triangle")
-                    .foregroundStyle(.secondary)
-                    .help(failure.message)
-                    .accessibilityLabel(
-                        "Playback error: \(failure.message)"
-                    )
-            }
+            playbackFailureMenu
 
             Image(systemName: volumeSymbol)
                 .foregroundStyle(.secondary)
@@ -180,12 +184,13 @@ private extension PlayerBar {
                 .frame(width: 86)
                 .accessibilityLabel("Volume")
 
-            controlButton(symbol: "airplayaudio", label: "Audio Output") {}
+            audioOutputMenu
             qualityProfileMenu
             controlButton(
                 symbol: "list.bullet",
                 label: "Queue",
-                isActive: isQueuePresented
+                isActive: isQueuePresented,
+                isEnabled: hasPlaybackItem
             ) {
                 model.presentPlaybackQueue()
             }
@@ -200,6 +205,10 @@ private extension PlayerBar {
             model.playbackDuration * $0
         } ?? model.playbackCurrentTime
         return TrackPreview.timeText(time)
+    }
+
+    private var hasPlaybackItem: Bool {
+        model.hasCurrentPlaybackItem
     }
 
     private var durationText: String {
@@ -257,6 +266,7 @@ private extension PlayerBar {
         symbol: String,
         label: String,
         isActive: Bool = false,
+        isEnabled: Bool = true,
         action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
@@ -277,6 +287,7 @@ private extension PlayerBar {
         .buttonStyle(CadenceRowButtonStyle())
         .help(label)
         .accessibilityLabel(label)
+        .disabled(!isEnabled)
     }
 
     private func playbackLabels(

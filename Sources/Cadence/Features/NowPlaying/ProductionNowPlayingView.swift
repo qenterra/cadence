@@ -261,11 +261,28 @@ private extension ProductionNowPlayingView {
     @ViewBuilder
     private var playbackFailure: some View {
         if let failure = model.playbackCoordinator?.state.failure {
-            Label(failure.message, systemImage: "exclamationmark.triangle")
+            VStack(alignment: .leading, spacing: 8) {
+                Label(
+                    failure.message,
+                    systemImage: "exclamationmark.triangle"
+                )
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
-                .accessibilityLabel("Playback error: \(failure.message)")
+
+                HStack(spacing: 8) {
+                    Button("Retry") {
+                        model.retryPlaybackFailure()
+                    }
+                    Button("Skip") {
+                        model.skipPlaybackFailure()
+                    }
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+            }
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel("Playback error: \(failure.message)")
         }
     }
 
@@ -311,6 +328,12 @@ private extension ProductionNowPlayingView {
     private var panel: some View {
         VStack(spacing: 0) {
             HStack {
+                Button("Back", systemImage: "chevron.backward") {
+                    model.dismissNowPlaying()
+                }
+                .labelStyle(.titleAndIcon)
+                .keyboardShortcut("[", modifiers: .command)
+
                 Text(model.selectedNowPlayingPanel.title)
                     .font(.title2.weight(.semibold))
                 Spacer()

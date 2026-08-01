@@ -19,9 +19,6 @@ extension PlaybackCoordinator {
             publishState()
         case let .failed(failure):
             failCurrent(with: failure)
-            Task {
-                await skipFailedCurrent()
-            }
         case let .finished(trackID, successorStarted):
             guard state.currentTrack?.id == trackID else {
                 return
@@ -139,5 +136,35 @@ extension PlaybackCoordinator {
             return
         }
         await move(by: 1, reason: .completion)
+    }
+
+    @discardableResult
+    func retryFailedCurrent() async -> Bool {
+        guard
+            state.failure != nil,
+            let currentID = state.queue?.currentTrackID
+        else {
+            return false
+        }
+        if routeFailureIsActive {
+            retryAudioRouteAndPlay()
+            return true
+        }
+        let startTime = state.currentTrack?.id == currentID
+            ? state.currentTime
+            : 0
+        failedTrackIDs.remove(currentID)
+        resolvedTracks.removeValue(forKey: currentID)
+        return await loadCurrent(
+            startTime: startTime,
+            autoplay: true
+        )
+    }
+
+    func skipFailedTrack() async {
+        guard state.failure != nil else {
+            return
+        }
+        await skipFailedCurrent()
     }
 }
