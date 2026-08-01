@@ -7,11 +7,14 @@ struct TagTrackPickerSheet: View {
 
     @Environment(\.dismiss) private var dismiss
     @State private var tracks: [LibraryTrackProjection] = []
+    @State private var nextCursor: LibraryPageCursor?
     @State private var directlyAssignedIDs: Set<UUID> = []
     @State private var selectedIDs: Set<UUID> = []
     @State private var searchQuery = ""
     @State private var isLoading = true
     @State private var isSaving = false
+    @State private var isLoadingNext = false
+    @State private var loadGeneration = 0
     @State private var errorMessage: String?
 
     var body: some View {
@@ -37,8 +40,8 @@ struct TagTrackPickerSheet: View {
             placement: .toolbar,
             prompt: "Search Tracks"
         )
-        .task {
-            await load()
+        .task(id: SearchNormalizer.normalize(searchQuery)) {
+            await loadFirstPage()
         }
         .alert(
             "Couldn’t Add Tracks",
@@ -96,6 +99,17 @@ private extension TagTrackPickerSheet {
                     ForEach(availableTracks) { track in
                         trackLabel(track, isAlreadyAssigned: false)
                             .tag(track.id)
+                            .task {
+                                guard track.id == availableTracks.last?.id else {
+                                    return
+                                }
+                                await loadNextPage()
+                            }
+                    }
+
+                    if isLoadingNext {
+                        ProgressView()
+                            .frame(maxWidth: .infinity)
                     }
                 }
             }
@@ -169,15 +183,7 @@ private extension TagTrackPickerSheet {
     }
 
     var visibleTracks: [LibraryTrackProjection] {
-        guard !SearchNormalizer.normalize(searchQuery).isEmpty else {
-            return tracks
-        }
-        let query = SearchNormalizer.normalize(searchQuery)
-        return tracks.filter {
-            SearchNormalizer.normalize(
-                "\($0.title) \($0.artist) \($0.album)"
-            ).contains(query)
-        }
+        tracks
     }
 
     var alreadyAssignedTracks: [LibraryTrackProjection] {
@@ -204,19 +210,73 @@ private extension TagTrackPickerSheet {
         )
     }
 
-    func load() async {
+    func loadFirstPage() async {
+        loadGeneration &+= 1
+        let generation = loadGeneration
         isLoading = true
         defer {
-            isLoading = false
+            if generation == loadGeneration {
+                isLoading = false
+            }
         }
         do {
-            async let loadedTracks = store.tracksForTagPicker()
+            async let loadedPage = store.tracksForTagPicker(
+                search: searchQuery
+            )
             async let loadedAssigned = store.directlyAssignedTrackIDs(
                 tagID: tag.id
             )
-            tracks = try await loadedTracks
-            directlyAssignedIDs = try await loadedAssigned
+            let (page, assignedIDs) = try await (
+                loadedPage,
+                loadedAssigned
+            )
+            guard generation == loadGeneration else {
+                return
+            }
+            tracks = page.items
+            nextCursor = page.nextCursor
+            directlyAssignedIDs = assignedIDs
         } catch {
+            guard generation == loadGeneration else {
+                return
+            }
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func loadNextPage() async {
+        guard
+            !isLoadingNext,
+            let nextCursor
+        else {
+            return
+        }
+        isLoadingNext = true
+        let generation = loadGeneration
+        defer {
+            if generation == loadGeneration {
+                isLoadingNext = false
+            }
+        }
+        do {
+            let page = try await store.tracksForTagPicker(
+                after: nextCursor,
+                search: searchQuery
+            )
+            guard generation == loadGeneration else {
+                return
+            }
+            let existingIDs = Set(tracks.map(\.id))
+            tracks.append(
+                contentsOf: page.items.filter {
+                    !existingIDs.contains($0.id)
+                }
+            )
+            self.nextCursor = page.nextCursor
+        } catch {
+            guard generation == loadGeneration else {
+                return
+            }
             errorMessage = error.localizedDescription
         }
     }

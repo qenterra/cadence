@@ -1,11 +1,17 @@
 import Foundation
 
 extension LibraryStore {
-    func tracksForTagPicker() async throws -> [LibraryTrackProjection] {
+    func tracksForTagPicker(
+        after cursor: LibraryPageCursor? = nil,
+        search: String? = nil
+    ) async throws -> LibraryPage<LibraryTrackProjection> {
         guard let repository else {
-            return []
+            return LibraryPage(items: [], nextCursor: nil)
         }
-        return try await repository.tracksForTagPicker()
+        return try await repository.tracksForTagPicker(
+            after: cursor,
+            search: search
+        )
     }
 
     @discardableResult
@@ -113,7 +119,10 @@ extension LibraryStore {
             return
         }
         do {
-            tags = try await repository.tagsPage().items
+            let page = try await repository.tagsPage()
+            tags = page.items
+            tagCursor = page.nextCursor
+            tagGeneration &+= 1
         } catch {
             availability = .failed(
                 LibraryStoreFailure(message: error.localizedDescription)
