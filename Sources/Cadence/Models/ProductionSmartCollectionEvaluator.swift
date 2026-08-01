@@ -12,81 +12,171 @@ struct ProductionSmartCollectionIndex: Sendable {
     )
 }
 
+struct ProductionSmartCollectionCandidate: Sendable {
+    let id: UUID
+    let artist: String
+    let album: String
+    let duration: TimeInterval
+    let year: Int?
+    let codec: String
+    let isFavorite: Bool
+    let effectiveTagIDs: Set<UUID>
+}
+
+struct ProductionSmartCollectionEvaluation: Sendable {
+    let orderedTrackIDs: [UUID]
+    let totalDuration: TimeInterval
+
+    var count: Int {
+        orderedTrackIDs.count
+    }
+
+    static let empty = ProductionSmartCollectionEvaluation(
+        orderedTrackIDs: [],
+        totalDuration: 0
+    )
+}
+
+struct ProductionSmartCollectionResultPage: Sendable {
+    let items: [LibraryTrackProjection]
+    let nextOffset: Int?
+}
+
+struct ProductionSmartCollectionRuleData: Sendable {
+    let options: SmartCollectionRuleOptions
+    let tags: [LibraryTagProjection]
+
+    static let empty = ProductionSmartCollectionRuleData(
+        options: .empty,
+        tags: []
+    )
+}
+
 struct ProductionSmartCollectionEvaluator: Sendable {
     func evaluate(
         root: SmartCollectionRuleGroup,
         index: ProductionSmartCollectionIndex
     ) -> [LibraryTrackProjection] {
-        guard !root.children.isEmpty else {
-            return index.tracks
+        let candidates = index.tracks.map { track in
+            ProductionSmartCollectionCandidate(
+                id: track.id,
+                artist: track.artist,
+                album: track.album,
+                duration: track.duration,
+                year: track.year,
+                codec: track.codec,
+                isFavorite: track.isFavorite,
+                effectiveTagIDs: index.effectiveTagIDsByTrackID[track.id] ?? []
+            )
         }
-        return index.tracks.filter {
-            matches(group: root, track: $0, index: index)
+        let matchingIDs = Set(
+            evaluateIDs(
+                root: root,
+                candidates: candidates,
+                tagsByID: index.tagsByID
+            )
+        )
+        return index.tracks.filter { matchingIDs.contains($0.id) }
+    }
+
+    func evaluateIDs(
+        root: SmartCollectionRuleGroup,
+        candidates: [ProductionSmartCollectionCandidate],
+        tagsByID: [UUID: LibraryTagProjection]
+    ) -> [UUID] {
+        guard !root.children.isEmpty else {
+            return candidates.map(\.id)
+        }
+        return candidates.compactMap { candidate in
+            matches(
+                group: root,
+                candidate: candidate,
+                tagsByID: tagsByID
+            ) ? candidate.id : nil
         }
     }
 
     private func matches(
         group: SmartCollectionRuleGroup,
-        track: LibraryTrackProjection,
-        index: ProductionSmartCollectionIndex
+        candidate: ProductionSmartCollectionCandidate,
+        tagsByID: [UUID: LibraryTagProjection]
     ) -> Bool {
         switch group.combinator {
         case .all:
             group.children.allSatisfy {
-                matches(node: $0, track: track, index: index)
+                matches(
+                    node: $0,
+                    candidate: candidate,
+                    tagsByID: tagsByID
+                )
             }
         case .any:
             group.children.contains {
-                matches(node: $0, track: track, index: index)
+                matches(
+                    node: $0,
+                    candidate: candidate,
+                    tagsByID: tagsByID
+                )
             }
         }
     }
 
     private func matches(
         node: SmartCollectionRuleNode,
-        track: LibraryTrackProjection,
-        index: ProductionSmartCollectionIndex
+        candidate: ProductionSmartCollectionCandidate,
+        tagsByID: [UUID: LibraryTagProjection]
     ) -> Bool {
         switch node {
         case let .condition(condition):
+            guard condition.field != .rating else {
+                return false
+            }
             let result = matches(
                 condition: condition,
-                track: track,
-                index: index
+                candidate: candidate,
+                tagsByID: tagsByID
             )
             return condition.isNegated ? !result : result
         case let .group(group):
-            return matches(group: group, track: track, index: index)
+            return matches(
+                group: group,
+                candidate: candidate,
+                tagsByID: tagsByID
+            )
         }
     }
 
     private func matches(
         condition: SmartCollectionRuleCondition,
-        track: LibraryTrackProjection,
-        index: ProductionSmartCollectionIndex
+        candidate: ProductionSmartCollectionCandidate,
+        tagsByID: [UUID: LibraryTagProjection]
     ) -> Bool {
         switch condition.field {
         case .tag:
-            tagMatches(condition, track: track, index: index)
+            tagMatches(
+                condition,
+                candidate: candidate,
+                tagsByID: tagsByID
+            )
         case .artist:
-            textMatches(condition, candidate: track.artist)
+            textMatches(condition, candidate: candidate.artist)
         case .album:
-            textMatches(condition, candidate: track.album)
+            textMatches(condition, candidate: candidate.album)
         case .format:
-            textMatches(condition, candidate: track.codec)
+            textMatches(condition, candidate: candidate.codec)
         case .year:
-            numberMatches(condition, candidate: track.year ?? 0)
+            numberMatches(condition, candidate: candidate.year ?? 0)
         case .rating:
-            numberMatches(condition, candidate: 0)
+            false
         case .favorite:
-            booleanMatches(condition, candidate: track.isFavorite)
+            booleanMatches(condition, candidate: candidate.isFavorite)
         }
     }
 
     private func tagMatches(
         _ condition: SmartCollectionRuleCondition,
-        track: LibraryTrackProjection,
-        index: ProductionSmartCollectionIndex
+        candidate: ProductionSmartCollectionCandidate,
+        tagsByID: [UUID: LibraryTagProjection]
     ) -> Bool {
         guard
             condition.operator == .is,
@@ -95,17 +185,17 @@ struct ProductionSmartCollectionEvaluator: Sendable {
         else {
             return false
         }
-        let effectiveIDs = index.effectiveTagIDsByTrackID[track.id] ?? []
+        let effectiveIDs = candidate.effectiveTagIDs
         switch scope {
         case .exact:
             return effectiveIDs.contains(tagID)
         case .includeSubtags:
-            guard let selected = index.tagsByID[tagID] else {
+            guard let selected = tagsByID[tagID] else {
                 return false
             }
             let selectedComponents = pathComponents(selected.displayPath)
             return effectiveIDs.contains { effectiveID in
-                guard let tag = index.tagsByID[effectiveID] else {
+                guard let tag = tagsByID[effectiveID] else {
                     return false
                 }
                 return pathComponents(tag.displayPath)

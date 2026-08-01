@@ -22,6 +22,26 @@ private struct InitialLibrarySnapshot: Sendable {
     let trashOperations: [LibraryTrashProjection]
 }
 
+struct ProductionSmartCollectionSummary: Sendable {
+    let count: Int
+    let totalDuration: TimeInterval
+
+    static let empty = ProductionSmartCollectionSummary(
+        count: 0,
+        totalDuration: 0
+    )
+
+    var isEmpty: Bool {
+        count < 1
+    }
+}
+
+struct ProductionSmartCollectionStoreResult: Sendable {
+    let evaluation: ProductionSmartCollectionEvaluation
+    var tracks: [LibraryTrackProjection]
+    var nextOffset: Int?
+}
+
 @MainActor
 @Observable
 final class LibraryStore {
@@ -30,7 +50,7 @@ final class LibraryStore {
     private var trackCursor: LibraryPageCursor?
     var tagCursor: LibraryPageCursor?
     var tagGeneration = 0
-    private var isLoadingNextTags = false
+    var isLoadingNextTags = false
     private var catalogSearchGeneration = 0
     @ObservationIgnored var artworkAssetCache: [UUID: ArtworkAsset] = [:]
     var artistCursor: LibraryPageCursor?
@@ -42,9 +62,17 @@ final class LibraryStore {
     var albums: [LibraryAlbumProjection] = []
     var tags: [LibraryTagProjection] = []
     var playlists: [LibraryPlaylistProjection] = []
-    private(set) var smartCollectionIndex =
-        ProductionSmartCollectionIndex.empty
-    private(set) var isLoadingSmartCollectionIndex = false
+    var smartCollectionRuleData =
+        ProductionSmartCollectionRuleData.empty
+    var smartCollectionSummaries:
+        [SmartCollectionRuleGroup: ProductionSmartCollectionSummary] = [:]
+    var smartCollectionResults:
+        [SmartCollectionRuleGroup: ProductionSmartCollectionStoreResult] = [:]
+    var smartCollectionRuleDataGeneration = 0
+    var smartCollectionSummaryGeneration = 0
+    var smartCollectionResultGeneration = 0
+    var isLoadingNextSmartCollectionResult = false
+    var isLoadingSmartCollectionData = false
     var selectedPlaylistID: UUID?
     var selectedPlaylistTracks: [LibraryTrackProjection] = []
     var tagRevision = 0
@@ -216,25 +244,6 @@ final class LibraryStore {
         await (try? repository?.allTrackIDs()) ?? tracks.map(\.id)
     }
 
-    func loadSmartCollectionIndex() async {
-        guard let repository else {
-            smartCollectionIndex = .empty
-            return
-        }
-        isLoadingSmartCollectionIndex = true
-        defer {
-            isLoadingSmartCollectionIndex = false
-        }
-        do {
-            smartCollectionIndex =
-                try await repository.productionSmartCollectionIndex()
-        } catch {
-            availability = .failed(
-                LibraryStoreFailure(message: error.localizedDescription)
-            )
-        }
-    }
-
     func loadInitialTracks() async {
         await replaceTracks(search: searchQuery)
     }
@@ -259,43 +268,6 @@ final class LibraryStore {
             self.trackCursor = page.nextCursor
             availability = .ready
         } catch {
-            availability = .failed(
-                LibraryStoreFailure(message: error.localizedDescription)
-            )
-        }
-    }
-
-    func loadNextTags() async {
-        guard
-            !isLoadingNextTags,
-            let repository,
-            let tagCursor
-        else {
-            return
-        }
-
-        isLoadingNextTags = true
-        let generation = tagGeneration
-        defer {
-            isLoadingNextTags = false
-        }
-
-        do {
-            let page = try await repository.tagsPage(after: tagCursor)
-            guard generation == tagGeneration else {
-                return
-            }
-            let existingIDs = Set(tags.map(\.id))
-            tags.append(
-                contentsOf: page.items.filter {
-                    !existingIDs.contains($0.id)
-                }
-            )
-            self.tagCursor = page.nextCursor
-        } catch {
-            guard generation == tagGeneration else {
-                return
-            }
             availability = .failed(
                 LibraryStoreFailure(message: error.localizedDescription)
             )

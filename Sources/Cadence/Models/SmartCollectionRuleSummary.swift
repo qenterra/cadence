@@ -18,13 +18,25 @@ enum SmartCollectionRuleSummary {
         for root: SmartCollectionRuleGroup,
         tags: [TagPreview]
     ) -> [SmartCollectionRuleSummaryRow] {
+        rows(
+            for: root,
+            tagTitlesByID: Dictionary(
+                uniqueKeysWithValues: tags.map { ($0.id, $0.displayPath) }
+            )
+        )
+    }
+
+    static func rows(
+        for root: SmartCollectionRuleGroup,
+        tagTitlesByID: [String: String]
+    ) -> [SmartCollectionRuleSummaryRow] {
         var result: [SmartCollectionRuleSummaryRow] = [
             groupRow(root, depth: 0),
         ]
         append(
             root.children,
             depth: 1,
-            tagsByID: Dictionary(uniqueKeysWithValues: tags.map { ($0.id, $0) }),
+            tagTitlesByID: tagTitlesByID,
             to: &result
         )
         return result
@@ -33,7 +45,7 @@ enum SmartCollectionRuleSummary {
     private static func append(
         _ nodes: [SmartCollectionRuleNode],
         depth: Int,
-        tagsByID: [TagPreview.ID: TagPreview],
+        tagTitlesByID: [String: String],
         to result: inout [SmartCollectionRuleSummaryRow]
     ) {
         for node in nodes {
@@ -46,7 +58,7 @@ enum SmartCollectionRuleSummary {
                         kind: .condition,
                         text: conditionText(
                             condition,
-                            tagsByID: tagsByID
+                            tagTitlesByID: tagTitlesByID
                         ),
                         detail: nil
                     )
@@ -56,7 +68,7 @@ enum SmartCollectionRuleSummary {
                 append(
                     group.children,
                     depth: depth + 1,
-                    tagsByID: tagsByID,
+                    tagTitlesByID: tagTitlesByID,
                     to: &result
                 )
             }
@@ -80,21 +92,24 @@ enum SmartCollectionRuleSummary {
 
     private static func conditionText(
         _ condition: SmartCollectionRuleCondition,
-        tagsByID: [TagPreview.ID: TagPreview]
+        tagTitlesByID: [String: String]
     ) -> String {
         let prefix = condition.isNegated ? "Not " : ""
-        let value = valueText(condition.value, tagsByID: tagsByID)
+        let value = valueText(
+            condition.value,
+            tagTitlesByID: tagTitlesByID
+        )
         return "\(prefix)\(condition.field.title) "
             + "\(condition.operator.title) \(value)"
     }
 
     private static func valueText(
         _ value: SmartCollectionRuleValue,
-        tagsByID: [TagPreview.ID: TagPreview]
+        tagTitlesByID: [String: String]
     ) -> String {
         switch value {
         case let .tag(id, scope):
-            let name = id.flatMap { tagsByID[$0]?.displayPath }
+            let name = id.flatMap { tagTitlesByID[$0] }
                 ?? id
                 ?? "Unselected tag"
             return scope == .includeSubtags

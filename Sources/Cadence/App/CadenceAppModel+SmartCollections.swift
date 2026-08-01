@@ -37,27 +37,7 @@ extension CadenceAppModel {
 
     var smartCollectionRuleOptions: SmartCollectionRuleOptions {
         if librarySession.availability != .preview {
-            let productionTracks = librarySession.store.tracks
-            return SmartCollectionRuleOptions(
-                tagIDs: librarySession.store.tags
-                    .sorted {
-                        $0.displayPath.localizedStandardCompare($1.displayPath)
-                            == .orderedAscending
-                    }
-                    .map(\.id.uuidString),
-                artists: Array(Set(productionTracks.map(\.artist))).sorted {
-                    $0.localizedStandardCompare($1) == .orderedAscending
-                },
-                albums: Array(Set(productionTracks.map(\.album))).sorted {
-                    $0.localizedStandardCompare($1) == .orderedAscending
-                },
-                years: Array(
-                    Set(productionTracks.compactMap(\.year))
-                ).sorted(by: >),
-                formats: Array(Set(productionTracks.map(\.codec))).sorted {
-                    $0.localizedStandardCompare($1) == .orderedAscending
-                }
-            )
+            return librarySession.store.smartCollectionRuleData.options
         }
 
         return SmartCollectionRuleOptions(
@@ -104,9 +84,8 @@ extension CadenceAppModel {
         else {
             return []
         }
-        return ProductionSmartCollectionEvaluator().evaluate(
-            root: smartCollectionDraft.rule,
-            index: librarySession.store.smartCollectionIndex
+        return librarySession.store.smartCollectionTracks(
+            for: smartCollectionDraft.rule
         )
     }
 
@@ -118,29 +97,59 @@ extension CadenceAppModel {
         else {
             return []
         }
-        return ProductionSmartCollectionEvaluator().evaluate(
-            root: selectedSmartCollection.rule,
-            index: librarySession.store.smartCollectionIndex
+        return librarySession.store.smartCollectionTracks(
+            for: selectedSmartCollection.rule
+        )
+    }
+
+    var productionSmartCollectionLiveSummary:
+        ProductionSmartCollectionSummary {
+        guard
+            let smartCollectionDraft,
+            smartCollectionValidation.isValid
+        else {
+            return .empty
+        }
+        return librarySession.store.smartCollectionSummary(
+            for: smartCollectionDraft.rule
+        )
+    }
+
+    var selectedProductionSmartCollectionSummary:
+        ProductionSmartCollectionSummary {
+        guard let selectedSmartCollection else {
+            return .empty
+        }
+        return librarySession.store.smartCollectionSummary(
+            for: selectedSmartCollection.rule
         )
     }
 
     func playSelectedProductionSmartCollection(
         shuffled: Bool = false
     ) {
-        var collectionTracks = selectedProductionSmartCollectionTracks
-        if shuffled {
-            collectionTracks.shuffle()
-        }
-        guard let first = collectionTracks.first else {
+        guard let selectedSmartCollection else {
             return
         }
-        playProductionTrack(
-            first,
-            within: collectionTracks,
-            source: selectedSmartCollectionID.map {
-                .smartCollection($0)
+        Task {
+            var collectionTracks = await librarySession.store
+                .completeSmartCollectionTracks(
+                    for: selectedSmartCollection.rule
+                )
+            if shuffled {
+                collectionTracks.shuffle()
             }
-        )
+            guard let first = collectionTracks.first else {
+                return
+            }
+            playProductionTrack(
+                first,
+                within: collectionTracks,
+                source: selectedSmartCollectionID.map {
+                    .smartCollection($0)
+                }
+            )
+        }
     }
 
     func renameSmartCollectionDraft(_ name: String) {

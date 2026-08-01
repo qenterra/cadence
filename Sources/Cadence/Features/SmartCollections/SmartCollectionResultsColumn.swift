@@ -66,7 +66,8 @@ struct SmartCollectionResultsColumn: View {
                     tracks: model.productionSmartCollectionLiveTracks,
                     showsHeader: false,
                     compact: true,
-                    queueSource: selectedProductionQueueSource
+                    queueSource: selectedProductionQueueSource,
+                    onReachEnd: loadNextProductionPage
                 )
                 .padding(.horizontal, 14)
                 .padding(.bottom, 16)
@@ -120,7 +121,7 @@ struct SmartCollectionResultsColumn: View {
 
     private var resultCount: String {
         let count = isProduction
-            ? model.productionSmartCollectionLiveTracks.count
+            ? model.productionSmartCollectionLiveSummary.count
             : model.smartCollectionLiveTracks.count
         return "\(count) \(count == 1 ? "track" : "tracks")"
     }
@@ -131,15 +132,14 @@ struct SmartCollectionResultsColumn: View {
 
     private var isLibraryEmpty: Bool {
         if isProduction {
-            return model.librarySession.store.smartCollectionIndex
-                .tracks.isEmpty
+            return model.librarySession.store.catalogCounts.liveTrackCount == 0
         }
         return model.tracks.isEmpty
     }
 
     private var hasNoMatches: Bool {
         if isProduction {
-            return model.productionSmartCollectionLiveTracks.isEmpty
+            return model.productionSmartCollectionLiveSummary.isEmpty
         }
         return model.smartCollectionLiveTracks.isEmpty
     }
@@ -148,6 +148,18 @@ struct SmartCollectionResultsColumn: View {
         model.selectedSmartCollectionID.map {
             .smartCollection($0)
         }
+    }
+
+    private func loadNextProductionPage() async {
+        guard
+            let draft = model.smartCollectionDraft,
+            model.smartCollectionValidation.isValid
+        else {
+            return
+        }
+        await model.librarySession.store.loadNextSmartCollectionResult(
+            rule: draft.rule
+        )
     }
 }
 

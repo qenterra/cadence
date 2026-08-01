@@ -52,11 +52,37 @@ struct SmartCollectionsView: View {
             value: model.smartCollectionsPresentationMode
         )
         .background(CadenceTheme.contentBackground)
-        .task(id: model.librarySession.store.tagRevision) {
+        .task(id: smartCollectionDataRequest) {
             guard model.librarySession.availability != .preview else {
                 return
             }
-            await model.librarySession.store.loadSmartCollectionIndex()
+            await model.librarySession.store.loadSmartCollectionRuleData()
+            await model.librarySession.store.loadSmartCollectionSummaries(
+                rules: model.smartCollections.map(\.rule)
+            )
+        }
+        .task(id: selectedResultRequest) {
+            guard
+                model.librarySession.availability != .preview,
+                let rule = model.selectedSmartCollection?.rule
+            else {
+                return
+            }
+            await model.librarySession.store.loadSmartCollectionResult(
+                rule: rule
+            )
+        }
+        .task(id: draftResultRequest) {
+            guard
+                model.librarySession.availability != .preview,
+                let draft = model.smartCollectionDraft,
+                model.smartCollectionValidation.isValid
+            else {
+                return
+            }
+            await model.librarySession.store.loadSmartCollectionResult(
+                rule: draft.rule
+            )
         }
         .onExitCommand {
             guard
@@ -145,4 +171,39 @@ struct SmartCollectionsView: View {
             }
         )
     }
+
+    private var smartCollectionDataRequest: SmartCollectionDataRequest {
+        SmartCollectionDataRequest(
+            tagRevision: model.librarySession.store.tagRevision,
+            collections: model.smartCollections
+        )
+    }
+
+    private var selectedResultRequest: SmartCollectionResultRequest? {
+        model.selectedSmartCollection.map {
+            SmartCollectionResultRequest(
+                tagRevision: model.librarySession.store.tagRevision,
+                rule: $0.rule
+            )
+        }
+    }
+
+    private var draftResultRequest: SmartCollectionResultRequest? {
+        model.smartCollectionDraft.map {
+            SmartCollectionResultRequest(
+                tagRevision: model.librarySession.store.tagRevision,
+                rule: $0.rule
+            )
+        }
+    }
+}
+
+private struct SmartCollectionDataRequest: Hashable {
+    let tagRevision: Int
+    let collections: [SmartCollectionPreview]
+}
+
+private struct SmartCollectionResultRequest: Hashable {
+    let tagRevision: Int
+    let rule: SmartCollectionRuleGroup
 }

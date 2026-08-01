@@ -1,6 +1,43 @@
 import Foundation
 
 extension LibraryStore {
+    func loadNextTags() async {
+        guard
+            !isLoadingNextTags,
+            let repository,
+            let tagCursor
+        else {
+            return
+        }
+
+        isLoadingNextTags = true
+        let generation = tagGeneration
+        defer {
+            isLoadingNextTags = false
+        }
+
+        do {
+            let page = try await repository.tagsPage(after: tagCursor)
+            guard generation == tagGeneration else {
+                return
+            }
+            let existingIDs = Set(tags.map(\.id))
+            tags.append(
+                contentsOf: page.items.filter {
+                    !existingIDs.contains($0.id)
+                }
+            )
+            self.tagCursor = page.nextCursor
+        } catch {
+            guard generation == tagGeneration else {
+                return
+            }
+            availability = .failed(
+                LibraryStoreFailure(message: error.localizedDescription)
+            )
+        }
+    }
+
     func tracksForTagPicker(
         after cursor: LibraryPageCursor? = nil,
         search: String? = nil

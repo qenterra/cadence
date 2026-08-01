@@ -21,7 +21,8 @@ struct SmartCollectionListeningPage: View {
                         ProductionTrackTable(
                             model: model,
                             tracks: model.selectedProductionSmartCollectionTracks,
-                            queueSource: selectedProductionQueueSource
+                            queueSource: selectedProductionQueueSource,
+                            onReachEnd: loadNextProductionPage
                         )
                         .padding(.horizontal, 24)
                         .padding(.bottom, 24)
@@ -69,7 +70,7 @@ struct SmartCollectionListeningPage: View {
 
     private var selectedTracksAreEmpty: Bool {
         if isProduction {
-            return model.selectedProductionSmartCollectionTracks.isEmpty
+            return model.selectedProductionSmartCollectionSummary.isEmpty
         }
         return model.selectedSmartCollectionCanonicalTracks.isEmpty
     }
@@ -78,5 +79,14 @@ struct SmartCollectionListeningPage: View {
         model.selectedSmartCollectionID.map {
             .smartCollection($0)
         }
+    }
+
+    private func loadNextProductionPage() async {
+        guard let rule = model.selectedSmartCollection?.rule else {
+            return
+        }
+        await model.librarySession.store.loadNextSmartCollectionResult(
+            rule: rule
+        )
     }
 }
