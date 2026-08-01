@@ -22,19 +22,26 @@ private struct InitialLibrarySnapshot: Sendable {
     let trashOperations: [LibraryTrashProjection]
 }
 
+typealias LibraryTrackPageLoader = @Sendable (
+    _ query: LibraryTrackQuery,
+    _ cursor: LibraryPageCursor?
+) async throws -> LibraryPage<LibraryTrackProjection>
+
 @MainActor
 @Observable
 final class LibraryStore {
     private(set) var repository: LibraryRepository?
     private(set) var lyricsService: ManagedLyricsService?
-    private var trackCursor: LibraryPageCursor?
+    var trackCursor: LibraryPageCursor?
+    var trackRequestGeneration = 0
     private var catalogSearchGeneration = 0
+    @ObservationIgnored var trackPageLoader: LibraryTrackPageLoader?
     @ObservationIgnored var artworkAssetCache: [UUID: ArtworkAsset] = [:]
     var artistCursor: LibraryPageCursor?
     var albumCursor: LibraryPageCursor?
 
     var availability: LibraryAvailability
-    private(set) var tracks: [LibraryTrackProjection] = []
+    var tracks: [LibraryTrackProjection] = []
     var artists: [LibraryArtistProjection] = []
     var albums: [LibraryAlbumProjection] = []
     var tags: [LibraryTagProjection] = []
@@ -50,7 +57,20 @@ final class LibraryStore {
     private(set) var catalogSearchQuery = ""
     private(set) var catalogSearchResults = CatalogSearchResults.empty
     private(set) var isCatalogSearching = false
-    private(set) var searchQuery = ""
+    var searchQuery = ""
+    var trackQuery = LibraryTrackQuery.allTracks
+    var isLoadingNextTracks = false
+    var browserArtistID: UUID?
+    var browserAlbums: [LibraryAlbumProjection] = []
+    var browserAlbumID: UUID?
+    var browserTracks: [LibraryTrackProjection] = []
+    var browserTrackSort = LibraryTrackSort.titleAscending
+    var isLoadingNextBrowserAlbums = false
+    var isLoadingNextBrowserTracks = false
+    @ObservationIgnored var browserAlbumCursor: LibraryPageCursor?
+    @ObservationIgnored var browserTrackCursor: LibraryPageCursor?
+    @ObservationIgnored var browserAlbumGeneration = 0
+    @ObservationIgnored var browserTrackGeneration = 0
 
     init(
         container: ModelContainer? = nil,
@@ -59,6 +79,12 @@ final class LibraryStore {
         if let container {
             let repository = LibraryRepository(modelContainer: container)
             self.repository = repository
+            trackPageLoader = { query, cursor in
+                try await repository.tracksPage(
+                    query: query,
+                    after: cursor
+                )
+            }
             lyricsService = package.map {
                 ManagedLyricsService(
                     package: $0,
@@ -68,9 +94,17 @@ final class LibraryStore {
             availability = .ready
         } else {
             repository = nil
+            trackPageLoader = nil
             lyricsService = nil
             availability = .empty
         }
+    }
+
+    init(trackPageLoader: @escaping LibraryTrackPageLoader) {
+        repository = nil
+        lyricsService = nil
+        self.trackPageLoader = trackPageLoader
+        availability = .ready
     }
 
     var canLoadMoreTracks: Bool {
@@ -90,6 +124,12 @@ final class LibraryStore {
         package: ManagedLibraryPackage? = nil
     ) {
         self.repository = repository
+        trackPageLoader = { query, cursor in
+            try await repository.tracksPage(
+                query: query,
+                after: cursor
+            )
+        }
         lyricsService = package.map {
             ManagedLyricsService(
                 package: $0,
@@ -194,7 +234,24 @@ final class LibraryStore {
     }
 
     func tracks(artistID: UUID) async -> [LibraryTrackProjection] {
-        await (try? repository?.tracks(artistID: artistID).items) ?? []
+        guard let repository else {
+            return []
+        }
+        var tracks: [LibraryTrackProjection] = []
+        var cursor: LibraryPageCursor?
+        do {
+            repeat {
+                let page = try await repository.tracksPage(
+                    query: LibraryTrackQuery(scope: .artist(artistID)),
+                    after: cursor
+                )
+                tracks.append(contentsOf: page.items)
+                cursor = page.nextCursor
+            } while cursor != nil
+            return deduplicatedTracks(tracks)
+        } catch {
+            return []
+        }
     }
 
     func albums(artistID: UUID) async -> [LibraryAlbumProjection] {
@@ -227,82 +284,6 @@ final class LibraryStore {
             )
         }
     }
-
-    func loadInitialTracks() async {
-        await replaceTracks(search: searchQuery)
-    }
-
-    func searchTracks(_ query: String) async {
-        searchQuery = query
-        await replaceTracks(search: query)
-    }
-
-    func loadNextTracks() async {
-        guard let repository, let trackCursor else {
-            return
-        }
-
-        availability = .loading
-        do {
-            let page = try await repository.tracksPage(
-                after: trackCursor,
-                search: searchQuery
-            )
-            tracks.append(contentsOf: page.items)
-            self.trackCursor = page.nextCursor
-            availability = .ready
-        } catch {
-            availability = .failed(
-                LibraryStoreFailure(message: error.localizedDescription)
-            )
-        }
-    }
-
-    func replaceTracks(search: String) async {
-        guard let repository else {
-            tracks = []
-            trackCursor = nil
-            availability = .empty
-            return
-        }
-
-        availability = .loading
-        do {
-            let page = try await repository.tracksPage(search: search)
-            tracks = page.items
-            trackCursor = page.nextCursor
-            availability = .ready
-        } catch {
-            tracks = []
-            trackCursor = nil
-            availability = .failed(
-                LibraryStoreFailure(message: error.localizedDescription)
-            )
-        }
-    }
-
-    func showImportedTracks(
-        importID: UUID
-    ) async {
-        guard let repository else {
-            return
-        }
-        availability = .loading
-        do {
-            tracks = try await repository.importedTracks(
-                importID: importID
-            )
-            trackCursor = nil
-            searchQuery = ""
-            availability = .ready
-        } catch {
-            tracks = []
-            trackCursor = nil
-            availability = .failed(
-                LibraryStoreFailure(message: error.localizedDescription)
-            )
-        }
-    }
 }
 
 private extension LibraryStore {
@@ -326,8 +307,12 @@ private extension LibraryStore {
     }
 
     func apply(_ snapshot: InitialLibrarySnapshot) {
+        trackRequestGeneration += 1
         tracks = snapshot.tracks.items
         trackCursor = snapshot.tracks.nextCursor
+        trackQuery = .allTracks
+        searchQuery = ""
+        isLoadingNextTracks = false
         artists = snapshot.artists.items
         artistCursor = snapshot.artists.nextCursor
         albums = snapshot.albums.items
@@ -339,6 +324,7 @@ private extension LibraryStore {
     }
 
     func resetLibrary(availability: LibraryAvailability) {
+        trackRequestGeneration += 1
         tracks = []
         artists = []
         albums = []
@@ -347,6 +333,9 @@ private extension LibraryStore {
         catalogCounts = .empty
         catalogSearchResults = .empty
         trackCursor = nil
+        trackQuery = .allTracks
+        searchQuery = ""
+        isLoadingNextTracks = false
         artistCursor = nil
         albumCursor = nil
         self.availability = availability

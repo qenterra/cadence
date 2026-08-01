@@ -9,6 +9,7 @@ struct ProductionTrackTable: View {
     var queueSource: PlaybackQueueSource?
     var reorderAction: (([UUID]) -> Void)?
     var onReachEnd: (() async -> Void)?
+    var repositorySortAction: ((LibraryTrackSort) async -> Void)?
 
     @AppStorage("trackTable.visibleColumns")
     private var visibleColumnsRaw = TrackTableColumn.defaultRawValue
@@ -59,6 +60,9 @@ struct ProductionTrackTable: View {
         }
         .scrollIndicators(.hidden)
         .defaultScrollAnchor(.leading)
+        .task(id: repositorySort) {
+            await repositorySortAction?(repositorySort)
+        }
     }
 
     private var header: some View {
@@ -124,7 +128,27 @@ struct ProductionTrackTable: View {
     }
 
     private var displayedTracks: [LibraryTrackProjection] {
-        sortDescriptor.sorted(tracks)
+        guard repositorySortAction == nil else {
+            return tracks
+        }
+        return sortDescriptor.sorted(tracks)
+    }
+
+    private var repositorySort: LibraryTrackSort {
+        let field: LibraryTrackSortField = switch sortDescriptor.field {
+        case .song: .song
+        case .album: .album
+        case .year: .year
+        case .dateAdded: .dateAdded
+        case .playCount: .playCount
+        case .time: .duration
+        }
+        return LibraryTrackSort(
+            field: field,
+            direction: sortDescriptor.direction == .ascending
+                ? .ascending
+                : .descending
+        )
     }
 
     private var sortDescriptor: TrackTableSortDescriptor {

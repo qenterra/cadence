@@ -3,11 +3,78 @@ import Foundation
 struct LibraryPageCursor: Codable, Hashable, Sendable {
     let sortValue: String
     let identity: String
+    let offset: Int?
+
+    init(
+        sortValue: String,
+        identity: String,
+        offset: Int? = nil
+    ) {
+        self.sortValue = sortValue
+        self.identity = identity
+        self.offset = offset
+    }
+
+    static func offset(_ value: Int) -> LibraryPageCursor {
+        LibraryPageCursor(
+            sortValue: "",
+            identity: "",
+            offset: value
+        )
+    }
 }
 
 struct LibraryPage<Element: Sendable>: Sendable {
     let items: [Element]
     let nextCursor: LibraryPageCursor?
+}
+
+enum LibraryTrackScope: Hashable, Sendable {
+    case all
+    case artist(UUID)
+    case album(UUID)
+}
+
+enum LibraryTrackSortField: String, Codable, CaseIterable, Sendable {
+    case song
+    case album
+    case year
+    case dateAdded
+    case playCount
+    case duration
+}
+
+enum LibraryTrackSortDirection: String, Codable, Sendable {
+    case ascending
+    case descending
+}
+
+struct LibraryTrackSort: Codable, Hashable, Sendable {
+    let field: LibraryTrackSortField
+    let direction: LibraryTrackSortDirection
+
+    static let titleAscending = LibraryTrackSort(
+        field: .song,
+        direction: .ascending
+    )
+}
+
+struct LibraryTrackQuery: Hashable, Sendable {
+    let scope: LibraryTrackScope
+    let search: String
+    let sort: LibraryTrackSort
+
+    init(
+        scope: LibraryTrackScope = .all,
+        search: String = "",
+        sort: LibraryTrackSort = .titleAscending
+    ) {
+        self.scope = scope
+        self.search = SearchNormalizer.normalize(search)
+        self.sort = sort
+    }
+
+    static let allTracks = LibraryTrackQuery()
 }
 
 struct LibraryTrackProjection: Identifiable, Hashable, Sendable {

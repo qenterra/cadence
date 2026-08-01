@@ -2,7 +2,7 @@ import Foundation
 import SwiftUI
 
 extension ProductionLibraryView {
-    func repairSelection() {
+    func repairArtistSelection() {
         guard !store.artists.isEmpty else {
             selectedArtistID = nil
             selectedAlbumID = nil
@@ -13,9 +13,15 @@ extension ProductionLibraryView {
         if !store.artists.contains(where: { $0.id == selectedArtistID }) {
             selectedArtistID = store.artists.first?.id
         }
+    }
+
+    func repairAlbumSelection() {
         if !visibleAlbums.contains(where: { $0.id == selectedAlbumID }) {
             selectedAlbumID = visibleAlbums.first?.id
         }
+    }
+
+    func repairTrackSelection() {
         if !visibleTracks.contains(where: { $0.id == selectedTrackID }) {
             selectedTrackID = visibleTracks.first?.id
         }

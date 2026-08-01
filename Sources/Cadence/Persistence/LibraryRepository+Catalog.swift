@@ -46,7 +46,7 @@ extension LibraryRepository {
         limit: Int = maximumPageSize
     ) throws -> LibraryPage<LibraryTrackProjection> {
         try tracksPage(
-            albumID: albumID,
+            query: LibraryTrackQuery(scope: .album(albumID)),
             after: cursor,
             limit: limit
         )
@@ -58,30 +58,9 @@ extension LibraryRepository {
         limit: Int = maximumPageSize
     ) throws -> LibraryPage<LibraryTrackProjection> {
         try tracksPage(
-            artistID: artistID,
+            query: LibraryTrackQuery(scope: .artist(artistID)),
             after: cursor,
             limit: limit
-        )
-    }
-
-    func albums(
-        artistID: UUID,
-        limit: Int = maximumPageSize
-    ) throws -> [LibraryAlbumProjection] {
-        let boundedLimit = min(max(limit, 1), Self.maximumPageSize)
-        let predicate = #Predicate<AlbumRecord> {
-            $0.artist?.id == artistID
-        }
-        var descriptor = FetchDescriptor(
-            predicate: predicate,
-            sortBy: [
-                SortDescriptor(\.normalizedTitle),
-                SortDescriptor(\.sortIdentity),
-            ]
-        )
-        descriptor.fetchLimit = boundedLimit
-        return try modelContext.fetch(descriptor).map(
-            LibraryProjectionFactory.album
         )
     }
 
@@ -244,102 +223,6 @@ private extension LibraryRepository {
         var descriptor = FetchDescriptor(predicate: predicate)
         descriptor.fetchLimit = 1
         return try modelContext.fetch(descriptor).first
-    }
-
-    func tracksPage(
-        albumID: UUID,
-        after cursor: LibraryPageCursor?,
-        limit: Int
-    ) throws -> LibraryPage<LibraryTrackProjection> {
-        let boundedLimit = min(max(limit, 1), Self.maximumPageSize)
-        let sortDescriptors = [
-            SortDescriptor(\TrackRecord.normalizedTitle),
-            SortDescriptor(\TrackRecord.sortIdentity),
-        ]
-        let descriptor: FetchDescriptor<TrackRecord>
-        if let cursor {
-            let cursorValue = cursor.sortValue
-            let cursorIdentity = cursor.identity
-            let predicate = #Predicate<TrackRecord> {
-                $0.album?.id == albumID
-                    && (
-                        $0.normalizedTitle > cursorValue
-                            || (
-                                $0.normalizedTitle == cursorValue
-                                    && $0.sortIdentity > cursorIdentity
-                            )
-                    )
-            }
-            descriptor = FetchDescriptor(
-                predicate: predicate,
-                sortBy: sortDescriptors
-            )
-        } else {
-            let predicate = #Predicate<TrackRecord> {
-                $0.album?.id == albumID
-            }
-            descriptor = FetchDescriptor(
-                predicate: predicate,
-                sortBy: sortDescriptors
-            )
-        }
-        var boundedDescriptor = descriptor
-        boundedDescriptor.fetchLimit = boundedLimit + 1
-        return try LibraryPageBuilder.page(
-            records: modelContext.fetch(boundedDescriptor),
-            limit: boundedLimit,
-            sortValue: \.normalizedTitle,
-            identity: \.sortIdentity,
-            projection: LibraryProjectionFactory.track
-        )
-    }
-
-    func tracksPage(
-        artistID: UUID,
-        after cursor: LibraryPageCursor?,
-        limit: Int
-    ) throws -> LibraryPage<LibraryTrackProjection> {
-        let boundedLimit = min(max(limit, 1), Self.maximumPageSize)
-        let sortDescriptors = [
-            SortDescriptor(\TrackRecord.normalizedTitle),
-            SortDescriptor(\TrackRecord.sortIdentity),
-        ]
-        let descriptor: FetchDescriptor<TrackRecord>
-        if let cursor {
-            let cursorValue = cursor.sortValue
-            let cursorIdentity = cursor.identity
-            let predicate = #Predicate<TrackRecord> {
-                $0.artist?.id == artistID
-                    && (
-                        $0.normalizedTitle > cursorValue
-                            || (
-                                $0.normalizedTitle == cursorValue
-                                    && $0.sortIdentity > cursorIdentity
-                            )
-                    )
-            }
-            descriptor = FetchDescriptor(
-                predicate: predicate,
-                sortBy: sortDescriptors
-            )
-        } else {
-            let predicate = #Predicate<TrackRecord> {
-                $0.artist?.id == artistID
-            }
-            descriptor = FetchDescriptor(
-                predicate: predicate,
-                sortBy: sortDescriptors
-            )
-        }
-        var boundedDescriptor = descriptor
-        boundedDescriptor.fetchLimit = boundedLimit + 1
-        return try LibraryPageBuilder.page(
-            records: modelContext.fetch(boundedDescriptor),
-            limit: boundedLimit,
-            sortValue: \.normalizedTitle,
-            identity: \.sortIdentity,
-            projection: LibraryProjectionFactory.track
-        )
     }
 
     func relationshipPage(

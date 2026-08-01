@@ -29,6 +29,32 @@ struct LibraryStoreTests {
         #expect(!store.canLoadMoreTracks)
     }
 
+    @Test("Concurrent next-page requests are coalesced")
+    func concurrentPagedLoading() async throws {
+        let container = try makeContainer(trackCount: 401)
+        let repository = LibraryRepository(modelContainer: container)
+        let store = LibraryStore { query, cursor in
+            try await Task.sleep(for: .milliseconds(30))
+            return try await repository.tracksPage(
+                query: query,
+                after: cursor
+            )
+        }
+
+        await store.loadInitialTracks()
+        async let firstLoad: Void = store.loadNextTracks()
+        async let duplicateLoad: Void = store.loadNextTracks()
+        _ = await (firstLoad, duplicateLoad)
+
+        #expect(store.tracks.count == 400)
+        #expect(store.canLoadMoreTracks)
+
+        await store.loadNextTracks()
+        #expect(store.tracks.count == 401)
+        #expect(!store.canLoadMoreTracks)
+        #expect(Set(store.tracks.map(\.id)).count == 401)
+    }
+
     @Test("A new search replaces prior pages instead of mixing results")
     func searchReplacement() async throws {
         let container = try makeContainer(
@@ -41,6 +67,35 @@ struct LibraryStoreTests {
 
         #expect(store.tracks.map(\.title) == ["Echo Chamber", "Échoes"])
         #expect(store.searchQuery == "echo")
+    }
+
+    @Test("A stale search response cannot replace a newer query")
+    func staleSearchResponse() async throws {
+        let container = try makeContainer(
+            titles: ["Old Result", "New Result"]
+        )
+        let repository = LibraryRepository(modelContainer: container)
+        let store = LibraryStore { query, cursor in
+            if query.search == "old" {
+                try await Task.sleep(for: .milliseconds(80))
+            }
+            return try await repository.tracksPage(
+                query: query,
+                after: cursor
+            )
+        }
+
+        let staleRequest = Task { @MainActor in
+            await store.searchTracks("old")
+        }
+        try await Task.sleep(for: .milliseconds(10))
+        await store.searchTracks("new")
+        await staleRequest.value
+
+        #expect(store.searchQuery == "new")
+        #expect(store.trackQuery.search == "new")
+        #expect(store.tracks.map(\.title) == ["New Result"])
+        #expect(store.availability == .ready)
     }
 
     @Test("Initial library loading publishes bounded artist, album, and track pages")
