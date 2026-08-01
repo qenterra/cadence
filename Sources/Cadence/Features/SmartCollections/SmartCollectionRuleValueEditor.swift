@@ -184,20 +184,11 @@ struct SmartCollectionRuleValueEditor: View {
     }
 
     private var sortedTags: [SmartCollectionTagOption] {
-        let options: [SmartCollectionTagOption] = if model.librarySession.availability == .preview {
-            model.tags.map {
-                SmartCollectionTagOption(
-                    id: $0.id,
-                    title: $0.displayPath
-                )
-            }
-        } else {
-            model.librarySession.store.smartCollectionRuleData.tags.map {
-                SmartCollectionTagOption(
-                    id: $0.id.uuidString,
-                    title: $0.displayPath
-                )
-            }
+        let options = model.librarySession.store.smartCollectionRuleData.tags.map {
+            SmartCollectionTagOption(
+                id: $0.id.uuidString,
+                title: $0.displayPath
+            )
         }
         return options.sorted {
             $0.title.localizedStandardCompare($1.title)

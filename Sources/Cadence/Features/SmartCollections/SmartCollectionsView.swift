@@ -53,19 +53,13 @@ struct SmartCollectionsView: View {
         )
         .background(CadenceTheme.contentBackground)
         .task(id: smartCollectionDataRequest) {
-            guard model.librarySession.availability != .preview else {
-                return
-            }
             await model.librarySession.store.loadSmartCollectionRuleData()
             await model.librarySession.store.loadSmartCollectionSummaries(
                 rules: model.smartCollections.map(\.rule)
             )
         }
         .task(id: selectedResultRequest) {
-            guard
-                model.librarySession.availability != .preview,
-                let rule = model.selectedSmartCollection?.rule
-            else {
+            guard let rule = model.selectedSmartCollection?.rule else {
                 return
             }
             await model.librarySession.store.loadSmartCollectionResult(
@@ -74,7 +68,6 @@ struct SmartCollectionsView: View {
         }
         .task(id: draftResultRequest) {
             guard
-                model.librarySession.availability != .preview,
                 let draft = model.smartCollectionDraft,
                 model.smartCollectionValidation.isValid
             else {

@@ -4,42 +4,10 @@ struct LibraryView: View {
     @Bindable var model: CadenceAppModel
 
     var body: some View {
-        Group {
-            if model.librarySession.availability != .preview {
-                ProductionLibraryView(
-                    model: model,
-                    store: model.librarySession.store
-                )
-            } else if model.tracks.isEmpty {
-                EmptyLibraryView(
-                    title: "Your Library Is Empty",
-                    description: "Import a folder to start building your Cadence library."
-                ) {
-                    model.requestNavigationDestination(.importMusic)
-                }
-            } else {
-                GeometryReader { geometry in
-                    let widths = LibraryColumnWidths(
-                        totalWidth: geometry.size.width
-                    )
-
-                    HStack(spacing: 0) {
-                        ArtistsColumn(model: model)
-                            .frame(width: widths.artists)
-
-                        LibraryColumnDivider()
-
-                        AlbumsColumn(model: model)
-                            .frame(width: widths.albums)
-
-                        LibraryColumnDivider()
-
-                        TracksColumn(model: model)
-                            .frame(width: widths.tracks)
-                    }
-                }
-            }
-        }
+        ProductionLibraryView(
+            model: model,
+            store: model.librarySession.store
+        )
         .background(CadenceTheme.contentBackground)
         .overlay(alignment: .top) {
             Color.clear
@@ -66,14 +34,6 @@ struct LibraryColumnHeader: View {
         .padding(.horizontal, 14)
         .padding(.top, 16)
         .padding(.bottom, 10)
-    }
-}
-
-private struct LibraryColumnDivider: View {
-    var body: some View {
-        Rectangle()
-            .fill(CadenceTheme.separator)
-            .frame(width: 1)
     }
 }
 

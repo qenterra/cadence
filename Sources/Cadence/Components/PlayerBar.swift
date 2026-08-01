@@ -55,33 +55,6 @@ private extension PlayerBar {
             .accessibilityLabel(
                 "Show Now Playing for \(track.title) by \(track.artist)"
             )
-        } else if let track = model.currentTrack {
-            Button {
-                model.presentNowPlaying()
-            } label: {
-                HStack(spacing: 11) {
-                    MediaArtworkView(
-                        source: model.resolvedArtwork(for: track),
-                        title: track.title,
-                        placeholder: .track,
-                        cornerRadius: 7
-                    )
-                    .frame(width: 56, height: 56)
-
-                    playbackLabels(
-                        title: track.title,
-                        artist: track.artist
-                    )
-
-                    Spacer(minLength: 0)
-                }
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(CadenceRowButtonStyle())
-            .help("Show Now Playing")
-            .accessibilityLabel(
-                "Show Now Playing for \(track.title) by \(track.artist)"
-            )
         } else {
             emptyPlaybackGuidance
         }

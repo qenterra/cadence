@@ -198,10 +198,7 @@ private struct SmartCollectionConditionRow: View {
     }
 
     private var availableFields: [SmartCollectionRuleField] {
-        guard model.librarySession.availability != .preview else {
-            return SmartCollectionRuleField.allCases
-        }
-        return SmartCollectionRuleField.productionCases
+        SmartCollectionRuleField.productionCases
     }
 
     private var fieldBinding: Binding<SmartCollectionRuleField> {

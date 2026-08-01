@@ -9,9 +9,9 @@ struct SmartCollectionResultsColumn: View {
 
             if model.smartCollectionDraft == nil {
                 noSelection
-            } else if isLibraryEmpty {
+            } else if model.librarySession.store.catalogCounts.liveTrackCount == 0 {
                 emptyLibrary
-            } else if hasNoMatches {
+            } else if model.productionSmartCollectionLiveSummary.isEmpty {
                 noMatches
             } else {
                 results
@@ -57,34 +57,18 @@ struct SmartCollectionResultsColumn: View {
         .padding(.bottom, 10)
     }
 
-    @ViewBuilder
     private var results: some View {
-        if isProduction {
-            ScrollView {
-                ProductionTrackTable(
-                    model: model,
-                    tracks: model.productionSmartCollectionLiveTracks,
-                    showsHeader: false,
-                    compact: true,
-                    queueSource: selectedProductionQueueSource,
-                    onReachEnd: loadNextProductionPage
-                )
-                .padding(.horizontal, 14)
-                .padding(.bottom, 16)
-            }
-        } else {
-            ScrollView {
-                LazyVStack(spacing: 2) {
-                    ForEach(model.smartCollectionLiveTracks) { track in
-                        SmartCollectionResultTrackRow(
-                            model: model,
-                            track: track
-                        )
-                    }
-                }
-                .padding(.horizontal, 14)
-                .padding(.bottom, 16)
-            }
+        ScrollView {
+            ProductionTrackTable(
+                model: model,
+                tracks: model.productionSmartCollectionLiveTracks,
+                showsHeader: false,
+                compact: true,
+                queueSource: selectedProductionQueueSource,
+                onReachEnd: loadNextProductionPage
+            )
+            .padding(.horizontal, 14)
+            .padding(.bottom, 16)
         }
     }
 
@@ -120,28 +104,8 @@ struct SmartCollectionResultsColumn: View {
     }
 
     private var resultCount: String {
-        let count = isProduction
-            ? model.productionSmartCollectionLiveSummary.count
-            : model.smartCollectionLiveTracks.count
+        let count = model.productionSmartCollectionLiveSummary.count
         return "\(count) \(count == 1 ? "track" : "tracks")"
-    }
-
-    private var isProduction: Bool {
-        model.librarySession.availability != .preview
-    }
-
-    private var isLibraryEmpty: Bool {
-        if isProduction {
-            return model.librarySession.store.catalogCounts.liveTrackCount == 0
-        }
-        return model.tracks.isEmpty
-    }
-
-    private var hasNoMatches: Bool {
-        if isProduction {
-            return model.productionSmartCollectionLiveSummary.isEmpty
-        }
-        return model.smartCollectionLiveTracks.isEmpty
     }
 
     private var selectedProductionQueueSource: PlaybackQueueSource? {
@@ -160,173 +124,5 @@ struct SmartCollectionResultsColumn: View {
         await model.librarySession.store.loadNextSmartCollectionResult(
             rule: draft.rule
         )
-    }
-}
-
-private struct SmartCollectionResultTrackRow: View {
-    @Bindable var model: CadenceAppModel
-
-    let track: TrackPreview
-
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @FocusState private var isFocused: Bool
-    @State private var isHovered = false
-
-    var body: some View {
-        HStack(spacing: 10) {
-            trackStatus
-                .frame(width: 20)
-
-            VStack(alignment: .leading, spacing: 3) {
-                Button {
-                    model.selectTrack(track)
-                } label: {
-                    HStack {
-                        Text(track.title)
-                            .font(.body.weight(isCurrent ? .medium : .regular))
-                            .foregroundStyle(.primary)
-                            .lineLimit(1)
-
-                        Spacer(minLength: 8)
-
-                        Text(track.durationText)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .monospacedDigit()
-                    }
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(CadenceRowButtonStyle())
-                .focused($isFocused)
-                .simultaneousGesture(
-                    TapGesture(count: 2)
-                        .onEnded {
-                            model.play(track)
-                        }
-                )
-
-                HStack(spacing: 0) {
-                    MediaMetadataLink(
-                        track.artist,
-                        accessibilityLabel: "Open artist \(track.artist)"
-                    ) {
-                        model.requestOpenArtistContextually(id: track.artistID)
-                    }
-
-                    Text(" · ")
-
-                    MediaMetadataLink(
-                        track.album,
-                        accessibilityLabel: "Open album \(track.album)"
-                    ) {
-                        model.requestOpenAlbumContextually(id: track.albumID)
-                    }
-
-                    Text(" · \(track.yearText)")
-                }
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
-
-                effectiveTags
-            }
-        }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 8)
-        .frame(minHeight: 62)
-        .background {
-            BrowserRowSurface(
-                isSelected: model.selectedTrackID == track.id,
-                isHovered: isHovered,
-                isFocused: isFocused
-            )
-        }
-        .contentShape(Rectangle())
-        .onHover { isHovered = $0 }
-        .contextMenu {
-            ArtworkMenuItems(
-                model: model,
-                target: .track(track.id),
-                label: "Track Artwork"
-            )
-
-            Button("Edit Tags", systemImage: "tag") {
-                model.openTagEditor(for: track)
-            }
-        }
-        .accessibilityLabel(
-            "\(track.title), \(track.artist), \(track.album), "
-                + "\(track.yearText), \(track.durationText)"
-        )
-        .accessibilityValue(accessibilityValue)
-        .accessibilityAddTraits(
-            model.selectedTrackID == track.id ? .isSelected : []
-        )
-    }
-
-    @ViewBuilder
-    private var trackStatus: some View {
-        if isCurrent, model.isPlaying, !reduceMotion {
-            Image(systemName: "waveform")
-                .symbolEffect(.variableColor.iterative)
-                .foregroundStyle(.tint)
-        } else if isCurrent, model.isPlaying {
-            Image(systemName: "waveform")
-                .foregroundStyle(.tint)
-        } else if isCurrent {
-            Image(systemName: "speaker.fill")
-                .foregroundStyle(.secondary)
-        } else {
-            Image(systemName: "music.note")
-                .foregroundStyle(.tertiary)
-        }
-    }
-
-    private var isCurrent: Bool {
-        model.currentTrackID == track.id
-    }
-
-    private var effectiveTagText: String {
-        model.effectiveTags(for: track)
-            .map(\.displayPath)
-            .joined(separator: " · ")
-    }
-
-    @ViewBuilder
-    private var effectiveTags: some View {
-        let tags = model.effectiveTags(for: track)
-
-        if !tags.isEmpty {
-            HStack(spacing: 5) {
-                Image(systemName: "tag")
-
-                ForEach(tags.prefix(2)) { tag in
-                    MediaMetadataLink(
-                        tag.displayPath,
-                        accessibilityLabel:
-                        "Show tracks tagged \(tag.displayPath)"
-                    ) {
-                        model.requestOpenTagContextually(tag)
-                    }
-                }
-            }
-            .font(.caption2)
-            .foregroundStyle(.tertiary)
-            .lineLimit(1)
-        }
-    }
-
-    private var accessibilityValue: String {
-        var states: [String] = []
-        if model.selectedTrackID == track.id {
-            states.append("Selected")
-        }
-        if isCurrent {
-            states.append(model.isPlaying ? "Playing" : "Paused")
-        }
-        if !effectiveTagText.isEmpty {
-            states.append("Tags \(effectiveTagText)")
-        }
-        return states.joined(separator: ", ")
     }
 }

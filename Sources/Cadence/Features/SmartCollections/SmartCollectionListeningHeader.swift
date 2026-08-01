@@ -46,11 +46,7 @@ struct SmartCollectionListeningHeader: View {
     private var controls: some View {
         HStack(spacing: 10) {
             Button {
-                if isProduction {
-                    model.playSelectedProductionSmartCollection()
-                } else {
-                    model.playSelectedSmartCollection()
-                }
+                model.playSelectedProductionSmartCollection()
             } label: {
                 Label("Play", systemImage: "play.fill")
                     .frame(minWidth: 64)
@@ -62,13 +58,9 @@ struct SmartCollectionListeningHeader: View {
             .keyboardShortcut(.return, modifiers: [.command])
 
             Button {
-                if isProduction {
-                    model.playSelectedProductionSmartCollection(
-                        shuffled: true
-                    )
-                } else {
-                    model.shuffleSelectedSmartCollection()
-                }
+                model.playSelectedProductionSmartCollection(
+                    shuffled: true
+                )
             } label: {
                 Label("Shuffle", systemImage: "shuffle")
             }
@@ -128,33 +120,22 @@ struct SmartCollectionListeningHeader: View {
     }
 
     private var smartCollectionTagTitles: [String: String] {
-        if isProduction {
-            return Dictionary(
-                uniqueKeysWithValues: model.librarySession.store
-                    .smartCollectionRuleData.tags.map {
-                        ($0.id.uuidString, $0.displayPath)
-                    }
-            )
-        }
         return Dictionary(
-            uniqueKeysWithValues: model.tags.map {
-                ($0.id, $0.displayPath)
+            uniqueKeysWithValues: model.librarySession.store
+                .smartCollectionRuleData.tags.map {
+                    ($0.id.uuidString, $0.displayPath)
             }
         )
     }
 
     private var metadata: String {
-        let count = isProduction
-            ? model.selectedProductionSmartCollectionSummary.count
-            : model.selectedSmartCollectionCanonicalTracks.count
+        let count = model.selectedProductionSmartCollectionSummary.count
         let trackText = "\(count) \(count == 1 ? "track" : "tracks")"
         return "\(trackText) · \(durationText) · Updated automatically"
     }
 
     private var durationText: String {
-        let duration = isProduction
-            ? model.selectedProductionSmartCollectionSummary.totalDuration
-            : model.selectedSmartCollectionDuration
+        let duration = model.selectedProductionSmartCollectionSummary.totalDuration
         let totalMinutes = max(
             Int(duration.rounded()) / 60,
             0
@@ -171,14 +152,7 @@ struct SmartCollectionListeningHeader: View {
         return "\(minutes) min"
     }
 
-    private var isProduction: Bool {
-        model.librarySession.availability != .preview
-    }
-
     private var selectedTracksAreEmpty: Bool {
-        if isProduction {
-            return model.selectedProductionSmartCollectionSummary.isEmpty
-        }
-        return model.selectedSmartCollectionCanonicalTracks.isEmpty
+        model.selectedProductionSmartCollectionSummary.isEmpty
     }
 }

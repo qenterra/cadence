@@ -230,40 +230,15 @@ private extension CadenceRootView {
     }
 
     private var activeSearchQuery: String {
-        if isProductionCatalog {
-            return model.librarySession.store.catalogSearchQuery
-        }
-        return switch model.selectedDestination {
-        case .albums:
-            model.albumSearchQuery
-        case .artists:
-            model.artistSearchQuery
-        default:
-            model.searchQuery
-        }
+        model.librarySession.store.catalogSearchQuery
     }
 
     private var searchHelp: String {
-        if isProductionCatalog {
-            return "Search Library"
-        }
-        return switch model.selectedDestination {
-        case .albums:
-            "Search Albums"
-        case .artists:
-            "Search Artists"
-        default:
-            "Search Library"
-        }
-    }
-
-    private var isProductionCatalog: Bool {
-        model.librarySession.availability != .preview
+        "Search Library"
     }
 
     private var shouldPresentProductionSearch: Bool {
-        isProductionCatalog
-            && supportsSearch
+        supportsSearch
             && !SearchNormalizer.normalize(activeSearchQuery).isEmpty
     }
 
@@ -281,17 +256,7 @@ private extension CadenceRootView {
     }
 
     private var activeSearchBinding: Binding<String> {
-        if isProductionCatalog {
-            return productionSearchBinding
-        }
-        return switch model.selectedDestination {
-        case .albums:
-            $model.albumSearchQuery
-        case .artists:
-            $model.artistSearchQuery
-        default:
-            $model.searchQuery
-        }
+        productionSearchBinding
     }
 
     private var libraryDeletionPresented: Binding<Bool> {
