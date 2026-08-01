@@ -122,6 +122,24 @@ struct CatalogPagingTests {
         #expect(!store.canLoadMoreBrowserTracks)
         #expect(Set(store.browserTracks.map(\.id)).count == 401)
     }
+
+    @MainActor
+    @Test("Grouped search discloses truncation and pages See All results")
+    func groupedSearchPaging() async throws {
+        let fixture = try makeLargeRelationshipFixture()
+        let store = LibraryStore(container: fixture.container)
+
+        await store.searchCatalog("track")
+        #expect(store.catalogSearchResults.tracks.count == 40)
+        #expect(store.catalogSearchResults.hasMore(.tracks))
+
+        await store.loadNextCatalogSearchGroup(.tracks)
+        await store.loadNextCatalogSearchGroup(.tracks)
+
+        #expect(store.catalogSearchResults.tracks.count == 401)
+        #expect(!store.catalogSearchResults.hasMore(.tracks))
+        #expect(Set(store.catalogSearchResults.tracks.map(\.id)).count == 401)
+    }
 }
 
 private extension CatalogPagingTests {

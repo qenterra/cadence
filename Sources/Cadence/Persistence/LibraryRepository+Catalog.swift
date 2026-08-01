@@ -154,23 +154,31 @@ extension LibraryRepository {
         }
         let boundedLimit = min(max(limitPerGroup, 1), Self.maximumPageSize)
 
-        return try CatalogSearchResults(
-            tracks: tracksPage(
-                search: normalizedQuery,
-                limit: boundedLimit
-            ).items,
-            albums: albumsPage(
-                search: normalizedQuery,
-                limit: boundedLimit
-            ).items,
-            artists: artistsPage(
-                search: normalizedQuery,
-                limit: boundedLimit
-            ).items,
-            tags: tagsPage(
-                search: normalizedQuery,
-                limit: boundedLimit
-            ).items
+        let tracks = try tracksPage(
+            search: normalizedQuery,
+            limit: boundedLimit
+        )
+        let albums = try albumsPage(
+            search: normalizedQuery,
+            limit: boundedLimit
+        )
+        let artists = try artistsPage(
+            search: normalizedQuery,
+            limit: boundedLimit
+        )
+        let tags = try tagsPage(
+            search: normalizedQuery,
+            limit: boundedLimit
+        )
+        return CatalogSearchResults(
+            tracks: tracks.items,
+            albums: albums.items,
+            artists: artists.items,
+            tags: tags.items,
+            trackCursor: tracks.nextCursor,
+            albumCursor: albums.nextCursor,
+            artistCursor: artists.nextCursor,
+            tagCursor: tags.nextCursor
         )
     }
 }

@@ -188,17 +188,36 @@ struct LibraryCatalogCounts: Equatable, Sendable {
     )
 }
 
+enum CatalogSearchGroup: String, CaseIterable, Hashable, Identifiable, Sendable {
+    case artists
+    case albums
+    case tags
+    case tracks
+
+    var id: Self {
+        self
+    }
+}
+
 struct CatalogSearchResults: Equatable, Sendable {
-    let tracks: [LibraryTrackProjection]
-    let albums: [LibraryAlbumProjection]
-    let artists: [LibraryArtistProjection]
-    let tags: [LibraryTagProjection]
+    var tracks: [LibraryTrackProjection]
+    var albums: [LibraryAlbumProjection]
+    var artists: [LibraryArtistProjection]
+    var tags: [LibraryTagProjection]
+    var trackCursor: LibraryPageCursor?
+    var albumCursor: LibraryPageCursor?
+    var artistCursor: LibraryPageCursor?
+    var tagCursor: LibraryPageCursor?
 
     static let empty = CatalogSearchResults(
         tracks: [],
         albums: [],
         artists: [],
-        tags: []
+        tags: [],
+        trackCursor: nil,
+        albumCursor: nil,
+        artistCursor: nil,
+        tagCursor: nil
     )
 
     var isEmpty: Bool {
@@ -206,6 +225,15 @@ struct CatalogSearchResults: Equatable, Sendable {
             && albums.isEmpty
             && artists.isEmpty
             && tags.isEmpty
+    }
+
+    func hasMore(_ group: CatalogSearchGroup) -> Bool {
+        switch group {
+        case .artists: artistCursor != nil
+        case .albums: albumCursor != nil
+        case .tags: tagCursor != nil
+        case .tracks: trackCursor != nil
+        }
     }
 }
 

@@ -3,6 +3,7 @@ import SwiftUI
 struct ProductionSearchResultsView: View {
     @Bindable var model: CadenceAppModel
     @Bindable var store: LibraryStore
+    @State private var expandedGroup: CatalogSearchGroup?
 
     var body: some View {
         Group {
@@ -18,10 +19,7 @@ struct ProductionSearchResultsView: View {
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: 28) {
                         header
-                        artistsSection
-                        albumsSection
-                        tagsSection
-                        tracksSection
+                        searchSections
                     }
                     .padding(.horizontal, 28)
                     .padding(.vertical, 24)
@@ -29,21 +27,63 @@ struct ProductionSearchResultsView: View {
             }
         }
         .background(CadenceTheme.contentBackground)
+        .onChange(of: store.catalogSearchQuery) {
+            expandedGroup = nil
+        }
     }
 }
 
 private extension ProductionSearchResultsView {
     private var header: some View {
         CadencePageHeader(
-            "Search",
+            expandedGroup == nil ? "Search" : expandedTitle,
             subtitle: "Results for “\(store.catalogSearchQuery)”"
-        )
+        ) {
+            if expandedGroup != nil {
+                Button("All Results", systemImage: "chevron.backward") {
+                    expandedGroup = nil
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var searchSections: some View {
+        switch expandedGroup {
+        case .artists:
+            artistsSection
+        case .albums:
+            albumsSection
+        case .tags:
+            tagsSection
+        case .tracks:
+            tracksSection
+        case nil:
+            artistsSection
+            albumsSection
+            tagsSection
+            tracksSection
+        }
+    }
+
+    private var expandedTitle: String {
+        switch expandedGroup {
+        case .artists: "Artists"
+        case .albums: "Albums"
+        case .tags: "Tags"
+        case .tracks: "Tracks"
+        case nil: "Search"
+        }
     }
 
     @ViewBuilder
     private var artistsSection: some View {
         if !store.catalogSearchResults.artists.isEmpty {
-            resultSection("Artists") {
+            resultSection(
+                "Artists",
+                group: .artists,
+                count: store.catalogSearchResults.artists.count
+            ) {
                 resultGrid {
                     ForEach(store.catalogSearchResults.artists) { artist in
                         mediaResultRow(
@@ -65,6 +105,16 @@ private extension ProductionSearchResultsView {
                         .contextMenu {
                             artistActions(artist)
                         }
+                        .task {
+                            guard
+                                expandedGroup == .artists,
+                                artist.id
+                                == store.catalogSearchResults.artists.last?.id
+                            else {
+                                return
+                            }
+                            await store.loadNextCatalogSearchGroup(.artists)
+                        }
                     }
                 }
             }
@@ -74,7 +124,11 @@ private extension ProductionSearchResultsView {
     @ViewBuilder
     private var albumsSection: some View {
         if !store.catalogSearchResults.albums.isEmpty {
-            resultSection("Albums") {
+            resultSection(
+                "Albums",
+                group: .albums,
+                count: store.catalogSearchResults.albums.count
+            ) {
                 resultGrid {
                     ForEach(store.catalogSearchResults.albums) { album in
                         mediaResultRow(
@@ -96,6 +150,16 @@ private extension ProductionSearchResultsView {
                         .contextMenu {
                             albumActions(album)
                         }
+                        .task {
+                            guard
+                                expandedGroup == .albums,
+                                album.id
+                                == store.catalogSearchResults.albums.last?.id
+                            else {
+                                return
+                            }
+                            await store.loadNextCatalogSearchGroup(.albums)
+                        }
                     }
                 }
             }
@@ -105,7 +169,11 @@ private extension ProductionSearchResultsView {
     @ViewBuilder
     private var tagsSection: some View {
         if !store.catalogSearchResults.tags.isEmpty {
-            resultSection("Tags") {
+            resultSection(
+                "Tags",
+                group: .tags,
+                count: store.catalogSearchResults.tags.count
+            ) {
                 resultGrid {
                     ForEach(store.catalogSearchResults.tags) { tag in
                         resultButton(
@@ -117,6 +185,15 @@ private extension ProductionSearchResultsView {
                                 id: tag.id
                             )
                         }
+                        .task {
+                            guard
+                                expandedGroup == .tags,
+                                tag.id == store.catalogSearchResults.tags.last?.id
+                            else {
+                                return
+                            }
+                            await store.loadNextCatalogSearchGroup(.tags)
+                        }
                     }
                 }
             }
@@ -126,10 +203,17 @@ private extension ProductionSearchResultsView {
     @ViewBuilder
     private var tracksSection: some View {
         if !store.catalogSearchResults.tracks.isEmpty {
-            resultSection("Tracks") {
-                ProductionTrackList(
+            resultSection(
+                "Tracks",
+                group: .tracks,
+                count: store.catalogSearchResults.tracks.count
+            ) {
+                ProductionTrackTable(
                     model: model,
-                    tracks: store.catalogSearchResults.tracks
+                    tracks: store.catalogSearchResults.tracks,
+                    onReachEnd: expandedGroup == .tracks ? {
+                        await store.loadNextCatalogSearchGroup(.tracks)
+                    } : nil
                 )
             }
         }
@@ -137,13 +221,36 @@ private extension ProductionSearchResultsView {
 
     private func resultSection(
         _ title: String,
+        group: CatalogSearchGroup,
+        count: Int,
         @ViewBuilder content: () -> some View
     ) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(title)
-                .font(.title2.bold())
+            HStack(alignment: .firstTextBaseline) {
+                Text(title)
+                    .font(.title2.bold())
+                Text(resultCount(count, group: group))
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+                Spacer()
+                if expandedGroup == nil,
+                   store.catalogSearchResults.hasMore(group) {
+                    Button("See All") {
+                        expandedGroup = group
+                    }
+                }
+            }
             content()
         }
+    }
+
+    private func resultCount(
+        _ count: Int,
+        group: CatalogSearchGroup
+    ) -> String {
+        store.catalogSearchResults.hasMore(group)
+            ? "Showing \(count)+"
+            : count.formatted()
     }
 
     private func resultGrid(
@@ -235,84 +342,4 @@ private extension ProductionSearchResultsView {
         .background(CadenceTheme.subduedFill)
         .clipShape(RoundedRectangle(cornerRadius: 10))
     }
-
-    @ViewBuilder
-    private func artistActions(
-        _ artist: LibraryArtistProjection
-    ) -> some View {
-        AddArtistToPlaylistMenuItems(
-            store: store,
-            artistID: artist.id
-        )
-        ArtworkMenuItems(
-            model: model,
-            target: .managedArtist(artist.id),
-            label: "Artist Image"
-        )
-        Divider()
-        Button(
-            "Move Artist to Trash…",
-            systemImage: "trash",
-            role: .destructive
-        ) {
-            model.requestLibraryDeletion(
-                kind: .artist,
-                id: artist.id,
-                title: artist.name
-            )
-        }
-    }
-
-    @ViewBuilder
-    private func albumActions(
-        _ album: LibraryAlbumProjection
-    ) -> some View {
-        QuickAlbumTagMenuItems(
-            store: store,
-            albumID: album.id
-        )
-        AddAlbumToPlaylistMenuItems(
-            store: store,
-            albumID: album.id
-        )
-        ArtworkMenuItems(
-            model: model,
-            target: .managedAlbum(album.id),
-            label: "Album Artwork"
-        )
-        Divider()
-        Button(
-            "Move Album to Trash…",
-            systemImage: "trash",
-            role: .destructive
-        ) {
-            model.requestLibraryDeletion(
-                kind: .album,
-                id: album.id,
-                title: album.title
-            )
-        }
-    }
-
-    private func resultLabels(
-        title: String,
-        subtitle: String
-    ) -> some View {
-        VStack(alignment: .leading, spacing: 3) {
-            Text(title)
-                .foregroundStyle(.primary)
-                .lineLimit(1)
-            Text(subtitle)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
-        }
-    }
-}
-
-private struct ProductionSearchMediaResult {
-    let title: String
-    let subtitle: String
-    let artworkID: UUID?
-    let placeholder: ArtworkPlaceholder
 }
