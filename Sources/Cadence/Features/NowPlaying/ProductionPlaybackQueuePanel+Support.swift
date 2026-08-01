@@ -42,7 +42,9 @@ struct ProductionQueueRowInteractionModifier: ViewModifier {
             }
             .contentShape(Rectangle())
             .simultaneousGesture(
-                TapGesture(count: 2).onEnded(perform: play)
+                TapGesture(count: 2).onEnded {
+                    play()
+                }
             )
             .highPriorityGesture(
                 TapGesture().onEnded {
