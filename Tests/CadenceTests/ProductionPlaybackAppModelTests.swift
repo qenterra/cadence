@@ -106,6 +106,7 @@ struct ProductionPlaybackAppModelTests {
             playbackCoordinator: coordinator
         )
         let ids = resolved.map(\.track.id)
+        let expectedAfterRemoval = [ids[0], ids[1], ids[2], ids[4]]
         await coordinator.startQueue(
             source: .adHoc,
             trackIDs: ids,
@@ -120,12 +121,7 @@ struct ProductionPlaybackAppModelTests {
                 undoManager: undoManager
             )
         )
-        #expect(coordinator.state.queue?.orderedTrackIDs == [
-            ids[0],
-            ids[1],
-            ids[2],
-            ids[4],
-        ])
+        #expect(coordinator.state.queue?.orderedTrackIDs == expectedAfterRemoval)
         #expect(coordinator.state.currentTime == 23)
 
         undoManager.undo()
@@ -134,12 +130,7 @@ struct ProductionPlaybackAppModelTests {
         #expect(coordinator.state.currentTime == 23)
 
         undoManager.redo()
-        #expect(coordinator.state.queue?.orderedTrackIDs == [
-            ids[0],
-            ids[1],
-            ids[2],
-            ids[4],
-        ])
+        #expect(coordinator.state.queue?.orderedTrackIDs == expectedAfterRemoval)
         #expect(coordinator.state.currentTrack?.id == ids[1])
         #expect(coordinator.state.currentTime == 23)
     }

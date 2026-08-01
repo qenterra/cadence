@@ -1,7 +1,7 @@
 @testable import Cadence
 import Testing
 
-struct SmartCollectionTrackTableTests {
+struct TrackTableColumnTests {
     @Test("Track tables default to Song, Album, and Time")
     func defaultColumns() {
         #expect(

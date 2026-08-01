@@ -179,7 +179,9 @@ struct LibraryRepositoryTests {
         #expect(evidence.exactHashes == [existing.contentHash])
         #expect(evidence.metadataIdentities == [metadataIdentity])
     }
+}
 
+extension LibraryRepositoryTests {
     @Test("Production tag editing respects inherited tags and exclusions")
     func productionTagEditing() async throws {
         let container = try makeContainer(trackCount: 1)
