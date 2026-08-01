@@ -37,9 +37,9 @@ one native SwiftUI app. The library lives at `~/Music/Cadence.library`.
 
 ## Interface
 
-The screenshots below come from Cadence's isolated preview fixture. The artists,
-albums, tracks, tags, artwork, and lyrics are synthetic. The capture process does
-not open the developer's music library.
+The screenshots below come from Cadence's production UI rendered against an
+isolated in-memory SwiftData fixture. Every artist, album, track, and tag is
+synthetic; the capture process cannot open the developer's music library.
 
 ![Cadence Library showing synthetic artists, albums, and tracks](docs/images/cadence-library.png)
 
@@ -48,7 +48,7 @@ not open the developer's music library.
     <td width="50%">
       <img
         src="docs/images/cadence-now-playing.png"
-        alt="Cadence Now Playing view with synthetic artwork, queue, and line-synced lyrics"
+        alt="Cadence Now Playing view with a synthetic production queue"
       >
     </td>
     <td width="50%">

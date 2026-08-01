@@ -67,6 +67,9 @@ by the production `LibraryStore`, not preview fixtures.
   `Tests/CadenceTests`.
 - Public screenshots must use an isolated test or UI-test fixture rather than a
   hidden runtime mode in the shipping app.
+- `scripts/update_screenshots.sh` is the only supported capture entry point; it
+  enables an opt-in test that renders the production root against in-memory
+  SwiftData and synthetic public metadata.
 
 ## App icon
 

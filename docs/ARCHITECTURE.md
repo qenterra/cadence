@@ -30,9 +30,11 @@ media, mutate SwiftData, or configure audio engines directly.
 library navigation, tags, smart collections, playlists, import, playback,
 lyrics, artwork, search, and contextual navigation into feature files.
 
-Production starts with `CadenceAppModel.production(librarySession:)`. Debug
-builds accept `--public-preview` to create an isolated in-memory fixture for
-documentation screenshots. Release builds cannot activate that path.
+Production starts with `CadenceAppModel.production(librarySession:)`. Debug and
+Release launches use the same production-backed runtime; there is no hidden
+preview argument in the application target. Unit tests retain isolated fixture
+models for domain behavior, and documentation screenshots render through an
+opt-in test harness backed by an in-memory SwiftData repository.
 
 ## Persistence
 
