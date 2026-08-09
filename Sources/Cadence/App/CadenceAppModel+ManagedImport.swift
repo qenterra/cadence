@@ -107,9 +107,9 @@ extension CadenceAppModel {
                 .map(\.id)
         )
         importScanProgress = ImportInspectionProgress(
+            phase: .scanning,
             completedCount: candidates.count,
-            totalCount: candidates.count,
-            currentFilename: candidates.last?.sourceFilename
+            totalCount: candidates.count
         )
         importPreviewStage = .review
         importReviewCategory = .ready

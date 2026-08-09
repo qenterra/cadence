@@ -23,4 +23,32 @@ struct SmartCollectionsLayoutTests {
         #expect(builder.maximum == 620)
         #expect(SmartCollectionsPaneConstraints.resultsMinimum == 360)
     }
+
+    @Test("Resizable columns always fill the workspace without overflow")
+    func splitLayoutFillsAvailableWidth() {
+        let layout = CadenceSplitLayout(
+            totalWidth: 859,
+            proposedFixedWidth: 620,
+            fixedMinimum: 220,
+            fixedMaximum: 420,
+            flexibleMinimum: 520
+        )
+
+        #expect(layout.fixedWidth == 332)
+        #expect(layout.flexibleWidth == 520)
+        #expect(layout.fixedWidth + layout.dividerWidth + layout.flexibleWidth == 859)
+
+        let undersized = CadenceSplitLayout(
+            totalWidth: 200,
+            proposedFixedWidth: 420,
+            fixedMinimum: 220,
+            fixedMaximum: 420,
+            flexibleMinimum: 520
+        )
+        #expect(
+            undersized.fixedWidth
+                + undersized.dividerWidth
+                + undersized.flexibleWidth == 200
+        )
+    }
 }

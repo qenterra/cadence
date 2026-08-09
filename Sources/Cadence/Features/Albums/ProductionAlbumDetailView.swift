@@ -169,28 +169,25 @@ struct ProductionAlbumDetailView: View {
     @ViewBuilder
     private var albumTagChips: some View {
         if !albumTags.isEmpty {
-            ScrollView(.horizontal) {
-                HStack(spacing: 7) {
-                    ForEach(albumTags) { tag in
-                        Button {
-                            model.requestOpenProductionTagContextually(
-                                id: tag.id
+            CadenceFlowLayout(horizontalSpacing: 7, verticalSpacing: 7) {
+                ForEach(albumTags) { tag in
+                    Button {
+                        model.requestOpenProductionTagContextually(
+                            id: tag.id
+                        )
+                    } label: {
+                        Label(tag.displayPath, systemImage: "tag")
+                            .font(.caption.weight(.medium))
+                            .padding(.horizontal, 9)
+                            .frame(height: 28)
+                            .background(
+                                CadenceTheme.subduedFill,
+                                in: Capsule()
                             )
-                        } label: {
-                            Label(tag.displayPath, systemImage: "tag")
-                                .font(.caption.weight(.medium))
-                                .padding(.horizontal, 9)
-                                .frame(height: 28)
-                                .background(
-                                    CadenceTheme.subduedFill,
-                                    in: Capsule()
-                                )
-                        }
-                        .buttonStyle(.plain)
                     }
+                    .buttonStyle(.plain)
                 }
             }
-            .scrollIndicators(.hidden)
             .padding(.top, 4)
         }
     }

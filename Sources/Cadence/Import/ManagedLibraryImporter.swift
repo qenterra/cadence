@@ -61,14 +61,6 @@ struct ManagedImportFailureInjector: Sendable {
     static let disabled = ManagedImportFailureInjector()
 }
 
-struct ManagedImportProgress: Equatable, Sendable {
-    let completedCount: Int
-    let totalCount: Int
-    let copiedByteCount: Int64
-    let currentFilename: String?
-    let isCommitting: Bool
-}
-
 struct ManagedImportCompletion: Equatable, Sendable {
     let importID: UUID
     let importedTrackIDs: [UUID]

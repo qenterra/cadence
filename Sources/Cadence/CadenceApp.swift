@@ -5,6 +5,7 @@ import SwiftUI
 struct CadenceApp: App {
     @State private var model = Self.makeInitialModel()
     @State private var guideCoordinator = GuideCoordinator()
+    @State private var appearanceController = AppearanceController()
     @AppStorage("appearance")
     private var appearanceRawValue = CadenceAppearance.system.rawValue
 
@@ -14,18 +15,21 @@ struct CadenceApp: App {
                 model: model,
                 guideCoordinator: guideCoordinator
             )
-            .frame(minWidth: 1080, minHeight: 720)
+            .frame(
+                minWidth: AdaptiveLayoutPolicy.minimumWindowSize.width,
+                minHeight: AdaptiveLayoutPolicy.minimumWindowSize.height
+            )
             .preferredColorScheme(appearance.colorScheme)
             .tint(CadenceTheme.primaryAccent)
             .onChange(
                 of: appearanceRawValue,
                 initial: true
             ) { _, _ in
-                NSApplication.shared.appearance =
-                    appearance.appKitAppearance
+                appearanceController.apply(appearance)
             }
         }
         .defaultSize(width: 1512, height: 982)
+        .windowResizability(.contentMinSize)
         .windowToolbarStyle(.unifiedCompact(showsTitle: false))
         .commands {
             CommandMenu("Playback") {

@@ -32,6 +32,12 @@ final class ImportCoordinator {
     @ObservationIgnored
     private var sourceDisplayName = "Selected Music"
 
+    @ObservationIgnored
+    private var scanProgressPolicy = ImportProgressPublicationPolicy()
+
+    @ObservationIgnored
+    private var importProgressPolicy = ImportProgressPublicationPolicy()
+
     var state: ImportCoordinatorState = .empty {
         didSet {
             onStateChange?(state)
@@ -56,6 +62,7 @@ final class ImportCoordinator {
         sourceAccess = SecurityScopedSourceAccess(urls: source.urls)
         sourceDisplayName = Self.displayName(for: source)
         reviewedCandidates = []
+        scanProgressPolicy = ImportProgressPublicationPolicy()
         state = .scanning(.empty)
 
         let service = service
@@ -126,13 +133,13 @@ final class ImportCoordinator {
         let sourceDisplayName = sourceDisplayName
         state = .importing(
             ManagedImportProgress(
+                phase: .copying,
                 completedCount: 0,
                 totalCount: includedIDs.count,
-                copiedByteCount: 0,
-                currentFilename: nil,
-                isCommitting: false
+                copiedByteCount: 0
             )
         )
+        importProgressPolicy = ImportProgressPublicationPolicy()
         scanTask = Task { [weak self] in
             guard let coordinator = self else {
                 return
@@ -163,7 +170,8 @@ final class ImportCoordinator {
     ) {
         guard
             activeScanID == scanID,
-            scanTask?.isCancelled == false
+            scanTask?.isCancelled == false,
+            scanProgressPolicy.shouldPublish(progress)
         else {
             return
         }
@@ -173,6 +181,9 @@ final class ImportCoordinator {
     private func reportImport(
         _ progress: ManagedImportProgress
     ) {
+        guard importProgressPolicy.shouldPublish(progress) else {
+            return
+        }
         state = .importing(progress)
     }
 

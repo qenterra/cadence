@@ -35,11 +35,10 @@ extension ManagedLibraryImporter {
                 copiedBytes += entry.sizeInBytes
                 await progress(
                     ManagedImportProgress(
+                        phase: .copying,
                         completedCount: completedCount,
                         totalCount: manifest.entries.count,
-                        copiedByteCount: copiedBytes,
-                        currentFilename: entry.originalFilename,
-                        isCommitting: false
+                        copiedByteCount: copiedBytes
                     )
                 )
                 if nextIndex < manifest.entries.count {

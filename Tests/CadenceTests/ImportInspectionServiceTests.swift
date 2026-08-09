@@ -72,8 +72,40 @@ struct ImportInspectionServiceTests {
 
         #expect(values.first?.completedCount == 0)
         #expect(values.first?.totalCount == 3)
+        #expect(values.first?.phase == .scanning)
         #expect(values.last?.completedCount == 3)
         #expect(values.last?.fractionCompleted == 1)
+        #expect(values.last?.primaryLabel == "3 of 3")
+    }
+
+    @Test("UI progress publication ignores high-frequency file churn")
+    func throttledProgressPublication() {
+        let clock = ContinuousClock()
+        let start = clock.now
+        var policy = ImportProgressPublicationPolicy()
+        var emissionCount = 0
+
+        for completedCount in 0 ... 500 {
+            let progress = ImportProgress(
+                phase: .scanning,
+                completedCount: completedCount,
+                totalCount: 500
+            )
+            if policy.shouldPublish(progress, now: start) {
+                emissionCount += 1
+            }
+        }
+
+        #expect(emissionCount <= 20)
+        let publishesAfterInterval = policy.shouldPublish(
+            ImportProgress(
+                phase: .scanning,
+                completedCount: 499,
+                totalCount: 500
+            ),
+            now: start.advanced(by: .milliseconds(101))
+        )
+        #expect(publishesAfterInterval)
     }
 }
 

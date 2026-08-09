@@ -6,6 +6,34 @@ enum CadenceFixedSplitPane {
     case trailing
 }
 
+struct CadenceSplitLayout: Equatable, Sendable {
+    static let standardDividerWidth = CGFloat(7)
+
+    let dividerWidth: CGFloat
+    let fixedWidth: CGFloat
+    let flexibleWidth: CGFloat
+
+    init(
+        totalWidth: CGFloat,
+        proposedFixedWidth: CGFloat,
+        fixedMinimum: CGFloat,
+        fixedMaximum: CGFloat,
+        flexibleMinimum: CGFloat,
+        dividerWidth: CGFloat = standardDividerWidth
+    ) {
+        self.dividerWidth = dividerWidth
+        let availableWidth = max(totalWidth - dividerWidth, 0)
+        let minimum = min(fixedMinimum, availableWidth)
+        let maximum = min(
+            fixedMaximum,
+            max(availableWidth - flexibleMinimum, minimum),
+            availableWidth
+        )
+        fixedWidth = min(max(proposedFixedWidth, minimum), maximum)
+        flexibleWidth = max(availableWidth - fixedWidth, 0)
+    }
+}
+
 struct CadenceResizableSplitView<Leading: View, Trailing: View>: View {
     let fixedPane: CadenceFixedSplitPane
     @Binding var fixedWidth: Double
@@ -16,36 +44,35 @@ struct CadenceResizableSplitView<Leading: View, Trailing: View>: View {
     @ViewBuilder let trailing: Trailing
 
     @State private var dragStartWidth: Double?
+    @State private var liveWidth: Double?
     @State private var isDividerHovered = false
 
     var body: some View {
         GeometryReader { geometry in
-            let dividerWidth = CGFloat(7)
-            let availableWidth = max(geometry.size.width - dividerWidth, 0)
-            let resolvedWidth = resolvedFixedWidth(
-                availableWidth: availableWidth
-            )
-            let flexibleWidth = max(
-                availableWidth - resolvedWidth,
-                0
+            let layout = CadenceSplitLayout(
+                totalWidth: geometry.size.width,
+                proposedFixedWidth: CGFloat(liveWidth ?? fixedWidth),
+                fixedMinimum: fixedMinimum,
+                fixedMaximum: fixedMaximum,
+                flexibleMinimum: flexibleMinimum
             )
 
             HStack(alignment: .top, spacing: 0) {
                 if fixedPane == .leading {
                     leading
-                        .frame(width: resolvedWidth)
+                        .frame(width: layout.fixedWidth)
                         .frame(maxHeight: .infinity, alignment: .top)
-                    divider(availableWidth: availableWidth)
+                    divider(totalWidth: geometry.size.width)
                     trailing
-                        .frame(width: flexibleWidth)
+                        .frame(width: layout.flexibleWidth)
                         .frame(maxHeight: .infinity, alignment: .top)
                 } else {
                     leading
-                        .frame(width: flexibleWidth)
+                        .frame(width: layout.flexibleWidth)
                         .frame(maxHeight: .infinity, alignment: .top)
-                    divider(availableWidth: availableWidth)
+                    divider(totalWidth: geometry.size.width)
                     trailing
-                        .frame(width: resolvedWidth)
+                        .frame(width: layout.fixedWidth)
                         .frame(maxHeight: .infinity, alignment: .top)
                 }
             }
@@ -58,7 +85,7 @@ struct CadenceResizableSplitView<Leading: View, Trailing: View>: View {
     }
 
     private func divider(
-        availableWidth: CGFloat
+        totalWidth: CGFloat
     ) -> some View {
         Rectangle()
             .fill(.clear)
@@ -73,7 +100,7 @@ struct CadenceResizableSplitView<Leading: View, Trailing: View>: View {
                     .frame(width: isDividerHovered ? 2 : 1)
             }
             .contentShape(Rectangle())
-            .gesture(resizeGesture(availableWidth: availableWidth))
+            .gesture(resizeGesture(totalWidth: totalWidth))
             .onHover { isInside in
                 if isInside, !isDividerHovered {
                     NSCursor.resizeLeftRight.push()
@@ -91,13 +118,13 @@ struct CadenceResizableSplitView<Leading: View, Trailing: View>: View {
             .accessibilityElement()
             .accessibilityLabel("Resize Columns")
             .accessibilityValue(
-                Int(resolvedFixedWidth(availableWidth: availableWidth))
+                Int(resolvedFixedWidth(totalWidth: totalWidth))
                     .formatted()
             )
     }
 
     private func resizeGesture(
-        availableWidth: CGFloat
+        totalWidth: CGFloat
     ) -> some Gesture {
         DragGesture(
             minimumDistance: 1,
@@ -112,35 +139,34 @@ struct CadenceResizableSplitView<Leading: View, Trailing: View>: View {
             let proposed = fixedPane == .leading
                 ? start + delta
                 : start - delta
-            fixedWidth = Double(
-                clamped(
-                    CGFloat(proposed),
-                    availableWidth: availableWidth
-                )
+            liveWidth = Double(
+                CadenceSplitLayout(
+                    totalWidth: totalWidth,
+                    proposedFixedWidth: CGFloat(proposed),
+                    fixedMinimum: fixedMinimum,
+                    fixedMaximum: fixedMaximum,
+                    flexibleMinimum: flexibleMinimum
+                ).fixedWidth
             )
         }
         .onEnded { _ in
+            if let liveWidth {
+                fixedWidth = liveWidth
+            }
+            liveWidth = nil
             dragStartWidth = nil
         }
     }
 
     private func resolvedFixedWidth(
-        availableWidth: CGFloat
+        totalWidth: CGFloat
     ) -> CGFloat {
-        clamped(
-            CGFloat(fixedWidth),
-            availableWidth: availableWidth
-        )
-    }
-
-    private func clamped(
-        _ proposedWidth: CGFloat,
-        availableWidth: CGFloat
-    ) -> CGFloat {
-        let maximum = min(
-            fixedMaximum,
-            max(availableWidth - flexibleMinimum, fixedMinimum)
-        )
-        return min(max(proposedWidth, fixedMinimum), maximum)
+        CadenceSplitLayout(
+            totalWidth: totalWidth,
+            proposedFixedWidth: CGFloat(liveWidth ?? fixedWidth),
+            fixedMinimum: fixedMinimum,
+            fixedMaximum: fixedMaximum,
+            flexibleMinimum: flexibleMinimum
+        ).fixedWidth
     }
 }

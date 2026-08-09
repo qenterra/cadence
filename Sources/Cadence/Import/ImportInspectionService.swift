@@ -1,24 +1,5 @@
 import Foundation
 
-struct ImportInspectionProgress: Equatable, Sendable {
-    let completedCount: Int
-    let totalCount: Int
-    let currentFilename: String?
-
-    static let empty = ImportInspectionProgress(
-        completedCount: 0,
-        totalCount: 0,
-        currentFilename: nil
-    )
-
-    var fractionCompleted: Double {
-        guard totalCount > 0 else {
-            return 0
-        }
-        return Double(completedCount) / Double(totalCount)
-    }
-}
-
 struct ImportDuplicateLookup: Sendable {
     private let operation: @Sendable (
         [ImportDuplicateProbe]
@@ -92,9 +73,9 @@ struct ImportInspectionService: Sendable {
         }
         await progress(
             ImportInspectionProgress(
+                phase: .scanning,
                 completedCount: 0,
-                totalCount: audioFiles.count,
-                currentFilename: nil
+                totalCount: audioFiles.count
             )
         )
 
@@ -147,9 +128,9 @@ struct ImportInspectionService: Sendable {
                 completedCount += 1
                 await progress(
                     ImportInspectionProgress(
+                        phase: .scanning,
                         completedCount: completedCount,
-                        totalCount: audioFiles.count,
-                        currentFilename: draft.sourceFile.url.lastPathComponent
+                        totalCount: audioFiles.count
                     )
                 )
 

@@ -106,13 +106,12 @@ extension ManagedLibraryImporter {
     ) async {
         await progress(
             ManagedImportProgress(
+                phase: .saving,
                 completedCount: entries.count,
                 totalCount: entries.count,
                 copiedByteCount: entries.reduce(0) {
                     $0 + $1.sizeInBytes
-                },
-                currentFilename: nil,
-                isCommitting: true
+                }
             )
         )
     }

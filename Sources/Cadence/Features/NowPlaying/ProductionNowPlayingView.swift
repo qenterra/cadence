@@ -132,43 +132,46 @@ private extension ProductionNowPlayingView {
     private var trackTags: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 8) {
-                HStack(spacing: 8) {
+                HStack(alignment: .top, spacing: 8) {
                     Image(systemName: "tag")
                         .foregroundStyle(.secondary)
+                        .frame(height: 24)
 
-                    ScrollView(.horizontal) {
-                        HStack(spacing: 6) {
-                            ForEach(tagStates) { state in
-                                Button {
-                                    model.requestOpenProductionTagContextually(
-                                        id: state.tag.id
-                                    )
-                                } label: {
-                                    Text(state.tag.displayPath)
-                                        .font(.caption.weight(.medium))
-                                        .padding(.horizontal, 8)
-                                        .frame(height: 24)
-                                        .background(
-                                            CadenceTheme.subduedFill,
-                                            in: Capsule()
-                                        )
-                                }
-                                .buttonStyle(.plain)
-                                .help(
-                                    "Show tracks tagged "
-                                        + state.tag.displayPath
+                    CadenceFlowLayout(horizontalSpacing: 6, verticalSpacing: 6) {
+                        ForEach(tagStates.prefix(3)) { state in
+                            Button {
+                                model.requestOpenProductionTagContextually(
+                                    id: state.tag.id
                                 )
+                            } label: {
+                                Text(state.tag.displayPath)
+                                    .font(.caption.weight(.medium))
+                                    .padding(.horizontal, 8)
+                                    .frame(height: 24)
+                                    .background(
+                                        CadenceTheme.subduedFill,
+                                        in: Capsule()
+                                    )
                             }
-
-                            TextField("Add a tag", text: $newTagPath)
-                                .textFieldStyle(.plain)
-                                .font(.caption)
-                                .frame(minWidth: 86, maxWidth: 130)
-                                .onSubmit(addTag)
-                                .disabled(isAddingTag)
+                            .buttonStyle(.plain)
+                            .help("Show tracks tagged " + state.tag.displayPath)
                         }
+
+                        if tagStates.count > 3 {
+                            Text("+\(tagStates.count - 3)")
+                                .font(.caption.monospacedDigit())
+                                .foregroundStyle(.secondary)
+                                .frame(height: 24)
+                        }
+
+                        TextField("Add a tag", text: $newTagPath)
+                            .textFieldStyle(.plain)
+                            .font(.caption)
+                            .frame(width: 110, height: 24)
+                            .onSubmit(addTag)
+                            .disabled(isAddingTag)
                     }
-                    .scrollIndicators(.hidden)
+                    .frame(maxWidth: .infinity, alignment: .leading)
 
                     if !trimmedTagPath.isEmpty {
                         Button(action: addTag) {
@@ -181,7 +184,8 @@ private extension ProductionNowPlayingView {
                     }
                 }
                 .padding(.horizontal, 10)
-                .frame(height: 36)
+                .padding(.vertical, 6)
+                .frame(minHeight: 36)
                 .background(
                     CadenceTheme.subduedFill,
                     in: RoundedRectangle(

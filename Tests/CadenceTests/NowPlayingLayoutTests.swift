@@ -4,11 +4,15 @@ import Testing
 struct NowPlayingLayoutTests {
     @Test
     func minimumWindowKeepsBothRegionsUsable() {
-        let layout = NowPlayingLayoutMetrics(totalWidth: 1007)
+        let workspaceWidth = AdaptiveLayoutPolicy.minimumWindowSize.width
+            - NavigationRailMetrics.expandedWidth
+            - 1
+        let layout = NowPlayingLayoutMetrics(totalWidth: workspaceWidth)
 
-        #expect(layout.contextWidth >= 340)
-        #expect(layout.panelWidth >= 520)
+        #expect(layout.contextWidth >= 320)
+        #expect(layout.panelWidth >= 480)
         #expect(layout.artworkSize >= 220)
+        #expect(layout.contextWidth + layout.panelWidth + 1 == workspaceWidth)
     }
 
     @Test
@@ -29,11 +33,10 @@ struct NowPlayingLayoutTests {
         #expect(layout.artworkSize == 360)
     }
 
-    @Test
-    func undersizedInputResolvesToSupportedMinimum() {
+    @Test("Unsupported widths still never invent horizontal space")
+    func undersizedInputDoesNotOverflow() {
         let layout = NowPlayingLayoutMetrics(totalWidth: 500)
 
-        #expect(layout.contextWidth == 340)
-        #expect(layout.panelWidth == 520)
+        #expect(layout.contextWidth + layout.panelWidth + 1 == 500)
     }
 }

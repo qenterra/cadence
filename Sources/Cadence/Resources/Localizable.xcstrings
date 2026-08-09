@@ -79,13 +79,13 @@
         }
       }
     },
-    "%lld percent" : {
-
-    },
     "%lld steps" : {
 
     },
     "%lld tracks" : {
+
+    },
+    "+%lld" : {
 
     },
     "ALBUM" : {
@@ -906,12 +906,6 @@
 
     },
     "Scan progress" : {
-
-    },
-    "Scanning Demo Library" : {
-
-    },
-    "Scanning Music" : {
 
     },
     "Search Shortcuts" : {

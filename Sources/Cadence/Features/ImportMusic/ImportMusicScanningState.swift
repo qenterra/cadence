@@ -11,10 +11,16 @@ struct ImportMusicScanningState: View {
             Spacer(minLength: 24)
 
             VStack(spacing: 12) {
-                ProgressView()
-                    .controlSize(.large)
+                if progress.totalCount == 0, !isPreview {
+                    ProgressView()
+                        .controlSize(.large)
+                } else {
+                    Image(systemName: "waveform.badge.magnifyingglass")
+                        .font(.system(size: 32, weight: .medium))
+                        .foregroundStyle(CadenceTheme.primaryAccent)
+                }
 
-                Text(isPreview ? "Scanning Demo Library" : "Scanning Music")
+                Text(isPreview ? "Scanning Demo Library" : progress.phase.title)
                     .font(.title3.weight(.semibold))
 
                 Text("Reading metadata, checking duplicates, and matching LRC files…")
@@ -22,21 +28,18 @@ struct ImportMusicScanningState: View {
                     .foregroundStyle(.secondary)
             }
 
-            ProgressView(value: displayedProgress)
-                .progressViewStyle(.linear)
-                .frame(maxWidth: 520)
-                .accessibilityLabel("Scan progress")
-                .accessibilityValue(
-                    "\(Int(displayedProgress * 100)) percent"
-                )
+            VStack(spacing: 8) {
+                ProgressView(value: displayedProgress)
+                    .progressViewStyle(.linear)
+                    .accessibilityLabel("Scan progress")
+                    .accessibilityValue(progressLabel)
 
-            if !isPreview, let filename = progress.currentFilename {
-                Text(filename)
-                    .font(.caption)
+                Text(progressLabel)
+                    .font(.callout.monospacedDigit())
                     .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                    .frame(maxWidth: 520)
+                    .contentTransition(.numericText())
             }
+            .frame(maxWidth: 520)
 
             if isPreview {
                 VStack(spacing: 0) {
@@ -93,5 +96,9 @@ struct ImportMusicScanningState: View {
 
     private var displayedProgress: Double {
         isPreview ? 0.62 : progress.fractionCompleted
+    }
+
+    private var progressLabel: String {
+        isPreview ? "62 of 100" : progress.primaryLabel
     }
 }

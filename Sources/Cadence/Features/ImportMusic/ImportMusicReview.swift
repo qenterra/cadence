@@ -220,12 +220,9 @@ struct ImportMusicReview: View {
             return "Preparing Cadence.library…"
         }
         if progress.isCommitting {
-            return "Finishing the atomic library commit…"
+            return progress.phase.title
         }
-        if let filename = progress.currentFilename {
-            return "Copied \(progress.completedCount) of \(progress.totalCount) · \(filename)"
-        }
-        return "Copied \(progress.completedCount) of \(progress.totalCount)"
+        return "\(progress.phase.title) · \(progress.primaryLabel)"
     }
 
     private var canCancelImport: Bool {
