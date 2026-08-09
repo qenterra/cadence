@@ -174,6 +174,34 @@ struct PCMPlaybackBackendTests {
         backend.stop()
     }
 
+    @Test("User volume controls the PCM engine output")
+    func outputVolume() {
+        let backend = PCMPlaybackBackend()
+
+        backend.setVolume(0.25)
+
+        #expect(backend.userVolume == 0.25)
+        #expect(backend.engine.mainMixerNode.outputVolume == 0.25)
+        backend.stop()
+    }
+
+    @Test("PCM timeline samples expose rendered time and transport rate")
+    func timelineSamples() {
+        let backend = PCMPlaybackBackend()
+        backend.lastKnownPlaybackTime = 95
+        backend.isPlaying = true
+
+        let advancing = backend.timelineSample(hostUptime: 12)
+
+        #expect(advancing.mediaTime == 95)
+        #expect(advancing.hostUptime == 12)
+        #expect(advancing.rate == 1)
+
+        backend.isPlaying = false
+        #expect(backend.timelineSample(hostUptime: 13).rate == 0)
+        backend.stop()
+    }
+
     private func makeWave(
         at url: URL,
         id: UUID,

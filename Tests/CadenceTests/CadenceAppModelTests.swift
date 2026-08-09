@@ -3,6 +3,18 @@ import Testing
 
 @MainActor
 struct CadenceAppModelTests {
+    @Test("Space playback shortcut toggles only when a track is available")
+    @MainActor
+    func playbackShortcut() {
+        let populated = CadenceAppModel.testFixture()
+        let empty = CadenceAppModel.testFixture(tracks: [])
+
+        #expect(populated.handlePlaybackShortcut())
+        #expect(populated.isPlaying)
+        #expect(!empty.handlePlaybackShortcut())
+        #expect(!empty.isPlaying)
+    }
+
     @Test("Search matches track metadata and tags")
     func search() {
         let model = CadenceAppModel.testFixture()

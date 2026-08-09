@@ -4,6 +4,69 @@ import SwiftData
 import Testing
 
 struct ManagedImportRepositoryTests {
+    @Test("One imported file is credited to every artist but owns one album")
+    func multiArtistCredits() async throws {
+        let container = try LibraryContainerFactory.inMemory()
+        let repository = LibraryRepository(modelContainer: container)
+        let entry = makeEntry(
+            title: "Joint Signal",
+            hashSeed: "9",
+            artist: "madkid, темный принц",
+            artists: ["madkid", "темный принц"],
+            albumArtist: "madkid"
+        )
+        _ = try await repository.commitImport(
+            makeManifest(importID: UUID(), entries: [entry])
+        )
+
+        let context = ModelContext(container)
+        let artists = try context.fetch(
+            FetchDescriptor<ArtistRecord>(sortBy: [SortDescriptor(\.name)])
+        )
+        let credits = try context.fetch(
+            FetchDescriptor<TrackArtistCreditRecord>(
+                sortBy: [SortDescriptor(\.position)]
+            )
+        )
+        let albums = try context.fetch(FetchDescriptor<AlbumRecord>())
+        let artistNamesByID = Dictionary(
+            uniqueKeysWithValues: artists.map { ($0.id, $0.name) }
+        )
+
+        #expect(Set(artists.map(\.name)) == ["madkid", "темный принц"])
+        #expect(credits.map { artistNamesByID[$0.artistID] } == ["madkid", "темный принц"])
+        #expect(credits.map(\.displayArtistName) == ["madkid", "темный принц"])
+        #expect(credits.map(\.trackID) == [entry.trackID, entry.trackID])
+        #expect(albums.map { $0.artist?.name } == ["madkid"])
+        #expect(
+            try await repository.artistsPage().items.map(\.albumCount)
+                == [1, 1]
+        )
+
+        for artist in artists {
+            let page = try await repository.tracksPage(
+                query: LibraryTrackQuery(scope: .artist(artist.id))
+            )
+            #expect(page.items.map(\.id) == [entry.trackID])
+            #expect(page.items.map(\.artist) == ["madkid, темный принц"])
+            #expect(
+                try await repository.albums(artistID: artist.id).map(\.id)
+                    == albums.map(\.id)
+            )
+            #expect(try await repository.artist(id: artist.id)?.albumCount == 1)
+            #expect(
+                try await repository.playlistTrackIDs(artistID: artist.id)
+                    == [entry.trackID]
+            )
+        }
+
+        let albumID = try #require(albums.first?.id)
+        let albumProjection = try #require(
+            try await repository.album(id: albumID)
+        )
+        #expect(albumProjection.artist == "madkid, темный принц")
+    }
+
     @Test("A manifest commits one import session and reuses artist and album")
     func commitsManifest() async throws {
         let container = try LibraryContainerFactory.inMemory()
@@ -148,7 +211,10 @@ struct ManagedImportRepositoryTests {
         title: String,
         hashSeed: String = "a",
         contentHash: String? = nil,
-        withLyrics: Bool = false
+        withLyrics: Bool = false,
+        artist: String = "North Assembly",
+        artists: [String]? = nil,
+        albumArtist: String? = nil
     ) -> ManagedImportManifest.Entry {
         let trackID = UUID()
         return ManagedImportManifest.Entry(
@@ -159,8 +225,10 @@ struct ManagedImportRepositoryTests {
             originalExtension: "flac",
             metadata: ManagedImportManifest.Metadata(
                 title: title,
-                artist: "North Assembly",
+                artist: artist,
                 album: "Signals",
+                artists: artists,
+                albumArtist: albumArtist,
                 year: 2026,
                 trackNumber: nil,
                 discNumber: nil,

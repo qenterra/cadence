@@ -187,15 +187,22 @@ private func copyLyricsIfValid(
     manifestStore: ManagedImportManifestStore,
     hasher: ContentHasher
 ) async throws -> ManagedImportManifest.LyricAsset? {
-    guard
-        let sourcePath = entry.sourceLyricPath,
-        var lyric = entry.lyric
-    else {
+    guard var lyric = entry.lyric else {
         return nil
     }
     do {
-        let sourceURL = URL(filePath: sourcePath)
-        let source = try String(contentsOf: sourceURL, encoding: .utf8)
+        let source: String
+        let sourceURL: URL?
+        if let sourcePath = entry.sourceLyricPath {
+            let url = URL(filePath: sourcePath)
+            source = try String(contentsOf: url, encoding: .utf8)
+            sourceURL = url
+        } else if let embedded = entry.metadata.embeddedLyrics {
+            source = embedded.text
+            sourceURL = nil
+        } else {
+            return nil
+        }
         let document = try LineLevelLRC.parse(source, trackID: 0)
         let stagedURL = try manifestStore.stagedURL(
             importID: importID,
@@ -205,7 +212,11 @@ private func copyLyricsIfValid(
             at: stagedURL.deletingLastPathComponent(),
             withIntermediateDirectories: true
         )
-        try FileManager.default.copyItem(at: sourceURL, to: stagedURL)
+        if let sourceURL {
+            try FileManager.default.copyItem(at: sourceURL, to: stagedURL)
+        } else {
+            try Data(source.utf8).write(to: stagedURL, options: .atomic)
+        }
         lyric.contentHash = try await hasher.sha256(of: stagedURL)
         lyric.timingStatus = document.timingStatus.storageValue
         return lyric
@@ -251,6 +262,15 @@ extension ImportInspectionCandidate {
             return url
         }
         return nil
+    }
+
+    var hasImportableLyrics: Bool {
+        switch lyrics {
+        case .linked, .embedded:
+            true
+        case .unavailable, .malformed, .ambiguous:
+            false
+        }
     }
 }
 

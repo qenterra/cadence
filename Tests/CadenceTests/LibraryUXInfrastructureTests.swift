@@ -173,7 +173,8 @@ struct LibraryUXInfrastructureTests {
             relativeMediaPath: "\(UUID()).flac",
             dateAdded: .now,
             lastPlayedAt: nil,
-            playCount: 0
+            playCount: 0,
+            hasSynchronizedLyrics: false
         )
     }
 }

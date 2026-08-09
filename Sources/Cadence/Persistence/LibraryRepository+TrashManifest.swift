@@ -23,6 +23,12 @@ extension LibraryRepository {
             tracks: plan.tracks.map(trackSnapshot).sorted {
                 $0.id.uuidString < $1.id.uuidString
             },
+            artistCredits: plan.credits.map(artistCreditSnapshot).sorted {
+                if $0.trackID == $1.trackID {
+                    return $0.position < $1.position
+                }
+                return $0.trackID.uuidString < $1.trackID.uuidString
+            },
             lyrics: plan.tracks.compactMap(\.lyrics).map(lyricSnapshot),
             artworks: plan.artworks.map(artworkSnapshot),
             tagAssignments: relationships.assignments.map(assignmentSnapshot),
@@ -136,6 +142,18 @@ private extension LibraryRepository {
             replayGainTrackPeak: track.replayGainTrackPeak,
             artistID: track.artist?.id,
             albumID: track.album?.id
+        )
+    }
+
+    func artistCreditSnapshot(
+        _ credit: TrackArtistCreditRecord
+    ) -> TrashArtistCreditSnapshot {
+        TrashArtistCreditSnapshot(
+            id: credit.id,
+            trackID: credit.trackID,
+            artistID: credit.artistID,
+            position: credit.position,
+            displayArtistName: credit.displayArtistName
         )
     }
 

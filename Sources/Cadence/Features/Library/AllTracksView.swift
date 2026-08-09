@@ -16,23 +16,33 @@ struct AllTracksView: View {
                 ) {
                     model.requestNavigationDestination(.importMusic)
                 }
+            } else if let window = store.allTracksWindow {
+                NativeAllTracksTable(
+                    model: model,
+                    window: window,
+                    repositorySortAction: { sort in
+                        await store.sortTracks(sort)
+                    },
+                    selection: $selection
+                )
+                .padding(.horizontal, 28)
+                .padding(.bottom, 24)
             } else {
-                ScrollView {
-                    ProductionTrackTable(
-                        model: model,
-                        tracks: store.tracks,
-                        queueSource: .allTracks,
-                        onReachEnd: {
-                            await store.loadNextTracks()
-                        },
-                        repositorySortAction: { sort in
-                            await store.sortTracks(sort)
-                        },
-                        selection: $selection
-                    )
-                    .padding(.horizontal, 28)
-                    .padding(.bottom, 24)
-                }
+                ProductionTrackTable(
+                    model: model,
+                    tracks: store.tracks,
+                    queueSource: .allTracks,
+                    onReachEnd: {
+                        await store.loadNextTracks()
+                    },
+                    scrollAxes: [.horizontal, .vertical],
+                    repositorySortAction: { sort in
+                        await store.sortTracks(sort)
+                    },
+                    selection: $selection
+                )
+                .padding(.horizontal, 28)
+                .padding(.bottom, 24)
             }
         }
         .frame(
@@ -41,6 +51,18 @@ struct AllTracksView: View {
             alignment: .topLeading
         )
         .background(CadenceTheme.contentBackground)
+        .task(id: trackWindowConfigurationID) {
+            await store.allTracksWindow?.configure(
+                totalCount: store.catalogCounts.liveTrackCount,
+                query: store.trackQuery
+            )
+        }
+    }
+
+    private var trackWindowConfigurationID: String {
+        let sort = store.trackQuery.sort
+        return "\(store.catalogCounts.liveTrackCount)-\(sort.field.rawValue)-"
+            + "\(sort.direction.rawValue)-\(store.trackQuery.search)"
     }
 
     private var header: some View {

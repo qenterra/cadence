@@ -16,7 +16,7 @@ extension PlaybackCoordinator {
         switch event {
         case let .duration(duration):
             state.duration = max(duration, 0)
-            publishState()
+            publishState(reanchorPresentationClock: false)
         case let .failed(failure):
             failCurrent(with: failure)
         case let .finished(trackID, successorStarted):
@@ -26,9 +26,26 @@ extension PlaybackCoordinator {
             Task {
                 await handleFinishedItem(successorStarted: successorStarted)
             }
+        case let .timeline(sample):
+            presentationClock.update(sample)
+            if shouldPublishTimeline(sample) {
+                state.currentTime = min(
+                    max(sample.mediaTime, 0),
+                    state.duration
+                )
+                lastTimelinePublication = sample
+                publishState(reanchorPresentationClock: false)
+            }
         case let .time(time):
             state.currentTime = min(max(time, 0), state.duration)
-            publishState()
+            presentationClock.update(
+                PlaybackTimelineSample(
+                    mediaTime: state.currentTime,
+                    hostUptime: ProcessInfo.processInfo.systemUptime,
+                    rate: 0
+                )
+            )
+            publishState(reanchorPresentationClock: false)
         }
     }
 
@@ -45,12 +62,22 @@ extension PlaybackCoordinator {
         case .previous:
             Task { await previous() }
         case let .skipBackward(interval):
-            Task { await seek(to: state.currentTime - interval) }
+            Task { await seek(to: presentationTime() - interval) }
         case let .skipForward(interval):
-            Task { await seek(to: state.currentTime + interval) }
+            Task { await seek(to: presentationTime() + interval) }
         case .toggle:
             togglePlayback()
         }
+    }
+
+    private func shouldPublishTimeline(
+        _ sample: PlaybackTimelineSample
+    ) -> Bool {
+        guard let previous = lastTimelinePublication else {
+            return true
+        }
+        return sample.rate != previous.rate
+            || sample.hostUptime - previous.hostUptime >= 1
     }
 
     func move(
@@ -79,7 +106,25 @@ extension PlaybackCoordinator {
         _ = await loadCurrent(startTime: 0, autoplay: true)
     }
 
-    func publishState() {
+    func publishState(
+        reanchorPresentationClock: Bool = true
+    ) {
+        let indicator = PlaybackIndicatorState(
+            currentTrackID: state.currentTrack?.id,
+            isPlaying: state.isPlaying
+        )
+        if indicator != playbackIndicator {
+            playbackIndicator = indicator
+        }
+        if reanchorPresentationClock {
+            presentationClock.update(
+                PlaybackTimelineSample(
+                    mediaTime: state.currentTime,
+                    hostUptime: ProcessInfo.processInfo.systemUptime,
+                    rate: state.isPlaying ? 1 : 0
+                )
+            )
+        }
         systemMediaSession.update(state: state)
     }
 

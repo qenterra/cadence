@@ -172,9 +172,9 @@ extension LibraryRepository {
             }
         }
         for (id, artist) in artists {
-            let tracks = try modelContext.fetch(
-                FetchDescriptor<TrackRecord>(
-                    predicate: #Predicate { $0.artist?.id == id }
+            let credits = try modelContext.fetch(
+                FetchDescriptor<TrackArtistCreditRecord>(
+                    predicate: #Predicate { $0.artistID == id }
                 )
             )
             let albums = try modelContext.fetch(
@@ -182,7 +182,7 @@ extension LibraryRepository {
                     predicate: #Predicate { $0.artist?.id == id }
                 )
             )
-            artist.trackCount = tracks.count
+            artist.trackCount = Set(credits.map(\.trackID)).count
             artist.albumCount = albums.count
         }
     }

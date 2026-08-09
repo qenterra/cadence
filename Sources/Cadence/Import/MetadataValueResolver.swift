@@ -4,6 +4,26 @@ import Foundation
 struct MetadataValueResolver {
     let items: [AVMetadataItem]
 
+    func strings(
+        commonIdentifier: AVMetadataIdentifier? = nil,
+        rawKeys: Set<String>
+    ) async -> [String] {
+        var values: [String] = []
+        for item in items {
+            let matchesCommon = commonIdentifier.map {
+                item.identifier == $0
+            } ?? false
+            let matchesRaw = rawKeys.contains(Self.canonicalKey(of: item))
+            guard matchesCommon || matchesRaw,
+                  let value = await stringValue(of: item)
+            else {
+                continue
+            }
+            values.append(value)
+        }
+        return values
+    }
+
     func string(
         commonIdentifier: AVMetadataIdentifier? = nil,
         rawKeys: Set<String>
@@ -16,7 +36,7 @@ struct MetadataValueResolver {
             }
         }
 
-        for item in items where rawKeys.contains(canonicalKey(of: item)) {
+        for item in items where rawKeys.contains(Self.canonicalKey(of: item)) {
             if let value = await stringValue(of: item) {
                 return value
             }
@@ -53,7 +73,7 @@ struct MetadataValueResolver {
                 }
             }
         }
-        for item in items where rawKeys.contains(canonicalKey(of: item)) {
+        for item in items where rawKeys.contains(Self.canonicalKey(of: item)) {
             if let value = try? await item.load(.dataValue),
                !value.isEmpty {
                 return value
@@ -74,19 +94,25 @@ struct MetadataValueResolver {
         return trimmed.isEmpty ? nil : trimmed
     }
 
-    private func canonicalKey(
+    static func canonicalKey(
         of item: AVMetadataItem
     ) -> String {
-        let rawKey = item.identifier?.rawValue
-            .split(separator: "/")
-            .last
-            .map(String.init)
-            ?? (item.key as? String)
-            ?? ""
+        let rawKey = rawKey(of: item)
         return String(
             rawKey.uppercased().unicodeScalars.filter {
                 CharacterSet.alphanumerics.contains($0)
             }
         )
+    }
+
+    static func rawKey(
+        of item: AVMetadataItem
+    ) -> String {
+        item.identifier?.rawValue
+            .split(separator: "/")
+            .last
+            .map(String.init)
+            ?? (item.key as? String)
+            ?? ""
     }
 }

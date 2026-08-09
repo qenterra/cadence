@@ -2,6 +2,20 @@
 import Testing
 
 struct AppConfigurationTests {
+    @Test("Unit-test hosts never open the current user's library")
+    func hostUsesPreviewLibrary() {
+        #expect(
+            CadenceLaunchEnvironment.shouldUsePreviewLibrary(
+                environment: ["XCTestConfigurationFilePath": "/tmp/test.xctestconfiguration"]
+            )
+        )
+        #expect(
+            !CadenceLaunchEnvironment.shouldUsePreviewLibrary(
+                environment: [:]
+            )
+        )
+    }
+
     @Test("Cadence targets the configured macOS baseline")
     func deploymentTarget() {
         #expect(AppConfiguration.minimumDeploymentTarget == "26.0")

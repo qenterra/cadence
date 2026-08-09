@@ -122,6 +122,7 @@ struct ProductionArtistDetailView: View {
                 artworkID: artist.customArtworkID,
                 title: artist.name,
                 placeholder: .artist,
+                variant: .original,
                 cornerRadius: 0,
                 showsBorder: false
             )

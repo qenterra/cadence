@@ -97,6 +97,7 @@ struct LibraryTrackProjection: Identifiable, Hashable, Sendable {
     let dateAdded: Date
     let lastPlayedAt: Date?
     let playCount: Int
+    let hasSynchronizedLyrics: Bool
 }
 
 enum PlaybackQueueTrackState: Hashable, Sendable {

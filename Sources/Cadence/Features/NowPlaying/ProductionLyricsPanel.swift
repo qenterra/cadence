@@ -31,7 +31,12 @@ struct ProductionLyricsPanel: View {
 
             Group {
                 if let document {
-                    lyrics(document)
+                    TimelineView(.periodic(from: .now, by: 0.1)) { _ in
+                        lyrics(
+                            document,
+                            presentationTime: model.playbackPresentationTime()
+                        )
+                    }
                 } else {
                     ContentUnavailableView {
                         Label("No Lyrics", systemImage: "quote.bubble")
@@ -52,9 +57,13 @@ struct ProductionLyricsPanel: View {
     }
 
     private func lyrics(
-        _ document: LyricDocument
+        _ document: LyricDocument,
+        presentationTime: TimeInterval
     ) -> some View {
-        let currentLineID = activeLineID(in: document)
+        let currentLineID = activeLineID(
+            in: document,
+            presentationTime: presentationTime
+        )
 
         return ScrollViewReader { proxy in
             ScrollView {
@@ -121,15 +130,20 @@ struct ProductionLyricsPanel: View {
     }
 
     private func activeLine(
-        in document: LyricDocument
+        in document: LyricDocument,
+        presentationTime: TimeInterval
     ) -> LyricLine? {
-        document.activeLine(at: model.playbackCurrentTime)
+        document.activeLine(at: presentationTime)
     }
 
     private func activeLineID(
-        in document: LyricDocument
+        in document: LyricDocument,
+        presentationTime: TimeInterval
     ) -> LyricLine.ID? {
-        activeLine(in: document)?.id
+        activeLine(
+            in: document,
+            presentationTime: presentationTime
+        )?.id
     }
 }
 

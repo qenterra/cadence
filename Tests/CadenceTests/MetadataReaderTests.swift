@@ -4,6 +4,70 @@ import Foundation
 import Testing
 
 struct MetadataReaderTests {
+    @Test("Embedded synchronized lyrics are normalized from source tags")
+    func embeddedSynchronizedLyrics() async throws {
+        let items = [
+            metadataItem(
+                key: "SYNCEDLYRICS",
+                value: "[00:01.000]First\n[00:02.500]Second"
+            ),
+        ]
+
+        let payload = try #require(
+            await EmbeddedLyricsReader().read(items: items)
+        )
+
+        #expect(payload.timingStatus == .synchronized)
+        #expect(payload.text == "[00:01.000]First\n[00:02.500]Second\n")
+    }
+
+    @Test("Embedded plain lyrics remain available without fake timestamps")
+    func embeddedPlainLyrics() async throws {
+        let payload = try #require(
+            await EmbeddedLyricsReader().read(
+                items: [metadataItem(key: "USLT", value: "First\nSecond")]
+            )
+        )
+
+        #expect(payload.timingStatus == .unsynchronized)
+        #expect(payload.text == "First\nSecond\n")
+    }
+
+    @Test("Metadata snapshot preserves repeated source tags and raw identity")
+    func sourceMetadataSnapshot() async throws {
+        let items = [
+            metadataItem(key: "ARTIST", value: "madkid"),
+            metadataItem(key: "ARTIST", value: "темный принц"),
+            metadataItem(
+                key: "MUSICBRAINZ_TRACKID",
+                value: "track-id"
+            ),
+        ]
+        let resolver = MetadataValueResolver(items: items)
+
+        #expect(
+            await resolver.strings(rawKeys: ["ARTIST"])
+                == ["madkid", "темный принц"]
+        )
+
+        let snapshot = await SourceMetadataSnapshot.capture(items: items)
+        #expect(snapshot.version == SourceMetadataSnapshot.currentVersion)
+        #expect(
+            snapshot.items.contains {
+                $0.canonicalKey == "MUSICBRAINZTRACKID"
+                    && $0.stringValue == "track-id"
+                    && $0.rawKey == "MUSICBRAINZ_TRACKID"
+                    && $0.keySpace == "vorb"
+            }
+        )
+        #expect(
+            try JSONDecoder().decode(
+                SourceMetadataSnapshot.self,
+                from: JSONEncoder().encode(snapshot)
+            ) == snapshot
+        )
+    }
+
     @Test("Vorbis comments provide display and ordering metadata")
     func vorbisMetadata() async {
         let resolver = MetadataValueResolver(

@@ -79,10 +79,25 @@ enum ArtworkPlaceholder: String, Hashable, Sendable {
     }
 }
 
+enum ArtworkAssetVariant: Hashable, Sendable {
+    case trackRow
+    case thumbnail
+    case original
+
+    var maximumPixelDimension: Int? {
+        switch self {
+        case .trackRow: 128
+        case .thumbnail: 512
+        case .original: nil
+        }
+    }
+}
+
 struct ArtworkAsset: Identifiable, Hashable, @unchecked Sendable {
     let id: UUID
     let revision: Int
     let data: Data
+    let variant: ArtworkAssetVariant
     let scale: CGFloat
     let normalizedOffset: CGSize
 
@@ -90,12 +105,14 @@ struct ArtworkAsset: Identifiable, Hashable, @unchecked Sendable {
         id: UUID = UUID(),
         revision: Int = 0,
         data: Data,
+        variant: ArtworkAssetVariant = .original,
         scale: CGFloat = 1,
         normalizedOffset: CGSize = .zero
     ) {
         self.id = id
         self.revision = max(revision, 0)
         self.data = data
+        self.variant = variant
         self.scale = min(max(scale, 1), 4)
         self.normalizedOffset = normalizedOffset
     }
@@ -109,6 +126,7 @@ struct ArtworkAsset: Identifiable, Hashable, @unchecked Sendable {
             id: id,
             revision: revision + 1,
             data: data,
+            variant: .original,
             scale: scale,
             normalizedOffset: normalizedOffset
         )

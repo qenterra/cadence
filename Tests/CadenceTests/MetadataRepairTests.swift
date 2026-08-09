@@ -54,6 +54,59 @@ struct MetadataRepairTests {
         #expect(remainingCandidates.items.isEmpty)
     }
 
+    @Test("Metadata repair creates ordered credits without duplicating a track")
+    func repairsMultiArtistCredits() async throws {
+        let (container, trackID) = try makeLegacyStore()
+        let repository = LibraryRepository(modelContainer: container)
+        let metadata = ManagedImportManifest.Metadata(
+            title: "Joint Signal",
+            artist: "madkid, темный принц",
+            album: "Shared",
+            artists: ["madkid", "темный принц"],
+            albumArtist: "madkid",
+            year: 2026,
+            trackNumber: 1,
+            discNumber: 1,
+            duration: 180,
+            codec: "FLAC",
+            container: "FLAC",
+            sampleRate: 48000,
+            channelCount: 2,
+            bitrate: nil,
+            bitDepth: 24,
+            spatialFormat: .stereo
+        )
+
+        _ = try await repository.applyMetadataRepairs([
+            ManagedMetadataRepair(
+                trackID: trackID,
+                metadata: metadata,
+                sourceMetadata: JSONEncoder().encode(metadata)
+            ),
+        ])
+
+        let context = ModelContext(container)
+        let artists = try context.fetch(
+            FetchDescriptor<ArtistRecord>(sortBy: [SortDescriptor(\.name)])
+        )
+        let credits = try context.fetch(
+            FetchDescriptor<TrackArtistCreditRecord>(
+                sortBy: [SortDescriptor(\.position)]
+            )
+        )
+        let albums = try context.fetch(FetchDescriptor<AlbumRecord>())
+        let tracks = try context.fetch(FetchDescriptor<TrackRecord>())
+        let artistNamesByID = Dictionary(
+            uniqueKeysWithValues: artists.map { ($0.id, $0.name) }
+        )
+
+        #expect(Set(artists.map(\.name)) == ["madkid", "темный принц"])
+        #expect(credits.map { artistNamesByID[$0.artistID] } == ["madkid", "темный принц"])
+        #expect(Set(credits.map(\.trackID)) == [trackID])
+        #expect(albums.map { $0.artist?.name } == ["madkid"])
+        #expect(tracks.map(\.id) == [trackID])
+    }
+
     private func makeLegacyStore() throws -> (ModelContainer, UUID) {
         let container = try LibraryContainerFactory.inMemory()
         let context = ModelContext(container)

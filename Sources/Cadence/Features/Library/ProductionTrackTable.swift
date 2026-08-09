@@ -9,10 +9,13 @@ struct ProductionTrackTable: View {
     var queueSource: PlaybackQueueSource?
     var reorderAction: (([UUID]) -> Void)?
     var onReachEnd: (() async -> Void)?
+    var scrollAxes: Axis.Set = .horizontal
+    var virtualWindow: LibraryTrackWindow?
     var repositorySortAction: ((LibraryTrackSort) async -> Void)?
     var selection: Binding<Set<UUID>>?
 
     @State private var localSelection: Set<UUID> = []
+    @State private var isRequestingNextPage = false
     @FocusState private var tableHasFocus: Bool
 
     @AppStorage("trackTable.visibleColumns")
@@ -35,38 +38,65 @@ struct ProductionTrackTable: View {
     private var timeWidth = TrackTableWidth.time.defaultValue
 
     var body: some View {
-        ScrollView(.horizontal) {
+        let renderedTracks = displayedTracks
+
+        ScrollView(scrollAxes) {
             LazyVStack(spacing: 0) {
                 if showsHeader {
                     header
                 }
 
-                ForEach(displayedTracks) { track in
-                    ProductionTrackTableRow(
-                        model: model,
-                        track: track,
-                        queue: displayedTracks,
-                        columns: displayedColumns,
-                        widths: widths,
-                        playlistID: playlistID,
-                        queueSource: queueSource,
-                        reorderAction: reorderAction,
-                        isSelected: selectedTrackIDs.wrappedValue.contains(
-                            track.id
-                        ),
-                        isFocused: tableHasFocus
-                            && selectedTrackIDs.wrappedValue.contains(track.id),
-                        select: {
-                            selectedTrackIDs.wrappedValue = [track.id]
-                            tableHasFocus = true
-                        }
-                    )
-                    .task {
-                        guard track.id == displayedTracks.last?.id else {
-                            return
-                        }
-                        await onReachEnd?()
+                if let virtualWindow {
+                    ForEach(0 ..< virtualWindow.pageCount, id: \.self) { page in
+                        VirtualTrackTablePage(
+                            model: model,
+                            window: virtualWindow,
+                            page: page,
+                            columns: displayedColumns,
+                            widths: widths,
+                            playlistID: playlistID,
+                            queueSource: queueSource,
+                            selection: selectedTrackIDs,
+                            tableHasFocus: tableHasFocus,
+                            select: { trackID in
+                                selectedTrackIDs.wrappedValue = [trackID]
+                                tableHasFocus = true
+                            }
+                        )
                     }
+                } else {
+                    ForEach(renderedTracks) { track in
+                        ProductionTrackTableRow(
+                            model: model,
+                            track: track,
+                            queue: renderedTracks,
+                            columns: displayedColumns,
+                            widths: widths,
+                            playlistID: playlistID,
+                            queueSource: queueSource,
+                            reorderAction: reorderAction,
+                            isSelected: selectedTrackIDs.wrappedValue.contains(
+                                track.id
+                            ),
+                            isFocused: tableHasFocus
+                                && selectedTrackIDs.wrappedValue.contains(
+                                    track.id
+                                ),
+                            select: {
+                                selectedTrackIDs.wrappedValue = [track.id]
+                                tableHasFocus = true
+                            }
+                        )
+                    }
+                }
+
+                if virtualWindow == nil, onReachEnd != nil {
+                    Color.clear
+                        .frame(height: 1)
+                        .onScrollVisibilityChange(
+                            threshold: 0.5,
+                            handleEndVisibility
+                        )
                 }
             }
             .frame(minWidth: minimumTableWidth, alignment: .leading)
@@ -88,15 +118,31 @@ struct ProductionTrackTable: View {
         .onKeyPress(.downArrow, phases: .down) { _ in
             moveSelection(by: 1) ? .handled : .ignored
         }
-        .onChange(of: displayedTracks.map(\.id), initial: true) {
+        .onChange(of: renderedTracks.map(\.id), initial: true) {
+            guard virtualWindow == nil else {
+                return
+            }
             selectedTrackIDs.wrappedValue.formIntersection(
-                displayedTracks.map(\.id)
+                renderedTracks.map(\.id)
             )
         }
     }
 }
 
 private extension ProductionTrackTable {
+    private func handleEndVisibility(
+        _ isVisible: Bool
+    ) {
+        guard isVisible, !isRequestingNextPage else {
+            return
+        }
+        isRequestingNextPage = true
+        Task {
+            await onReachEnd?()
+            isRequestingNextPage = false
+        }
+    }
+
     private var header: some View {
         HStack(spacing: 14) {
             headerCell(
@@ -171,20 +217,50 @@ private extension ProductionTrackTable {
     }
 
     private func playSelectedTrack() -> Bool {
-        guard let track = displayedTracks.first(where: {
-            selectedTrackIDs.wrappedValue.contains($0.id)
-        }) else {
+        let selectedIDs = selectedTrackIDs.wrappedValue
+        let track = virtualWindow.flatMap { window in
+            selectedIDs.lazy.compactMap(window.cachedTrack).first
+        } ?? displayedTracks.first(where: {
+            selectedIDs.contains($0.id)
+        })
+        guard let track else {
             return false
         }
         model.playProductionTrack(
             track,
-            within: displayedTracks,
+            within: virtualWindow == nil ? displayedTracks : [track],
             source: queueSource ?? .adHoc
         )
         return true
     }
 
     private func moveSelection(by offset: Int) -> Bool {
+        if let virtualWindow {
+            guard virtualWindow.totalCount > 0 else {
+                return false
+            }
+            let selectedID = selectedTrackIDs.wrappedValue.first
+            let selectedIndex = selectedID.flatMap(
+                virtualWindow.index(ofTrackID:)
+            ) ?? (offset > 0 ? -1 : virtualWindow.totalCount)
+            let targetIndex = min(
+                max(selectedIndex + offset, 0),
+                virtualWindow.totalCount - 1
+            )
+            if let target = virtualWindow.track(at: targetIndex) {
+                selectedTrackIDs.wrappedValue = [target.id]
+            } else {
+                Task {
+                    await virtualWindow.load(
+                        page: targetIndex / virtualWindow.pageSize
+                    )
+                    if let target = virtualWindow.track(at: targetIndex) {
+                        selectedTrackIDs.wrappedValue = [target.id]
+                    }
+                }
+            }
+            return true
+        }
         guard !displayedTracks.isEmpty else {
             return false
         }

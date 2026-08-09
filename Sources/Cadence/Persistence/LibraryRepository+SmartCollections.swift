@@ -74,10 +74,9 @@ extension LibraryRepository {
         let end = min(boundedOffset + boundedLimit, orderedIDs.count)
         let pageIDs = Array(orderedIDs[boundedOffset ..< end])
         let recordsByID = try tagTrackRecordsByID(ids: pageIDs)
-        return ProductionSmartCollectionResultPage(
-            items: pageIDs.compactMap {
-                recordsByID[$0].map(LibraryProjectionFactory.track)
-            },
+        let orderedRecords = pageIDs.compactMap { recordsByID[$0] }
+        return try ProductionSmartCollectionResultPage(
+            items: trackProjections(orderedRecords),
             nextOffset: end < orderedIDs.count ? end : nil
         )
     }

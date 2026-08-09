@@ -105,3 +105,13 @@ struct PlaybackCoordinatorState: Equatable, Sendable {
         return min(max(currentTime / duration, 0), 1)
     }
 }
+
+struct PlaybackIndicatorState: Equatable, Sendable {
+    let currentTrackID: UUID?
+    let isPlaying: Bool
+
+    static let idle = PlaybackIndicatorState(
+        currentTrackID: nil,
+        isPlaying: false
+    )
+}

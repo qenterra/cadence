@@ -1,9 +1,49 @@
+import AppKit
 @testable import Cadence
 import Foundation
+import ImageIO
 import Testing
 
 @MainActor
 struct MediaArtworkTests {
+    @Test("Compact artwork data is downsampled to the thumbnail budget")
+    func thumbnailBudget() throws {
+        let representation = try #require(
+            NSBitmapImageRep(
+                bitmapDataPlanes: nil,
+                pixelsWide: 2048,
+                pixelsHigh: 1024,
+                bitsPerSample: 8,
+                samplesPerPixel: 4,
+                hasAlpha: true,
+                isPlanar: false,
+                colorSpaceName: .deviceRGB,
+                bytesPerRow: 0,
+                bitsPerPixel: 0
+            )
+        )
+        let source = try #require(
+            representation.representation(using: .png, properties: [:])
+        )
+        let thumbnail = try #require(
+            ArtworkThumbnailGenerator.data(
+                from: source,
+                maximumPixelDimension: 512
+            )
+        )
+        let imageSource = try #require(
+            CGImageSourceCreateWithData(thumbnail as CFData, nil)
+        )
+        let properties = try #require(
+            CGImageSourceCopyPropertiesAtIndex(imageSource, 0, nil)
+                as? [CFString: Any]
+        )
+        let width = try #require(properties[kCGImagePropertyPixelWidth] as? Int)
+        let height = try #require(properties[kCGImagePropertyPixelHeight] as? Int)
+
+        #expect(max(width, height) == 512)
+    }
+
     @Test("Artist artwork resolves custom image before placeholder")
     func artistPrecedence() {
         let asset = ArtworkAsset(data: Data([1]))

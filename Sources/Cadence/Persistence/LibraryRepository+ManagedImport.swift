@@ -81,9 +81,7 @@ extension LibraryRepository {
             ]
         )
         descriptor.fetchLimit = boundedLimit
-        return try modelContext.fetch(descriptor).map(
-            LibraryProjectionFactory.track
-        )
+        return try trackProjections(modelContext.fetch(descriptor))
     }
 
     func importSessionState(
@@ -169,7 +167,7 @@ extension LibraryRepository {
             }
             let albumKey = ManagedAlbumIdentity(
                 normalizedArtist: SearchNormalizer.normalize(
-                    entry.metadata.artist
+                    entry.metadata.albumArtistName
                 ),
                 normalizedTitle: SearchNormalizer.normalize(
                     entry.metadata.album
@@ -203,9 +201,14 @@ extension LibraryRepository {
         artists: [String: ArtistRecord],
         albums: [ManagedAlbumIdentity: AlbumRecord]
     ) {
-        let artistKey = SearchNormalizer.normalize(entry.metadata.artist)
+        let primaryArtistKey = SearchNormalizer.normalize(
+            entry.metadata.creditArtistNames[0]
+        )
+        let albumArtistKey = SearchNormalizer.normalize(
+            entry.metadata.albumArtistName
+        )
         let albumKey = ManagedAlbumIdentity(
-            normalizedArtist: artistKey,
+            normalizedArtist: albumArtistKey,
             normalizedTitle: SearchNormalizer.normalize(
                 entry.metadata.album
             )
@@ -213,11 +216,25 @@ extension LibraryRepository {
         let track = makeTrack(
             entry: entry,
             importID: importID,
-            artist: artists[artistKey],
+            artist: artists[primaryArtistKey],
             album: albums[albumKey],
             dateAdded: dateAdded
         )
         modelContext.insert(track)
+        for (position, name) in entry.metadata.creditArtistNames.enumerated() {
+            let key = SearchNormalizer.normalize(name)
+            guard let artist = artists[key] else {
+                continue
+            }
+            modelContext.insert(
+                TrackArtistCreditRecord(
+                    track: track,
+                    artist: artist,
+                    position: position,
+                    displayArtistName: name
+                )
+            )
+        }
 
         guard
             let lyric = entry.lyric,
@@ -265,8 +282,17 @@ extension LibraryRepository {
             discNumber: entry.metadata.discNumber,
             dateAdded: dateAdded,
             spatialFormat: entry.metadata.spatialFormat,
-            sourceMetadata: try? JSONEncoder().encode(entry.metadata)
+            sourceMetadata: encodedSourceMetadata(entry.metadata)
         )
+    }
+
+    private func encodedSourceMetadata(
+        _ metadata: ManagedImportManifest.Metadata
+    ) -> Data? {
+        if let snapshot = metadata.sourceMetadata {
+            return try? JSONEncoder().encode(snapshot)
+        }
+        return try? JSONEncoder().encode(metadata)
     }
 
     private func lyricTimingStatus(

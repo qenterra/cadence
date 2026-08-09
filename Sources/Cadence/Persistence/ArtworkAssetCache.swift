@@ -5,6 +5,7 @@ final class ArtworkAssetCache {
     struct Key: Hashable, Sendable {
         let id: UUID
         let revision: Int
+        let variant: ArtworkAssetVariant
     }
 
     private struct Entry {
@@ -37,9 +38,10 @@ final class ArtworkAssetCache {
 
     func asset(
         id: UUID,
-        revision: Int
+        revision: Int,
+        variant: ArtworkAssetVariant = .thumbnail
     ) -> ArtworkAsset? {
-        let key = Key(id: id, revision: revision)
+        let key = Key(id: id, revision: revision, variant: variant)
         guard let entry = entries[key] else {
             return nil
         }
@@ -47,9 +49,17 @@ final class ArtworkAssetCache {
         return entry.asset
     }
 
-    func insert(_ asset: ArtworkAsset) {
-        let key = Key(id: asset.id, revision: asset.revision)
-        invalidate(id: asset.id)
+    func insert(
+        _ asset: ArtworkAsset,
+        variant: ArtworkAssetVariant = .thumbnail
+    ) {
+        let key = Key(
+            id: asset.id,
+            revision: asset.revision,
+            variant: variant
+        )
+        invalidate(id: asset.id, exceptRevision: asset.revision)
+        remove(key)
 
         let cost = asset.data.count
         guard cost <= totalCostLimit else {
@@ -62,8 +72,13 @@ final class ArtworkAssetCache {
         evictIfNeeded()
     }
 
-    func invalidate(id: UUID) {
-        let keys = entries.keys.filter { $0.id == id }
+    func invalidate(
+        id: UUID,
+        exceptRevision: Int? = nil
+    ) {
+        let keys = entries.keys.filter {
+            $0.id == id && $0.revision != exceptRevision
+        }
         for key in keys {
             remove(key)
         }

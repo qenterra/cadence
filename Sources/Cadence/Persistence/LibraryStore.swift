@@ -61,6 +61,7 @@ final class LibraryStore {
     var catalogSearchGeneration = 0
     @ObservationIgnored var playbackQueueProjectionGeneration = 0
     @ObservationIgnored var trackPageLoader: LibraryTrackPageLoader?
+    @ObservationIgnored var allTracksWindow: LibraryTrackWindow?
     @ObservationIgnored let artworkAssetCache = ArtworkAssetCache()
     @ObservationIgnored var artworkDataLoads: [ArtworkAssetCache.Key: Task<Data?, Never>] = [:]
     var artistCursor: LibraryPageCursor?
@@ -124,6 +125,13 @@ final class LibraryStore {
                     after: cursor
                 )
             }
+            allTracksWindow = LibraryTrackWindow { query, offset, limit in
+                try await repository.tracksWindow(
+                    query: query,
+                    offset: offset,
+                    limit: limit
+                )
+            }
             lyricsService = package.map {
                 ManagedLyricsService(
                     package: $0,
@@ -140,6 +148,7 @@ final class LibraryStore {
         } else {
             repository = nil
             trackPageLoader = nil
+            allTracksWindow = nil
             lyricsService = nil
             artworkService = nil
             availability = .empty
@@ -150,6 +159,7 @@ final class LibraryStore {
         repository = nil
         lyricsService = nil
         self.trackPageLoader = trackPageLoader
+        allTracksWindow = nil
         availability = .ready
     }
 
@@ -178,6 +188,13 @@ final class LibraryStore {
             try await repository.tracksPage(
                 query: query,
                 after: cursor
+            )
+        }
+        allTracksWindow = LibraryTrackWindow { query, offset, limit in
+            try await repository.tracksWindow(
+                query: query,
+                offset: offset,
+                limit: limit
             )
         }
         lyricsService = package.map {

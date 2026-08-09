@@ -55,11 +55,33 @@ enum CadenceSchemaV3: VersionedSchema {
     ]
 }
 
+enum CadenceSchemaV4: VersionedSchema {
+    static let versionIdentifier = Schema.Version(4, 0, 0)
+
+    static let models: [any PersistentModel.Type] = [
+        AlbumRecord.self,
+        ArtistRecord.self,
+        ArtworkRecord.self,
+        ImportSessionRecord.self,
+        LyricRecord.self,
+        PlaylistEntryRecord.self,
+        PlaylistRecord.self,
+        SmartCollectionRecord.self,
+        TagAssignmentRecord.self,
+        TagExclusionRecord.self,
+        TagRecord.self,
+        TrackArtistCreditRecord.self,
+        TrackRecord.self,
+        TrashOperationRecord.self,
+    ]
+}
+
 enum CadenceMigrationPlan: SchemaMigrationPlan {
     static let schemas: [any VersionedSchema.Type] = [
         CadenceSchemaV1.self,
         CadenceSchemaV2.self,
         CadenceSchemaV3.self,
+        CadenceSchemaV4.self,
     ]
 
     static let stages: [MigrationStage] = [
@@ -70,6 +92,10 @@ enum CadenceMigrationPlan: SchemaMigrationPlan {
         .lightweight(
             fromVersion: CadenceSchemaV2.self,
             toVersion: CadenceSchemaV3.self
+        ),
+        .lightweight(
+            fromVersion: CadenceSchemaV3.self,
+            toVersion: CadenceSchemaV4.self
         ),
     ]
 }

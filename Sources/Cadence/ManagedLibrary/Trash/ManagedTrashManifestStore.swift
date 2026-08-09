@@ -23,7 +23,9 @@ struct ManagedTrashManifestStore {
             from: Data(contentsOf: manifestURL(for: operationID))
         )
         guard
-            manifest.version == ManagedTrashManifest.currentVersion,
+            (2 ... ManagedTrashManifest.currentVersion).contains(
+                manifest.version
+            ),
             manifest.operationID == operationID
         else {
             throw LibraryTrashError.invalidManifest

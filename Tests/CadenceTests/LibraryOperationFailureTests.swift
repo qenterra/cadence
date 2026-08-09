@@ -25,7 +25,8 @@ struct LibraryOperationFailureTests {
             relativeMediaPath: "Media/still-here.flac",
             dateAdded: .now,
             lastPlayedAt: nil,
-            playCount: 0
+            playCount: 0,
+            hasSynchronizedLyrics: false
         )
         let loader = FailingTrackPageLoader(track: seededTrack)
         let store = LibraryStore { query, cursor in

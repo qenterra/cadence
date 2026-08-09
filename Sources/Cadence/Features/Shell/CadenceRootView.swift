@@ -94,10 +94,10 @@ struct CadenceRootView: View {
             "Move to Trash?",
             isPresented: libraryDeletionPresented,
             presenting: model.pendingLibraryDeletion
-        ) { _ in
+        ) { deletion in
             Button("Move to Trash", role: .destructive) {
                 Task {
-                    await model.confirmLibraryDeletion()
+                    await model.confirmLibraryDeletion(deletion)
                 }
             }
             Button("Cancel", role: .cancel) {
@@ -147,6 +147,9 @@ struct CadenceRootView: View {
         }
         .onDisappear {
             model.shutdownPlayback()
+        }
+        .onKeyPress(.space, phases: .down) { _ in
+            model.handlePlaybackShortcut() ? .handled : .ignored
         }
     }
 }

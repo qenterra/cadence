@@ -24,6 +24,83 @@ struct PlayerBar: View {
     }
 }
 
+private struct PlaybackProgressControl: View {
+    @Bindable var model: CadenceAppModel
+    @Binding var pendingSeekProgress: Double?
+
+    var body: some View {
+        HStack(spacing: 8) {
+            TimelineView(.periodic(from: .now, by: 0.5)) { _ in
+                Text(elapsedText)
+            }
+            Slider(
+                value: progressBinding,
+                in: 0 ... 1
+            ) { isEditing in
+                commitSeekWhenNeeded(isEditing: isEditing)
+            }
+            .tint(.primary)
+            .accessibilityLabel("Playback progress")
+            .disabled(!model.hasCurrentPlaybackItem)
+            Text(durationText)
+        }
+        .frame(minWidth: 220, idealWidth: 300, maxWidth: 360)
+        .font(.caption2)
+        .foregroundStyle(CadenceTheme.primaryAccent.opacity(0.7))
+        .monospacedDigit()
+    }
+
+    private var elapsedText: String {
+        guard model.hasCurrentPlaybackItem else {
+            return "0:00"
+        }
+        let time = pendingSeekProgress.map {
+            model.playbackDuration * $0
+        } ?? model.playbackPresentationTime()
+        return TrackPreview.timeText(time)
+    }
+
+    private var durationText: String {
+        guard model.hasCurrentPlaybackItem else {
+            return "0:00"
+        }
+        return TrackPreview.timeText(model.playbackDuration)
+    }
+
+    private var progressBinding: Binding<Double> {
+        Binding(
+            get: {
+                if let pendingSeekProgress {
+                    return pendingSeekProgress
+                }
+                let duration = model.playbackDuration
+                guard duration > 0 else {
+                    return 0
+                }
+                return min(
+                    max(model.playbackPresentationTime() / duration, 0),
+                    1
+                )
+            },
+            set: { pendingSeekProgress = $0 }
+        )
+    }
+
+    private func commitSeekWhenNeeded(
+        isEditing: Bool
+    ) {
+        guard !isEditing, let pendingSeekProgress else {
+            return
+        }
+        Task { @MainActor in
+            await model.seekPlayback(toProgress: pendingSeekProgress)
+            if self.pendingSeekProgress == pendingSeekProgress {
+                self.pendingSeekProgress = nil
+            }
+        }
+    }
+}
+
 private extension PlayerBar {
     @ViewBuilder
     private var nowPlaying: some View {
@@ -34,7 +111,7 @@ private extension PlayerBar {
                 HStack(spacing: 11) {
                     ProductionArtworkView(
                         model: model,
-                        artworkID: productionArtworkID(for: track),
+                        artworkID: track.artworkID,
                         title: track.title,
                         placeholder: .track,
                         cornerRadius: 7
@@ -111,37 +188,10 @@ private extension PlayerBar {
                 }
             }
 
-            HStack(spacing: 8) {
-                Text(elapsedText)
-                Slider(
-                    value: playbackProgress,
-                    in: 0 ... 1
-                ) { isEditing in
-                    guard
-                        !isEditing,
-                        let pendingSeekProgress
-                    else {
-                        return
-                    }
-                    Task { @MainActor in
-                        await model.seekPlayback(
-                            toProgress: pendingSeekProgress
-                        )
-                        if self.pendingSeekProgress
-                            == pendingSeekProgress {
-                            self.pendingSeekProgress = nil
-                        }
-                    }
-                }
-                .tint(.primary)
-                .accessibilityLabel("Playback progress")
-                .disabled(!hasPlaybackItem)
-                Text(durationText)
-            }
-            .frame(minWidth: 220, idealWidth: 300, maxWidth: 360)
-            .font(.caption2)
-            .foregroundStyle(CadenceTheme.primaryAccent.opacity(0.7))
-            .monospacedDigit()
+            PlaybackProgressControl(
+                model: model,
+                pendingSeekProgress: $pendingSeekProgress
+            )
         }
     }
 
@@ -170,25 +220,8 @@ private extension PlayerBar {
         }
     }
 
-    private var elapsedText: String {
-        guard model.hasCurrentPlaybackItem else {
-            return "0:00"
-        }
-        let time = pendingSeekProgress.map {
-            model.playbackDuration * $0
-        } ?? model.playbackCurrentTime
-        return TrackPreview.timeText(time)
-    }
-
     private var hasPlaybackItem: Bool {
         model.hasCurrentPlaybackItem
-    }
-
-    private var durationText: String {
-        guard model.hasCurrentPlaybackItem else {
-            return "0:00"
-        }
-        return TrackPreview.timeText(model.playbackDuration)
     }
 
     private var repeatLabel: String {
@@ -215,17 +248,6 @@ private extension PlayerBar {
     private var isQueuePresented: Bool {
         model.playbackWorkspace == .nowPlaying
             && model.selectedNowPlayingPanel == .queue
-    }
-
-    private var playbackProgress: Binding<Double> {
-        Binding(
-            get: {
-                pendingSeekProgress ?? model.progress
-            },
-            set: {
-                pendingSeekProgress = $0
-            }
-        )
     }
 
     private var volumeBinding: Binding<Double> {
@@ -277,14 +299,6 @@ private extension PlayerBar {
                 .foregroundStyle(CadenceTheme.primaryAccent.opacity(0.68))
                 .lineLimit(1)
         }
-    }
-
-    private func productionArtworkID(
-        for track: PlaybackTrack
-    ) -> UUID? {
-        model.librarySession.store.tracks.first {
-            $0.id == track.id
-        }?.artworkID ?? track.artworkID
     }
 }
 

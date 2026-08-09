@@ -1,7 +1,7 @@
 import Foundation
 
 struct ManagedTrashManifest: Codable, Sendable {
-    static let currentVersion = 2
+    static let currentVersion = 3
 
     let version: Int
     let operationID: UUID
@@ -10,12 +10,21 @@ struct ManagedTrashManifest: Codable, Sendable {
     let artists: [TrashArtistSnapshot]
     let albums: [TrashAlbumSnapshot]
     let tracks: [TrashTrackSnapshot]
+    let artistCredits: [TrashArtistCreditSnapshot]?
     let lyrics: [TrashLyricSnapshot]
     let artworks: [TrashArtworkSnapshot]
     let tagAssignments: [TrashTagAssignmentSnapshot]
     let tagExclusions: [TrashTagExclusionSnapshot]
     let playlistEntries: [TrashPlaylistEntrySnapshot]?
     let originalRelativePaths: [String]
+}
+
+struct TrashArtistCreditSnapshot: Codable, Sendable {
+    let id: UUID
+    let trackID: UUID
+    let artistID: UUID
+    let position: Int
+    let displayArtistName: String
 }
 
 struct TrashPlaylistEntrySnapshot: Codable, Sendable {

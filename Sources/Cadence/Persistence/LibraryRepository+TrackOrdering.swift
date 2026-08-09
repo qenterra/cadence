@@ -8,11 +8,11 @@ extension LibraryRepository {
         let predicate = #Predicate<TrackRecord> {
             $0.album?.id == albumID
         }
-        return try modelContext.fetch(
+        let records = try modelContext.fetch(
             FetchDescriptor(predicate: predicate)
         )
         .sorted(by: Self.albumTrackOrder)
-        .map(LibraryProjectionFactory.track)
+        return try trackProjections(records)
     }
 
     static func albumTrackOrder(

@@ -4,6 +4,51 @@ import Foundation
 import Testing
 
 struct ImportFileInspectorTests {
+    @Test("Exact sidecar wins over embedded lyrics and blocks fallback if bad")
+    func sidecarPriorityOverEmbeddedLyrics() {
+        let sidecar = URL(filePath: "/source/Signal.lrc")
+        let embedded = EmbeddedLyricsPayload(
+            text: "[00:01.000]Embedded\n",
+            timingStatus: .synchronized
+        )
+        let resolver = ImportLyricsResolver()
+
+        #expect(
+            resolver.resolve(
+                sidecar: .matched(sidecar),
+                embedded: embedded,
+                readSidecar: { _ in "[00:02.000]Sidecar" }
+            ) == .linked(sidecar)
+        )
+
+        let malformed = resolver.resolve(
+            sidecar: .matched(sidecar),
+            embedded: embedded,
+            readSidecar: { _ in "[00:99.000]Broken" }
+        )
+        guard case let .malformed(url, _) = malformed else {
+            Issue.record("Expected malformed sidecar without embedded fallback.")
+            return
+        }
+        #expect(url == sidecar)
+    }
+
+    @Test("Embedded lyrics are used only when an exact sidecar is absent")
+    func embeddedLyricsFallback() {
+        let embedded = EmbeddedLyricsPayload(
+            text: "First\nSecond\n",
+            timingStatus: .unsynchronized
+        )
+
+        #expect(
+            ImportLyricsResolver().resolve(
+                sidecar: .none,
+                embedded: embedded,
+                readSidecar: { _ in "" }
+            ) == .embedded(embedded)
+        )
+    }
+
     @Test("A valid same-folder LRC is linked after line-level validation")
     func validLyrics() async throws {
         let fixture = try ImportInspectorFixture()

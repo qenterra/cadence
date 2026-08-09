@@ -1,4 +1,5 @@
 import AppKit
+import ImageIO
 import SwiftUI
 
 struct ArtworkView: View {
@@ -147,46 +148,56 @@ private struct CustomArtworkContent: View {
     let placeholder: ArtworkPlaceholder
     let cornerRadius: CGFloat
     let showsBorder: Bool
+    @State private var image: CGImage?
 
     var body: some View {
-        if let image = ArtworkImageCache.shared.image(for: asset) {
-            GeometryReader { geometry in
-                Image(nsImage: image)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(
-                        width: geometry.size.width,
-                        height: geometry.size.height
-                    )
-                    .scaleEffect(asset.scale)
-                    .offset(
-                        x: asset.normalizedOffset.width * geometry.size.width,
-                        y: asset.normalizedOffset.height * geometry.size.height
-                    )
-                    .clipped()
-            }
-            .clipShape(
-                RoundedRectangle(
-                    cornerRadius: cornerRadius,
-                    style: .continuous
-                )
-            )
-            .overlay {
-                if showsBorder {
+        Group {
+            if let image {
+                GeometryReader { geometry in
+                    Image(decorative: image, scale: 1, orientation: .up)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(
+                            width: geometry.size.width,
+                            height: geometry.size.height
+                        )
+                        .scaleEffect(asset.scale)
+                        .offset(
+                            x: asset.normalizedOffset.width * geometry.size.width,
+                            y: asset.normalizedOffset.height * geometry.size.height
+                        )
+                        .clipped()
+                }
+                .clipShape(
                     RoundedRectangle(
                         cornerRadius: cornerRadius,
                         style: .continuous
                     )
-                    .strokeBorder(CadenceTheme.separator, lineWidth: 0.5)
+                )
+                .overlay {
+                    if showsBorder {
+                        RoundedRectangle(
+                            cornerRadius: cornerRadius,
+                            style: .continuous
+                        )
+                        .strokeBorder(CadenceTheme.separator, lineWidth: 0.5)
+                    }
                 }
+            } else {
+                ArtworkPlaceholderView(
+                    kind: placeholder,
+                    cornerRadius: cornerRadius,
+                    showsBorder: showsBorder
+                )
             }
-        } else {
-            ArtworkPlaceholderView(
-                kind: placeholder,
-                cornerRadius: cornerRadius,
-                showsBorder: showsBorder
-            )
         }
+        .task(id: assetCacheKey) {
+            image = await ArtworkImageCache.shared.image(for: asset)
+        }
+    }
+
+    private var assetCacheKey: String {
+        "\(asset.id.uuidString)-\(asset.revision)-\(asset.variant)"
     }
 }
 
@@ -249,28 +260,29 @@ private struct ArtworkPlaceholderView: View {
     }
 }
 
-@MainActor
-private final class ArtworkImageCache {
+private actor ArtworkImageCache {
     static let shared = ArtworkImageCache()
 
-    private let cache = NSCache<NSString, NSImage>()
+    private let cache = NSCache<NSString, CGImage>()
 
     private init() {
         cache.countLimit = 80
         cache.totalCostLimit = 128 * 1024 * 1024
     }
 
-    func image(for asset: ArtworkAsset) -> NSImage? {
-        let key = "\(asset.id.uuidString)-\(asset.revision)" as NSString
+    func image(for asset: ArtworkAsset) -> CGImage? {
+        let key = "\(asset.id.uuidString)-\(asset.revision)-\(asset.variant)"
+            as NSString
         if let cached = cache.object(forKey: key) {
             return cached
         }
-        guard let image = NSImage(data: asset.data) else {
+        guard
+            let source = CGImageSourceCreateWithData(asset.data as CFData, nil),
+            let image = CGImageSourceCreateImageAtIndex(source, 0, nil)
+        else {
             return nil
         }
-        let pixelCost = image.representations.reduce(0) { result, imageRep in
-            result + imageRep.pixelsWide * imageRep.pixelsHigh * 4
-        }
+        let pixelCost = image.width * image.height * 4
         cache.setObject(
             image,
             forKey: key,

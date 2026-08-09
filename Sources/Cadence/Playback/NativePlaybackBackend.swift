@@ -7,7 +7,8 @@ final class NativePlaybackBackend: NSObject, PlaybackBackend {
     var onEvent: ((PlaybackBackendEvent) -> Void)?
 
     private let player = AVPlayer()
-    private var progressTask: Task<Void, Never>?
+    private var periodicTimeObserver: Any?
+    private var timeControlStatusObservation: NSKeyValueObservation?
     private var currentTrackID: UUID?
     private var expectedDuration: TimeInterval = 0
     private var userVolume: Float = 0.72
@@ -40,7 +41,9 @@ final class NativePlaybackBackend: NSObject, PlaybackBackend {
         expectedDuration = request.current.track.duration
         userVolume = request.volume
         presentationGain = request.autoplay ? 0 : 1
+        stopTimelineObservation()
         player.replaceCurrentItem(with: item)
+        startTimelineObservation()
         applyVolume()
 
         if request.startTime > 0 {
@@ -54,7 +57,7 @@ final class NativePlaybackBackend: NSObject, PlaybackBackend {
         }
 
         onEvent?(.duration(expectedDuration))
-        startProgressUpdates()
+        emitTimelineSample()
     }
 
     func prepareNext(_: ResolvedPlaybackTrack?) async throws {}
@@ -90,7 +93,7 @@ final class NativePlaybackBackend: NSObject, PlaybackBackend {
 
     func seek(to time: TimeInterval) async throws {
         await seekPlayer(to: time)
-        onEvent?(.time(time))
+        emitTimelineSample(mediaTime: time)
     }
 
     func setVolume(_ volume: Float) {
@@ -111,8 +114,7 @@ final class NativePlaybackBackend: NSObject, PlaybackBackend {
     }
 
     func stop() {
-        progressTask?.cancel()
-        progressTask = nil
+        stopTimelineObservation()
         gainRampGeneration &+= 1
         player.pause()
         player.replaceCurrentItem(with: nil)
@@ -153,36 +155,76 @@ final class NativePlaybackBackend: NSObject, PlaybackBackend {
         }
     }
 
-    private func startProgressUpdates() {
-        progressTask?.cancel()
-        progressTask = Task { @MainActor [weak self] in
-            while !Task.isCancelled {
-                try? await Task.sleep(for: .milliseconds(250))
-                guard
-                    !Task.isCancelled,
-                    let self
-                else {
-                    return
-                }
-                guard player.currentItem != nil else {
-                    continue
-                }
-                let seconds = player.currentTime().seconds
-                if seconds.isFinite {
-                    onEvent?(.time(seconds))
-                }
-                if let error = player.currentItem?.error {
-                    onEvent?(
-                        .failed(
-                            PlaybackFailure(
-                                trackID: currentTrackID,
-                                message: error.localizedDescription
-                            )
-                        )
-                    )
-                    return
-                }
+    static func timelineRate(
+        playerRate: Float,
+        status: AVPlayer.TimeControlStatus
+    ) -> Double {
+        guard status == .playing else {
+            return 0
+        }
+        return max(Double(playerRate), 0)
+    }
+
+    private func startTimelineObservation() {
+        stopTimelineObservation()
+        periodicTimeObserver = player.addPeriodicTimeObserver(
+            forInterval: CMTime(value: 1, timescale: 4),
+            queue: .main
+        ) { [weak self] time in
+            Task { @MainActor [weak self] in
+                self?.emitTimelineSample(mediaTime: time.seconds)
             }
+        }
+        timeControlStatusObservation = player.observe(
+            \.timeControlStatus,
+            options: [.initial, .new]
+        ) { [weak self] _, _ in
+            Task { @MainActor [weak self] in
+                self?.emitTimelineSample()
+            }
+        }
+    }
+
+    private func stopTimelineObservation() {
+        if let periodicTimeObserver {
+            player.removeTimeObserver(periodicTimeObserver)
+            self.periodicTimeObserver = nil
+        }
+        timeControlStatusObservation?.invalidate()
+        timeControlStatusObservation = nil
+    }
+
+    private func emitTimelineSample(
+        mediaTime: TimeInterval? = nil
+    ) {
+        guard player.currentItem != nil else {
+            return
+        }
+        let seconds = mediaTime ?? player.currentTime().seconds
+        guard seconds.isFinite else {
+            return
+        }
+        onEvent?(
+            .timeline(
+                PlaybackTimelineSample(
+                    mediaTime: seconds,
+                    hostUptime: ProcessInfo.processInfo.systemUptime,
+                    rate: Self.timelineRate(
+                        playerRate: player.rate,
+                        status: player.timeControlStatus
+                    )
+                )
+            )
+        )
+        if let error = player.currentItem?.error {
+            onEvent?(
+                .failed(
+                    PlaybackFailure(
+                        trackID: currentTrackID,
+                        message: error.localizedDescription
+                    )
+                )
+            )
         }
     }
 

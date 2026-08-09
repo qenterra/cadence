@@ -14,12 +14,22 @@ final class PlaybackCoordinator {
     var canonicalOrder: [UUID] = []
     var loadGeneration = 0
     var routeGeneration = 0
+    var audioConfigurationGeneration = 0
+    var configurationTransitionWasPlaying: Bool?
+    @ObservationIgnored
+    var audioConfigurationTransitionTask: Task<Bool, Never>?
+    var audioConfigurationTransitionGeneration: Int?
     var pendingOutputRoute: AudioRouteSnapshot?
     var routeFailureIsActive = false
     @ObservationIgnored
     var routeTransitionTask: Task<Void, Never>?
 
     var state = PlaybackCoordinatorState()
+    var playbackIndicator = PlaybackIndicatorState.idle
+    @ObservationIgnored
+    var presentationClock = PlaybackPresentationClock()
+    @ObservationIgnored
+    var lastTimelinePublication: PlaybackTimelineSample?
     var qualityProfile: AudioQualityProfile = .adaptive
     var repeatMode: RepeatMode = .off
     private(set) var volume: Float = 0.72
@@ -69,7 +79,10 @@ final class PlaybackCoordinator {
     }
 
     var progress: Double {
-        state.progress
+        guard state.duration > 0 else {
+            return 0
+        }
+        return min(max(state.currentTime / state.duration, 0), 1)
     }
 
     var isShuffleEnabled: Bool {
@@ -118,6 +131,7 @@ final class PlaybackCoordinator {
         guard state.currentTrack != nil else {
             return
         }
+        state.currentTime = presentationTime()
         activeBackend?.pause()
         state.transport = .paused
         publishState()
@@ -155,7 +169,7 @@ final class PlaybackCoordinator {
     }
 
     func previous() async {
-        if state.currentTime > 3 {
+        if presentationTime() > 3 {
             await seek(to: 0)
         } else {
             await move(by: -1, reason: .manual)
@@ -189,60 +203,15 @@ final class PlaybackCoordinator {
         }
     }
 
-    func setQualityProfile(_ profile: AudioQualityProfile) async {
-        await waitForAudioRouteTransitions()
-        guard profile != qualityProfile else {
-            return
-        }
-        let previousProfile = qualityProfile
-        qualityProfile = profile
-        qualityProfileStore.save(profile)
-        guard let currentTrack = state.currentTrack else {
-            return
-        }
-        let requestedKind = routeBackend(for: currentTrack)
-        guard requestedKind != state.activeBackend else {
-            publishState()
-            return
-        }
-        guard await transitionBackend(to: requestedKind) else {
-            qualityProfile = previousProfile
-            qualityProfileStore.save(previousProfile)
-            return
-        }
-    }
-
-    func setStereoSpatializationEnabled(_ enabled: Bool) async {
-        await waitForAudioRouteTransitions()
-        guard enabled != stereoSpatializationEnabled else {
-            return
-        }
-        let previousValue = stereoSpatializationEnabled
-        stereoSpatializationEnabled = enabled
-        qualityProfileStore.saveStereoSpatializationEnabled(enabled)
-        guard
-            qualityProfile == .immersive,
-            let currentTrack = state.currentTrack
-        else {
-            publishState()
-            return
-        }
-        let requestedKind = routeBackend(for: currentTrack)
-        guard requestedKind != state.activeBackend else {
-            publishState()
-            return
-        }
-        guard await transitionBackend(to: requestedKind) else {
-            stereoSpatializationEnabled = previousValue
-            qualityProfileStore.saveStereoSpatializationEnabled(previousValue)
-            return
-        }
-    }
-
     func stop(resetQueue: Bool = true) {
         backends.values.forEach { $0.stop() }
         loadGeneration += 1
         routeGeneration += 1
+        audioConfigurationGeneration &+= 1
+        audioConfigurationTransitionTask?.cancel()
+        audioConfigurationTransitionTask = nil
+        audioConfigurationTransitionGeneration = nil
+        configurationTransitionWasPlaying = nil
         pendingOutputRoute = nil
         routeFailureIsActive = false
         state.transport = .idle
@@ -252,6 +221,7 @@ final class PlaybackCoordinator {
         state.activeBackend = nil
         state.audioPath = nil
         state.failure = nil
+        lastTimelinePublication = nil
         resolvedTracks = [:]
         if resetQueue {
             state.queue = nil
@@ -265,12 +235,25 @@ final class PlaybackCoordinator {
         routeGeneration += 1
         pendingOutputRoute = nil
         routeTransitionTask?.cancel()
+        audioConfigurationTransitionTask?.cancel()
+        audioConfigurationTransitionTask = nil
+        audioConfigurationTransitionGeneration = nil
+        configurationTransitionWasPlaying = nil
         backends.values.forEach { $0.stop() }
         systemMediaSession.shutdown()
     }
 
     var activeBackend: (any PlaybackBackend)? {
         state.activeBackend.flatMap { backends[$0] }
+    }
+
+    func presentationTime(
+        atHostUptime hostUptime: TimeInterval = ProcessInfo.processInfo.systemUptime
+    ) -> TimeInterval {
+        presentationClock.time(
+            atHostUptime: hostUptime,
+            duration: state.duration
+        )
     }
 }
 

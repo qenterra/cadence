@@ -83,6 +83,14 @@ extension CadenceAppModel {
             ?? (currentTrack?.duration ?? 0) * previewProgress
     }
 
+    func playbackPresentationTime(
+        atHostUptime hostUptime: TimeInterval = ProcessInfo.processInfo.systemUptime
+    ) -> TimeInterval {
+        playbackCoordinator?.presentationTime(
+            atHostUptime: hostUptime
+        ) ?? playbackCurrentTime
+    }
+
     var playbackDuration: TimeInterval {
         playbackCoordinator?.state.duration
             ?? currentTrack?.duration
@@ -91,6 +99,15 @@ extension CadenceAppModel {
 
     var hasCurrentPlaybackItem: Bool {
         currentPlaybackTrack != nil || currentTrack != nil
+    }
+
+    @discardableResult
+    func handlePlaybackShortcut() -> Bool {
+        guard hasCurrentPlaybackItem else {
+            return false
+        }
+        isPlaying.toggle()
+        return true
     }
 
     func seekPlayback(

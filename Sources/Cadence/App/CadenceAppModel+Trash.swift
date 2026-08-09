@@ -21,6 +21,12 @@ extension CadenceAppModel {
         guard let pending = pendingLibraryDeletion else {
             return
         }
+        await confirmLibraryDeletion(pending)
+    }
+
+    func confirmLibraryDeletion(
+        _ pending: PendingLibraryDeletion
+    ) async {
         pendingLibraryDeletion = nil
         let affectedTrackIDs = productionTrackIDs(for: pending)
         let shouldStopPlayback = switch pending.kind {

@@ -55,6 +55,7 @@ private extension ProductionNowPlayingView {
                 artworkID: displayedArtworkID,
                 title: track.title,
                 placeholder: .track,
+                variant: .original,
                 cornerRadius: 18
             )
             .aspectRatio(1, contentMode: .fit)

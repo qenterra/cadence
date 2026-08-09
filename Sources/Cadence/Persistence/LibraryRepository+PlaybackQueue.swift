@@ -31,12 +31,16 @@ extension LibraryRepository {
             }
         }
 
+        let projections = try trackProjections(Array(recordsByID.values))
+        let projectionsByID = Dictionary(
+            uniqueKeysWithValues: projections.map { ($0.id, $0) }
+        )
         return ids.map { id in
             PlaybackQueueTrackProjection(
                 id: id,
-                state: recordsByID[id].map {
-                    .available(LibraryProjectionFactory.track($0))
-                } ?? .unavailable
+                state: projectionsByID[id].map(
+                    PlaybackQueueTrackState.available
+                ) ?? .unavailable
             )
         }
     }

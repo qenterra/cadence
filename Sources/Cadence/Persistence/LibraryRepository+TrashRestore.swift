@@ -121,6 +121,11 @@ private extension LibraryRepository {
             artists: artists,
             albums: albums
         )
+        try restoreArtistCredits(
+            manifest.artistCredits,
+            restoredTracks: tracks,
+            artists: artists
+        )
         restoreLyrics(manifest.lyrics, tracks: tracks)
         try restoreArtwork(manifest.artworks)
         try restoreTags(from: manifest)
@@ -181,6 +186,11 @@ private extension LibraryRepository {
             modelContext.insert(record)
             records[snapshot.id] = record
         }
+        for snapshot in snapshots {
+            records[snapshot.id]?.artist = snapshot.artistID.flatMap {
+                artists[$0]
+            }
+        }
         return records
     }
 
@@ -225,5 +235,69 @@ private extension LibraryRepository {
             records[snapshot.id] = record
         }
         return records
+    }
+
+    func restoreArtistCredits(
+        _ snapshots: [TrashArtistCreditSnapshot]?,
+        restoredTracks: [UUID: TrackRecord],
+        artists: [UUID: ArtistRecord]
+    ) throws {
+        guard let snapshots, !snapshots.isEmpty else {
+            for track in restoredTracks.values {
+                guard let artist = track.artist else {
+                    continue
+                }
+                modelContext.insert(
+                    TrackArtistCreditRecord(
+                        track: track,
+                        artist: artist,
+                        position: 0,
+                        displayArtistName: artist.name
+                    )
+                )
+            }
+            return
+        }
+
+        let trackIDs = Array(Set(snapshots.map(\.trackID)))
+        let existingTracks = try modelContext.fetch(
+            FetchDescriptor<TrackRecord>(
+                predicate: #Predicate { trackIDs.contains($0.id) }
+            )
+        )
+        var tracks = Dictionary(
+            uniqueKeysWithValues: existingTracks.map { ($0.id, $0) }
+        )
+        tracks.merge(restoredTracks) { _, restored in restored }
+        let creditIDs = snapshots.map(\.id)
+        let existingCreditIDs = try Set(
+            modelContext.fetch(
+                FetchDescriptor<TrackArtistCreditRecord>(
+                    predicate: #Predicate { creditIDs.contains($0.id) }
+                )
+            ).map(\.id)
+        )
+
+        for snapshot in snapshots
+            where !existingCreditIDs.contains(snapshot.id) {
+            guard
+                let track = tracks[snapshot.trackID],
+                let artist = artists[snapshot.artistID]
+            else {
+                continue
+            }
+            modelContext.insert(
+                TrackArtistCreditRecord(
+                    id: snapshot.id,
+                    track: track,
+                    artist: artist,
+                    position: snapshot.position,
+                    displayArtistName: snapshot.displayArtistName
+                )
+            )
+            if snapshot.position == 0 {
+                track.artist = artist
+            }
+        }
     }
 }

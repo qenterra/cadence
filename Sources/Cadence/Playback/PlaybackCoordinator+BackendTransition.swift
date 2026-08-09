@@ -12,6 +12,7 @@ private struct PlaybackBackendTransition {
     let previousAudioPath: AudioPathSnapshot?
     let candidateRoute: AudioRouteSnapshot?
     let expectedRouteGeneration: Int?
+    let expectedConfigurationGeneration: Int?
 }
 
 private enum PlaybackBackendTransitionFailurePolicy {
@@ -19,14 +20,23 @@ private enum PlaybackBackendTransitionFailurePolicy {
     case restorePreviousPath
 }
 
+private struct PlaybackBackendTransitionExpectation {
+    let routeGeneration: Int?
+    let configurationGeneration: Int?
+}
+
 extension PlaybackCoordinator {
     func transitionBackend(
-        to requestedKind: PlaybackBackendKind
+        to requestedKind: PlaybackBackendKind,
+        configurationGeneration: Int
     ) async -> Bool {
         await performBackendTransition(
             to: requestedKind,
             candidateRoute: nil,
-            expectedRouteGeneration: nil,
+            expectation: PlaybackBackendTransitionExpectation(
+                routeGeneration: nil,
+                configurationGeneration: configurationGeneration
+            ),
             reloadCurrentBackend: false,
             failurePolicy: .restorePreviousPath
         )
@@ -41,7 +51,10 @@ extension PlaybackCoordinator {
         await performBackendTransition(
             to: requestedKind,
             candidateRoute: route,
-            expectedRouteGeneration: generation,
+            expectation: PlaybackBackendTransitionExpectation(
+                routeGeneration: generation,
+                configurationGeneration: nil
+            ),
             reloadCurrentBackend: reloadCurrentBackend,
             failurePolicy: .pauseAndReportRouteFailure
         )
@@ -50,7 +63,7 @@ extension PlaybackCoordinator {
     private func performBackendTransition(
         to requestedKind: PlaybackBackendKind,
         candidateRoute: AudioRouteSnapshot?,
-        expectedRouteGeneration: Int?,
+        expectation: PlaybackBackendTransitionExpectation,
         reloadCurrentBackend: Bool,
         failurePolicy: PlaybackBackendTransitionFailurePolicy
     ) async -> Bool {
@@ -74,11 +87,12 @@ extension PlaybackCoordinator {
             previousBackend: previousBackend,
             requestedKind: requestedKind,
             requestedBackend: requestedBackend,
-            wasPlaying: state.isPlaying,
-            currentTime: state.currentTime,
+            wasPlaying: configurationTransitionWasPlaying ?? state.isPlaying,
+            currentTime: presentationTime(),
             previousAudioPath: state.audioPath,
             candidateRoute: candidateRoute,
-            expectedRouteGeneration: expectedRouteGeneration
+            expectedRouteGeneration: expectation.routeGeneration,
+            expectedConfigurationGeneration: expectation.configurationGeneration
         )
         begin(transition)
 
@@ -106,7 +120,11 @@ extension PlaybackCoordinator {
     }
 
     private func begin(_ transition: PlaybackBackendTransition) {
-        transition.previousBackend.pause()
+        if transition.expectedConfigurationGeneration != nil {
+            configurationTransitionWasPlaying = transition.wasPlaying
+        } else {
+            transition.previousBackend.pause()
+        }
         state.transport = .loading
         state.isBuffering = true
         publishState()
@@ -190,6 +208,9 @@ extension PlaybackCoordinator {
             next: next,
             route: transition.candidateRoute
         )
+        if transition.expectedConfigurationGeneration != nil {
+            configurationTransitionWasPlaying = nil
+        }
         publishState()
     }
 
@@ -199,6 +220,9 @@ extension PlaybackCoordinator {
         policy: PlaybackBackendTransitionFailurePolicy
     ) {
         transition.requestedBackend.stop()
+        if transition.expectedConfigurationGeneration != nil {
+            configurationTransitionWasPlaying = nil
+        }
         switch policy {
         case .pauseAndReportRouteFailure:
             transition.previousBackend.pause()
@@ -213,9 +237,6 @@ extension PlaybackCoordinator {
             )
             state.audioPath = transition.previousAudioPath
         case .restorePreviousPath:
-            if transition.wasPlaying {
-                transition.previousBackend.play()
-            }
             state.activeBackend = transition.previousKind
             state.transport = transition.wasPlaying ? .playing : .paused
             state.isBuffering = false
@@ -236,8 +257,12 @@ extension PlaybackCoordinator {
     private func routeTransitionIsCurrent(
         _ transition: PlaybackBackendTransition
     ) -> Bool {
-        transition.expectedRouteGeneration.map {
+        let routeIsCurrent = transition.expectedRouteGeneration.map {
             $0 == routeGeneration
         } ?? true
+        let configurationIsCurrent = transition.expectedConfigurationGeneration.map {
+            $0 == audioConfigurationGeneration
+        } ?? true
+        return routeIsCurrent && configurationIsCurrent
     }
 }

@@ -23,11 +23,14 @@ enum LibraryTrashError: Error, LocalizedError, Sendable {
 
 struct LibraryTrashPlan {
     let tracks: [TrackRecord]
+    let retainedTracks: [TrackRecord]
+    let credits: [TrackArtistCreditRecord]
     let trackIDs: Set<UUID>
     let albums: [UUID: AlbumRecord]
     let artists: [UUID: ArtistRecord]
     let deletedAlbumIDs: Set<UUID>
     let deletedArtistIDs: Set<UUID>
+    let targetArtistID: UUID?
     let artworks: [ArtworkRecord]
     let relativePaths: [String]
 }
@@ -133,18 +136,22 @@ private extension LibraryRepository {
         kind: TrashTargetKind,
         id: UUID
     ) throws -> LibraryTrashPlan {
+        if kind == .artist {
+            return try makeArtistTrashPlan(id: id)
+        }
         let tracks = try trashTargetTracks(kind: kind, id: id)
         guard !tracks.isEmpty else {
             throw LibraryTrashError.missingTarget
         }
         let trackIDs = Set(tracks.map(\.id))
+        let credits = try creditRecords(trackIDs: trackIDs)
         let albums = relatedAlbums(tracks)
-        let artists = relatedArtists(tracks)
+        let artists = try relatedArtists(tracks, credits: credits)
         let deletedAlbumIDs = emptyAlbumIDs(
             albums,
             afterRemoving: trackIDs
         )
-        let deletedArtistIDs = emptyArtistIDs(
+        let deletedArtistIDs = try emptyArtistIDs(
             artists,
             afterRemoving: trackIDs
         )
@@ -155,14 +162,117 @@ private extension LibraryRepository {
         )
         return LibraryTrashPlan(
             tracks: tracks,
+            retainedTracks: [],
+            credits: credits,
             trackIDs: trackIDs,
             albums: albums,
             artists: artists,
             deletedAlbumIDs: deletedAlbumIDs,
             deletedArtistIDs: deletedArtistIDs,
+            targetArtistID: nil,
             artworks: artworks,
             relativePaths: trashRelativePaths(
                 tracks: tracks,
+                artworks: artworks
+            )
+        )
+    }
+
+    func makeArtistTrashPlan(id: UUID) throws -> LibraryTrashPlan {
+        let artistPredicate = #Predicate<ArtistRecord> { $0.id == id }
+        guard let targetArtist = try modelContext.fetch(
+            FetchDescriptor(predicate: artistPredicate)
+        ).first else {
+            throw LibraryTrashError.missingTarget
+        }
+
+        let targetCreditPredicate = #Predicate<TrackArtistCreditRecord> {
+            $0.artistID == id
+        }
+        let targetCredits = try modelContext.fetch(
+            FetchDescriptor(predicate: targetCreditPredicate)
+        )
+        let creditedTrackIDs = Array(Set(targetCredits.map(\.trackID)))
+        var creditedTracks = try modelContext.fetch(
+            FetchDescriptor<TrackRecord>(
+                predicate: #Predicate {
+                    creditedTrackIDs.contains($0.id)
+                }
+            )
+        )
+        let legacyPredicate = #Predicate<TrackRecord> {
+            $0.artist?.id == id
+        }
+        let legacyTracks = try modelContext.fetch(
+            FetchDescriptor(predicate: legacyPredicate)
+        )
+        let knownTrackIDs = Set(creditedTracks.map(\.id))
+        creditedTracks.append(
+            contentsOf: legacyTracks.filter {
+                !knownTrackIDs.contains($0.id)
+            }
+        )
+
+        let allCredits = try creditRecords(
+            trackIDs: Set(creditedTracks.map(\.id))
+        )
+        let creditsByTrackID = Dictionary(grouping: allCredits, by: \.trackID)
+        var deletedTracks: [TrackRecord] = []
+        var retainedTracks: [TrackRecord] = []
+        for track in creditedTracks {
+            let credits = creditsByTrackID[track.id] ?? []
+            if credits.filter({ $0.artistID != id }).isEmpty {
+                deletedTracks.append(track)
+            } else {
+                retainedTracks.append(track)
+            }
+        }
+        let deletedTrackIDs = Set(deletedTracks.map(\.id))
+        let retainedTrackIDs = Set(retainedTracks.map(\.id))
+        let removedCredits = allCredits.filter {
+            deletedTrackIDs.contains($0.trackID)
+                || (retainedTrackIDs.contains($0.trackID) && $0.artistID == id)
+        }
+
+        var albums = relatedAlbums(deletedTracks)
+        let ownedAlbumPredicate = #Predicate<AlbumRecord> {
+            $0.artist?.id == id
+        }
+        for album in try modelContext.fetch(
+            FetchDescriptor(predicate: ownedAlbumPredicate)
+        ) {
+            albums[album.id] = album
+        }
+        let deletedAlbumIDs = emptyAlbumIDs(
+            albums,
+            afterRemoving: deletedTrackIDs
+        )
+        var artists = try relatedArtists(
+            deletedTracks,
+            credits: removedCredits
+        )
+        artists[targetArtist.id] = targetArtist
+        let deletedArtistIDs = try Set([targetArtist.id]).union(
+            emptyArtistIDs(artists, afterRemoving: deletedTrackIDs)
+        )
+        let artworks = try artworkRecordsForTrash(
+            trackIDs: deletedTrackIDs,
+            albumIDs: deletedAlbumIDs,
+            artistIDs: deletedArtistIDs
+        )
+        return LibraryTrashPlan(
+            tracks: deletedTracks,
+            retainedTracks: retainedTracks,
+            credits: removedCredits,
+            trackIDs: deletedTrackIDs,
+            albums: albums,
+            artists: artists,
+            deletedAlbumIDs: deletedAlbumIDs,
+            deletedArtistIDs: deletedArtistIDs,
+            targetArtistID: targetArtist.id,
+            artworks: artworks,
+            relativePaths: trashRelativePaths(
+                tracks: deletedTracks,
                 artworks: artworks
             )
         )
@@ -174,11 +284,15 @@ private extension LibraryRepository {
         targetKind: TrashTargetKind
     ) throws {
         let encoder = JSONEncoder()
+        var operationTargetIDs = plan.trackIDs
+        if let targetArtistID = plan.targetArtistID {
+            operationTargetIDs.insert(targetArtistID)
+        }
         try modelContext.insert(
             TrashOperationRecord(
                 id: operationID,
                 targetKind: targetKind,
-                targetIDsData: encoder.encode(Array(plan.trackIDs)),
+                targetIDsData: encoder.encode(Array(operationTargetIDs)),
                 originalRelativePathsData: encoder.encode(
                     plan.relativePaths
                 ),
@@ -190,14 +304,65 @@ private extension LibraryRepository {
             albumIDs: plan.deletedAlbumIDs
         )
         try removePlaylistReferences(trackIDs: plan.trackIDs)
+        try reassignRetainedRelationships(in: plan)
+        plan.credits.forEach(modelContext.delete)
         plan.tracks.forEach(modelContext.delete)
         plan.artworks.forEach(modelContext.delete)
-        refreshAfterTrash(
-            removedTrackIDs: plan.trackIDs,
-            albums: plan.albums,
-            artists: plan.artists
-        )
+        try refreshAfterTrash(plan)
         try modelContext.save()
+    }
+
+    func reassignRetainedRelationships(
+        in plan: LibraryTrashPlan
+    ) throws {
+        guard let deletedArtistID = plan.targetArtistID else {
+            return
+        }
+        let removedCreditIDs = Set(plan.credits.map(\.id))
+        let candidateTrackIDs = Set(
+            plan.retainedTracks.map(\.id)
+                + plan.albums.values.flatMap { $0.tracks.map(\.id) }
+        ).subtracting(plan.trackIDs)
+        let remainingCredits = try creditRecords(trackIDs: candidateTrackIDs)
+            .filter { !removedCreditIDs.contains($0.id) }
+        let remainingArtistIDs = Array(Set(remainingCredits.map(\.artistID)))
+        let remainingArtists = try modelContext.fetch(
+            FetchDescriptor<ArtistRecord>(
+                predicate: #Predicate {
+                    remainingArtistIDs.contains($0.id)
+                }
+            )
+        )
+        let artistsByID = Dictionary(
+            uniqueKeysWithValues: remainingArtists.map { ($0.id, $0) }
+        )
+        let creditsByTrackID = Dictionary(
+            grouping: remainingCredits,
+            by: \.trackID
+        ).mapValues { $0.sorted { $0.position < $1.position } }
+
+        for track in plan.retainedTracks {
+            track.artist = creditsByTrackID[track.id]?.first.flatMap {
+                artistsByID[$0.artistID]
+            }
+        }
+        for album in plan.albums.values
+            where !plan.deletedAlbumIDs.contains(album.id)
+            && album.artist?.id == deletedArtistID {
+            let replacement = album.tracks
+                .filter { !plan.trackIDs.contains($0.id) }
+                .sorted { $0.sortIdentity < $1.sortIdentity }
+                .compactMap { track in
+                    creditsByTrackID[track.id]?.first.flatMap {
+                        artistsByID[$0.artistID]
+                    }
+                        ?? (track.artist?.id == deletedArtistID
+                            ? nil
+                            : track.artist)
+                }
+                .first
+            album.artist = replacement
+        }
     }
 
     func relatedAlbums(
@@ -211,13 +376,38 @@ private extension LibraryRepository {
     }
 
     func relatedArtists(
-        _ tracks: [TrackRecord]
-    ) -> [UUID: ArtistRecord] {
-        tracks.reduce(into: [:]) { artists, track in
+        _ tracks: [TrackRecord],
+        credits: [TrackArtistCreditRecord]
+    ) throws -> [UUID: ArtistRecord] {
+        var artists: [UUID: ArtistRecord] = tracks.reduce(into: [:]) {
+            artists, track in
             if let artist = track.artist {
                 artists[artist.id] = artist
             }
         }
+        let artistIDs = Array(Set(credits.map(\.artistID)))
+        let creditedArtists = try modelContext.fetch(
+            FetchDescriptor<ArtistRecord>(
+                predicate: #Predicate { artistIDs.contains($0.id) }
+            )
+        )
+        for artist in creditedArtists {
+            artists[artist.id] = artist
+        }
+        return artists
+    }
+
+    func creditRecords(
+        trackIDs: Set<UUID>
+    ) throws -> [TrackArtistCreditRecord] {
+        let ids = Array(trackIDs)
+        guard !ids.isEmpty else {
+            return []
+        }
+        let predicate = #Predicate<TrackArtistCreditRecord> {
+            ids.contains($0.trackID)
+        }
+        return try modelContext.fetch(FetchDescriptor(predicate: predicate))
     }
 
     func emptyAlbumIDs(
@@ -234,12 +424,24 @@ private extension LibraryRepository {
     func emptyArtistIDs(
         _ artists: [UUID: ArtistRecord],
         afterRemoving trackIDs: Set<UUID>
-    ) -> Set<UUID> {
-        Set(artists.values.compactMap { artist in
-            artist.tracks.allSatisfy { trackIDs.contains($0.id) }
-                ? artist.id
-                : nil
-        })
+    ) throws -> Set<UUID> {
+        var emptyIDs: Set<UUID> = []
+        for artist in artists.values {
+            let artistID = artist.id
+            let predicate = #Predicate<TrackArtistCreditRecord> {
+                $0.artistID == artistID
+            }
+            let hasRemainingCredit = try modelContext.fetch(
+                FetchDescriptor(predicate: predicate)
+            ).contains { !trackIDs.contains($0.trackID) }
+            let hasRemainingAlbum = artist.albums.contains { album in
+                album.tracks.contains { !trackIDs.contains($0.id) }
+            }
+            if !hasRemainingCredit, !hasRemainingAlbum {
+                emptyIDs.insert(artist.id)
+            }
+        }
+        return emptyIDs
     }
 
     func trashTargetTracks(
@@ -362,15 +564,11 @@ private extension LibraryRepository {
         }
     }
 
-    func refreshAfterTrash(
-        removedTrackIDs: Set<UUID>,
-        albums: [UUID: AlbumRecord],
-        artists: [UUID: ArtistRecord]
-    ) {
+    func refreshAfterTrash(_ plan: LibraryTrashPlan) throws {
         var removedAlbumIDs: Set<UUID> = []
-        for album in albums.values {
+        for album in plan.albums.values {
             let remaining = album.tracks.filter {
-                !removedTrackIDs.contains($0.id)
+                !plan.trackIDs.contains($0.id)
             }
             if remaining.isEmpty {
                 removedAlbumIDs.insert(album.id)
@@ -382,10 +580,20 @@ private extension LibraryRepository {
                 }
             }
         }
-        for artist in artists.values {
-            let remainingTracks = artist.tracks.filter {
-                !removedTrackIDs.contains($0.id)
+        for artist in plan.artists.values {
+            if plan.deletedArtistIDs.contains(artist.id) {
+                modelContext.delete(artist)
+                continue
             }
+            let artistID = artist.id
+            let creditPredicate = #Predicate<TrackArtistCreditRecord> {
+                $0.artistID == artistID
+            }
+            let remainingTracks = try Set(
+                modelContext.fetch(
+                    FetchDescriptor(predicate: creditPredicate)
+                ).map(\.trackID)
+            )
             let remainingAlbums = artist.albums.filter {
                 !removedAlbumIDs.contains($0.id)
             }

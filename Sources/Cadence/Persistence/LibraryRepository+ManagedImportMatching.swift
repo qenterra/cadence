@@ -52,13 +52,11 @@ extension LibraryRepository {
     func reusableArtists(
         for entries: [ManagedImportManifest.Entry]
     ) throws -> [String: ArtistRecord] {
-        let names = Array(
-            Set(
-                entries.map {
-                    SearchNormalizer.normalize($0.metadata.artist)
-                }
-            )
-        )
+        let sourceNames = entries.flatMap { entry in
+            entry.metadata.creditArtistNames
+                + [entry.metadata.albumArtistName]
+        }
+        let names = Array(Set(sourceNames.map(SearchNormalizer.normalize)))
         var artistsByName: [String: ArtistRecord] = [:]
         if !names.isEmpty {
             let predicate = #Predicate<ArtistRecord> { artist in
@@ -73,14 +71,12 @@ extension LibraryRepository {
             }
         }
 
-        for entry in entries {
-            let normalizedName = SearchNormalizer.normalize(
-                entry.metadata.artist
-            )
+        for name in sourceNames {
+            let normalizedName = SearchNormalizer.normalize(name)
             guard artistsByName[normalizedName] == nil else {
                 continue
             }
-            let artist = ArtistRecord(name: entry.metadata.artist)
+            let artist = ArtistRecord(name: name)
             modelContext.insert(artist)
             artistsByName[normalizedName] = artist
         }
@@ -122,7 +118,7 @@ extension LibraryRepository {
 
         for entry in entries {
             let artistName = SearchNormalizer.normalize(
-                entry.metadata.artist
+                entry.metadata.albumArtistName
             )
             let identity = ManagedAlbumIdentity(
                 normalizedArtist: artistName,
@@ -150,21 +146,24 @@ extension LibraryRepository {
         artists: [String: ArtistRecord],
         albums: [ManagedAlbumIdentity: AlbumRecord]
     ) {
-        let groupedByArtist = Dictionary(grouping: entries) {
-            SearchNormalizer.normalize($0.metadata.artist)
+        var importedTrackCounts: [String: Int] = [:]
+        for entry in entries {
+            for name in entry.metadata.creditArtistNames {
+                importedTrackCounts[SearchNormalizer.normalize(name), default: 0] += 1
+            }
         }
-        for (artistName, importedEntries) in groupedByArtist {
+        for (artistName, importedTrackCount) in importedTrackCounts {
             guard let artist = artists[artistName] else {
                 continue
             }
-            artist.trackCount += importedEntries.count
+            artist.trackCount += importedTrackCount
             artist.albumCount = Set(artist.albums.map(\.id)).count
         }
 
         let groupedByAlbum = Dictionary(grouping: entries) {
             ManagedAlbumIdentity(
                 normalizedArtist: SearchNormalizer.normalize(
-                    $0.metadata.artist
+                    $0.metadata.albumArtistName
                 ),
                 normalizedTitle: SearchNormalizer.normalize(
                     $0.metadata.album

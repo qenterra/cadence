@@ -25,7 +25,7 @@ struct LyricLine: Identifiable, Hashable, Sendable {
     }
 }
 
-enum LyricTimingStatus: Hashable, Sendable {
+enum LyricTimingStatus: String, Codable, Hashable, Sendable {
     case missing
     case unsynchronized
     case partiallySynchronized

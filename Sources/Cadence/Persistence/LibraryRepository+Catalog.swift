@@ -24,20 +24,27 @@ extension LibraryRepository {
     }
 
     func track(id: UUID) throws -> LibraryTrackProjection? {
-        try trackRecord(id: id).map(LibraryProjectionFactory.track)
+        guard let record = try trackRecord(id: id) else {
+            return nil
+        }
+        return try trackProjection(record)
     }
 
     func artist(id: UUID) throws -> LibraryArtistProjection? {
         let predicate = #Predicate<ArtistRecord> { $0.id == id }
         var descriptor = FetchDescriptor(predicate: predicate)
         descriptor.fetchLimit = 1
-        return try modelContext.fetch(descriptor).first.map(
-            LibraryProjectionFactory.artist
-        )
+        guard let record = try modelContext.fetch(descriptor).first else {
+            return nil
+        }
+        return try artistProjection(record)
     }
 
     func album(id: UUID) throws -> LibraryAlbumProjection? {
-        try albumRecord(id: id).map(LibraryProjectionFactory.album)
+        guard let record = try albumRecord(id: id) else {
+            return nil
+        }
+        return try albumProjection(record)
     }
 
     func tracks(
@@ -137,7 +144,7 @@ extension LibraryRepository {
                 || !excludedTrackIDs.contains($0.id)
         }
 
-        return relationshipPage(
+        return try relationshipPage(
             records: Array(effectiveRecords),
             after: cursor,
             limit: limit
@@ -231,7 +238,7 @@ private extension LibraryRepository {
         records: [TrackRecord],
         after cursor: LibraryPageCursor?,
         limit: Int
-    ) -> LibraryPage<LibraryTrackProjection> {
+    ) throws -> LibraryPage<LibraryTrackProjection> {
         let boundedLimit = min(max(limit, 1), Self.maximumPageSize)
         let filtered = records
             .sorted {
@@ -249,12 +256,11 @@ private extension LibraryRepository {
                         )
                 } ?? true
             }
-        return LibraryPageBuilder.page(
+        return try trackPage(
             records: Array(filtered.prefix(boundedLimit + 1)),
             limit: boundedLimit,
             sortValue: \.normalizedTitle,
-            identity: \.sortIdentity,
-            projection: LibraryProjectionFactory.track
+            identity: \.sortIdentity
         )
     }
 }

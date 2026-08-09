@@ -45,6 +45,7 @@ enum ImportDuplicateDisposition: Equatable, Sendable {
 enum ImportLyricsInspection: Equatable, Sendable {
     case unavailable
     case linked(URL)
+    case embedded(EmbeddedLyricsPayload)
     case malformed(URL, reason: String)
     case ambiguous([URL])
 }
@@ -227,7 +228,7 @@ extension ImportInspectionCandidate {
         switch lyrics {
         case .unavailable:
             .unavailable
-        case .linked:
+        case .linked, .embedded:
             .linked
         case .malformed:
             .malformed
@@ -255,7 +256,7 @@ extension ImportInspectionCandidate {
             return .issue(.malformedLyrics)
         case .ambiguous:
             return .issue(.ambiguousLyrics)
-        case .unavailable, .linked:
+        case .unavailable, .linked, .embedded:
             return .ready
         }
     }

@@ -24,6 +24,8 @@ struct ScannedAudioMetadata: Codable, Equatable, Sendable {
     let title: String
     let artist: String
     let album: String
+    let artists: [String]
+    let albumArtist: String?
     let year: Int?
     let trackNumber: Int?
     let discNumber: Int?
@@ -36,6 +38,53 @@ struct ScannedAudioMetadata: Codable, Equatable, Sendable {
     let bitDepth: Int?
     let spatialFormat: StoredSpatialFormat
     var embeddedArtwork: EmbeddedArtworkMetadata?
+    let embeddedLyrics: EmbeddedLyricsPayload?
+    let sourceMetadata: SourceMetadataSnapshot?
+
+    init(
+        title: String,
+        artist: String,
+        album: String,
+        artists: [String]? = nil,
+        albumArtist: String? = nil,
+        year: Int?,
+        trackNumber: Int?,
+        discNumber: Int?,
+        duration: TimeInterval,
+        codec: String,
+        container: String,
+        sampleRate: Double,
+        channelCount: Int,
+        bitrate: Int?,
+        bitDepth: Int?,
+        spatialFormat: StoredSpatialFormat,
+        embeddedArtwork: EmbeddedArtworkMetadata? = nil,
+        embeddedLyrics: EmbeddedLyricsPayload? = nil,
+        sourceMetadata: SourceMetadataSnapshot? = nil
+    ) {
+        self.title = title
+        self.artist = artist
+        self.album = album
+        self.artists = ArtistCreditParser().parse(
+            values: artists ?? [artist],
+            fallback: artist
+        )
+        self.albumArtist = albumArtist
+        self.year = year
+        self.trackNumber = trackNumber
+        self.discNumber = discNumber
+        self.duration = duration
+        self.codec = codec
+        self.container = container
+        self.sampleRate = sampleRate
+        self.channelCount = channelCount
+        self.bitrate = bitrate
+        self.bitDepth = bitDepth
+        self.spatialFormat = spatialFormat
+        self.embeddedArtwork = embeddedArtwork
+        self.embeddedLyrics = embeddedLyrics
+        self.sourceMetadata = sourceMetadata
+    }
 }
 
 enum MetadataReaderError: Error, LocalizedError, Sendable {
@@ -73,6 +122,12 @@ struct MetadataReader: Sendable {
         async let containerMetadata = asset.load(.metadata)
         let metadata = try await commonMetadata + containerMetadata
         let values = MetadataValueResolver(items: metadata)
+        let embeddedLyrics = await EmbeddedLyricsReader().read(
+            items: metadata
+        )
+        let sourceMetadata = await SourceMetadataSnapshot.capture(
+            items: metadata
+        )
         let properties = try await audioProperties(
             asset: asset,
             url: url
@@ -83,6 +138,24 @@ struct MetadataReader: Sendable {
             url: url
         )
         let display = await displayMetadata(values: values, url: url)
+        let sourceArtistValues = await values.strings(
+            commonIdentifier: .commonIdentifierArtist,
+            rawKeys: ["ARTIST", "PERFORMER", "TPE1"]
+        )
+        let artistDisplay = sourceArtistValues.isEmpty
+            ? display.artist
+            : sourceArtistValues.joined(separator: ", ")
+        let artists = ArtistCreditParser().parse(
+            values: sourceArtistValues,
+            fallback: display.artist
+        )
+        let albumArtistValues = await values.strings(
+            rawKeys: ["ALBUMARTIST", "ALBUMARTISTS", "TPE2"]
+        )
+        let albumArtist = ArtistCreditParser().parse(
+            values: albumArtistValues,
+            fallback: artists[0]
+        ).first
         let date = await values.string(
             commonIdentifier: .commonIdentifierCreationDate,
             rawKeys: ["DATE", "YEAR", "TDRC", "TYER"]
@@ -96,8 +169,10 @@ struct MetadataReader: Sendable {
 
         return ScannedAudioMetadata(
             title: display.title,
-            artist: display.artist,
+            artist: artistDisplay,
             album: display.album,
+            artists: artists,
+            albumArtist: albumArtistValues.isEmpty ? nil : albumArtist,
             year: year(from: date),
             trackNumber: trackNumber,
             discNumber: discNumber,
@@ -109,7 +184,9 @@ struct MetadataReader: Sendable {
             bitrate: properties.bitrate,
             bitDepth: properties.bitDepth,
             spatialFormat: properties.spatialFormat,
-            embeddedArtwork: artwork?.metadata
+            embeddedArtwork: artwork?.metadata,
+            embeddedLyrics: embeddedLyrics,
+            sourceMetadata: sourceMetadata
         )
     }
 

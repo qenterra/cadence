@@ -54,6 +54,8 @@ struct ManagedImportManifest: Codable, Equatable, Sendable {
         let title: String
         let artist: String
         let album: String
+        let artists: [String]?
+        let albumArtist: String?
         let year: Int?
         let trackNumber: Int?
         let discNumber: Int?
@@ -65,11 +67,15 @@ struct ManagedImportManifest: Codable, Equatable, Sendable {
         let bitrate: Int?
         let bitDepth: Int?
         let spatialFormat: StoredSpatialFormat
+        let embeddedLyrics: EmbeddedLyricsPayload?
+        let sourceMetadata: SourceMetadataSnapshot?
 
         init(_ metadata: ScannedAudioMetadata) {
             title = metadata.title
             artist = metadata.artist
             album = metadata.album
+            artists = metadata.artists
+            albumArtist = metadata.albumArtist
             year = metadata.year
             trackNumber = metadata.trackNumber
             discNumber = metadata.discNumber
@@ -81,12 +87,16 @@ struct ManagedImportManifest: Codable, Equatable, Sendable {
             bitrate = metadata.bitrate
             bitDepth = metadata.bitDepth
             spatialFormat = metadata.spatialFormat
+            embeddedLyrics = metadata.embeddedLyrics
+            sourceMetadata = metadata.sourceMetadata
         }
 
         init(
             title: String,
             artist: String,
             album: String,
+            artists: [String]? = nil,
+            albumArtist: String? = nil,
             year: Int?,
             trackNumber: Int?,
             discNumber: Int?,
@@ -97,11 +107,15 @@ struct ManagedImportManifest: Codable, Equatable, Sendable {
             channelCount: Int,
             bitrate: Int?,
             bitDepth: Int?,
-            spatialFormat: StoredSpatialFormat
+            spatialFormat: StoredSpatialFormat,
+            embeddedLyrics: EmbeddedLyricsPayload? = nil,
+            sourceMetadata: SourceMetadataSnapshot? = nil
         ) {
             self.title = title
             self.artist = artist
             self.album = album
+            self.artists = artists
+            self.albumArtist = albumArtist
             self.year = year
             self.trackNumber = trackNumber
             self.discNumber = discNumber
@@ -113,6 +127,22 @@ struct ManagedImportManifest: Codable, Equatable, Sendable {
             self.bitrate = bitrate
             self.bitDepth = bitDepth
             self.spatialFormat = spatialFormat
+            self.embeddedLyrics = embeddedLyrics
+            self.sourceMetadata = sourceMetadata
+        }
+
+        var creditArtistNames: [String] {
+            ArtistCreditParser().parse(
+                values: artists ?? [artist],
+                fallback: artist
+            )
+        }
+
+        var albumArtistName: String {
+            ArtistCreditParser().parse(
+                values: albumArtist.map { [$0] } ?? [],
+                fallback: creditArtistNames[0]
+            )[0]
         }
     }
 

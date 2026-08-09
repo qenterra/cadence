@@ -183,7 +183,7 @@ struct PlaybackCoordinatorTests {
         #expect(media.activationCount == 1)
     }
 
-    @Test("A failed backend switch resumes the previous valid path")
+    @Test("A failed backend switch keeps the previous valid path playing")
     func failedBackendTransition() async {
         let track = playbackTestTrack(id: UUID(), title: "Stereo")
         let pcm = PlaybackTestBackend(kind: .pcm)
@@ -207,8 +207,8 @@ struct PlaybackCoordinatorTests {
         #expect(coordinator.state.activeBackend == .pcm)
         #expect(coordinator.state.isPlaying)
         #expect(coordinator.qualityProfile == .adaptive)
-        #expect(pcm.pauseCount == 1)
-        #expect(pcm.playCount == 1)
+        #expect(pcm.pauseCount == 0)
+        #expect(pcm.playCount == 0)
         #expect(coordinator.state.failure != nil)
     }
 

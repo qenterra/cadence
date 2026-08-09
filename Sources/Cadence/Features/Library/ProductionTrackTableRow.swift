@@ -113,6 +113,7 @@ struct ProductionTrackTableRow: View {
             artworkID: track.artworkID,
             title: track.title,
             placeholder: .track,
+            variant: .trackRow,
             cornerRadius: 6
         )
         .frame(width: 40, height: 40)
@@ -124,7 +125,7 @@ struct ProductionTrackTableRow: View {
                 )
                 .fill(.black.opacity(0.34))
                 Image(
-                    systemName: model.isPlaying
+                    systemName: model.isCurrentProductionTrackPlaying
                         ? "waveform"
                         : "speaker.fill"
                 )
@@ -157,6 +158,19 @@ struct ProductionTrackTableRow: View {
                         CadenceTheme.subduedFill,
                         in: Capsule()
                     )
+
+                if track.hasSynchronizedLyrics {
+                    Text("LRC")
+                        .font(.system(size: 9, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 5)
+                        .frame(height: 16)
+                        .background(
+                            CadenceTheme.subduedFill,
+                            in: Capsule()
+                        )
+                        .accessibilityLabel("Synchronized lyrics")
+                }
             }
 
             Button {

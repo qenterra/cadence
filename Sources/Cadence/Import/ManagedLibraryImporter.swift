@@ -221,13 +221,14 @@ actor ManagedLibraryImporter {
                 expectedAudioHash: contentHash,
                 sizeInBytes: candidate.sizeInBytes,
                 relativeMediaPath: "Media/\(trackID.uuidString).\(fileExtension)",
-                lyric: candidate.linkedLyricURL.map { _ in
+                lyric: candidate.hasImportableLyrics
+                    ?
                     ManagedImportManifest.LyricAsset(
                         relativePath: "Lyrics/\(trackID.uuidString).lrc",
                         contentHash: nil,
                         timingStatus: nil
                     )
-                },
+                    : nil,
                 artwork: artwork,
                 state: .pending,
                 failureReason: nil
@@ -246,7 +247,8 @@ actor ManagedLibraryImporter {
         albumsWithArtwork: inout Set<ImportMetadataIdentity>
     ) -> ManagedImportManifest.ArtworkAsset? {
         let identity = ImportMetadataIdentity(
-            artist: metadata.artist,
+            artist: metadata.albumArtist ?? metadata.artists.first
+                ?? metadata.artist,
             title: metadata.album
         )
         guard

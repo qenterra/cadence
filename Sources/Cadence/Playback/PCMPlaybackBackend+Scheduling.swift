@@ -28,6 +28,16 @@ extension PCMPlaybackBackend {
         return playbackTime
     }
 
+    func timelineSample(
+        hostUptime: TimeInterval
+    ) -> PlaybackTimelineSample {
+        PlaybackTimelineSample(
+            mediaTime: currentPlaybackTime,
+            hostUptime: hostUptime,
+            rate: isPlaying ? 1 : 0
+        )
+    }
+
     func freezePlaybackTimeline(
         at time: TimeInterval,
         playerSampleTime: AVAudioFramePosition?
@@ -179,7 +189,7 @@ extension PCMPlaybackBackend {
     }
 
     func applyGain(
-        duration: Duration
+        duration _: Duration
     ) {
         let scalar = replayGainDecibels.map {
             pow(10, $0 / 20)
@@ -189,46 +199,24 @@ extension PCMPlaybackBackend {
             max(userVolume * presentationGain, 0),
             1
         )
-        let targetDecibels = targetScalar > 0.000_01
-            ? 20 * log10(targetScalar)
-            : -96
-        guard
-            let parameter = gainUnit.auAudioUnit.parameterTree?
-            .parameter(
-                withAddress: AUParameterAddress(
-                    kAUNBandEQParam_GlobalGain
-                )
-            )
-        else {
-            gainUnit.globalGain = targetDecibels
-            return
-        }
-        let sampleRate = max(
-            engine.outputNode.outputFormat(forBus: 0).sampleRate,
-            44100
-        )
-        let seconds = Double(duration.components.seconds)
-            + Double(duration.components.attoseconds) / 1e18
-        let frameCount = AVAudioFrameCount(
-            min(max(seconds * sampleRate, 0), Double(UInt32.max))
-        )
-        gainUnit.auAudioUnit.scheduleParameterBlock(
-            AUEventSampleTimeImmediate,
-            frameCount,
-            parameter.address,
-            targetDecibels
-        )
+        engine.mainMixerNode.outputVolume = targetScalar
     }
 
     func startProgressUpdates() {
         progressTask?.cancel()
         progressTask = Task { @MainActor [weak self] in
             while !Task.isCancelled {
-                try? await Task.sleep(for: .milliseconds(100))
+                try? await Task.sleep(for: .milliseconds(250))
                 guard !Task.isCancelled, let self else {
                     return
                 }
-                onEvent?(.time(currentPlaybackTime))
+                onEvent?(
+                    .timeline(
+                        timelineSample(
+                            hostUptime: ProcessInfo.processInfo.systemUptime
+                        )
+                    )
+                )
             }
         }
     }

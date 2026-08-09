@@ -56,9 +56,9 @@ extension LibraryRepository {
         let tracksByID = Dictionary(
             uniqueKeysWithValues: tracks.map { ($0.id, $0) }
         )
-        return trackIDs.compactMap {
-            tracksByID[$0].map(LibraryProjectionFactory.track)
-        }
+        return try trackProjections(
+            trackIDs.compactMap { tracksByID[$0] }
+        )
     }
 
     func createPlaylist(
@@ -203,14 +203,22 @@ extension LibraryRepository {
     func playlistTrackIDs(
         artistID: UUID
     ) throws -> [UUID] {
-        let predicate = #Predicate<TrackRecord> {
+        let predicate = #Predicate<TrackArtistCreditRecord> {
+            $0.artistID == artistID
+        }
+        let creditedTrackIDs = try modelContext.fetch(
+            FetchDescriptor(predicate: predicate)
+        ).map(\.trackID)
+        let primaryPredicate = #Predicate<TrackRecord> {
             $0.artist?.id == artistID
         }
-        return try modelContext.fetch(
-            FetchDescriptor(predicate: predicate)
-        )
-        .sorted(by: Self.artistTrackOrder)
-        .map(\.id)
+        let primaryTrackIDs = try modelContext.fetch(
+            FetchDescriptor(predicate: primaryPredicate)
+        ).map(\.id)
+        let trackIDs = Array(Set(creditedTrackIDs + primaryTrackIDs))
+        return try trackRecords(ids: trackIDs)
+            .sorted(by: Self.artistTrackOrder)
+            .map(\.id)
     }
 }
 

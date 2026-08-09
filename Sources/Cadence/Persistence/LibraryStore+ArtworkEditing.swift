@@ -14,7 +14,7 @@ extension LibraryStore {
             ownerID: request.ownerID
         )
         let newArtworkID = try await artworkService.setArtwork(request)
-        previousArtworkID.map(artworkAssetCache.invalidate(id:))
+        previousArtworkID.map { artworkAssetCache.invalidate(id: $0) }
         artworkAssetCache.invalidate(id: newArtworkID)
         await loadInitialLibrary()
     }
@@ -35,7 +35,7 @@ extension LibraryStore {
             ownerKind: ownerKind,
             ownerID: ownerID
         )
-        previousArtworkID.map(artworkAssetCache.invalidate(id:))
+        previousArtworkID.map { artworkAssetCache.invalidate(id: $0) }
         await loadInitialLibrary()
     }
 

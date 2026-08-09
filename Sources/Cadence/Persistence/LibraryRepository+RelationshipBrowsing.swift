@@ -26,24 +26,29 @@ extension LibraryRepository {
         limit: Int = maximumPageSize
     ) throws -> LibraryPage<LibraryAlbumProjection> {
         let boundedLimit = min(max(limit, 1), Self.maximumPageSize)
+        let albumIDs = try Array(
+            participatingAlbumIDs(artistID: artistID)
+        )
+        guard !albumIDs.isEmpty else {
+            return LibraryPage(items: [], nextCursor: nil)
+        }
         var descriptor = albumDescriptor(
-            artistID: artistID,
+            albumIDs: albumIDs,
             after: cursor
         )
         descriptor.fetchLimit = boundedLimit + 1
-        return try LibraryPageBuilder.page(
+        return try albumPage(
             records: modelContext.fetch(descriptor),
             limit: boundedLimit,
             sortValue: \.normalizedTitle,
-            identity: \.sortIdentity,
-            projection: LibraryProjectionFactory.album
+            identity: \.sortIdentity
         )
     }
 }
 
 private extension LibraryRepository {
     func albumDescriptor(
-        artistID: UUID,
+        albumIDs: [UUID],
         after cursor: LibraryPageCursor?
     ) -> FetchDescriptor<AlbumRecord> {
         let sortBy = [
@@ -52,7 +57,7 @@ private extension LibraryRepository {
         ]
         guard let cursor else {
             let predicate = #Predicate<AlbumRecord> {
-                $0.artist?.id == artistID
+                albumIDs.contains($0.id)
             }
             return FetchDescriptor(
                 predicate: predicate,
@@ -63,7 +68,7 @@ private extension LibraryRepository {
         let cursorValue = cursor.sortValue
         let cursorIdentity = cursor.identity
         let predicate = #Predicate<AlbumRecord> {
-            $0.artist?.id == artistID
+            albumIDs.contains($0.id)
                 && (
                     $0.normalizedTitle > cursorValue
                         || (

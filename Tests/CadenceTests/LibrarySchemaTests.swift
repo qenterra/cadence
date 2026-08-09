@@ -9,7 +9,7 @@ struct LibrarySchemaTests {
         let container = try LibraryContainerFactory.inMemory()
         let entityNames = Set(container.schema.entities.map(\.name))
 
-        #expect(CadenceSchemaV3.versionIdentifier == Schema.Version(3, 0, 0))
+        #expect(CadenceSchemaV4.versionIdentifier == Schema.Version(4, 0, 0))
         #expect(
             entityNames == [
                 "AlbumRecord",
@@ -24,6 +24,7 @@ struct LibrarySchemaTests {
                 "TagExclusionRecord",
                 "TagRecord",
                 "TrackRecord",
+                "TrackArtistCreditRecord",
                 "TrashOperationRecord",
             ]
         )
@@ -128,6 +129,9 @@ struct LibrarySchemaTests {
                 importID: importID
             )
             let migratedContainer = try openMigratedStore(at: storeURL)
+            try LibraryContainerFactory.backfillArtistCredits(
+                in: migratedContainer
+            )
             let migratedContext = ModelContext(migratedContainer)
 
             #expect(
@@ -140,6 +144,16 @@ struct LibrarySchemaTests {
                 )
                 .isEmpty
             )
+            let credits = try migratedContext.fetch(
+                FetchDescriptor<TrackArtistCreditRecord>()
+            )
+            #expect(credits.count == 1)
+            #expect(credits.first?.trackID == trackID)
+            let legacyArtist = try migratedContext.fetch(
+                FetchDescriptor<ArtistRecord>()
+            ).first
+            #expect(credits.first?.artistID == legacyArtist?.id)
+            #expect(legacyArtist?.name == "Legacy Artist")
         }
     }
 
@@ -160,6 +174,8 @@ struct LibrarySchemaTests {
             configurations: [configuration]
         )
         let context = ModelContext(container)
+        let artist = ArtistRecord(name: "Legacy Artist", trackCount: 1)
+        context.insert(artist)
         context.insert(
             ImportSessionRecord(
                 id: importID,
@@ -180,7 +196,8 @@ struct LibrarySchemaTests {
                 channelCount: 2,
                 contentHash: String(repeating: "a", count: 64),
                 relativeMediaPath: "Media/\(trackID.uuidString).flac",
-                importSessionID: importID
+                importSessionID: importID,
+                artist: artist
             )
         )
         try context.save()
@@ -189,7 +206,7 @@ struct LibrarySchemaTests {
     private func openMigratedStore(
         at storeURL: URL
     ) throws -> ModelContainer {
-        let schema = Schema(versionedSchema: CadenceSchemaV3.self)
+        let schema = Schema(versionedSchema: CadenceSchemaV4.self)
         let configuration = ModelConfiguration(
             "CadenceMigrationFixture",
             schema: schema,

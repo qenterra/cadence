@@ -71,6 +71,7 @@ struct ProductionAlbumDetailView: View {
                 artworkID: album.customArtworkID,
                 title: album.title,
                 placeholder: .album,
+                variant: .original,
                 cornerRadius: 16
             )
             .frame(width: 210, height: 210)

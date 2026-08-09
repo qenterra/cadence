@@ -31,7 +31,11 @@ extension CadenceAppModel {
     func isCurrentProductionTrack(
         _ trackID: UUID
     ) -> Bool {
-        currentPlaybackTrack?.id == trackID
+        playbackCoordinator?.playbackIndicator.currentTrackID == trackID
+    }
+
+    var isCurrentProductionTrackPlaying: Bool {
+        playbackCoordinator?.playbackIndicator.isPlaying ?? previewIsPlaying
     }
 
     var productionPlaybackQueueTracks: [PlaybackQueueTrackProjection] {

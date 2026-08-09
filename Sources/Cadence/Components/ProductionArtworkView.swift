@@ -5,6 +5,7 @@ struct ProductionArtworkView: View {
     let artworkID: UUID?
     let title: String
     let placeholder: ArtworkPlaceholder
+    var variant: ArtworkAssetVariant = .thumbnail
     var cornerRadius: CGFloat = 8
     var showsBorder = true
 
@@ -19,14 +20,15 @@ struct ProductionArtworkView: View {
             cornerRadius: cornerRadius,
             showsBorder: showsBorder
         )
-        .task(id: artworkID) {
+        .task(id: "\(artworkID?.uuidString ?? "none")-\(variant)") {
             guard let artworkID else {
                 asset = nil
                 return
             }
             asset = await model.librarySession.store.artworkAsset(
                 id: artworkID,
-                location: model.librarySession.location
+                location: model.librarySession.location,
+                variant: variant
             )
         }
     }

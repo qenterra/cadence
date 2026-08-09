@@ -30,12 +30,18 @@ actor LibraryRepository {
         descriptor.fetchLimit = boundedLimit + 1
 
         let records = try modelContext.fetch(descriptor)
-        return LibraryPageBuilder.page(
-            records: records,
-            limit: boundedLimit,
-            sortValue: \.normalizedName,
-            identity: \.sortIdentity,
-            projection: LibraryProjectionFactory.artist
+        let hasMore = records.count > boundedLimit
+        let pageRecords = Array(records.prefix(boundedLimit))
+        return try LibraryPage(
+            items: artistProjections(pageRecords),
+            nextCursor: hasMore
+                ? pageRecords.last.map {
+                    LibraryPageCursor(
+                        sortValue: $0.normalizedName,
+                        identity: $0.sortIdentity
+                    )
+                }
+                : nil
         )
     }
 
@@ -52,12 +58,11 @@ actor LibraryRepository {
         descriptor.fetchLimit = boundedLimit + 1
 
         let records = try modelContext.fetch(descriptor)
-        return LibraryPageBuilder.page(
+        return try albumPage(
             records: records,
             limit: boundedLimit,
             sortValue: \.normalizedTitle,
-            identity: \.sortIdentity,
-            projection: LibraryProjectionFactory.album
+            identity: \.sortIdentity
         )
     }
 
@@ -77,9 +82,8 @@ actor LibraryRepository {
             uniqueKeysWithValues: records.map { ($0.id, $0) }
         )
 
-        return ids.compactMap {
-            recordsByID[$0].map(LibraryProjectionFactory.playback)
-        }
+        let orderedRecords = ids.compactMap { recordsByID[$0] }
+        return try playbackProjections(orderedRecords)
     }
 
     func allTrackIDs() throws -> [UUID] {

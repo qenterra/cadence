@@ -1,4 +1,3 @@
-import AudioToolbox
 import AVFAudio
 import Foundation
 
@@ -133,7 +132,13 @@ final class PCMPlaybackBackend: PlaybackBackend {
                 at: pausedTime,
                 playerSampleTime: pausedSampleTime
             )
-            onEvent?(.time(pausedTime))
+            onEvent?(
+                .timeline(
+                    timelineSample(
+                        hostUptime: ProcessInfo.processInfo.systemUptime
+                    )
+                )
+            )
         }
     }
 
@@ -147,11 +152,22 @@ final class PCMPlaybackBackend: PlaybackBackend {
             startTime: time,
             autoplay: isPlaying
         )
-        onEvent?(.time(time))
+        onEvent?(
+            .timeline(
+                timelineSample(
+                    hostUptime: ProcessInfo.processInfo.systemUptime
+                )
+            )
+        )
     }
 
     func setVolume(_ volume: Float) {
         userVolume = min(max(volume, 0), 1)
+        applyGain()
+    }
+
+    func setReplayGain(_ decibels: Double?) {
+        replayGainDecibels = decibels
         applyGain()
     }
 

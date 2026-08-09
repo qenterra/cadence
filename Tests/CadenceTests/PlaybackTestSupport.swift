@@ -33,6 +33,7 @@ final class PlaybackTestBackend: PlaybackBackend {
     var onEvent: ((PlaybackBackendEvent) -> Void)?
     var loadError: Error?
     var shouldSuspendNextLoad = false
+    var loadDelay: Duration?
     private(set) var loadRequests: [PlaybackBackendLoadRequest] = []
     private(set) var preparedTracks: [ResolvedPlaybackTrack?] = []
     private(set) var seekTimes: [TimeInterval] = []
@@ -40,6 +41,7 @@ final class PlaybackTestBackend: PlaybackBackend {
     private(set) var pauseCount = 0
     private(set) var stopCount = 0
     private(set) var volumes: [Float] = []
+    private(set) var replayGains: [Double?] = []
     private(set) var suspendedLoadCount = 0
     private var loadContinuations: [CheckedContinuation<Void, Never>] = []
 
@@ -54,6 +56,9 @@ final class PlaybackTestBackend: PlaybackBackend {
             throw loadError
         }
         loadRequests.append(request)
+        if let loadDelay {
+            try await Task.sleep(for: loadDelay)
+        }
         if shouldSuspendNextLoad {
             shouldSuspendNextLoad = false
             suspendedLoadCount += 1
@@ -83,6 +88,10 @@ final class PlaybackTestBackend: PlaybackBackend {
 
     func setVolume(_ volume: Float) {
         volumes.append(volume)
+    }
+
+    func setReplayGain(_ decibels: Double?) {
+        replayGains.append(decibels)
     }
 
     func stop() {
@@ -145,7 +154,8 @@ func playbackTestTrack(
     duration: TimeInterval = 120,
     sampleRate: Double = 48000,
     channelCount: Int = 2,
-    spatialFormat: StoredSpatialFormat = .stereo
+    spatialFormat: StoredSpatialFormat = .stereo,
+    replayGainTrackGain: Double? = nil
 ) -> ResolvedPlaybackTrack {
     ResolvedPlaybackTrack(
         track: PlaybackTrack(
@@ -166,7 +176,7 @@ func playbackTestTrack(
             relativeMediaPath: "Media/\(id).\(container)",
             lyricRelativePath: nil,
             artworkID: nil,
-            replayGainTrackGain: nil,
+            replayGainTrackGain: replayGainTrackGain,
             replayGainTrackPeak: nil
         ),
         mediaURL: URL(filePath: "/tmp/\(id).\(container)")

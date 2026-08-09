@@ -131,6 +131,17 @@ struct CadenceApp: App {
     }
 
     private static func makeInitialModel() -> CadenceAppModel {
-        .production(librarySession: .startup())
+        if CadenceLaunchEnvironment.shouldUsePreviewLibrary() {
+            return .production(librarySession: .preview())
+        }
+        return .production(librarySession: .startup())
+    }
+}
+
+enum CadenceLaunchEnvironment {
+    static func shouldUsePreviewLibrary(
+        environment: [String: String] = ProcessInfo.processInfo.environment
+    ) -> Bool {
+        environment["XCTestConfigurationFilePath"] != nil
     }
 }

@@ -4,6 +4,135 @@ import SwiftData
 import Testing
 
 struct LibraryTrashTests {
+    @Test("Version two Trash manifests remain readable after credit migration")
+    func readsVersionTwoManifest() throws {
+        let root = FileManager.default.temporaryDirectory.appending(
+            path: "Cadence-Trash-V2-\(UUID().uuidString)",
+            directoryHint: .isDirectory
+        )
+        defer { try? FileManager.default.removeItem(at: root) }
+        let location = ManagedLibraryLocation(musicDirectory: root)
+        try ManagedLibraryPackage(location: location)
+            .bootstrapForConfirmedImport()
+        let operationID = UUID()
+        let manifest = ManagedTrashManifest(
+            version: 2,
+            operationID: operationID,
+            targetKind: .track,
+            createdAt: .now,
+            artists: [],
+            albums: [],
+            tracks: [],
+            artistCredits: nil,
+            lyrics: [],
+            artworks: [],
+            tagAssignments: [],
+            tagExclusions: [],
+            playlistEntries: nil,
+            originalRelativePaths: []
+        )
+        let store = ManagedTrashManifestStore(location: location)
+        try store.write(manifest)
+
+        #expect(try store.read(operationID: operationID).version == 2)
+    }
+
+    @Test("Deleting one credited artist keeps the shared track and restores the credit")
+    func trashSharedPrimaryArtist() async throws {
+        let fixture = try SharedArtistTrashFixture()
+        defer { fixture.remove() }
+        let repository = LibraryRepository(modelContainer: fixture.container)
+
+        let operationID = try await repository.trash(
+            targetKind: .artist,
+            targetID: fixture.primaryArtistID,
+            location: fixture.location
+        )
+
+        let context = ModelContext(fixture.container)
+        #expect(fixture.mediaURL.fileExists)
+        #expect(try context.fetch(FetchDescriptor<TrackRecord>()).count == 1)
+        #expect(
+            try context.fetch(FetchDescriptor<ArtistRecord>()).map(\.name)
+                == ["темный принц"]
+        )
+        let remainingArtist = try #require(
+            try context.fetch(FetchDescriptor<ArtistRecord>()).first
+        )
+        #expect(
+            try context.fetch(FetchDescriptor<TrackArtistCreditRecord>())
+                .map(\.artistID) == [remainingArtist.id]
+        )
+        #expect(
+            try context.fetch(FetchDescriptor<TrackRecord>()).first?.artist?.name
+                == "темный принц"
+        )
+        #expect(
+            try context.fetch(FetchDescriptor<AlbumRecord>()).first?.artist?.name
+                == "темный принц"
+        )
+
+        try await repository.restoreTrash(
+            operationID: operationID,
+            location: fixture.location
+        )
+
+        let restoredArtists = try context.fetch(FetchDescriptor<ArtistRecord>())
+        let restoredCredits = try context.fetch(
+            FetchDescriptor<TrackArtistCreditRecord>(
+                sortBy: [SortDescriptor(\.position)]
+            )
+        )
+        let restoredArtistNamesByID = Dictionary(
+            uniqueKeysWithValues: restoredArtists.map { ($0.id, $0.name) }
+        )
+        #expect(Set(restoredArtists.map(\.name)) == ["madkid", "темный принц"])
+        #expect(restoredCredits.map { restoredArtistNamesByID[$0.artistID] } == ["madkid", "темный принц"])
+        #expect(
+            try context.fetch(FetchDescriptor<TrackRecord>()).first?.artist?.name
+                == "madkid"
+        )
+        #expect(
+            try context.fetch(FetchDescriptor<AlbumRecord>()).first?.artist?.name
+                == "madkid"
+        )
+        #expect(fixture.mediaURL.fileExists)
+    }
+
+    @Test("A captured confirmation still deletes after the dialog binding clears pending state")
+    @MainActor
+    func capturedDeletionConfirmation() async throws {
+        let fixture = try DeletionHandoffFixture()
+        defer { fixture.remove() }
+        await fixture.session.store.loadInitialLibrary()
+        let model = CadenceAppModel(
+            librarySession: fixture.session,
+            tracks: [],
+            tags: [],
+            tagAssignments: [],
+            tagExclusions: [],
+            smartCollections: [],
+            lyricDocuments: [:],
+            favoriteAlbumDates: [:],
+            favoriteArtistDates: [:],
+            importCandidates: []
+        )
+        model.requestLibraryDeletion(
+            kind: .album,
+            id: fixture.albumID,
+            title: "Captured Album"
+        )
+        let captured = try #require(model.pendingLibraryDeletion)
+
+        model.cancelLibraryDeletion()
+        await model.confirmLibraryDeletion(captured)
+
+        #expect(model.pendingLibraryDeletion == nil)
+        #expect(fixture.session.store.albums.isEmpty)
+        #expect(fixture.session.store.tracks.isEmpty)
+        #expect(fixture.session.store.trashOperations.count == 1)
+    }
+
     @Test("An album can be trashed, restored, and deleted permanently")
     func trashAlbum() async throws {
         let fixture = try TrashFixture()
@@ -58,6 +187,136 @@ struct LibraryTrashTests {
         try await repository.emptyTrash(location: fixture.location)
         #expect(try await repository.trashOperations().isEmpty)
         #expect(!fixture.operationDirectory(secondOperationID).fileExists)
+    }
+}
+
+private struct SharedArtistTrashFixture {
+    let root: URL
+    let location: ManagedLibraryLocation
+    let container: ModelContainer
+    let primaryArtistID: UUID
+    let mediaURL: URL
+
+    init() throws {
+        root = FileManager.default.temporaryDirectory.appending(
+            path: "Cadence-Shared-Artist-Trash-\(UUID().uuidString)",
+            directoryHint: .isDirectory
+        )
+        location = ManagedLibraryLocation(musicDirectory: root)
+        try ManagedLibraryPackage(location: location)
+            .bootstrapForConfirmedImport()
+        container = try LibraryContainerFactory.inMemory()
+        let context = ModelContext(container)
+        let primary = ArtistRecord(name: "madkid", trackCount: 1, albumCount: 1)
+        let secondary = ArtistRecord(name: "темный принц", trackCount: 1)
+        let album = AlbumRecord(
+            title: "Shared",
+            artist: primary,
+            trackCount: 1,
+            totalDuration: 180
+        )
+        let trackID = UUID()
+        let mediaPath = "Media/\(trackID.uuidString).flac"
+        let track = TrackRecord(
+            id: trackID,
+            originalFilename: "Joint Signal.flac",
+            title: "Joint Signal",
+            duration: 180,
+            codec: "FLAC",
+            container: "FLAC",
+            sampleRate: 48000,
+            channelCount: 2,
+            contentHash: String(repeating: "9", count: 64),
+            relativeMediaPath: mediaPath,
+            importSessionID: UUID(),
+            artist: primary,
+            album: album
+        )
+        context.insert(primary)
+        context.insert(secondary)
+        context.insert(album)
+        context.insert(track)
+        context.insert(
+            TrackArtistCreditRecord(
+                track: track,
+                artist: primary,
+                position: 0,
+                displayArtistName: "madkid, темный принц"
+            )
+        )
+        context.insert(
+            TrackArtistCreditRecord(
+                track: track,
+                artist: secondary,
+                position: 1,
+                displayArtistName: "madkid, темный принц"
+            )
+        )
+        try context.save()
+        primaryArtistID = primary.id
+        mediaURL = try location.resolve(relativePath: mediaPath)
+        try Data("audio".utf8).write(to: mediaURL)
+    }
+
+    func remove() {
+        try? FileManager.default.removeItem(at: root)
+    }
+}
+
+@MainActor
+private final class DeletionHandoffFixture {
+    let root: URL
+    let session: LibrarySession
+    let albumID: UUID
+
+    init() throws {
+        root = FileManager.default.temporaryDirectory.appending(
+            path: "Cadence-Deletion-Handoff-\(UUID().uuidString)",
+            directoryHint: .isDirectory
+        )
+        let musicDirectory = root.appending(
+            path: "Music",
+            directoryHint: .isDirectory
+        )
+        try FileManager.default.createDirectory(
+            at: musicDirectory,
+            withIntermediateDirectories: true
+        )
+        let location = ManagedLibraryLocation(musicDirectory: musicDirectory)
+        let package = ManagedLibraryPackage(location: location)
+        try package.bootstrapForConfirmedImport()
+        let container = try LibraryContainerFactory.persistent(package: package)
+        let context = ModelContext(container)
+        let artist = ArtistRecord(name: "Captured Artist", trackCount: 1, albumCount: 1)
+        let album = AlbumRecord(title: "Captured Album", artist: artist, trackCount: 1)
+        let trackID = UUID()
+        let mediaPath = "Media/\(trackID.uuidString).flac"
+        let track = TrackRecord(
+            id: trackID,
+            originalFilename: "Captured.flac",
+            title: "Captured Track",
+            duration: 1,
+            codec: "FLAC",
+            container: "flac",
+            sampleRate: 44100,
+            channelCount: 2,
+            contentHash: String(repeating: "c", count: 64),
+            relativeMediaPath: mediaPath,
+            importSessionID: UUID(),
+            artist: artist,
+            album: album
+        )
+        context.insert(artist)
+        context.insert(album)
+        context.insert(track)
+        try context.save()
+        try Data("audio".utf8).write(to: location.resolve(relativePath: mediaPath))
+        albumID = album.id
+        session = LibrarySession.startup(location: location)
+    }
+
+    func remove() {
+        try? FileManager.default.removeItem(at: root)
     }
 }
 

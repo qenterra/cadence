@@ -60,12 +60,11 @@ extension LibraryRepository {
             search: SearchNormalizer.normalize(search ?? "")
         )
         descriptor.fetchLimit = boundedLimit + 1
-        return try LibraryPageBuilder.page(
+        return try trackPage(
             records: modelContext.fetch(descriptor),
             limit: boundedLimit,
             sortValue: \.normalizedTitle,
-            identity: \.sortIdentity,
-            projection: LibraryProjectionFactory.track
+            identity: \.sortIdentity
         )
     }
 

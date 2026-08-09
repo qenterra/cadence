@@ -84,12 +84,33 @@ extension LibraryRepository {
         let tracks = try modelContext.fetch(
             FetchDescriptor(predicate: trackPredicate)
         )
+        let creditPredicate = #Predicate<TrackArtistCreditRecord> { credit in
+            trackIDs.contains(credit.trackID)
+        }
+        let existingCredits = try modelContext.fetch(
+            FetchDescriptor(predicate: creditPredicate)
+        )
+        let creditsByTrackID = Dictionary(
+            grouping: existingCredits,
+            by: \.trackID
+        )
+        let existingArtistIDs = Array(Set(existingCredits.map(\.artistID)))
+        let existingArtists = try modelContext.fetch(
+            FetchDescriptor<ArtistRecord>(
+                predicate: #Predicate {
+                    existingArtistIDs.contains($0.id)
+                }
+            )
+        )
         let artists = try repairArtists(for: repairs)
         let albums = try repairAlbums(
             for: repairs,
             artists: artists
         )
         var affected = MetadataRepairAffectedRecords()
+        for artist in existingArtists {
+            affected.artists[artist.id] = artist
+        }
 
         for track in tracks {
             guard let repair = repairsByID[track.id] else {
@@ -100,6 +121,7 @@ extension LibraryRepository {
                 to: track,
                 artists: artists,
                 albums: albums,
+                existingCredits: creditsByTrackID[track.id] ?? [],
                 affected: &affected
             )
         }
@@ -108,7 +130,7 @@ extension LibraryRepository {
             affected.albums,
             affectedArtists: &affected.artists
         )
-        refreshRepairCounts(
+        try refreshRepairCounts(
             artists: affected.artists,
             albums: affected.albums
         )
@@ -121,6 +143,7 @@ extension LibraryRepository {
         to track: TrackRecord,
         artists: [String: ArtistRecord],
         albums: [ManagedAlbumIdentity: AlbumRecord],
+        existingCredits: [TrackArtistCreditRecord],
         affected: inout MetadataRepairAffectedRecords
     ) {
         if let artist = track.artist {
@@ -129,14 +152,22 @@ extension LibraryRepository {
         if let album = track.album {
             affected.albums[album.id] = album
         }
+        for credit in existingCredits {
+            modelContext.delete(credit)
+        }
 
         let metadata = repair.metadata
-        let artistKey = SearchNormalizer.normalize(metadata.artist)
+        let primaryArtistKey = SearchNormalizer.normalize(
+            metadata.creditArtistNames[0]
+        )
+        let albumArtistKey = SearchNormalizer.normalize(
+            metadata.albumArtistName
+        )
         let albumKey = ManagedAlbumIdentity(
-            normalizedArtist: artistKey,
+            normalizedArtist: albumArtistKey,
             normalizedTitle: SearchNormalizer.normalize(metadata.album)
         )
-        let artist = artists[artistKey]
+        let artist = artists[primaryArtistKey]
         let album = albums[albumKey]
 
         track.rename(to: metadata.title)
@@ -154,6 +185,22 @@ extension LibraryRepository {
         track.artist = artist
         track.album = album
 
+        for (position, name) in metadata.creditArtistNames.enumerated() {
+            let key = SearchNormalizer.normalize(name)
+            guard let creditedArtist = artists[key] else {
+                continue
+            }
+            modelContext.insert(
+                TrackArtistCreditRecord(
+                    track: track,
+                    artist: creditedArtist,
+                    position: position,
+                    displayArtistName: metadata.artist
+                )
+            )
+            affected.artists[creditedArtist.id] = creditedArtist
+        }
+
         if let artist {
             affected.artists[artist.id] = artist
         }
@@ -166,13 +213,16 @@ extension LibraryRepository {
     private func repairArtists(
         for repairs: [ManagedMetadataRepair]
     ) throws -> [String: ArtistRecord] {
-        let names = Array(
-            Set(
-                repairs.map {
-                    SearchNormalizer.normalize($0.metadata.artist)
-                }
-            )
-        )
+        var displayNamesByKey: [String: String] = [:]
+        for repair in repairs {
+            let names = repair.metadata.creditArtistNames
+                + [repair.metadata.albumArtistName]
+            for name in names {
+                let key = SearchNormalizer.normalize(name)
+                displayNamesByKey[key] = displayNamesByKey[key] ?? name
+            }
+        }
+        let names = Array(displayNamesByKey.keys)
         let predicate = #Predicate<ArtistRecord> { artist in
             names.contains(artist.normalizedName)
         }
@@ -185,9 +235,7 @@ extension LibraryRepository {
             }
         )
 
-        for repair in repairs {
-            let name = repair.metadata.artist
-            let key = SearchNormalizer.normalize(name)
+        for (key, name) in displayNamesByKey {
             guard artists[key] == nil else {
                 continue
             }
@@ -231,7 +279,9 @@ extension LibraryRepository {
 
         for repair in repairs {
             let metadata = repair.metadata
-            let artistKey = SearchNormalizer.normalize(metadata.artist)
+            let artistKey = SearchNormalizer.normalize(
+                metadata.albumArtistName
+            )
             let identity = ManagedAlbumIdentity(
                 normalizedArtist: artistKey,
                 normalizedTitle: SearchNormalizer.normalize(metadata.album)
@@ -265,7 +315,7 @@ extension LibraryRepository {
     private func refreshRepairCounts(
         artists: [UUID: ArtistRecord],
         albums: [UUID: AlbumRecord]
-    ) {
+    ) throws {
         for album in albums.values where !album.tracks.isEmpty {
             album.trackCount = album.tracks.count
             album.totalDuration = album.tracks.reduce(0) {
@@ -273,13 +323,25 @@ extension LibraryRepository {
             }
         }
 
+        let affectedArtistIDs = Array(artists.keys)
+        let creditPredicate = #Predicate<TrackArtistCreditRecord> { credit in
+            affectedArtistIDs.contains(credit.artistID)
+        }
+        let credits = try modelContext.fetch(
+            FetchDescriptor(predicate: creditPredicate)
+        )
+        let creditedTrackIDs = Dictionary(
+            grouping: credits,
+            by: \.artistID
+        ).mapValues { Set($0.map(\.trackID)).count }
+
         for artist in artists.values {
             let populatedAlbums = artist.albums.filter {
                 !$0.tracks.isEmpty
             }
-            artist.trackCount = artist.tracks.count
+            artist.trackCount = creditedTrackIDs[artist.id] ?? 0
             artist.albumCount = populatedAlbums.count
-            if artist.tracks.isEmpty, populatedAlbums.isEmpty {
+            if artist.trackCount == 0, populatedAlbums.isEmpty {
                 modelContext.delete(artist)
             }
         }
@@ -363,7 +425,12 @@ struct ManagedMetadataRepairService: Sendable {
             return nil
         }
         let metadata = ManagedImportManifest.Metadata(scanned)
-        guard let sourceMetadata = try? JSONEncoder().encode(metadata) else {
+        let sourceMetadata: Data? = if let snapshot = scanned.sourceMetadata {
+            try? JSONEncoder().encode(snapshot)
+        } else {
+            try? JSONEncoder().encode(metadata)
+        }
+        guard let sourceMetadata else {
             return nil
         }
         return ManagedMetadataRepair(
