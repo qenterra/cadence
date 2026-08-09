@@ -17,7 +17,7 @@ struct ImportMusicDropOverlay: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(CadenceTheme.opaqueSurface.opacity(0.97))
         .overlay {
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
+            RoundedRectangle(cornerRadius: CadenceTheme.radiusHero, style: .continuous)
                 .strokeBorder(
                     Color.primary.opacity(0.34),
                     style: StrokeStyle(lineWidth: 2, dash: [9, 7])

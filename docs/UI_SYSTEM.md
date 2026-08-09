@@ -5,6 +5,13 @@ organization, playback, and settings. The visual goal is calm, compact, and
 predictable: Soft Graphite content surfaces, monochrome controls, original
 artwork, system typography, and native interaction behavior.
 
+Shared semantic colors, radii, and feedback motion come from the local
+QenTerra Design System Swift package. `CadenceTheme` is the product facade:
+it maps QDS 1.9 semantic values into adaptive AppKit/SwiftUI colors while
+Cadence keeps ownership of music-specific geometry, artwork, playback, and
+lyrics. `qds-consumer.json` and `qds-exceptions.json` are validated by the
+read-only consumer doctor during `scripts/verify.sh`.
+
 ## Product shell
 
 - The window toolbar is an opaque raised graphite surface. It does not expose
@@ -127,10 +134,11 @@ The detailed behavior and lifecycle contract lives in
 The implementation is complete only after:
 
 1. XcodeGen and SwiftFormat produce no changes.
-2. The full Xcode 27 build and unit-test gate passes.
-3. Tests cover workspace width allocation, rail geometry, selection insets,
+2. The QDS consumer doctor passes with only exact documented exceptions.
+3. The full Xcode 27 build and unit-test gate passes.
+4. Tests cover workspace width allocation, rail geometry, selection insets,
    batch tag assignment, production-empty startup, and app-icon metadata.
-4. Wide and minimum-width screenshots are reviewed for All Tracks, Album
+5. Wide and minimum-width screenshots in Light and Dark appearances are reviewed for All Tracks, Album
    Detail, Tags, Smart Collections, Playlists, and Settings.
-5. Keyboard selection, VoiceOver labels, Reduce Motion, System/Light/Dark, and
+6. Keyboard selection, VoiceOver labels, Reduce Motion, System/Light/Dark, and
    tag-assignment error recovery are checked.

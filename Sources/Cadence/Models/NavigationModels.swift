@@ -31,7 +31,7 @@ enum NavigationDestination: String, CaseIterable, Hashable, Identifiable, Sendab
 
     var symbolName: String {
         switch self {
-        case .library: "music.note.list"
+        case .library: "music.note.house"
         case .allTracks: "list.bullet.rectangle"
         case .albums: "square.stack"
         case .artists: "person.2"

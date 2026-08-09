@@ -1,15 +1,50 @@
 import AppKit
 import SwiftUI
 
+enum ImportMusicReviewLayout {
+    enum Mode: Equatable {
+        case compact
+        case full
+    }
+
+    private static let fullTableMinimumWidth = 950.0
+    private static let compactTableMinimumWidth = 670.0
+
+    static func mode(for availableWidth: Double) -> Mode {
+        availableWidth >= fullTableMinimumWidth ? .full : .compact
+    }
+
+    static func minimumContentWidth(for mode: Mode) -> Double {
+        switch mode {
+        case .compact:
+            compactTableMinimumWidth
+        case .full:
+            fullTableMinimumWidth
+        }
+    }
+}
+
 struct ImportMusicReview: View {
     @Bindable var model: CadenceAppModel
 
     let isImporting: Bool
 
     var body: some View {
+        GeometryReader { geometry in
+            reviewContent(
+                layoutMode: ImportMusicReviewLayout.mode(
+                    for: geometry.size.width
+                )
+            )
+        }
+    }
+
+    private func reviewContent(
+        layoutMode: ImportMusicReviewLayout.Mode
+    ) -> some View {
         VStack(spacing: 0) {
             reviewTabs
-            tableHeader
+            tableHeader(layoutMode: layoutMode)
             Divider()
 
             ScrollView {
@@ -18,7 +53,8 @@ struct ImportMusicReview: View {
                         ImportMusicCandidateRow(
                             model: model,
                             candidate: candidate,
-                            isDisabled: isImporting
+                            isDisabled: isImporting,
+                            layoutMode: layoutMode
                         )
                     }
                 }
@@ -83,20 +119,29 @@ struct ImportMusicReview: View {
         .padding(.vertical, 10)
     }
 
-    private var tableHeader: some View {
+    private func tableHeader(
+        layoutMode: ImportMusicReviewLayout.Mode
+    ) -> some View {
         HStack(spacing: 10) {
             Text("")
                 .frame(width: 34)
             Text("Title")
                 .frame(minWidth: 150, maxWidth: .infinity, alignment: .leading)
-            Text("Artist")
-                .frame(width: 140, alignment: .leading)
-            Text("Album")
-                .frame(width: 160, alignment: .leading)
-            Text("Lyrics")
-                .frame(width: 114, alignment: .leading)
-            Text("Status")
-                .frame(width: 138, alignment: .leading)
+            if layoutMode == .compact {
+                Text("Artist / Album")
+                    .frame(width: 180, alignment: .leading)
+                Text("Status / Lyrics")
+                    .frame(width: 150, alignment: .leading)
+            } else {
+                Text("Artist")
+                    .frame(width: 140, alignment: .leading)
+                Text("Album")
+                    .frame(width: 160, alignment: .leading)
+                Text("Lyrics")
+                    .frame(width: 114, alignment: .leading)
+                Text("Status")
+                    .frame(width: 138, alignment: .leading)
+            }
             Text("Size")
                 .frame(width: 72, alignment: .trailing)
         }
@@ -204,6 +249,7 @@ private struct ImportMusicCandidateRow: View {
 
     let candidate: ImportCandidatePreview
     let isDisabled: Bool
+    let layoutMode: ImportMusicReviewLayout.Mode
 
     @FocusState private var isFocused: Bool
     @State private var isHovered = false
@@ -276,20 +322,42 @@ private struct ImportMusicCandidateRow: View {
             }
             .frame(minWidth: 150, maxWidth: .infinity, alignment: .leading)
 
-            Text(candidate.artist)
-                .frame(width: 140, alignment: .leading)
-            Text(candidate.album)
-                .frame(width: 160, alignment: .leading)
-            statusLabel(
-                candidate.lyricStatus.title,
-                symbolName: candidate.lyricStatus.symbolName
-            )
-            .frame(width: 114, alignment: .leading)
-            statusLabel(
-                candidate.classification.title,
-                symbolName: candidate.classification.symbolName
-            )
-            .frame(width: 138, alignment: .leading)
+            if layoutMode == .compact {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(candidate.artist)
+                    Text(candidate.album)
+                        .foregroundStyle(.tertiary)
+                }
+                .lineLimit(1)
+                .frame(width: 180, alignment: .leading)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    statusLabel(
+                        candidate.classification.title,
+                        symbolName: candidate.classification.symbolName
+                    )
+                    statusLabel(
+                        candidate.lyricStatus.title,
+                        symbolName: candidate.lyricStatus.symbolName
+                    )
+                }
+                .frame(width: 150, alignment: .leading)
+            } else {
+                Text(candidate.artist)
+                    .frame(width: 140, alignment: .leading)
+                Text(candidate.album)
+                    .frame(width: 160, alignment: .leading)
+                statusLabel(
+                    candidate.lyricStatus.title,
+                    symbolName: candidate.lyricStatus.symbolName
+                )
+                .frame(width: 114, alignment: .leading)
+                statusLabel(
+                    candidate.classification.title,
+                    symbolName: candidate.classification.symbolName
+                )
+                .frame(width: 138, alignment: .leading)
+            }
             Text(candidate.fileSizeText)
                 .monospacedDigit()
                 .frame(width: 72, alignment: .trailing)

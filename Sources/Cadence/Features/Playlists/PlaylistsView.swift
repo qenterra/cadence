@@ -177,7 +177,7 @@ private extension PlaylistsView {
                     .frame(width: 28, height: 28)
                     .background(
                         CadenceTheme.subduedFill,
-                        in: RoundedRectangle(cornerRadius: 6)
+                        in: RoundedRectangle(cornerRadius: CadenceTheme.radiusControl)
                     )
 
                 VStack(alignment: .leading, spacing: 3) {
@@ -237,7 +237,7 @@ private extension PlaylistsView {
     }
 
     private var playlistArtwork: some View {
-        RoundedRectangle(cornerRadius: 14, style: .continuous)
+        RoundedRectangle(cornerRadius: CadenceTheme.radiusPanel, style: .continuous)
             .fill(CadenceTheme.secondarySurface)
             .overlay {
                 Image(systemName: "music.note.list")

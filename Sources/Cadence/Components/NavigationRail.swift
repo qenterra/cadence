@@ -9,7 +9,7 @@ struct NavigationRail: View {
     @FocusState private var focusedDestination: NavigationDestination?
     @State private var hoveredDestination: NavigationDestination?
     @AppStorage("navigationRail.expanded")
-    private var isExpanded = false
+    private var isExpanded = NavigationRailConfiguration.defaultIsExpanded
     @AppStorage("navigationRail.order")
     private var orderRawValue = NavigationRailConfiguration.defaultOrderRawValue
     @AppStorage("navigationRail.hidden")

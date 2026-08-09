@@ -11,7 +11,7 @@ struct CadenceMenuRowButtonStyle: ButtonStyle {
                     ? CadenceTheme.selectionFill
                     : .clear,
                 in: RoundedRectangle(
-                    cornerRadius: 7,
+                    cornerRadius: CadenceTheme.radiusControl,
                     style: .continuous
                 )
             )

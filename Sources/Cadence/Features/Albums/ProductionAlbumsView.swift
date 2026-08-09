@@ -99,7 +99,7 @@ private struct ProductionAlbumTile: View {
                     artworkID: album.customArtworkID,
                     title: album.title,
                     placeholder: .album,
-                    cornerRadius: 10
+                    cornerRadius: CadenceTheme.radiusGroup
                 )
                 .aspectRatio(1, contentMode: .fit)
 

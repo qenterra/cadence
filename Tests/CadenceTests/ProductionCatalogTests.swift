@@ -60,6 +60,49 @@ struct ProductionCatalogTests {
         #expect(track.albumID == fixture.albumID)
     }
 
+    @Test("Album and artist favorite state is persisted by the production repository")
+    func favoriteMutations() async throws {
+        let fixture = try makeCatalogFixture()
+        let repository = LibraryRepository(modelContainer: fixture.container)
+        let timestamp = Date(timeIntervalSince1970: 1_786_000_000)
+
+        _ = try await repository.setAlbumFavorite(
+            id: fixture.albumID,
+            isFavorite: true,
+            at: timestamp
+        )
+        _ = try await repository.setArtistFavorite(
+            id: fixture.artistID,
+            isFavorite: true,
+            at: timestamp
+        )
+
+        let album = try #require(
+            try await repository.album(id: fixture.albumID)
+        )
+        let artist = try #require(
+            try await repository.artist(id: fixture.artistID)
+        )
+        #expect(album.isFavorite)
+        #expect(album.favoriteDate == timestamp)
+        #expect(artist.isFavorite)
+        #expect(artist.favoriteDate == timestamp)
+
+        _ = try await repository.setAlbumFavorite(
+            id: fixture.albumID,
+            isFavorite: false,
+            at: .distantFuture
+        )
+        _ = try await repository.setArtistFavorite(
+            id: fixture.artistID,
+            isFavorite: false,
+            at: .distantFuture
+        )
+
+        #expect(try await repository.album(id: fixture.albumID)?.isFavorite == false)
+        #expect(try await repository.artist(id: fixture.artistID)?.isFavorite == false)
+    }
+
     private func makeCatalogFixture() throws -> CatalogFixture {
         let container = try LibraryContainerFactory.inMemory()
         let context = ModelContext(container)

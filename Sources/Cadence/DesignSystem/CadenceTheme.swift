@@ -1,4 +1,5 @@
 import AppKit
+import QenTerraDesignTokens
 import SwiftUI
 
 enum CadenceAppearance: String, CaseIterable, Identifiable {
@@ -35,91 +36,37 @@ enum CadenceAppearance: String, CaseIterable, Identifiable {
 }
 
 enum CadenceTheme {
-    static let primaryAccent = dynamicColor(
-        light: NSColor(
-            calibratedRed: 0.10,
-            green: 0.10,
-            blue: 0.11,
-            alpha: 1
-        ),
-        dark: .white
+    static let qdsVersion = QDS.version
+    static let primaryAccent = adaptive(QDS.Color.actionPrimary)
+    static let contentBackground = adaptive(QDS.Color.surfaceContent)
+    static let secondarySurface = adaptive(QDS.Color.surfaceSecondary)
+    static let opaqueSurface = adaptive(QDS.Color.surfaceRaised)
+    static let separator = adaptive(QDS.Color.borderDefault)
+    static let strongSeparator = adaptive(QDS.Color.borderStrong)
+    static let subduedFill = adaptive(QDS.Color.fillDisabled)
+    static let selectionFill = adaptive(QDS.Color.fillSelected)
+    static let increasedContrastSelectionFill = adaptive(
+        QDS.Color.fillSelectedStrong
     )
+    static let hoverFill = adaptive(QDS.Color.fillHover)
 
-    static let contentBackground = dynamicColor(
-        light: NSColor(
-            calibratedRed: 0.955,
-            green: 0.955,
-            blue: 0.965,
-            alpha: 1
-        ),
-        dark: NSColor(
-            calibratedRed: 23 / 255,
-            green: 23 / 255,
-            blue: 25 / 255,
-            alpha: 1
-        )
-    )
+    static let radiusNone = QDS.Radius.none
+    static let radiusControl = QDS.Radius.control
+    static let radiusGroup = QDS.Radius.group
+    static let radiusPanel = QDS.Radius.panel
+    static let radiusHero = QDS.Radius.hero
+    static let radiusFloating = QDS.Radius.floating
 
-    static let secondarySurface = dynamicColor(
-        light: NSColor(
-            calibratedRed: 0.91,
-            green: 0.91,
-            blue: 0.925,
-            alpha: 1
-        ),
-        dark: NSColor(
-            calibratedRed: 32 / 255,
-            green: 32 / 255,
-            blue: 35 / 255,
-            alpha: 1
-        )
-    )
+    static let motionPress = QDS.MotionSeconds.press
+    static let motionHover = QDS.MotionSeconds.hover
+    static let motionPresent = QDS.MotionSeconds.present
+    static let motionReplace = QDS.MotionSeconds.replace
+    static let motionDismiss = QDS.MotionSeconds.dismiss
 
-    static let opaqueSurface = dynamicColor(
-        light: NSColor(
-            calibratedRed: 0.88,
-            green: 0.88,
-            blue: 0.90,
-            alpha: 1
-        ),
-        dark: NSColor(
-            calibratedRed: 39 / 255,
-            green: 39 / 255,
-            blue: 43 / 255,
-            alpha: 1
-        )
-    )
-
-    static let separator = dynamicColor(
-        light: NSColor.black.withAlphaComponent(0.12),
-        dark: NSColor.white.withAlphaComponent(0.13)
-    )
-    static let strongSeparator = dynamicColor(
-        light: NSColor.black.withAlphaComponent(0.22),
-        dark: NSColor.white.withAlphaComponent(0.24)
-    )
-    static let subduedFill = dynamicColor(
-        light: NSColor.black.withAlphaComponent(0.055),
-        dark: NSColor.white.withAlphaComponent(0.07)
-    )
-    static let selectionFill = dynamicColor(
-        light: NSColor.black.withAlphaComponent(0.075),
-        dark: NSColor.white.withAlphaComponent(0.085)
-    )
-    static let increasedContrastSelectionFill = dynamicColor(
-        light: NSColor.black.withAlphaComponent(0.14),
-        dark: NSColor.white.withAlphaComponent(0.14)
-    )
-    static let hoverFill = dynamicColor(
-        light: NSColor.black.withAlphaComponent(0.045),
-        dark: NSColor.white.withAlphaComponent(0.045)
-    )
-
-    private static func dynamicColor(
-        light: NSColor,
-        dark: NSColor
-    ) -> Color {
-        Color(
+    private static func adaptive(_ token: QDSColorValue) -> Color {
+        let light = NSColor(Color(qds: token, appearance: .light))
+        let dark = NSColor(Color(qds: token, appearance: .dark))
+        return Color(
             nsColor: NSColor(
                 name: nil
             ) { appearance in

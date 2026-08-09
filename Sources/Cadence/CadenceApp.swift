@@ -98,7 +98,9 @@ struct CadenceApp: App {
                 Divider()
 
                 Button("Save Smart Collection") {
-                    model.saveSmartCollectionDraft()
+                    Task {
+                        await model.saveSmartCollectionDraftPersisting()
+                    }
                 }
                 .keyboardShortcut("s", modifiers: .command)
                 .disabled(

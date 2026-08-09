@@ -99,7 +99,7 @@ private struct ProductionArtistTile: View {
                     artworkID: artist.customArtworkID,
                     title: artist.name,
                     placeholder: .artist,
-                    cornerRadius: 0,
+                    cornerRadius: CadenceTheme.radiusNone,
                     showsBorder: false
                 )
                 .aspectRatio(1, contentMode: .fit)

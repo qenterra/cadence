@@ -1,0 +1,1112 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "" : {
+
+    },
+    " · " : {
+
+    },
+    "#" : {
+
+    },
+    "%@ Unavailable" : {
+
+    },
+    "%@ added to Cadence.library" : {
+
+    },
+    "%@ crop preview for %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ crop preview for %2$@"
+          }
+        }
+      }
+    },
+    "%@ selected for Cadence.library" : {
+
+    },
+    "%@ · %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ · %2$@"
+          }
+        }
+      }
+    },
+    "%@, %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@, %2$@"
+          }
+        }
+      }
+    },
+    "%@, %lld steps" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@, %2$lld steps"
+          }
+        }
+      }
+    },
+    "%@. %@. %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@. %2$@. %3$@"
+          }
+        }
+      }
+    },
+    "%lld albums · %lld tracks" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld albums · %2$lld tracks"
+          }
+        }
+      }
+    },
+    "%lld percent" : {
+
+    },
+    "%lld steps" : {
+
+    },
+    "%lld tracks" : {
+
+    },
+    "ALBUM" : {
+
+    },
+    "ARTIST" : {
+
+    },
+    "About" : {
+
+    },
+    "Active line" : {
+
+    },
+    "Add" : {
+
+    },
+    "Add Album to Playlist" : {
+
+    },
+    "Add Artist to Playlist" : {
+
+    },
+    "Add Group" : {
+
+    },
+    "Add Line" : {
+
+    },
+    "Add Lyrics" : {
+
+    },
+    "Add Rule" : {
+
+    },
+    "Add Tag" : {
+
+    },
+    "Add Tracks" : {
+
+    },
+    "Add a rule to narrow the collection." : {
+
+    },
+    "Add a tag" : {
+
+    },
+    "Add to Group" : {
+
+    },
+    "Add to Playlist" : {
+
+    },
+    "Add tracks, albums, or artists from their ••• menu." : {
+
+    },
+    "Added" : {
+
+    },
+    "Album" : {
+
+    },
+    "Album Actions" : {
+
+    },
+    "Album Unavailable" : {
+
+    },
+    "Albums" : {
+
+    },
+    "All Results" : {
+
+    },
+    "All tracks" : {
+
+    },
+    "All tracks · Add a rule to narrow the collection" : {
+
+    },
+    "Already Added" : {
+
+    },
+    "Appearance" : {
+
+    },
+    "Artist" : {
+
+    },
+    "Artist / Album" : {
+
+    },
+    "Artist Actions" : {
+
+    },
+    "Artwork Could Not Be Opened" : {
+
+    },
+    "Artwork for %@" : {
+
+    },
+    "Artwork mosaic for %@" : {
+
+    },
+    "Ascending" : {
+
+    },
+    "Assign Tag" : {
+
+    },
+    "Audio Output, %@" : {
+
+    },
+    "Audio Output: %@" : {
+
+    },
+    "Audio Path" : {
+
+    },
+    "Available Tracks" : {
+
+    },
+    "Back" : {
+
+    },
+    "Back to %@" : {
+
+    },
+    "Back to Now Playing" : {
+
+    },
+    "Browse a tag or use the editor to assign one." : {
+
+    },
+    "Build a live track view from tags and metadata." : {
+
+    },
+    "Cadence" : {
+
+    },
+    "Cadence Guide" : {
+
+    },
+    "Cadence Library Unavailable" : {
+
+    },
+    "Cadence will scan a preview before anything is imported." : {
+
+    },
+    "Cancel" : {
+
+    },
+    "Choose %@" : {
+
+    },
+    "Choose Another Folder" : {
+
+    },
+    "Choose Columns" : {
+
+    },
+    "Choose Folder" : {
+
+    },
+    "Choose Tag" : {
+
+    },
+    "Choose a Playlist" : {
+
+    },
+    "Choose a Tag" : {
+
+    },
+    "Choose a collection to see matching tracks." : {
+
+    },
+    "Choose a collection, or create one from the sidebar." : {
+
+    },
+    "Choose a track from the library to start playback" : {
+
+    },
+    "Choose or create a Smart Collection." : {
+
+    },
+    "Clear" : {
+
+    },
+    "Clear Timing" : {
+
+    },
+    "Click this panel to enable sync shortcuts" : {
+
+    },
+    "Close Tag Editor" : {
+
+    },
+    "Collapse" : {
+
+    },
+    "Collapse Sidebar" : {
+
+    },
+    "Collection Name" : {
+
+    },
+    "Collection Rules" : {
+
+    },
+    "Columns" : {
+
+    },
+    "Continue" : {
+
+    },
+    "Copy LRC" : {
+
+    },
+    "Couldn’t Add Tracks" : {
+
+    },
+    "Couldn’t Import Music" : {
+
+    },
+    "Couldn’t Scan Music" : {
+
+    },
+    "Create" : {
+
+    },
+    "Create a playlist, then add music from any track menu." : {
+
+    },
+    "Create a tag, then assign it to tracks or albums." : {
+
+    },
+    "Created by %@" : {
+
+    },
+    "Current Output" : {
+
+    },
+    "Current line" : {
+
+    },
+    "Current track" : {
+
+    },
+    "Delete" : {
+
+    },
+    "Delete Permanently" : {
+
+    },
+    "Delete Permanently…" : {
+
+    },
+    "Delete Playlist" : {
+
+    },
+    "Delete Playlist?" : {
+
+    },
+    "Delete Playlist…" : {
+
+    },
+    "Delete Smart Collection?" : {
+
+    },
+    "Delete This Item Permanently?" : {
+
+    },
+    "Descending" : {
+
+    },
+    "Design Preview · No files are copied" : {
+
+    },
+    "Design preview. No files are copied." : {
+
+    },
+    "Disabled" : {
+
+    },
+    "Discard" : {
+
+    },
+    "Dismiss" : {
+
+    },
+    "Done" : {
+
+    },
+    "Done Editing" : {
+
+    },
+    "Draft" : {
+
+    },
+    "Drag to Reorder" : {
+
+    },
+    "Drag to change the sidebar position." : {
+
+    },
+    "Drag to reorder" : {
+
+    },
+    "Drop Music Here" : {
+
+    },
+    "Drop files or a folder anywhere in the workspace." : {
+
+    },
+    "Drop music to review. No files will be imported immediately." : {
+
+    },
+    "Drop to Review Music" : {
+
+    },
+    "Edit Lyrics" : {
+
+    },
+    "Edit Rules" : {
+
+    },
+    "Edit Tags" : {
+
+    },
+    "Edit Tags for %@" : {
+
+    },
+    "Edit Tags…" : {
+
+    },
+    "Edit the rules to include tracks in this collection." : {
+
+    },
+    "Edited" : {
+
+    },
+    "Empty Playlist" : {
+
+    },
+    "Empty Trash" : {
+
+    },
+    "Empty Trash Permanently?" : {
+
+    },
+    "Empty Trash…" : {
+
+    },
+    "Enabled" : {
+
+    },
+    "End of Up Next" : {
+
+    },
+    "Exact duplicates and unavailable files stay excluded." : {
+
+    },
+    "Expand Sidebar" : {
+
+    },
+    "Explore on My Own" : {
+
+    },
+    "Export Preview" : {
+
+    },
+    "False" : {
+
+    },
+    "Favorite" : {
+
+    },
+    "Field" : {
+
+    },
+    "From" : {
+
+    },
+    "Group level %lld, match %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Group level %1$lld, match %2$@"
+          }
+        }
+      }
+    },
+    "Group logic" : {
+
+    },
+    "Image Unavailable" : {
+
+    },
+    "Image Zoom" : {
+
+    },
+    "Import" : {
+
+    },
+    "Import %lld Tracks" : {
+
+    },
+    "Import Complete" : {
+
+    },
+    "Import More" : {
+
+    },
+    "Import Music" : {
+
+    },
+    "Import Music…" : {
+
+    },
+    "Import from Clipboard" : {
+
+    },
+    "Import in progress" : {
+
+    },
+    "Import music before assigning this tag." : {
+
+    },
+    "Import music before building a Smart Collection." : {
+
+    },
+    "Import music to start listening" : {
+
+    },
+    "Inherited" : {
+
+    },
+    "Inspect each mock import state" : {
+
+    },
+    "Items removed from the managed library appear here." : {
+
+    },
+    "Keyboard capture active" : {
+
+    },
+    "LRC" : {
+
+    },
+    "LRC Could Not Be Imported" : {
+
+    },
+    "LRC Export Preview" : {
+
+    },
+    "Library" : {
+
+    },
+    "Library Could Not Be Loaded" : {
+
+    },
+    "Library Is Empty" : {
+
+    },
+    "Library Operation Failed" : {
+
+    },
+    "Loading Album" : {
+
+    },
+    "Loading Albums" : {
+
+    },
+    "Loading Artist" : {
+
+    },
+    "Loading Artists" : {
+
+    },
+    "Loading Library" : {
+
+    },
+    "Loading Lyrics…" : {
+
+    },
+    "Loading Tracks" : {
+
+    },
+    "Loading track" : {
+
+    },
+    "Location" : {
+
+    },
+    "Lyric" : {
+
+    },
+    "Lyric line" : {
+
+    },
+    "Lyrics" : {
+
+    },
+    "Lyrics Could Not Be Opened" : {
+
+    },
+    "Lyrics Could Not Be Saved" : {
+
+    },
+    "Lyrics Editor" : {
+
+    },
+    "Managed audio, artwork, and lyrics in Trash cannot be recovered." : {
+
+    },
+    "Match" : {
+
+    },
+    "More" : {
+
+    },
+    "More Actions" : {
+
+    },
+    "More collection actions" : {
+
+    },
+    "Move Album to Trash…" : {
+
+    },
+    "Move Artist to Trash…" : {
+
+    },
+    "Move Down" : {
+
+    },
+    "Move Up" : {
+
+    },
+    "Move to Trash" : {
+
+    },
+    "Move to Trash?" : {
+
+    },
+    "Move to Trash…" : {
+
+    },
+    "NOT" : {
+
+    },
+    "New Collection" : {
+
+    },
+    "New Playlist" : {
+
+    },
+    "New Playlist…" : {
+
+    },
+    "New Smart Collection" : {
+
+    },
+    "New Tag" : {
+
+    },
+    "New draft" : {
+
+    },
+    "Next" : {
+
+    },
+    "Next Line" : {
+
+    },
+    "Next transition is gapless-capable" : {
+
+    },
+    "No Collection Selected" : {
+
+    },
+    "No Lyrics" : {
+
+    },
+    "No Matching Tracks" : {
+
+    },
+    "No Playlists" : {
+
+    },
+    "No Smart Collection Selected" : {
+
+    },
+    "No Smart Collections" : {
+
+    },
+    "No Tags Yet" : {
+
+    },
+    "No Tracks Yet" : {
+
+    },
+    "No files were copied in this design build." : {
+
+    },
+    "No managed line-level LRC file is available." : {
+
+    },
+    "No tracks match the current rules." : {
+
+    },
+    "Not sorted" : {
+
+    },
+    "Nothing Playing" : {
+
+    },
+    "Nothing currently matches %@." : {
+
+    },
+    "Now Playing Panel" : {
+
+    },
+    "Now Playing content" : {
+
+    },
+    "OK" : {
+
+    },
+    "Open Sound Settings…" : {
+
+    },
+    "Open Trash" : {
+
+    },
+    "Opening Cadence.library…" : {
+
+    },
+    "Opens in your default browser" : {
+
+    },
+    "Operator" : {
+
+    },
+    "Order" : {
+
+    },
+    "Original files stay untouched" : {
+
+    },
+    "PLAYLIST" : {
+
+    },
+    "Paste Text" : {
+
+    },
+    "Pause" : {
+
+    },
+    "Paused" : {
+
+    },
+    "Play" : {
+
+    },
+    "Play %@" : {
+
+    },
+    "Play Now" : {
+
+    },
+    "Play a track to create a playback queue." : {
+
+    },
+    "Playback Queue" : {
+
+    },
+    "Playback error: %@" : {
+
+    },
+    "Playback progress" : {
+
+    },
+    "Playing" : {
+
+    },
+    "Playlist Name" : {
+
+    },
+    "Preview Import Complete" : {
+
+    },
+    "Preview State" : {
+
+    },
+    "Preview import in progress" : {
+
+    },
+    "Preview only. Real file writing arrives with local-library integration." : {
+
+    },
+    "Preview paused at the last valid rule" : {
+
+    },
+    "Previous Line" : {
+
+    },
+    "Quality Profile" : {
+
+    },
+    "Quality Profile, %@" : {
+
+    },
+    "Quality Profile: %@" : {
+
+    },
+    "Queue Is Empty" : {
+
+    },
+    "Rating" : {
+
+    },
+    "Read-only summary" : {
+
+    },
+    "Reading metadata, checking duplicates, and matching LRC files…" : {
+
+    },
+    "Remove" : {
+
+    },
+    "Remove %@" : {
+
+    },
+    "Remove Group" : {
+
+    },
+    "Remove Rule" : {
+
+    },
+    "Remove Unavailable Item" : {
+
+    },
+    "Remove from Playlist" : {
+
+    },
+    "Remove from Queue" : {
+
+    },
+    "Rename" : {
+
+    },
+    "Rename…" : {
+
+    },
+    "Replace %@" : {
+
+    },
+    "Resize Columns" : {
+
+    },
+    "Restore" : {
+
+    },
+    "Retry" : {
+
+    },
+    "Reveal in Finder" : {
+
+    },
+    "Revert" : {
+
+    },
+    "Revert Smart Collection" : {
+
+    },
+    "Root rule logic" : {
+
+    },
+    "SMART COLLECTION" : {
+
+    },
+    "Save" : {
+
+    },
+    "Save Changes to Lyrics?" : {
+
+    },
+    "Save Changes?" : {
+
+    },
+    "Save Smart Collection" : {
+
+    },
+    "Saved collection" : {
+
+    },
+    "Saving…" : {
+
+    },
+    "Scan progress" : {
+
+    },
+    "Scanning Demo Library" : {
+
+    },
+    "Scanning Music" : {
+
+    },
+    "Search Tracks" : {
+
+    },
+    "Searching Library" : {
+
+    },
+    "See All" : {
+
+    },
+    "Select All" : {
+
+    },
+    "Select All %@" : {
+
+    },
+    "Select All in Review" : {
+
+    },
+    "Select a Track" : {
+
+    },
+    "Select rows with ⌘ or ⇧ · Space toggles inclusion" : {
+
+    },
+    "Selected" : {
+
+    },
+    "Settings" : {
+
+    },
+    "Show Now Playing" : {
+
+    },
+    "Show Now Playing for %@ by %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Show Now Playing for %1$@ by %2$@"
+          }
+        }
+      }
+    },
+    "Show collection rules" : {
+
+    },
+    "Shuffle" : {
+
+    },
+    "Size" : {
+
+    },
+    "Skip" : {
+
+    },
+    "Skip Tour" : {
+
+    },
+    "Smart Collection name" : {
+
+    },
+    "Smart Collections" : {
+
+    },
+    "Spatialize Stereo" : {
+
+    },
+    "Spatialize Stereo in Immersive mode" : {
+
+    },
+    "Stamp Current Line" : {
+
+    },
+    "Start Tour" : {
+
+    },
+    "Start a track to open Now Playing." : {
+
+    },
+    "Status" : {
+
+    },
+    "Status / Lyrics" : {
+
+    },
+    "Synchronized lyrics" : {
+
+    },
+    "Tag" : {
+
+    },
+    "Tag Scope" : {
+
+    },
+    "Tag or group/subtag" : {
+
+    },
+    "Tags" : {
+
+    },
+    "Take the complete tour or jump to one focused chapter." : {
+
+    },
+    "Tap to Sync" : {
+
+    },
+    "Technical Details" : {
+
+    },
+    "The clipboard does not contain a valid line-level LRC document." : {
+
+    },
+    "This Smart Collection has unsaved changes." : {
+
+    },
+    "This album is no longer in the library." : {
+
+    },
+    "This build only previews the workflow." : {
+
+    },
+    "This item is no longer in the library." : {
+
+    },
+    "This permanently removes the collection definition from Cadence.library." : {
+
+    },
+    "Time" : {
+
+    },
+    "Title" : {
+
+    },
+    "To" : {
+
+    },
+    "Track Actions" : {
+
+    },
+    "Tracks" : {
+
+    },
+    "Tracks in Trash" : {
+
+    },
+    "Tracks remain in your Cadence library." : {
+
+    },
+    "Trash" : {
+
+    },
+    "Trash Is Empty" : {
+
+    },
+    "True" : {
+
+    },
+    "Unfavorite" : {
+
+    },
+    "Unsaved changes" : {
+
+    },
+    "Updates as the draft changes" : {
+
+    },
+    "Use a standalone tag or one level such as mood/calm." : {
+
+    },
+    "Value" : {
+
+    },
+    "Version %@" : {
+
+    },
+    "View Imported Tracks" : {
+
+    },
+    "Volume" : {
+
+    },
+    "Year" : {
+
+    },
+    "Your music is ready in Cadence.library." : {
+
+    },
+    "Your unsaved line text and timing changes will be lost." : {
+
+    },
+    "in this group" : {
+
+    },
+    "mood/sad or childhood" : {
+
+    },
+    "of the following" : {
+
+    },
+    "to" : {
+
+    },
+    "© 2026 %@" : {
+
+    },
+    "·" : {
+
+    },
+    "—" : {
+
+    }
+  },
+  "version" : "1.0"
+}

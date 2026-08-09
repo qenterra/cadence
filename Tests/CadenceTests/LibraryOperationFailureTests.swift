@@ -39,7 +39,10 @@ struct LibraryOperationFailureTests {
         #expect(store.tracks == [seededTrack])
         #expect(store.availability == .ready)
         #expect(store.operationFailure?.operation == .trackPage)
-        store.dismissOperationFailure()
+
+        await store.retryOperationFailure()
+
+        #expect(store.tracks == [seededTrack])
         #expect(store.operationFailure == nil)
     }
 }
@@ -57,7 +60,7 @@ private actor FailingTrackPageLoader {
         cursor _: LibraryPageCursor?
     ) throws -> LibraryPage<LibraryTrackProjection> {
         requestCount += 1
-        if requestCount > 1 {
+        if requestCount == 2 {
             throw Failure.expected
         }
         return LibraryPage(items: [track], nextCursor: nil)

@@ -244,6 +244,30 @@ extension CadenceAppModel {
         }
     }
 
+    @discardableResult
+    func resolvePendingSmartCollectionTransitionPersisting(
+        _ resolution: SmartCollectionSwitchResolution,
+        modifiedAt: Date = .now
+    ) async -> Bool {
+        guard resolution == .save else {
+            return resolvePendingSmartCollectionTransition(
+                resolution,
+                modifiedAt: modifiedAt
+            )
+        }
+        guard let target = pendingSmartCollectionTransition else {
+            return false
+        }
+        guard await saveSmartCollectionDraftPersisting(
+            modifiedAt: modifiedAt
+        ) else {
+            return false
+        }
+        pendingSmartCollectionTransition = nil
+        performSmartCollectionTransition(target)
+        return true
+    }
+
     func activateSelectedSmartCollectionSort(
         _ field: SmartCollectionSortField
     ) {

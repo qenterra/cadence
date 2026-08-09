@@ -114,11 +114,13 @@ synthetic; the capture process cannot open the developer's music library.
 - Xcode 27 or later with a compatible macOS SDK
 - Homebrew
 - Apple silicon Mac for the documented local test destination
+- A sibling QenTerra `design-system` checkout with `packages/swift`
 
 ### Build from source
 
 ```sh
 git clone https://github.com/QenTerra/cadence.git
+git clone <authorized-design-system-source> design-system
 cd cadence
 brew bundle
 xcodegen generate --spec project.yml

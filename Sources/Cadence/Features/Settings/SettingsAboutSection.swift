@@ -81,12 +81,12 @@ struct SettingsAboutSection: View {
             .padding(.horizontal, 16)
             .frame(minHeight: 76)
             .background(CadenceTheme.secondarySurface)
-            .clipShape(RoundedRectangle(cornerRadius: 14))
+            .clipShape(RoundedRectangle(cornerRadius: CadenceTheme.radiusPanel))
             .overlay {
-                RoundedRectangle(cornerRadius: 14)
+                RoundedRectangle(cornerRadius: CadenceTheme.radiusPanel)
                     .strokeBorder(CadenceTheme.separator, lineWidth: 0.5)
             }
-            .contentShape(RoundedRectangle(cornerRadius: 14))
+            .contentShape(RoundedRectangle(cornerRadius: CadenceTheme.radiusPanel))
         }
         .buttonStyle(.plain)
     }
@@ -134,12 +134,12 @@ private struct SettingsAboutLinkTile: View {
                     ? CadenceTheme.selectionFill
                     : CadenceTheme.secondarySurface
             )
-            .clipShape(RoundedRectangle(cornerRadius: 14))
+            .clipShape(RoundedRectangle(cornerRadius: CadenceTheme.radiusPanel))
             .overlay {
-                RoundedRectangle(cornerRadius: 14)
+                RoundedRectangle(cornerRadius: CadenceTheme.radiusPanel)
                     .strokeBorder(CadenceTheme.separator, lineWidth: 0.5)
             }
-            .contentShape(RoundedRectangle(cornerRadius: 14))
+            .contentShape(RoundedRectangle(cornerRadius: CadenceTheme.radiusPanel))
         }
         .buttonStyle(.plain)
         .onHover {
@@ -159,6 +159,6 @@ private struct SettingsAboutSymbol: View {
             .foregroundStyle(.secondary)
             .frame(width: 40, height: 40)
             .background(CadenceTheme.opaqueSurface)
-            .clipShape(RoundedRectangle(cornerRadius: 9))
+            .clipShape(RoundedRectangle(cornerRadius: CadenceTheme.radiusControl))
     }
 }

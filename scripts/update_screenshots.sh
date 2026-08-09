@@ -49,3 +49,15 @@ for image in "$project_root"/docs/images/cadence-{library,now-playing,tags,setti
     [[ "$(sips -g pixelWidth "$image" | tail -n 1 | awk '{print $2}')" == "2160" ]]
     [[ "$(sips -g pixelHeight "$image" | tail -n 1 | awk '{print $2}')" == "1752" ]]
 done
+
+for image in "$project_root"/docs/images/qa-{library,now-playing,album,import-review}-min-*.png; do
+    [[ -f "$image" ]]
+    [[ "$(sips -g pixelWidth "$image" | tail -n 1 | awk '{print $2}')" == "2160" ]]
+    [[ "$(sips -g pixelHeight "$image" | tail -n 1 | awk '{print $2}')" == "1752" ]]
+done
+
+for image in "$project_root"/docs/images/qa-{library,now-playing,album,import-review}-wide-*.png; do
+    [[ -f "$image" ]]
+    [[ "$(sips -g pixelWidth "$image" | tail -n 1 | awk '{print $2}')" == "2880" ]]
+    [[ "$(sips -g pixelHeight "$image" | tail -n 1 | awk '{print $2}')" == "1800" ]]
+done

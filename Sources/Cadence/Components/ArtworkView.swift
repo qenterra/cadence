@@ -131,7 +131,7 @@ struct ArtistArtworkView: View {
             source: source,
             title: artist.name,
             placeholder: .artist,
-            cornerRadius: 0,
+            cornerRadius: CadenceTheme.radiusNone,
             showsBorder: false
         )
         .clipShape(Circle())

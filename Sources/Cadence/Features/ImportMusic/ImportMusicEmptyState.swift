@@ -29,11 +29,11 @@ struct ImportMusicEmptyState: View {
             }
             .frame(maxWidth: 580, minHeight: 250)
             .background {
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                RoundedRectangle(cornerRadius: CadenceTheme.radiusHero, style: .continuous)
                     .fill(CadenceTheme.secondarySurface)
             }
             .overlay {
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                RoundedRectangle(cornerRadius: CadenceTheme.radiusHero, style: .continuous)
                     .strokeBorder(
                         Color.primary.opacity(0.2),
                         style: StrokeStyle(lineWidth: 1, dash: [7, 6])

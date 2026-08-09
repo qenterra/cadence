@@ -55,4 +55,29 @@ extension LibraryStore {
     func dismissOperationFailure() {
         operationFailure = nil
     }
+
+    func retryOperationFailure() async {
+        guard let failure = operationFailure else {
+            return
+        }
+        operationFailure = nil
+
+        switch failure.operation {
+        case .albumPage, .artistPage, .tagPage:
+            await loadInitialLibrary()
+        case .browserAlbums:
+            await browseAlbums(artistID: browserArtistID)
+        case .browserTracks:
+            await browseTracks(
+                albumID: browserAlbumID,
+                sort: browserTrackSort
+            )
+        case .catalogSearch:
+            await searchCatalog(catalogSearchQuery)
+        case .smartCollections:
+            await loadSmartCollectionRuleData()
+        case .trackPage:
+            await replaceTracks(query: trackQuery)
+        }
+    }
 }

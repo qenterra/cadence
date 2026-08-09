@@ -117,7 +117,7 @@ private struct ProductionQueueDragPreview: View {
             Image(systemName: item.track == nil ? "questionmark" : "music.note")
                 .frame(width: 38, height: 38)
                 .background(CadenceTheme.secondarySurface)
-                .clipShape(RoundedRectangle(cornerRadius: 5))
+                .clipShape(RoundedRectangle(cornerRadius: CadenceTheme.radiusControl))
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(item.track?.title ?? "Unavailable Track")
@@ -133,9 +133,9 @@ private struct ProductionQueueDragPreview: View {
         .padding(10)
         .frame(width: 330, alignment: .leading)
         .background(CadenceTheme.opaqueSurface)
-        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .clipShape(RoundedRectangle(cornerRadius: CadenceTheme.radiusGroup))
         .overlay {
-            RoundedRectangle(cornerRadius: 10)
+            RoundedRectangle(cornerRadius: CadenceTheme.radiusGroup)
                 .strokeBorder(.white.opacity(0.14))
         }
         .shadow(color: .black.opacity(0.38), radius: 16, y: 8)

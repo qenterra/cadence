@@ -1,6 +1,8 @@
 import Foundation
 
 enum NavigationRailConfiguration {
+    static let defaultIsExpanded = true
+
     static let configurableDestinations: [NavigationDestination] = [
         .library,
         .allTracks,

@@ -101,7 +101,7 @@ struct ArtworkCropSheet: View {
         case .circle:
             AnyShape(Circle())
         case .square:
-            AnyShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            AnyShape(RoundedRectangle(cornerRadius: CadenceTheme.radiusGroup, style: .continuous))
         }
     }
 

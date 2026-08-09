@@ -1,6 +1,29 @@
 import Foundation
 import SwiftData
 
+private struct SmartCollectionRuleArchive: Codable {
+    static let currentSchemaVersion = 1
+
+    let schemaVersion: Int
+    let root: SmartCollectionRuleGroup
+
+    init(root: SmartCollectionRuleGroup) {
+        schemaVersion = Self.currentSchemaVersion
+        self.root = root
+    }
+}
+
+private enum SmartCollectionPersistenceError: LocalizedError {
+    case unsupportedRuleSchema(Int)
+
+    var errorDescription: String? {
+        switch self {
+        case let .unsupportedRuleSchema(version):
+            "This Smart Collection uses unsupported rule schema \(version)."
+        }
+    }
+}
+
 private struct ProductionSmartCollectionRecords {
     let tracks: [TrackRecord]
     let assignments: [TagAssignmentRecord]
@@ -9,6 +32,82 @@ private struct ProductionSmartCollectionRecords {
 }
 
 extension LibraryRepository {
+    func smartCollections() throws -> [SmartCollectionPreview] {
+        let records = try modelContext.fetch(
+            FetchDescriptor<SmartCollectionRecord>(
+                sortBy: [
+                    SortDescriptor(\.normalizedName),
+                    SortDescriptor(\.modifiedAt, order: .reverse),
+                ]
+            )
+        )
+        let decoder = JSONDecoder()
+        return try records.map { record in
+            let archive = try decoder.decode(
+                SmartCollectionRuleArchive.self,
+                from: record.ruleData
+            )
+            guard archive.schemaVersion == SmartCollectionRuleArchive.currentSchemaVersion else {
+                throw SmartCollectionPersistenceError.unsupportedRuleSchema(
+                    archive.schemaVersion
+                )
+            }
+            return SmartCollectionPreview(
+                id: record.id,
+                name: record.name,
+                rule: archive.root,
+                modifiedAt: record.modifiedAt
+            )
+        }
+    }
+
+    func saveSmartCollection(
+        _ collection: SmartCollectionPreview
+    ) throws {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys]
+        let ruleData = try encoder.encode(
+            SmartCollectionRuleArchive(root: collection.rule)
+        )
+        let id = collection.id
+        let predicate = #Predicate<SmartCollectionRecord> { record in
+            record.id == id
+        }
+        var descriptor = FetchDescriptor(predicate: predicate)
+        descriptor.fetchLimit = 1
+
+        if let record = try modelContext.fetch(descriptor).first {
+            record.rename(to: collection.name)
+            record.ruleData = ruleData
+            record.modifiedAt = collection.modifiedAt
+        } else {
+            modelContext.insert(
+                SmartCollectionRecord(
+                    id: collection.id,
+                    name: collection.name,
+                    ruleData: ruleData,
+                    sortDescriptorRawValue: "canonical:ascending",
+                    playbackPreferenceRawValue: "ordered",
+                    modifiedAt: collection.modifiedAt
+                )
+            )
+        }
+        try modelContext.save()
+    }
+
+    func deleteSmartCollection(id: UUID) throws {
+        let predicate = #Predicate<SmartCollectionRecord> { record in
+            record.id == id
+        }
+        var descriptor = FetchDescriptor(predicate: predicate)
+        descriptor.fetchLimit = 1
+        guard let record = try modelContext.fetch(descriptor).first else {
+            return
+        }
+        modelContext.delete(record)
+        try modelContext.save()
+    }
+
     func productionSmartCollectionRuleData() throws
         -> ProductionSmartCollectionRuleData {
         let tags = try modelContext.fetch(

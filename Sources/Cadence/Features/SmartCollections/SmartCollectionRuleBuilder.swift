@@ -92,7 +92,9 @@ struct SmartCollectionRuleBuilder: View {
                 .disabled(!model.canRevertSmartCollectionDraft)
 
                 Button("Save") {
-                    model.saveSmartCollectionDraft()
+                    Task {
+                        await model.saveSmartCollectionDraftPersisting()
+                    }
                 }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.small)

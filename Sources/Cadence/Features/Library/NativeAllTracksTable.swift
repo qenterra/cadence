@@ -602,10 +602,10 @@ private final class NativeTrackHostingCell: NSTableCellView {
 private struct NativeTrackPlaceholderRow: View {
     var body: some View {
         HStack(spacing: 12) {
-            RoundedRectangle(cornerRadius: 6, style: .continuous)
+            RoundedRectangle(cornerRadius: CadenceTheme.radiusControl, style: .continuous)
                 .fill(CadenceTheme.subduedFill)
                 .frame(width: 40, height: 40)
-            RoundedRectangle(cornerRadius: 4, style: .continuous)
+            RoundedRectangle(cornerRadius: CadenceTheme.radiusControl, style: .continuous)
                 .fill(CadenceTheme.subduedFill)
                 .frame(width: 180, height: 12)
             Spacer(minLength: 0)

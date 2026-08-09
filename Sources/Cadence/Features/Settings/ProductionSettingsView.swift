@@ -154,9 +154,9 @@ struct SettingsCard<Content: View>: View {
         .padding(20)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(CadenceTheme.secondarySurface)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .clipShape(RoundedRectangle(cornerRadius: CadenceTheme.radiusPanel))
         .overlay {
-            RoundedRectangle(cornerRadius: 16)
+            RoundedRectangle(cornerRadius: CadenceTheme.radiusPanel)
                 .strokeBorder(CadenceTheme.separator, lineWidth: 0.5)
         }
     }

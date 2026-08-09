@@ -139,7 +139,7 @@ struct ProductionTrashView: View {
         .padding(.horizontal, 14)
         .frame(height: 62)
         .background(CadenceTheme.hoverFill)
-        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .clipShape(RoundedRectangle(cornerRadius: CadenceTheme.radiusGroup))
     }
 }
 

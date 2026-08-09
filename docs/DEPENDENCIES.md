@@ -16,10 +16,12 @@ development.
 | CoreImage | Active macOS SDK | Artwork processing | Apple |
 | MediaPlayer | Active macOS SDK | Now Playing and remote commands | Apple |
 | UniformTypeIdentifiers | Active macOS SDK | File and library package types | Apple |
+| QenTerraDesignTokens | QDS `1.9.x`, local sibling package | Semantic colors, radii, motion, and shared SwiftUI state contracts | QenTerra `design-system/packages/swift` |
 
-There is no Swift Package Manager dependency, vendored framework, analytics
-SDK, network SDK, or embedded database outside SwiftData and the operating
-system.
+The QDS package is the only Swift Package Manager dependency. It is resolved
+from the sibling `design-system` checkout and contains no runtime networking,
+analytics, or persistence. Cadence has no vendored framework, network SDK, or
+embedded database outside SwiftData and the operating system.
 
 ## Development tools
 

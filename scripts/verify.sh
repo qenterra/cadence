@@ -12,6 +12,7 @@ else
     for candidate in \
         "$(xcode-select -p 2>/dev/null || true)" \
         "/Applications/Xcode.app/Contents/Developer" \
+        "/Applications/Developing & Coding/Xcode.app/Contents/Developer" \
         "/Applications/Coding/Xcode.app/Contents/Developer"; do
         if [[ -d "$candidate" && "$candidate" != "/Library/Developer/CommandLineTools" ]]; then
             developer_dir="$candidate"
@@ -38,6 +39,14 @@ icon_manifest="$icon_source/icon.json"
 [[ "$(plutil -extract 'groups.0.layers.0.fill-specializations.1.value' raw -o - "$icon_manifest")" == "system-dark" ]]
 
 xcodegen generate --spec project.yml
+
+qds_doctor="${QDS_DOCTOR:-$project_root/../design-system/scripts/audit_consumer.py}"
+if [[ ! -f "$qds_doctor" ]]; then
+    echo "QDS consumer doctor was not found. Set QDS_DOCTOR to design-system/scripts/audit_consumer.py." >&2
+    exit 1
+fi
+python3 "$qds_doctor" "$project_root"
+
 swiftformat Sources Tests --lint
 swiftlint lint \
     --config .swiftlint.yml \
@@ -57,6 +66,10 @@ DEVELOPER_DIR="$developer_dir" xcodebuild \
     -jobs 2 \
     -parallel-testing-enabled NO \
     test | xcbeautify
+
+DEVELOPER_DIR="$developer_dir" \
+    "$project_root/scripts/verify_localization.sh" \
+    "$project_root/.build/DerivedData"
 
 app_bundle="$project_root/.build/DerivedData/Build/Products/Debug/Cadence.app"
 info_plist="$app_bundle/Contents/Info.plist"

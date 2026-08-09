@@ -180,7 +180,7 @@ struct TapToSyncPanel: View {
                 .font(.caption.monospaced().weight(.semibold))
                 .padding(.horizontal, 7)
                 .padding(.vertical, 3)
-                .background(CadenceTheme.subduedFill, in: RoundedRectangle(cornerRadius: 5))
+                .background(CadenceTheme.subduedFill, in: RoundedRectangle(cornerRadius: CadenceTheme.radiusControl))
             Text(action)
                 .font(.caption)
                 .foregroundStyle(.secondary)

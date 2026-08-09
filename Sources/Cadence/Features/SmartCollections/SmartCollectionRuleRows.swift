@@ -186,7 +186,7 @@ private struct SmartCollectionConditionRow: View {
             }
         }
         .animation(
-            reduceMotion ? nil : .easeOut(duration: 0.15),
+            reduceMotion ? nil : .easeOut(duration: CadenceTheme.motionReplace),
             value: condition.field
         )
         .accessibilityElement(children: .contain)

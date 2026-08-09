@@ -80,13 +80,13 @@ struct GuideChapterPickerView: View {
             .frame(maxWidth: .infinity, minHeight: 104, alignment: .topLeading)
             .background(
                 CadenceTheme.secondarySurface,
-                in: RoundedRectangle(cornerRadius: 14)
+                in: RoundedRectangle(cornerRadius: CadenceTheme.radiusPanel)
             )
             .overlay {
-                RoundedRectangle(cornerRadius: 14)
+                RoundedRectangle(cornerRadius: CadenceTheme.radiusPanel)
                     .strokeBorder(CadenceTheme.separator, lineWidth: 0.5)
             }
-            .contentShape(RoundedRectangle(cornerRadius: 14))
+            .contentShape(RoundedRectangle(cornerRadius: CadenceTheme.radiusPanel))
         }
         .buttonStyle(CadenceRowButtonStyle())
         .accessibilityLabel(
@@ -105,7 +105,7 @@ struct GuideChapterPickerView: View {
             .frame(width: 38, height: 38)
             .background(
                 CadenceTheme.subduedFill,
-                in: RoundedRectangle(cornerRadius: 11)
+                in: RoundedRectangle(cornerRadius: CadenceTheme.radiusGroup)
             )
     }
 }

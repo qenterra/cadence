@@ -77,7 +77,7 @@ struct ImportMusicScanningState: View {
                 .frame(maxWidth: 620)
                 .background(CadenceTheme.secondarySurface)
                 .clipShape(
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    RoundedRectangle(cornerRadius: CadenceTheme.radiusGroup, style: .continuous)
                 )
             }
 

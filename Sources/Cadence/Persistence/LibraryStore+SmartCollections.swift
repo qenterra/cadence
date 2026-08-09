@@ -1,6 +1,62 @@
 import Foundation
 
+private enum SmartCollectionStoreError: LocalizedError {
+    case libraryUnavailable
+
+    var errorDescription: String? {
+        "The managed library is not available. Import music before saving Smart Collections."
+    }
+}
+
 extension LibraryStore {
+    func persistedSmartCollections() async -> [SmartCollectionPreview]? {
+        guard let repository else {
+            return []
+        }
+        do {
+            return try await repository.smartCollections()
+        } catch {
+            recordOperationFailure(.smartCollections, error: error)
+            return nil
+        }
+    }
+
+    func savePersistedSmartCollection(
+        _ collection: SmartCollectionPreview
+    ) async -> Bool {
+        guard let repository else {
+            recordOperationFailure(
+                .smartCollections,
+                error: SmartCollectionStoreError.libraryUnavailable
+            )
+            return false
+        }
+        do {
+            try await repository.saveSmartCollection(collection)
+            return true
+        } catch {
+            recordOperationFailure(.smartCollections, error: error)
+            return false
+        }
+    }
+
+    func deletePersistedSmartCollection(id: UUID) async -> Bool {
+        guard let repository else {
+            recordOperationFailure(
+                .smartCollections,
+                error: SmartCollectionStoreError.libraryUnavailable
+            )
+            return false
+        }
+        do {
+            try await repository.deleteSmartCollection(id: id)
+            return true
+        } catch {
+            recordOperationFailure(.smartCollections, error: error)
+            return false
+        }
+    }
+
     func loadSmartCollectionRuleData() async {
         guard let repository else {
             smartCollectionRuleData = .empty

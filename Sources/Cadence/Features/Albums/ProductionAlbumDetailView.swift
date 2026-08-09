@@ -72,7 +72,7 @@ struct ProductionAlbumDetailView: View {
                 title: album.title,
                 placeholder: .album,
                 variant: .original,
-                cornerRadius: 16
+                cornerRadius: CadenceTheme.radiusPanel
             )
             .frame(width: 210, height: 210)
 
@@ -97,6 +97,7 @@ struct ProductionAlbumDetailView: View {
                     .font(.callout)
                     .foregroundStyle(.tertiary)
 
+                playbackActions(album)
                 albumTagChips
             }
             Spacer()
@@ -108,6 +109,44 @@ struct ProductionAlbumDetailView: View {
             .menuIndicator(.hidden)
             .help("Album Actions")
         }
+    }
+
+    private func playbackActions(
+        _ album: LibraryAlbumProjection
+    ) -> some View {
+        HStack(spacing: 10) {
+            Button("Play", systemImage: "play.fill") {
+                model.playProductionAlbum(album, tracks: tracks)
+            }
+            .buttonStyle(.borderedProminent)
+            .disabled(tracks.isEmpty)
+
+            Button("Shuffle", systemImage: "shuffle") {
+                model.playProductionAlbum(
+                    album,
+                    tracks: tracks,
+                    shuffled: true
+                )
+            }
+            .buttonStyle(.bordered)
+            .disabled(tracks.isEmpty)
+
+            Button(
+                album.isFavorite ? "Unfavorite" : "Favorite",
+                systemImage: album.isFavorite ? "heart.fill" : "heart"
+            ) {
+                Task {
+                    if let updated = await model.setProductionAlbumFavorite(
+                        album,
+                        isFavorite: !album.isFavorite
+                    ) {
+                        self.album = updated
+                    }
+                }
+            }
+            .buttonStyle(.bordered)
+        }
+        .padding(.top, 4)
     }
 
     @ViewBuilder

@@ -52,7 +52,7 @@ struct ImportMusicCompleteState: View {
             .frame(maxWidth: 650)
             .padding(.vertical, 18)
             .background(CadenceTheme.secondarySurface)
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: CadenceTheme.radiusGroup, style: .continuous))
 
             Text(
                 isPreview

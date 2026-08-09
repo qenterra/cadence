@@ -48,7 +48,7 @@ struct SmartCollectionsView: View {
             alignment: .topLeading
         )
         .animation(
-            reduceMotion ? nil : .easeOut(duration: 0.16),
+            reduceMotion ? nil : .easeOut(duration: CadenceTheme.motionDismiss),
             value: model.smartCollectionsPresentationMode
         )
         .background(CadenceTheme.contentBackground)
@@ -91,7 +91,11 @@ struct SmartCollectionsView: View {
             isPresented: pendingSwitchBinding
         ) {
             Button("Save") {
-                model.resolvePendingSmartCollectionTransition(.save)
+                Task {
+                    await model.resolvePendingSmartCollectionTransitionPersisting(
+                        .save
+                    )
+                }
             }
             .disabled(!model.canSaveSmartCollectionDraft)
 
@@ -112,14 +116,16 @@ struct SmartCollectionsView: View {
             isPresented: pendingDeletionBinding
         ) {
             Button("Delete", role: .destructive) {
-                model.confirmDeleteSmartCollection()
+                Task {
+                    await model.confirmDeleteSmartCollectionPersisting()
+                }
             }
 
             Button("Cancel", role: .cancel) {
                 model.cancelDeleteSmartCollection()
             }
         } message: {
-            Text("This removes the collection definition from this session.")
+            Text("This permanently removes the collection definition from Cadence.library.")
         }
     }
 

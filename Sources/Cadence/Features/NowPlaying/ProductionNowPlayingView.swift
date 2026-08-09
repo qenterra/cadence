@@ -56,7 +56,7 @@ private extension ProductionNowPlayingView {
                 title: track.title,
                 placeholder: .track,
                 variant: .original,
-                cornerRadius: 18
+                cornerRadius: CadenceTheme.radiusHero
             )
             .aspectRatio(1, contentMode: .fit)
             .frame(maxWidth: 420)
@@ -185,13 +185,13 @@ private extension ProductionNowPlayingView {
                 .background(
                     CadenceTheme.subduedFill,
                     in: RoundedRectangle(
-                        cornerRadius: 9,
+                        cornerRadius: CadenceTheme.radiusControl,
                         style: .continuous
                     )
                 )
                 .overlay {
                     RoundedRectangle(
-                        cornerRadius: 9,
+                        cornerRadius: CadenceTheme.radiusControl,
                         style: .continuous
                     )
                     .strokeBorder(CadenceTheme.separator, lineWidth: 0.5)
@@ -205,7 +205,7 @@ private extension ProductionNowPlayingView {
                         .background(
                             CadenceTheme.subduedFill,
                             in: RoundedRectangle(
-                                cornerRadius: 9,
+                                cornerRadius: CadenceTheme.radiusControl,
                                 style: .continuous
                             )
                         )

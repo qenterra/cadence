@@ -20,7 +20,7 @@ struct PlayerBar: View {
         }
         .padding(.horizontal, 20)
         .frame(height: 96)
-        .cadenceGlassSurface(cornerRadius: 0)
+        .cadenceGlassSurface(cornerRadius: CadenceTheme.radiusNone)
     }
 }
 
@@ -114,7 +114,7 @@ private extension PlayerBar {
                         artworkID: track.artworkID,
                         title: track.title,
                         placeholder: .track,
-                        cornerRadius: 7
+                        cornerRadius: CadenceTheme.radiusControl
                     )
                     .frame(width: 56, height: 56)
 
@@ -272,7 +272,7 @@ private extension PlayerBar {
                 .background {
                     if isActive {
                         RoundedRectangle(
-                            cornerRadius: 9,
+                            cornerRadius: CadenceTheme.radiusControl,
                             style: .continuous
                         )
                         .fill(CadenceTheme.selectionFill)
@@ -315,7 +315,7 @@ private extension PlayerBar {
                 .background {
                     if isQualityProfilePresented {
                         RoundedRectangle(
-                            cornerRadius: 9,
+                            cornerRadius: CadenceTheme.radiusControl,
                             style: .continuous
                         )
                         .fill(CadenceTheme.selectionFill)

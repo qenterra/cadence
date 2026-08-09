@@ -177,6 +177,43 @@ extension CadenceAppModel {
     func saveSmartCollectionDraft(
         modifiedAt: Date = .now
     ) -> Bool {
+        guard let saved = validatedSmartCollection(modifiedAt: modifiedAt) else {
+            return false
+        }
+        applySavedSmartCollection(saved)
+        return true
+    }
+
+    @discardableResult
+    func saveSmartCollectionDraftPersisting(
+        modifiedAt: Date = .now
+    ) async -> Bool {
+        guard let saved = validatedSmartCollection(modifiedAt: modifiedAt) else {
+            return false
+        }
+        if librarySession.availability != .preview {
+            guard await librarySession.store.savePersistedSmartCollection(saved) else {
+                return false
+            }
+        }
+        applySavedSmartCollection(saved)
+        return true
+    }
+
+    func loadPersistedSmartCollections() async {
+        guard librarySession.availability != .preview else {
+            return
+        }
+        guard let persisted = await librarySession.store.persistedSmartCollections() else {
+            return
+        }
+        smartCollections = persisted
+        prepareInitialSmartCollection()
+    }
+
+    private func validatedSmartCollection(
+        modifiedAt: Date
+    ) -> SmartCollectionPreview? {
         guard
             let draft = smartCollectionDraft,
             SmartCollectionValidator.validate(
@@ -184,16 +221,17 @@ extension CadenceAppModel {
                 savedCollections: smartCollections
             ).isValid
         else {
-            return false
+            return nil
         }
-
-        let saved = SmartCollectionPreview(
+        return SmartCollectionPreview(
             id: draft.sourceID ?? draft.id,
             name: draft.name.trimmingCharacters(in: .whitespacesAndNewlines),
             rule: draft.rule,
             modifiedAt: modifiedAt
         )
+    }
 
+    private func applySavedSmartCollection(_ saved: SmartCollectionPreview) {
         if let index = smartCollections.firstIndex(where: {
             $0.id == saved.id
         }) {
@@ -208,7 +246,6 @@ extension CadenceAppModel {
         lastValidSmartCollectionResultIDs = evaluateSmartCollection(
             rule: saved.rule
         ).map(\.id)
-        return true
     }
 
     @discardableResult
@@ -249,6 +286,35 @@ extension CadenceAppModel {
             return false
         }
 
+        applySmartCollectionDeletion(collectionID, at: index)
+        return true
+    }
+
+    @discardableResult
+    func confirmDeleteSmartCollectionPersisting() async -> Bool {
+        guard
+            let collectionID = pendingSmartCollectionDeletionID,
+            let index = smartCollections.firstIndex(where: {
+                $0.id == collectionID
+            })
+        else {
+            return false
+        }
+        if librarySession.availability != .preview {
+            guard await librarySession.store.deletePersistedSmartCollection(
+                id: collectionID
+            ) else {
+                return false
+            }
+        }
+        applySmartCollectionDeletion(collectionID, at: index)
+        return true
+    }
+
+    private func applySmartCollectionDeletion(
+        _ collectionID: SmartCollectionPreview.ID,
+        at index: Int
+    ) {
         smartCollections.remove(at: index)
         smartCollectionSortDescriptors[collectionID] = nil
         pendingSmartCollectionDeletionID = nil
@@ -256,7 +322,7 @@ extension CadenceAppModel {
         let removedActiveCollection = selectedSmartCollectionID == collectionID
             || smartCollectionDraft?.sourceID == collectionID
         guard removedActiveCollection else {
-            return true
+            return
         }
 
         guard !smartCollections.isEmpty else {
@@ -265,7 +331,7 @@ extension CadenceAppModel {
             smartCollectionDraft = nil
             smartCollectionsPresentationMode = .listening
             lastValidSmartCollectionResultIDs = []
-            return true
+            return
         }
 
         let nextIndex = min(index, smartCollections.count - 1)
@@ -274,7 +340,6 @@ extension CadenceAppModel {
         smartCollectionDraft = nil
         smartCollectionsPresentationMode = .listening
         lastValidSmartCollectionResultIDs = []
-        return true
     }
 
     func mutateSmartCollectionDraft(

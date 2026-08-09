@@ -59,7 +59,7 @@ struct CadenceGuideOverlay: View {
                     )
                 )
                 .animation(
-                    reduceMotion ? nil : .easeOut(duration: 0.16),
+                    reduceMotion ? nil : .easeOut(duration: CadenceTheme.motionDismiss),
                     value: step.id
                 )
                 .accessibilityIdentifier("Cadence.Guide.Overlay")
@@ -100,7 +100,7 @@ struct CadenceGuideOverlay: View {
     }
 
     private func targetHighlight(_ target: CGRect) -> some View {
-        RoundedRectangle(cornerRadius: 13, style: .continuous)
+        RoundedRectangle(cornerRadius: CadenceTheme.radiusGroup, style: .continuous)
             .strokeBorder(
                 CadenceTheme.primaryAccent.opacity(
                     contrast == .increased ? 1 : 0.82
@@ -209,10 +209,10 @@ private struct GuideCard: View {
         .frame(maxHeight: GuideOverlayLayout.cardSize.height)
         .background(
             CadenceTheme.opaqueSurface,
-            in: RoundedRectangle(cornerRadius: 18, style: .continuous)
+            in: RoundedRectangle(cornerRadius: CadenceTheme.radiusHero, style: .continuous)
         )
         .overlay {
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
+            RoundedRectangle(cornerRadius: CadenceTheme.radiusHero, style: .continuous)
                 .strokeBorder(CadenceTheme.strongSeparator, lineWidth: 0.75)
         }
         .shadow(color: .black.opacity(0.28), radius: 28, y: 12)

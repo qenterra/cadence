@@ -57,10 +57,10 @@ private struct TrackTableLoadingRow: View {
 
     var body: some View {
         HStack(spacing: 10) {
-            RoundedRectangle(cornerRadius: 6, style: .continuous)
+            RoundedRectangle(cornerRadius: CadenceTheme.radiusControl, style: .continuous)
                 .fill(CadenceTheme.subduedFill)
                 .frame(width: 40, height: 40)
-            RoundedRectangle(cornerRadius: 4, style: .continuous)
+            RoundedRectangle(cornerRadius: CadenceTheme.radiusControl, style: .continuous)
                 .fill(CadenceTheme.subduedFill)
                 .frame(
                     width: min(CGFloat(widths.song) * 0.55, 180),

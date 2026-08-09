@@ -12,16 +12,78 @@ struct DocumentationScreenshotTests {
             return
         }
 
+        let railPreferenceKey = "navigationRail.expanded"
+        let previousRailPreference = UserDefaults.standard.object(
+            forKey: railPreferenceKey
+        )
+        UserDefaults.standard.set(true, forKey: railPreferenceKey)
+        defer {
+            if let previousRailPreference {
+                UserDefaults.standard.set(
+                    previousRailPreference,
+                    forKey: railPreferenceKey
+                )
+            } else {
+                UserDefaults.standard.removeObject(forKey: railPreferenceKey)
+            }
+        }
+
         let fixture = try await DocumentationScreenshotFixture.make()
 
         fixture.model.selectedDestination = .library
         try await fixture.capture("cadence-library.png")
+        try await fixture.capture(
+            "qa-library-min-light.png",
+            appearance: .light
+        )
+        try await fixture.capture(
+            "qa-library-wide-dark.png",
+            contentSize: .wide
+        )
+        try await fixture.capture(
+            "qa-library-wide-light.png",
+            contentSize: .wide,
+            appearance: .light
+        )
 
         fixture.model.presentNowPlaying()
         fixture.model.selectedNowPlayingPanel = .queue
         try await fixture.capture("cadence-now-playing.png")
+        try await fixture.capture(
+            "qa-now-playing-min-light.png",
+            appearance: .light
+        )
+        try await fixture.capture(
+            "qa-now-playing-wide-dark.png",
+            contentSize: .wide
+        )
 
         fixture.model.dismissNowPlaying()
+        fixture.model.requestOpenProductionAlbumContextually(
+            id: fixture.albumID
+        )
+        try await fixture.capture("qa-album-min-dark.png")
+        try await fixture.capture(
+            "qa-album-min-light.png",
+            appearance: .light
+        )
+        try await fixture.capture(
+            "qa-album-wide-dark.png",
+            contentSize: .wide
+        )
+
+        fixture.model.selectedDestination = .importMusic
+        fixture.model.showImportPreviewStage(.review)
+        try await fixture.capture("qa-import-review-min-dark.png")
+        try await fixture.capture(
+            "qa-import-review-min-light.png",
+            appearance: .light
+        )
+        try await fixture.capture(
+            "qa-import-review-wide-dark.png",
+            contentSize: .wide
+        )
+
         fixture.model.selectedDestination = .tags
         fixture.model.selectedProductionTagID = fixture.tagID
         try await fixture.capture("cadence-tags.png")
@@ -42,14 +104,17 @@ struct DocumentationScreenshotTests {
 @MainActor
 private final class DocumentationScreenshotFixture {
     let model: CadenceAppModel
+    let albumID: UUID
     let tagID: UUID
     private let guideCoordinator: GuideCoordinator
 
     init(
         model: CadenceAppModel,
+        albumID: UUID,
         tagID: UUID
     ) {
         self.model = model
+        self.albumID = albumID
         self.tagID = tagID
         guideCoordinator = GuideCoordinator(
             progressStore: InMemoryGuideProgressStore(
@@ -85,7 +150,7 @@ private final class DocumentationScreenshotFixture {
             lyricDocuments: [:],
             favoriteAlbumDates: [:],
             favoriteArtistDates: [:],
-            importCandidates: [],
+            importCandidates: .mockImportCandidates,
             playbackCoordinator: coordinator
         )
         let trackIDs = resolved.map(\.track.id)
@@ -98,20 +163,23 @@ private final class DocumentationScreenshotFixture {
 
         return DocumentationScreenshotFixture(
             model: model,
+            albumID: seeded.albumID,
             tagID: seeded.tagID
         )
     }
 
     func capture(
-        _ filename: String
+        _ filename: String,
+        contentSize: NSSize = .minimum,
+        appearance: DocumentationScreenshotAppearance = .dark
     ) async throws {
-        let contentSize = NSSize(width: 1080, height: 836)
         let rootView = CadenceRootView(
             model: model,
             guideCoordinator: guideCoordinator
         )
         .frame(width: contentSize.width, height: contentSize.height)
-        .environment(\.colorScheme, .dark)
+        .environment(\.colorScheme, appearance.colorScheme)
+        .tint(CadenceTheme.primaryAccent)
 
         let hostingView = NSHostingView(rootView: rootView)
         let window = NSWindow(
@@ -124,7 +192,7 @@ private final class DocumentationScreenshotFixture {
         window.title = "Cadence"
         window.titleVisibility = .hidden
         window.toolbarStyle = .unifiedCompact
-        window.appearance = NSAppearance(named: .darkAqua)
+        window.appearance = NSAppearance(named: appearance.appKitName)
         window.contentView = hostingView
         window.makeKeyAndOrderFront(nil)
 
@@ -166,6 +234,24 @@ private final class DocumentationScreenshotFixture {
             .deletingLastPathComponent()
             .appending(path: "docs/images", directoryHint: .isDirectory)
     }
+}
+
+private enum DocumentationScreenshotAppearance {
+    case dark
+    case light
+
+    var colorScheme: ColorScheme {
+        self == .dark ? .dark : .light
+    }
+
+    var appKitName: NSAppearance.Name {
+        self == .dark ? .darkAqua : .aqua
+    }
+}
+
+private extension NSSize {
+    static let minimum = NSSize(width: 1080, height: 836)
+    static let wide = NSSize(width: 1440, height: 860)
 }
 
 private extension DocumentationScreenshotFixture {

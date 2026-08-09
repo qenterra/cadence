@@ -15,7 +15,7 @@ struct ImportMusicView: View {
                 .id(model.importPreviewStage)
                 .transition(.opacity)
                 .animation(
-                    reduceMotion ? nil : .easeOut(duration: 0.15),
+                    reduceMotion ? nil : .easeOut(duration: CadenceTheme.motionReplace),
                     value: model.importPreviewStage
                 )
         }

@@ -114,13 +114,13 @@ struct ProductionTrackTableRow: View {
             title: track.title,
             placeholder: .track,
             variant: .trackRow,
-            cornerRadius: 6
+            cornerRadius: CadenceTheme.radiusControl
         )
         .frame(width: 40, height: 40)
         .overlay {
             if model.isCurrentProductionTrack(track.id) {
                 RoundedRectangle(
-                    cornerRadius: 6,
+                    cornerRadius: CadenceTheme.radiusControl,
                     style: .continuous
                 )
                 .fill(.black.opacity(0.34))

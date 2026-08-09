@@ -286,7 +286,7 @@ private struct LyricLineEditorRow: View {
             isActive
                 ? CadenceTheme.selectionFill
                 : Color.clear,
-            in: RoundedRectangle(cornerRadius: 8, style: .continuous)
+            in: RoundedRectangle(cornerRadius: CadenceTheme.radiusControl, style: .continuous)
         )
         .contentShape(Rectangle())
         .onTapGesture {
@@ -326,7 +326,7 @@ private struct LyricTimestampField: View {
             .focused($isFocused)
             .overlay {
                 if hasError {
-                    RoundedRectangle(cornerRadius: 5)
+                    RoundedRectangle(cornerRadius: CadenceTheme.radiusControl)
                         .strokeBorder(.red, lineWidth: 1)
                 }
             }

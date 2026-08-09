@@ -1,6 +1,6 @@
 import Foundation
 
-enum SmartCollectionRuleCombinator: String, CaseIterable, Identifiable, Hashable, Sendable {
+enum SmartCollectionRuleCombinator: String, CaseIterable, Codable, Identifiable, Hashable, Sendable {
     case all
     case any
 
@@ -16,7 +16,7 @@ enum SmartCollectionRuleCombinator: String, CaseIterable, Identifiable, Hashable
     }
 }
 
-enum SmartCollectionRuleField: String, CaseIterable, Identifiable, Hashable, Sendable {
+enum SmartCollectionRuleField: String, CaseIterable, Codable, Identifiable, Hashable, Sendable {
     case tag
     case artist
     case album
@@ -49,7 +49,7 @@ enum SmartCollectionRuleField: String, CaseIterable, Identifiable, Hashable, Sen
     }
 }
 
-enum SmartCollectionRuleOperator: String, CaseIterable, Identifiable, Hashable, Sendable {
+enum SmartCollectionRuleOperator: String, CaseIterable, Codable, Identifiable, Hashable, Sendable {
     case `is`
     case contains
     case greaterThan
@@ -71,7 +71,7 @@ enum SmartCollectionRuleOperator: String, CaseIterable, Identifiable, Hashable, 
     }
 }
 
-enum SmartCollectionTagScope: String, CaseIterable, Identifiable, Hashable, Sendable {
+enum SmartCollectionTagScope: String, CaseIterable, Codable, Identifiable, Hashable, Sendable {
     case exact
     case includeSubtags
 
@@ -87,7 +87,7 @@ enum SmartCollectionTagScope: String, CaseIterable, Identifiable, Hashable, Send
     }
 }
 
-enum SmartCollectionRuleValue: Hashable, Sendable {
+enum SmartCollectionRuleValue: Codable, Hashable, Sendable {
     case tag(id: TagPreview.ID?, scope: SmartCollectionTagScope)
     case text(String)
     case integer(Int?)
@@ -95,7 +95,7 @@ enum SmartCollectionRuleValue: Hashable, Sendable {
     case boolean(Bool)
 }
 
-struct SmartCollectionRuleCondition: Identifiable, Hashable, Sendable {
+struct SmartCollectionRuleCondition: Codable, Identifiable, Hashable, Sendable {
     let id: UUID
     var field: SmartCollectionRuleField
     var `operator`: SmartCollectionRuleOperator
@@ -117,7 +117,7 @@ struct SmartCollectionRuleCondition: Identifiable, Hashable, Sendable {
     }
 }
 
-struct SmartCollectionRuleGroup: Identifiable, Hashable, Sendable {
+struct SmartCollectionRuleGroup: Codable, Identifiable, Hashable, Sendable {
     let id: UUID
     var combinator: SmartCollectionRuleCombinator
     var children: [SmartCollectionRuleNode]
@@ -133,7 +133,7 @@ struct SmartCollectionRuleGroup: Identifiable, Hashable, Sendable {
     }
 }
 
-indirect enum SmartCollectionRuleNode: Identifiable, Hashable, Sendable {
+indirect enum SmartCollectionRuleNode: Codable, Identifiable, Hashable, Sendable {
     case condition(SmartCollectionRuleCondition)
     case group(SmartCollectionRuleGroup)
 

@@ -158,7 +158,7 @@ private extension TagTrackPickerSheet {
                 artworkID: track.artworkID,
                 title: track.title,
                 placeholder: .track,
-                cornerRadius: 5
+                cornerRadius: CadenceTheme.radiusControl
             )
             .frame(width: 36, height: 36)
 

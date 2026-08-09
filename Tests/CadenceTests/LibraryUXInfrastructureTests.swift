@@ -1,3 +1,4 @@
+import AppKit
 @testable import Cadence
 import Foundation
 import Testing
@@ -50,6 +51,20 @@ struct LibraryUXInfrastructureTests {
                     NavigationRailConfiguration.configurableDestinations
                 )
             )
+        )
+    }
+
+    @Test("New navigation profiles start expanded and every destination symbol is unique")
+    func navigationDefaults() {
+        #expect(NavigationRailConfiguration.defaultIsExpanded)
+        #expect(
+            Set(NavigationDestination.allCases.map(\.symbolName)).count
+                == NavigationDestination.allCases.count
+        )
+        #expect(
+            NavigationDestination.allCases.allSatisfy {
+                NSImage(systemSymbolName: $0.symbolName, accessibilityDescription: nil) != nil
+            }
         )
     }
 

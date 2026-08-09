@@ -42,9 +42,9 @@ struct SmartCollectionArtworkMosaic: View {
             }
         }
         .aspectRatio(1, contentMode: .fit)
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: CadenceTheme.radiusGroup, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
+            RoundedRectangle(cornerRadius: CadenceTheme.radiusGroup, style: .continuous)
                 .strokeBorder(.white.opacity(0.14), lineWidth: 0.5)
         }
         .accessibilityElement(children: .ignore)
@@ -64,7 +64,7 @@ struct SmartCollectionArtworkMosaic: View {
                 ),
                 title: slot.albumTitle,
                 placeholder: .album,
-                cornerRadius: 0,
+                cornerRadius: CadenceTheme.radiusNone,
                 showsBorder: false,
                 fillsAvailableSpace: true
             )

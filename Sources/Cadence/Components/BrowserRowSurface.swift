@@ -1,7 +1,8 @@
+import QenTerraDesignTokens
 import SwiftUI
 
 struct BrowserRowSurface: View {
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var colorScheme
     @Environment(\.colorSchemeContrast) private var contrast
 
     let isSelected: Bool
@@ -9,18 +10,16 @@ struct BrowserRowSurface: View {
     let isFocused: Bool
 
     var body: some View {
-        RoundedRectangle(cornerRadius: 9, style: .continuous)
-            .fill(fillColor)
-            .overlay {
-                if isFocused || (contrast == .increased && isSelected) {
-                    RoundedRectangle(cornerRadius: 9, style: .continuous)
-                        .strokeBorder(
-                            boundaryColor,
-                            lineWidth: isFocused && contrast == .increased ? 2 : 1
-                        )
-                }
-            }
-            .overlay(alignment: .leading) {
+        QDSInteractiveRowSurface(
+            state: QDSInteractiveRowState(
+                isHovered: isHovered,
+                isFocused: isFocused,
+                isSelected: isSelected,
+                isIncreasedContrast: contrast == .increased
+            ),
+            appearance: colorScheme == .dark ? .dark : .light
+        ) {
+            Color.clear.overlay(alignment: .leading) {
                 if isSelected {
                     Capsule()
                         .fill(.tint)
@@ -28,27 +27,7 @@ struct BrowserRowSurface: View {
                         .padding(.leading, 3)
                 }
             }
-            .animation(
-                reduceMotion ? nil : .easeOut(duration: 0.1),
-                value: isHovered
-            )
-    }
-
-    private var fillColor: Color {
-        if isSelected {
-            return contrast == .increased
-                ? CadenceTheme.increasedContrastSelectionFill
-                : CadenceTheme.selectionFill
         }
-        return isHovered ? CadenceTheme.hoverFill : .clear
-    }
-
-    private var focusColor: Color {
-        .primary.opacity(contrast == .increased ? 0.8 : 0.72)
-    }
-
-    private var boundaryColor: Color {
-        isFocused ? focusColor : .primary.opacity(0.52)
     }
 }
 
@@ -59,7 +38,7 @@ struct CadenceRowButtonStyle: ButtonStyle {
         configuration.label
             .opacity(configuration.isPressed ? 0.72 : 1)
             .animation(
-                reduceMotion ? nil : .easeOut(duration: 0.08),
+                reduceMotion ? nil : .easeOut(duration: CadenceTheme.motionPress),
                 value: configuration.isPressed
             )
     }

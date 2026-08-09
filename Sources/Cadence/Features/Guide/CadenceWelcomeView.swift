@@ -44,7 +44,7 @@ struct CadenceWelcomeView: View {
         .frame(width: 700, height: 520)
         .background(CadenceTheme.contentBackground)
         .animation(
-            reduceMotion ? nil : .easeOut(duration: 0.16),
+            reduceMotion ? nil : .easeOut(duration: CadenceTheme.motionDismiss),
             value: pageIndex
         )
         .accessibilityElement(children: .contain)
@@ -68,7 +68,7 @@ struct CadenceWelcomeView: View {
             }
         }
         .animation(
-            reduceMotion ? nil : .easeOut(duration: 0.14),
+            reduceMotion ? nil : .easeOut(duration: CadenceTheme.motionPresent),
             value: pageIndex
         )
     }

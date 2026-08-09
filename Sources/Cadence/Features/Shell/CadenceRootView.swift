@@ -124,6 +124,11 @@ struct CadenceRootView: View {
                 ?? "Library Operation Failed",
             isPresented: storeOperationFailurePresented
         ) {
+            Button("Retry") {
+                Task {
+                    await model.librarySession.store.retryOperationFailure()
+                }
+            }
             Button("Dismiss") {
                 model.librarySession.store.dismissOperationFailure()
             }
@@ -142,6 +147,7 @@ struct CadenceRootView: View {
             if needsInitialLoad {
                 await model.librarySession.store.loadInitialLibrary()
             }
+            await model.loadPersistedSmartCollections()
             await model.librarySession.store.loadPlaylists()
             guideCoordinator.presentWelcomeIfNeeded()
         }

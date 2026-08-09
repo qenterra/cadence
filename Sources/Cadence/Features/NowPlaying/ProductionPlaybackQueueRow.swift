@@ -35,11 +35,11 @@ struct ProductionPlaybackQueueRow: View {
                 artworkID: track.artworkID,
                 title: track.title,
                 placeholder: .track,
-                cornerRadius: 6
+                cornerRadius: CadenceTheme.radiusControl
             )
             .frame(width: 42, height: 42)
         } else {
-            RoundedRectangle(cornerRadius: 6)
+            RoundedRectangle(cornerRadius: CadenceTheme.radiusControl)
                 .fill(CadenceTheme.secondarySurface)
                 .frame(width: 42, height: 42)
                 .overlay {

@@ -32,9 +32,9 @@ struct SettingsSidebarCard: View {
                 }
             }
             .background(CadenceTheme.subduedFill)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .clipShape(RoundedRectangle(cornerRadius: CadenceTheme.radiusGroup))
             .overlay {
-                RoundedRectangle(cornerRadius: 12)
+                RoundedRectangle(cornerRadius: CadenceTheme.radiusGroup)
                     .strokeBorder(
                         CadenceTheme.separator,
                         lineWidth: 0.5
@@ -148,7 +148,7 @@ struct SettingsSidebarCard: View {
             return
         }
 
-        withAnimation(.smooth(duration: 0.16)) {
+        withAnimation(.smooth(duration: CadenceTheme.motionDismiss)) {
             orderRawValue = NavigationRailConfiguration.encode(reordered)
         }
     }
@@ -218,9 +218,9 @@ private struct SettingsSidebarDragPreview: View {
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
         .background(CadenceTheme.opaqueSurface)
-        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .clipShape(RoundedRectangle(cornerRadius: CadenceTheme.radiusGroup))
         .overlay {
-            RoundedRectangle(cornerRadius: 10)
+            RoundedRectangle(cornerRadius: CadenceTheme.radiusGroup)
                 .strokeBorder(CadenceTheme.strongSeparator, lineWidth: 0.5)
         }
     }

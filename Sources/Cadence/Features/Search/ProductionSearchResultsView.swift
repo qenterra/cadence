@@ -283,14 +283,14 @@ private extension ProductionSearchResultsView {
                     .foregroundStyle(.secondary)
                     .frame(width: 34, height: 34)
                     .background(CadenceTheme.subduedFill)
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                    .clipShape(RoundedRectangle(cornerRadius: CadenceTheme.radiusControl))
 
                 resultLabels(title: title, subtitle: subtitle)
                 Spacer()
             }
             .padding(12)
             .background(CadenceTheme.hoverFill)
-            .clipShape(RoundedRectangle(cornerRadius: 10))
+            .clipShape(RoundedRectangle(cornerRadius: CadenceTheme.radiusGroup))
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -315,7 +315,7 @@ private extension ProductionSearchResultsView {
                     .clipShape(
                         result.placeholder == .artist
                             ? AnyShape(Circle())
-                            : AnyShape(RoundedRectangle(cornerRadius: 8))
+                            : AnyShape(RoundedRectangle(cornerRadius: CadenceTheme.radiusControl))
                     )
 
                     resultLabels(
@@ -340,6 +340,6 @@ private extension ProductionSearchResultsView {
             .help("More Actions")
         }
         .background(CadenceTheme.subduedFill)
-        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .clipShape(RoundedRectangle(cornerRadius: CadenceTheme.radiusGroup))
     }
 }

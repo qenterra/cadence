@@ -86,7 +86,7 @@ struct ProductionArtistDetailView: View {
                 artworkID: album.customArtworkID,
                 title: album.title,
                 placeholder: .album,
-                cornerRadius: 10
+                cornerRadius: CadenceTheme.radiusGroup
             )
             .aspectRatio(1, contentMode: .fit)
 
@@ -123,7 +123,7 @@ struct ProductionArtistDetailView: View {
                 title: artist.name,
                 placeholder: .artist,
                 variant: .original,
-                cornerRadius: 0,
+                cornerRadius: CadenceTheme.radiusNone,
                 showsBorder: false
             )
             .frame(width: 190, height: 190)
@@ -139,6 +139,7 @@ struct ProductionArtistDetailView: View {
                     "\(artist.albumCount) albums · \(artist.trackCount) tracks"
                 )
                 .foregroundStyle(.secondary)
+                playbackActions(artist)
             }
             Spacer()
             Menu {
@@ -149,6 +150,44 @@ struct ProductionArtistDetailView: View {
             .menuIndicator(.hidden)
             .help("Artist Actions")
         }
+    }
+
+    private func playbackActions(
+        _ artist: LibraryArtistProjection
+    ) -> some View {
+        HStack(spacing: 10) {
+            Button("Play", systemImage: "play.fill") {
+                model.playProductionArtist(artist, tracks: tracks)
+            }
+            .buttonStyle(.borderedProminent)
+            .disabled(tracks.isEmpty)
+
+            Button("Shuffle", systemImage: "shuffle") {
+                model.playProductionArtist(
+                    artist,
+                    tracks: tracks,
+                    shuffled: true
+                )
+            }
+            .buttonStyle(.bordered)
+            .disabled(tracks.isEmpty)
+
+            Button(
+                artist.isFavorite ? "Unfavorite" : "Favorite",
+                systemImage: artist.isFavorite ? "heart.fill" : "heart"
+            ) {
+                Task {
+                    if let updated = await model.setProductionArtistFavorite(
+                        artist,
+                        isFavorite: !artist.isFavorite
+                    ) {
+                        self.artist = updated
+                    }
+                }
+            }
+            .buttonStyle(.bordered)
+        }
+        .padding(.top, 4)
     }
 
     @ViewBuilder

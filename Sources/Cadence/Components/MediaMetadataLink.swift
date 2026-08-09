@@ -32,7 +32,7 @@ struct MediaMetadataLink: View {
         .focused($isFocused)
         .onHover { isHovered = $0 }
         .animation(
-            reduceMotion ? nil : .easeOut(duration: 0.1),
+            reduceMotion ? nil : .easeOut(duration: CadenceTheme.motionHover),
             value: isHighlighted
         )
         .accessibilityLabel(accessibilityLabel)
