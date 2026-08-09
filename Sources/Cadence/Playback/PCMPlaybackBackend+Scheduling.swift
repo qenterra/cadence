@@ -1,6 +1,46 @@
 import AVFAudio
 import Foundation
 
+struct PCMPlaybackStartTracker {
+    let generation: Int
+    private var firstSample: AVAudioFramePosition?
+    private var observedRenderTime = false
+
+    mutating func observe(
+        engineRunning: Bool,
+        nodePlaying: Bool,
+        sampleTime: AVAudioFramePosition?,
+        generation: Int
+    ) -> PlaybackStartObservation? {
+        guard generation == self.generation else {
+            return .failed(.staleGeneration)
+        }
+        guard engineRunning else {
+            return .failed(.engineStopped)
+        }
+        guard nodePlaying else {
+            return .failed(.nodeStopped)
+        }
+        guard let sampleTime else {
+            return nil
+        }
+        observedRenderTime = true
+        if let firstSample, sampleTime > firstSample {
+            return .started
+        }
+        firstSample = firstSample ?? sampleTime
+        return nil
+    }
+
+    func timedOut() -> PlaybackStartObservation {
+        .failed(
+            observedRenderTime
+                ? .renderDidNotAdvance
+                : .renderTimeUnavailable
+        )
+    }
+}
+
 extension PCMPlaybackBackend {
     var currentPlayerSampleTime: AVAudioFramePosition? {
         guard

@@ -62,6 +62,25 @@ final class NativePlaybackBackend: NSObject, PlaybackBackend {
 
     func prepareNext(_: ResolvedPlaybackTrack?) async throws {}
 
+    func verifyStart(
+        timeout: Duration
+    ) async -> PlaybackStartObservation {
+        let expectedTrackID = currentTrackID
+        let clock = ContinuousClock()
+        let deadline = clock.now.advanced(by: timeout)
+        while clock.now < deadline {
+            guard expectedTrackID == currentTrackID else {
+                return .failed(.staleGeneration)
+            }
+            if player.currentItem?.status == .readyToPlay,
+               player.timeControlStatus == .playing {
+                return .started
+            }
+            try? await Task.sleep(for: .milliseconds(20))
+        }
+        return .failed(.renderDidNotAdvance)
+    }
+
     func play() {
         gainRampGeneration &+= 1
         presentationGain = 0

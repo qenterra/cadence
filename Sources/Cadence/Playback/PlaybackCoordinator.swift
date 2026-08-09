@@ -115,7 +115,9 @@ final class PlaybackCoordinator {
     }
 
     func play() {
-        guard state.currentTrack != nil else {
+        guard state.currentTrack != nil,
+              state.failure == nil
+        else {
             return
         }
         if routeFailureIsActive {

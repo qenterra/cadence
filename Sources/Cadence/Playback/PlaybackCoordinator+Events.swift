@@ -143,6 +143,18 @@ extension PlaybackCoordinator {
         publishState()
     }
 
+    func pauseForSilentStartFailure(
+        _ failure: PlaybackFailure
+    ) {
+        if let trackID = failure.trackID ?? state.currentTrack?.id {
+            failedTrackIDs.insert(trackID)
+        }
+        state.failure = failure
+        state.transport = .paused
+        state.isBuffering = false
+        publishState()
+    }
+
     private func handleFinishedItem(
         successorStarted: UUID?
     ) async {

@@ -83,6 +83,28 @@ final class PCMPlaybackBackend: PlaybackBackend {
         )
     }
 
+    func verifyStart(
+        timeout: Duration
+    ) async -> PlaybackStartObservation {
+        let generation = scheduleGeneration
+        var tracker = PCMPlaybackStartTracker(generation: generation)
+        let clock = ContinuousClock()
+        let deadline = clock.now.advanced(by: timeout)
+
+        while clock.now < deadline {
+            if let observation = tracker.observe(
+                engineRunning: engine.isRunning,
+                nodePlaying: playerNode.isPlaying,
+                sampleTime: currentPlayerSampleTime,
+                generation: scheduleGeneration
+            ) {
+                return observation
+            }
+            try? await Task.sleep(for: .milliseconds(20))
+        }
+        return tracker.timedOut()
+    }
+
     func play() {
         guard currentItem != nil else {
             return

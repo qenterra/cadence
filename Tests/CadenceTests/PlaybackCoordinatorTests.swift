@@ -257,4 +257,61 @@ struct PlaybackCoordinatorTests {
         #expect(coordinator.state.failure?.trackID == track.track.id)
         #expect(coordinator.state.failure?.message == "Unavailable")
     }
+
+    @Test("A silent PCM start is rescheduled once before Playing")
+    func silentPCMStartRetriesOnce() async {
+        let track = playbackTestTrack(id: UUID(), title: "Retry")
+        let backend = PlaybackTestBackend(kind: .pcm)
+        backend.startObservations = [
+            .failed(.renderDidNotAdvance),
+            .started,
+        ]
+        let coordinator = PlaybackCoordinator(
+            resolver: PlaybackTestResolver(tracks: [track]),
+            backends: [backend]
+        )
+
+        #expect(
+            await coordinator.startQueue(
+                source: .adHoc,
+                trackIDs: [track.track.id]
+            )
+        )
+
+        #expect(backend.loadRequests.count == 2)
+        #expect(backend.stopCount == 2)
+        #expect(coordinator.state.currentTrack?.id == track.track.id)
+        #expect(coordinator.state.transport == .playing)
+    }
+
+    @Test("A second silent PCM start pauses on the same track for Retry")
+    func repeatedSilentPCMStartPauses() async {
+        let track = playbackTestTrack(id: UUID(), title: "Silent")
+        let backend = PlaybackTestBackend(kind: .pcm)
+        backend.startObservations = [
+            .failed(.renderDidNotAdvance),
+            .failed(.renderDidNotAdvance),
+        ]
+        let coordinator = PlaybackCoordinator(
+            resolver: PlaybackTestResolver(tracks: [track]),
+            backends: [backend]
+        )
+
+        #expect(
+            await !(coordinator.startQueue(
+                source: .adHoc,
+                trackIDs: [track.track.id]
+            ))
+        )
+
+        #expect(backend.loadRequests.count == 2)
+        #expect(coordinator.state.currentTrack?.id == track.track.id)
+        #expect(coordinator.state.transport == .paused)
+        #expect(coordinator.state.failure?.kind == .silentStart)
+
+        coordinator.play()
+
+        #expect(coordinator.state.transport == .paused)
+        #expect(backend.playCount == 0)
+    }
 }

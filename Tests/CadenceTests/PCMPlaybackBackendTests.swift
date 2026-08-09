@@ -202,6 +202,65 @@ struct PCMPlaybackBackendTests {
         backend.stop()
     }
 
+    @Test("PCM start tracking requires sample progression")
+    func startTrackingRequiresProgression() {
+        var tracker = PCMPlaybackStartTracker(generation: 7)
+
+        #expect(
+            tracker.observe(
+                engineRunning: true,
+                nodePlaying: true,
+                sampleTime: 120,
+                generation: 7
+            ) == nil
+        )
+        #expect(
+            tracker.observe(
+                engineRunning: true,
+                nodePlaying: true,
+                sampleTime: 120,
+                generation: 7
+            ) == nil
+        )
+        #expect(tracker.timedOut() == .failed(.renderDidNotAdvance))
+
+        #expect(
+            tracker.observe(
+                engineRunning: true,
+                nodePlaying: true,
+                sampleTime: 256,
+                generation: 7
+            ) == .started
+        )
+    }
+
+    @Test("PCM start tracking distinguishes unavailable and stale renders")
+    func startTrackingFailures() {
+        var missingRender = PCMPlaybackStartTracker(generation: 4)
+        #expect(
+            missingRender.observe(
+                engineRunning: true,
+                nodePlaying: true,
+                sampleTime: nil,
+                generation: 4
+            ) == nil
+        )
+        #expect(
+            missingRender.timedOut()
+                == .failed(.renderTimeUnavailable)
+        )
+
+        var stale = PCMPlaybackStartTracker(generation: 4)
+        #expect(
+            stale.observe(
+                engineRunning: true,
+                nodePlaying: true,
+                sampleTime: 1,
+                generation: 5
+            ) == .failed(.staleGeneration)
+        )
+    }
+
     private func makeWave(
         at url: URL,
         id: UUID,

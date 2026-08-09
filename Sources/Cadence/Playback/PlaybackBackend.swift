@@ -17,12 +17,26 @@ enum PlaybackBackendEvent: Sendable {
     case time(TimeInterval)
 }
 
+enum PlaybackStartFailure: Equatable, Sendable {
+    case engineStopped
+    case nodeStopped
+    case renderTimeUnavailable
+    case renderDidNotAdvance
+    case staleGeneration
+}
+
+enum PlaybackStartObservation: Equatable, Sendable {
+    case started
+    case failed(PlaybackStartFailure)
+}
+
 @MainActor
 protocol PlaybackBackend: AnyObject {
     var kind: PlaybackBackendKind { get }
     var onEvent: ((PlaybackBackendEvent) -> Void)? { get set }
 
     func load(_ request: PlaybackBackendLoadRequest) async throws
+    func verifyStart(timeout: Duration) async -> PlaybackStartObservation
     func prepareNext(_ track: ResolvedPlaybackTrack?) async throws
     func play()
     func pause()

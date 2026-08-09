@@ -70,8 +70,34 @@ struct AudioPathSnapshot: Equatable, Sendable {
 }
 
 struct PlaybackFailure: Equatable, Error, LocalizedError, Sendable {
+    enum Kind: Equatable, Sendable {
+        case general
+        case silentStart
+    }
+
     let trackID: UUID?
     let message: String
+    let kind: Kind
+
+    init(
+        trackID: UUID?,
+        message: String,
+        kind: Kind = .general
+    ) {
+        self.trackID = trackID
+        self.message = message
+        self.kind = kind
+    }
+
+    static func silentStart(
+        trackID: UUID
+    ) -> PlaybackFailure {
+        PlaybackFailure(
+            trackID: trackID,
+            message: "Playback did not reach the audio output. Try again.",
+            kind: .silentStart
+        )
+    }
 
     var errorDescription: String? {
         message

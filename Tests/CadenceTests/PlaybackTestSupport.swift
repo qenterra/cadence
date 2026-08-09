@@ -34,6 +34,7 @@ final class PlaybackTestBackend: PlaybackBackend {
     var loadError: Error?
     var shouldSuspendNextLoad = false
     var loadDelay: Duration?
+    var startObservations: [PlaybackStartObservation] = [.started]
     private(set) var loadRequests: [PlaybackBackendLoadRequest] = []
     private(set) var preparedTracks: [ResolvedPlaybackTrack?] = []
     private(set) var seekTimes: [TimeInterval] = []
@@ -72,6 +73,15 @@ final class PlaybackTestBackend: PlaybackBackend {
         _ track: ResolvedPlaybackTrack?
     ) async throws {
         preparedTracks.append(track)
+    }
+
+    func verifyStart(
+        timeout _: Duration
+    ) async -> PlaybackStartObservation {
+        guard !startObservations.isEmpty else {
+            return .started
+        }
+        return startObservations.removeFirst()
     }
 
     func play() {
