@@ -1,4 +1,4 @@
-enum TrackTableColumn: String, CaseIterable, Identifiable {
+enum TrackTableColumn: String, CaseIterable, Identifiable, Codable, Sendable {
     case album
     case year
     case dateAdded

@@ -15,6 +15,8 @@ struct ProductionSearchResultsView: View {
                     text: store.catalogSearchQuery
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if expandedGroup == .tracks {
+                expandedTracks
             } else {
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: 28) {
@@ -34,6 +36,23 @@ struct ProductionSearchResultsView: View {
 }
 
 private extension ProductionSearchResultsView {
+    private var expandedTracks: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            header
+
+            ProductionTrackTable(
+                model: model,
+                tracks: store.catalogSearchResults.tracks,
+                context: .search(store.catalogSearchQuery),
+                onReachEnd: {
+                    await store.loadNextCatalogSearchGroup(.tracks)
+                }
+            )
+        }
+        .padding(.horizontal, 28)
+        .padding(.vertical, 24)
+    }
+
     private var header: some View {
         CadencePageHeader(
             expandedGroup == nil ? "Search" : expandedTitle,
@@ -211,9 +230,22 @@ private extension ProductionSearchResultsView {
                 ProductionTrackTable(
                     model: model,
                     tracks: store.catalogSearchResults.tracks,
+                    context: .search(store.catalogSearchQuery),
                     onReachEnd: expandedGroup == .tracks ? {
                         await store.loadNextCatalogSearchGroup(.tracks)
                     } : nil
+                )
+                .frame(
+                    height: min(
+                        max(
+                            CGFloat(
+                                store.catalogSearchResults.tracks.count * 58
+                                    + 38
+                            ),
+                            240
+                        ),
+                        520
+                    )
                 )
             }
         }

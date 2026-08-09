@@ -1,8 +1,12 @@
 import SwiftUI
 
 struct ProductionTrackTable: View {
+    @Environment(\.accessibilityReduceMotion)
+    private var reduceMotion
+
     @Bindable var model: CadenceAppModel
     let tracks: [LibraryTrackProjection]
+    var context: TrackTableContext = .library
     var showsHeader = true
     var compact = false
     var playlistID: UUID?
@@ -15,8 +19,6 @@ struct ProductionTrackTable: View {
     var selection: Binding<Set<UUID>>?
 
     @State private var localSelection: Set<UUID> = []
-    @State private var isRequestingNextPage = false
-    @FocusState private var tableHasFocus: Bool
 
     @AppStorage("trackTable.visibleColumns")
     private var visibleColumnsRaw = TrackTableColumn.defaultRawValue
@@ -38,123 +40,140 @@ struct ProductionTrackTable: View {
     private var timeWidth = TrackTableWidth.time.defaultValue
 
     var body: some View {
-        let renderedTracks = displayedTracks
+        GeometryReader { geometry in
+            let availableWidth = max(geometry.size.width, 1)
+            let useCompactLayout = compact
+                || TrackTableColumnPolicy.mode(
+                    availableWidth: availableWidth
+                ) == .compact
+            let columns = useCompactLayout ? [] : visibleColumns
+            let contentWidth = TrackTableColumnPolicy.contentWidth(
+                availableWidth: availableWidth,
+                columns: columns
+            )
+            let resolvedWidths = TrackTableColumnPolicy.layout(
+                availableWidth: contentWidth,
+                columns: columns,
+                preferred: preferredWidths
+            )
 
-        ScrollView(scrollAxes) {
-            LazyVStack(spacing: 0) {
+            VStack(spacing: 0) {
                 if showsHeader {
-                    header
+                    header(
+                        columns: columns,
+                        widths: resolvedWidths
+                    )
+                    .transition(.opacity)
                 }
 
-                if let virtualWindow {
-                    ForEach(0 ..< virtualWindow.pageCount, id: \.self) { page in
-                        VirtualTrackTablePage(
-                            model: model,
-                            window: virtualWindow,
-                            page: page,
-                            columns: displayedColumns,
-                            widths: widths,
-                            playlistID: playlistID,
-                            queueSource: queueSource,
-                            selection: selectedTrackIDs,
-                            tableHasFocus: tableHasFocus,
-                            select: { trackID in
-                                selectedTrackIDs.wrappedValue = [trackID]
-                                tableHasFocus = true
-                            }
-                        )
-                    }
-                } else {
-                    ForEach(renderedTracks) { track in
-                        ProductionTrackTableRow(
-                            model: model,
-                            track: track,
-                            queue: renderedTracks,
-                            columns: displayedColumns,
-                            widths: widths,
-                            playlistID: playlistID,
-                            queueSource: queueSource,
-                            reorderAction: reorderAction,
-                            isSelected: selectedTrackIDs.wrappedValue.contains(
-                                track.id
-                            ),
-                            isFocused: tableHasFocus
-                                && selectedTrackIDs.wrappedValue.contains(
-                                    track.id
-                                ),
-                            select: {
-                                selectedTrackIDs.wrappedValue = [track.id]
-                                tableHasFocus = true
-                            }
-                        )
-                    }
-                }
-
-                if virtualWindow == nil, onReachEnd != nil {
-                    Color.clear
-                        .frame(height: 1)
-                        .onScrollVisibilityChange(
-                            threshold: 0.5,
-                            handleEndVisibility
-                        )
-                }
+                TrackTableCore(
+                    model: model,
+                    context: context,
+                    tracks: displayedTracks,
+                    virtualWindow: virtualWindow,
+                    columns: columns,
+                    widths: resolvedWidths,
+                    playlistID: playlistID,
+                    queueSource: queueSource,
+                    reorderAction: reorderAction,
+                    onReachEnd: onReachEnd,
+                    selection: selectedTrackIDs
+                )
             }
-            .frame(minWidth: minimumTableWidth, alignment: .leading)
+            .animation(
+                reduceMotion
+                    ? nil
+                    : .easeInOut(duration: CadenceTheme.motionReplace),
+                value: useCompactLayout
+            )
         }
-        .scrollIndicators(.hidden)
-        .defaultScrollAnchor(.leading)
         .task(id: repositorySort) {
             await repositorySortAction?(repositorySort)
         }
-        .focusable()
-        .focusEffectDisabled()
-        .focused($tableHasFocus)
-        .onKeyPress(.return, phases: .down) { _ in
-            playSelectedTrack() ? .handled : .ignored
-        }
-        .onKeyPress(.upArrow, phases: .down) { _ in
-            moveSelection(by: -1) ? .handled : .ignored
-        }
-        .onKeyPress(.downArrow, phases: .down) { _ in
-            moveSelection(by: 1) ? .handled : .ignored
-        }
-        .onChange(of: renderedTracks.map(\.id), initial: true) {
+        .onChange(of: displayedTracks.map(\.id), initial: true) {
             guard virtualWindow == nil else {
                 return
             }
             selectedTrackIDs.wrappedValue.formIntersection(
-                renderedTracks.map(\.id)
+                displayedTracks.map(\.id)
             )
+        }
+        .onChange(of: context) {
+            selectedTrackIDs.wrappedValue = []
         }
     }
 }
 
 private extension ProductionTrackTable {
-    private func handleEndVisibility(
-        _ isVisible: Bool
-    ) {
-        guard isVisible, !isRequestingNextPage else {
-            return
-        }
-        isRequestingNextPage = true
-        Task {
-            await onReachEnd?()
-            isRequestingNextPage = false
-        }
+    var visibleColumns: [TrackTableColumn] {
+        TrackTableColumn.decode(visibleColumnsRaw)
     }
 
-    private var header: some View {
+    var displayedTracks: [LibraryTrackProjection] {
+        guard repositorySortAction == nil else {
+            return tracks
+        }
+        return sortDescriptor.sorted(tracks)
+    }
+
+    var selectedTrackIDs: Binding<Set<UUID>> {
+        selection ?? $localSelection
+    }
+
+    var preferredWidths: TrackTableResolvedWidths {
+        TrackTableResolvedWidths(
+            song: songWidth,
+            album: albumWidth,
+            year: yearWidth,
+            dateAdded: dateAddedWidth,
+            playCount: playCountWidth,
+            time: timeWidth
+        )
+    }
+
+    var repositorySort: LibraryTrackSort {
+        let field: LibraryTrackSortField = switch sortDescriptor.field {
+        case .song: .song
+        case .album: .album
+        case .year: .year
+        case .dateAdded: .dateAdded
+        case .playCount: .playCount
+        case .time: .duration
+        }
+        return LibraryTrackSort(
+            field: field,
+            direction: sortDescriptor.direction == .ascending
+                ? .ascending
+                : .descending
+        )
+    }
+
+    var sortDescriptor: TrackTableSortDescriptor {
+        TrackTableSortDescriptor(
+            field: TrackTableSortField(rawValue: sortFieldRaw) ?? .song,
+            direction: TrackTableSortDirection(
+                rawValue: sortDirectionRaw
+            ) ?? .ascending
+        )
+    }
+
+    func header(
+        columns: [TrackTableColumn],
+        widths: TrackTableResolvedWidths
+    ) -> some View {
         HStack(spacing: 14) {
             headerCell(
                 field: .song,
-                width: $songWidth,
+                resolvedWidth: widths.song,
+                preferredWidth: $songWidth,
                 range: TrackTableWidth.song
             )
 
-            ForEach(displayedColumns) { column in
+            ForEach(columns) { column in
                 headerCell(
                     field: sortField(for: column),
-                    width: widthBinding(for: column),
+                    resolvedWidth: widths[column],
+                    preferredWidth: widthBinding(for: column),
                     range: widthRange(for: column)
                 )
             }
@@ -197,135 +216,10 @@ private extension ProductionTrackTable {
         .guideAnchor(.trackTable)
     }
 
-    private var visibleColumns: [TrackTableColumn] {
-        TrackTableColumn.decode(visibleColumnsRaw)
-    }
-
-    private var displayedColumns: [TrackTableColumn] {
-        compact ? [] : visibleColumns
-    }
-
-    private var displayedTracks: [LibraryTrackProjection] {
-        guard repositorySortAction == nil else {
-            return tracks
-        }
-        return sortDescriptor.sorted(tracks)
-    }
-
-    private var selectedTrackIDs: Binding<Set<UUID>> {
-        selection ?? $localSelection
-    }
-
-    private func playSelectedTrack() -> Bool {
-        let selectedIDs = selectedTrackIDs.wrappedValue
-        let track = virtualWindow.flatMap { window in
-            selectedIDs.lazy.compactMap(window.cachedTrack).first
-        } ?? displayedTracks.first(where: {
-            selectedIDs.contains($0.id)
-        })
-        guard let track else {
-            return false
-        }
-        model.playProductionTrack(
-            track,
-            within: virtualWindow == nil ? displayedTracks : [track],
-            source: queueSource ?? .adHoc
-        )
-        return true
-    }
-
-    private func moveSelection(by offset: Int) -> Bool {
-        if let virtualWindow {
-            guard virtualWindow.totalCount > 0 else {
-                return false
-            }
-            let selectedID = selectedTrackIDs.wrappedValue.first
-            let selectedIndex = selectedID.flatMap(
-                virtualWindow.index(ofTrackID:)
-            ) ?? (offset > 0 ? -1 : virtualWindow.totalCount)
-            let targetIndex = min(
-                max(selectedIndex + offset, 0),
-                virtualWindow.totalCount - 1
-            )
-            if let target = virtualWindow.track(at: targetIndex) {
-                selectedTrackIDs.wrappedValue = [target.id]
-            } else {
-                Task {
-                    await virtualWindow.load(
-                        page: targetIndex / virtualWindow.pageSize
-                    )
-                    if let target = virtualWindow.track(at: targetIndex) {
-                        selectedTrackIDs.wrappedValue = [target.id]
-                    }
-                }
-            }
-            return true
-        }
-        guard !displayedTracks.isEmpty else {
-            return false
-        }
-        let selectedIndex = displayedTracks.firstIndex {
-            selectedTrackIDs.wrappedValue.contains($0.id)
-        } ?? (offset > 0 ? -1 : displayedTracks.count)
-        let targetIndex = min(
-            max(selectedIndex + offset, 0),
-            displayedTracks.count - 1
-        )
-        selectedTrackIDs.wrappedValue = [displayedTracks[targetIndex].id]
-        return true
-    }
-
-    private var repositorySort: LibraryTrackSort {
-        let field: LibraryTrackSortField = switch sortDescriptor.field {
-        case .song: .song
-        case .album: .album
-        case .year: .year
-        case .dateAdded: .dateAdded
-        case .playCount: .playCount
-        case .time: .duration
-        }
-        return LibraryTrackSort(
-            field: field,
-            direction: sortDescriptor.direction == .ascending
-                ? .ascending
-                : .descending
-        )
-    }
-
-    private var sortDescriptor: TrackTableSortDescriptor {
-        TrackTableSortDescriptor(
-            field: TrackTableSortField(rawValue: sortFieldRaw) ?? .song,
-            direction: TrackTableSortDirection(
-                rawValue: sortDirectionRaw
-            ) ?? .ascending
-        )
-    }
-
-    private var widths: TrackTableResolvedWidths {
-        TrackTableResolvedWidths(
-            song: songWidth,
-            album: albumWidth,
-            year: yearWidth,
-            dateAdded: dateAddedWidth,
-            playCount: playCountWidth,
-            time: timeWidth
-        )
-    }
-
-    private var minimumTableWidth: CGFloat {
-        let columnWidth = displayedColumns.reduce(0.0) {
-            $0 + widths[$1]
-        }
-        let itemCount = displayedColumns.count + 3
-        let spacing = Double(max(itemCount - 1, 0)) * 14
-        return CGFloat(
-            songWidth + columnWidth + spacing + 28 + 24
-        )
-    }
-
-    private func headerCell(
+    func headerCell(
         field: TrackTableSortField,
-        width: Binding<Double>,
+        resolvedWidth: Double,
+        preferredWidth: Binding<Double>,
         range: TrackTableWidthRange
     ) -> some View {
         TrackTableHeaderCell(
@@ -337,16 +231,13 @@ private extension ProductionTrackTable {
             direction: sortDescriptor.direction,
             minimumWidth: range.minimum,
             maximumWidth: range.maximum,
-            width: width,
-            sortAction: {
-                activateSort(field)
-            }
+            resolvedWidth: resolvedWidth,
+            preferredWidth: preferredWidth,
+            sortAction: { activateSort(field) }
         )
     }
 
-    private func activateSort(
-        _ field: TrackTableSortField
-    ) {
+    func activateSort(_ field: TrackTableSortField) {
         var direction = sortDescriptor.direction
         if sortDescriptor.field == field {
             direction.toggle()
@@ -357,7 +248,7 @@ private extension ProductionTrackTable {
         sortDirectionRaw = direction.rawValue
     }
 
-    private func visibilityBinding(
+    func visibilityBinding(
         for column: TrackTableColumn
     ) -> Binding<Bool> {
         Binding(
@@ -374,7 +265,7 @@ private extension ProductionTrackTable {
         )
     }
 
-    private func sortField(
+    func sortField(
         for column: TrackTableColumn
     ) -> TrackTableSortField {
         switch column {
@@ -386,7 +277,7 @@ private extension ProductionTrackTable {
         }
     }
 
-    private func widthBinding(
+    func widthBinding(
         for column: TrackTableColumn
     ) -> Binding<Double> {
         switch column {
@@ -398,7 +289,7 @@ private extension ProductionTrackTable {
         }
     }
 
-    private func widthRange(
+    func widthRange(
         for column: TrackTableColumn
     ) -> TrackTableWidthRange {
         switch column {

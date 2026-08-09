@@ -2,6 +2,20 @@ import Foundation
 
 extension LibraryStore {
     func moveToTrash(
+        trackIDs: [UUID],
+        location: ManagedLibraryLocation?
+    ) async throws {
+        guard let repository, let location else {
+            throw LibraryTrashError.unavailableLibrary
+        }
+        _ = try await repository.trashTracks(
+            targetIDs: trackIDs,
+            location: location
+        )
+        await loadInitialLibrary()
+    }
+
+    func moveToTrash(
         targetKind: TrashTargetKind,
         targetID: UUID,
         location: ManagedLibraryLocation?

@@ -93,28 +93,22 @@ struct ProductionLibraryView: View {
                         detail: visibleTracks.count.formatted()
                     )
 
-                    ScrollView {
-                        ProductionTrackTable(
-                            model: model,
-                            tracks: visibleTracks,
-                            showsHeader: false,
-                            compact: true,
-                            onReachEnd: {
-                                await store.loadNextBrowserTracks()
-                            },
-                            repositorySortAction: { sort in
-                                await store.sortBrowserTracks(sort)
-                            },
-                            selection: Binding(
-                                get: {
-                                    selectedTrackID.map { Set([$0]) } ?? []
-                                },
-                                set: { selectedTrackID = $0.first }
-                            )
-                        )
-                        .padding(.horizontal, 14)
-                        .padding(.bottom, 16)
-                    }
+                    ProductionTrackTable(
+                        model: model,
+                        tracks: visibleTracks,
+                        context: selectedAlbumID.map(TrackTableContext.album)
+                            ?? .library,
+                        showsHeader: false,
+                        compact: true,
+                        onReachEnd: {
+                            await store.loadNextBrowserTracks()
+                        },
+                        repositorySortAction: { sort in
+                            await store.sortBrowserTracks(sort)
+                        }
+                    )
+                    .padding(.horizontal, 14)
+                    .padding(.bottom, 16)
                 }
                 .frame(width: widths.tracks)
             }

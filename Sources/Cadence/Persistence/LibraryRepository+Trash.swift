@@ -36,6 +36,24 @@ struct LibraryTrashPlan {
 }
 
 extension LibraryRepository {
+    func trashTracks(
+        targetIDs: [UUID],
+        location: ManagedLibraryLocation
+    ) throws -> [UUID] {
+        var seen: Set<UUID> = []
+        var operationIDs: [UUID] = []
+        for targetID in targetIDs where seen.insert(targetID).inserted {
+            try operationIDs.append(
+                trash(
+                    targetKind: .track,
+                    targetID: targetID,
+                    location: location
+                )
+            )
+        }
+        return operationIDs
+    }
+
     func trash(
         targetKind: TrashTargetKind,
         targetID: UUID,

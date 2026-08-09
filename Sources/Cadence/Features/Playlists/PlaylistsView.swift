@@ -122,23 +122,22 @@ private extension PlaylistsView {
                         )
                     )
                 } else {
-                    ScrollView {
-                        ProductionTrackTable(
-                            model: model,
-                            tracks: store.selectedPlaylistTracks,
-                            playlistID: playlist.id,
-                            queueSource: .playlist(playlist.id),
-                            reorderAction: { trackIDs in
-                                Task {
-                                    await store.reorderSelectedPlaylist(
-                                        trackIDs: trackIDs
-                                    )
-                                }
+                    ProductionTrackTable(
+                        model: model,
+                        tracks: store.selectedPlaylistTracks,
+                        context: .playlist(playlist.id),
+                        playlistID: playlist.id,
+                        queueSource: .playlist(playlist.id),
+                        reorderAction: { trackIDs in
+                            Task {
+                                await store.reorderSelectedPlaylist(
+                                    trackIDs: trackIDs
+                                )
                             }
-                        )
-                        .padding(.horizontal, 28)
-                        .padding(.bottom, 24)
-                    }
+                        }
+                    )
+                    .padding(.horizontal, 28)
+                    .padding(.bottom, 24)
                 }
             }
         } else {

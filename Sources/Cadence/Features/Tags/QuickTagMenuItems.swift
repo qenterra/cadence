@@ -2,7 +2,7 @@ import SwiftUI
 
 struct QuickTrackTagMenuItems: View {
     @Bindable var store: LibraryStore
-    let trackID: UUID
+    let trackIDs: [UUID]
 
     var body: some View {
         Menu("Add Tag", systemImage: "tag.badge.plus") {
@@ -12,10 +12,9 @@ struct QuickTrackTagMenuItems: View {
                 ForEach(store.tags) { tag in
                     Button(tag.displayPath) {
                         Task {
-                            try? await store.setTag(
+                            try? await store.assignTag(
                                 tag.id,
-                                assigned: true,
-                                trackID: trackID
+                                trackIDs: trackIDs
                             )
                         }
                     }

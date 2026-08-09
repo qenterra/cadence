@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct TrackTableResolvedWidths {
+struct TrackTableResolvedWidths: Equatable, Sendable {
     let song: Double
     let album: Double
     let year: Double
@@ -28,6 +28,7 @@ struct ProductionTrackTableRow: View {
     let playlistID: UUID?
     let queueSource: PlaybackQueueSource?
     let reorderAction: (([UUID]) -> Void)?
+    let actionTrackIDs: [UUID]
     let isSelected: Bool
     let isFocused: Bool
     let select: () -> Void
@@ -81,7 +82,9 @@ struct ProductionTrackTableRow: View {
         .contextMenu {
             actions
         }
-        .draggable(track.id.uuidString)
+        .draggable(
+            actionTrackIDs.map(\.uuidString).joined(separator: ",")
+        )
         .dropDestination(for: String.self) { values, _ in
             _ = reorder(values)
         }
@@ -243,26 +246,36 @@ private extension ProductionTrackTableRow {
             ) {
                 Task {
                     await model.librarySession.store
-                        .removeFromSelectedPlaylist(trackIDs: [track.id])
+                        .removeFromSelectedPlaylist(trackIDs: actionTrackIDs)
                 }
             }
         }
-        Button("Edit Tags…", systemImage: "tag.badge.plus") {
-            model.openProductionTagEditor(trackID: track.id)
+        Button("Play Next", systemImage: "text.line.first.and.arrowtriangle.forward") {
+            model.playProductionNext(actionTrackIDs)
+        }
+        Button("Add to Queue", systemImage: "text.badge.plus") {
+            model.addToProductionQueue(actionTrackIDs)
+        }
+        if actionTrackIDs.count == 1 {
+            Button("Edit Tags…", systemImage: "tag.badge.plus") {
+                model.openProductionTagEditor(trackID: track.id)
+            }
         }
         QuickTrackTagMenuItems(
             store: model.librarySession.store,
-            trackID: track.id
+            trackIDs: actionTrackIDs
         )
         AddToPlaylistMenuItems(
             store: model.librarySession.store,
-            trackIDs: [track.id]
+            trackIDs: actionTrackIDs
         )
-        ArtworkMenuItems(
-            model: model,
-            target: .managedTrack(track.id),
-            label: "Track Artwork"
-        )
+        if actionTrackIDs.count == 1 {
+            ArtworkMenuItems(
+                model: model,
+                target: .managedTrack(track.id),
+                label: "Track Artwork"
+            )
+        }
         Divider()
         Button(
             "Move to Trash…",
@@ -270,9 +283,10 @@ private extension ProductionTrackTableRow {
             role: .destructive
         ) {
             model.requestLibraryDeletion(
-                kind: .track,
-                id: track.id,
-                title: track.title
+                trackIDs: actionTrackIDs,
+                title: actionTrackIDs.count == 1
+                    ? track.title
+                    : "\(actionTrackIDs.count) selected tracks"
             )
         }
     }
@@ -281,7 +295,11 @@ private extension ProductionTrackTableRow {
         guard let reorderAction else {
             return false
         }
-        let movingIDs = Set(values.compactMap(UUID.init(uuidString:)))
+        let movingIDs = Set(
+            values
+                .flatMap { $0.split(separator: ",") }
+                .compactMap { UUID(uuidString: String($0)) }
+        )
         guard !movingIDs.isEmpty else {
             return false
         }

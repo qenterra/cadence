@@ -13,6 +13,22 @@ extension CadenceAppModel {
         )
     }
 
+    func requestLibraryDeletion(
+        trackIDs: [UUID],
+        title: String
+    ) {
+        let orderedIDs = Array(NSOrderedSet(array: trackIDs))
+            .compactMap { $0 as? UUID }
+        guard !orderedIDs.isEmpty else {
+            return
+        }
+        pendingLibraryDeletion = PendingLibraryDeletion(
+            kind: .track,
+            ids: orderedIDs,
+            title: title
+        )
+    }
+
     func cancelLibraryDeletion() {
         pendingLibraryDeletion = nil
     }
@@ -29,13 +45,14 @@ extension CadenceAppModel {
     ) async {
         pendingLibraryDeletion = nil
         let affectedTrackIDs = productionTrackIDs(for: pending)
+        let pendingIDs = Set(pending.ids)
         let shouldStopPlayback = switch pending.kind {
         case .track:
-            currentPlaybackTrack?.id == pending.id
+            currentPlaybackTrack.map { pendingIDs.contains($0.id) } == true
         case .album:
-            currentPlaybackTrack?.albumID == pending.id
+            currentPlaybackTrack?.albumID.map(pendingIDs.contains) == true
         case .artist:
-            currentPlaybackTrack?.artistID == pending.id
+            currentPlaybackTrack?.artistID.map(pendingIDs.contains) == true
         }
         if shouldStopPlayback {
             playbackCoordinator?.stop()
@@ -43,11 +60,18 @@ extension CadenceAppModel {
             _ = playbackCoordinator?.removeUpNext(affectedTrackIDs)
         }
         do {
-            try await librarySession.store.moveToTrash(
-                targetKind: pending.kind,
-                targetID: pending.id,
-                location: librarySession.location
-            )
+            if pending.kind == .track {
+                try await librarySession.store.moveToTrash(
+                    trackIDs: pending.ids,
+                    location: librarySession.location
+                )
+            } else if let targetID = pending.id {
+                try await librarySession.store.moveToTrash(
+                    targetKind: pending.kind,
+                    targetID: targetID,
+                    location: librarySession.location
+                )
+            }
             repairProductionNavigationAfterDeletion()
         } catch {
             libraryOperationError = error.localizedDescription
@@ -109,14 +133,15 @@ extension CadenceAppModel {
     private func productionTrackIDs(
         for deletion: PendingLibraryDeletion
     ) -> [UUID] {
-        librarySession.store.tracks.compactMap { track in
+        let targetIDs = Set(deletion.ids)
+        return librarySession.store.tracks.compactMap { track in
             let isAffected = switch deletion.kind {
             case .track:
-                track.id == deletion.id
+                targetIDs.contains(track.id)
             case .album:
-                track.albumID == deletion.id
+                track.albumID.map(targetIDs.contains) == true
             case .artist:
-                track.artistID == deletion.id
+                track.artistID.map(targetIDs.contains) == true
             }
             return isAffected ? track.id : nil
         }

@@ -26,7 +26,17 @@ struct ProductionArtistDetailView: View {
                         }
                         Text("Tracks")
                             .font(.title2.bold())
-                        ProductionTrackList(model: model, tracks: tracks)
+                        ProductionTrackList(
+                            model: model,
+                            tracks: tracks,
+                            context: .artist(artistID)
+                        )
+                        .frame(
+                            height: min(
+                                max(CGFloat(tracks.count * 58 + 38), 240),
+                                520
+                            )
+                        )
                     }
                     .padding(28)
                 }

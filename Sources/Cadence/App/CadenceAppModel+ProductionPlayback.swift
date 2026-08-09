@@ -127,6 +127,32 @@ extension CadenceAppModel {
         }
     }
 
+    @discardableResult
+    func playProductionNext(
+        _ trackIDs: [UUID],
+        undoManager: UndoManager? = nil
+    ) -> Bool {
+        updateProductionQueue(
+            actionName: "Play Next",
+            undoManager: undoManager
+        ) { coordinator in
+            coordinator.playNext(trackIDs)
+        }
+    }
+
+    @discardableResult
+    func addToProductionQueue(
+        _ trackIDs: [UUID],
+        undoManager: UndoManager? = nil
+    ) -> Bool {
+        updateProductionQueue(
+            actionName: "Add to Queue",
+            undoManager: undoManager
+        ) { coordinator in
+            coordinator.addToEnd(trackIDs)
+        }
+    }
+
     func activateSystemMediaSession() {
         playbackCoordinator?.activateSystemMediaSession()
     }

@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 
-enum TrackTableSortField: String, CaseIterable {
+enum TrackTableSortField: String, CaseIterable, Codable, Sendable {
     case song
     case album
     case year
@@ -21,7 +21,7 @@ enum TrackTableSortField: String, CaseIterable {
     }
 }
 
-enum TrackTableSortDirection: String {
+enum TrackTableSortDirection: String, Codable, Sendable {
     case ascending
     case descending
 
@@ -30,7 +30,7 @@ enum TrackTableSortDirection: String {
     }
 }
 
-struct TrackTableSortDescriptor {
+struct TrackTableSortDescriptor: Equatable, Hashable, Sendable {
     let field: TrackTableSortField
     let direction: TrackTableSortDirection
 
@@ -125,7 +125,8 @@ struct TrackTableHeaderCell: View {
     let direction: TrackTableSortDirection
     let minimumWidth: Double
     let maximumWidth: Double
-    @Binding var width: Double
+    let resolvedWidth: Double
+    @Binding var preferredWidth: Double
     let sortAction: () -> Void
 
     @State private var dragStartWidth: Double?
@@ -154,7 +155,7 @@ struct TrackTableHeaderCell: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .frame(width: CGFloat(width), alignment: alignment)
+        .frame(width: CGFloat(resolvedWidth), alignment: alignment)
         .overlay(alignment: .trailing) {
             Rectangle()
                 .fill(.clear)
@@ -176,10 +177,10 @@ struct TrackTableHeaderCell: View {
                     )
                     .onChanged { value in
                         if dragStartWidth == nil {
-                            dragStartWidth = width
+                            dragStartWidth = preferredWidth
                         }
-                        let start = dragStartWidth ?? width
-                        width = min(
+                        let start = dragStartWidth ?? preferredWidth
+                        preferredWidth = min(
                             max(
                                 start + Double(value.translation.width),
                                 minimumWidth
@@ -213,7 +214,10 @@ struct TrackTableHeaderCell: View {
         )
         .accessibilityAdjustableAction { direction in
             let delta = direction == .increment ? 16.0 : -16.0
-            width = min(max(width + delta, minimumWidth), maximumWidth)
+            preferredWidth = min(
+                max(preferredWidth + delta, minimumWidth),
+                maximumWidth
+            )
         }
     }
 }

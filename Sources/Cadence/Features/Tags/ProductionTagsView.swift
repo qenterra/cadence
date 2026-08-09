@@ -187,12 +187,12 @@ private extension ProductionTagsView {
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
-                ScrollView {
-                    ProductionTrackList(
-                        model: model,
-                        tracks: taggedTracks
-                    )
-                }
+                ProductionTrackList(
+                    model: model,
+                    tracks: taggedTracks,
+                    context: selectedTagID.map(TrackTableContext.tag)
+                        ?? .library
+                )
             }
         }
         .padding(WorkspaceLayout.pageInset)

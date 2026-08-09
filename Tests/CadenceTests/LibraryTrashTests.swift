@@ -188,6 +188,24 @@ struct LibraryTrashTests {
         #expect(try await repository.trashOperations().isEmpty)
         #expect(!fixture.operationDirectory(secondOperationID).fileExists)
     }
+
+    @Test("Multiple selected tracks move to Trash in one bulk request")
+    func trashSelectedTracks() async throws {
+        let fixture = try TrashFixture()
+        defer { fixture.remove() }
+        let repository = LibraryRepository(
+            modelContainer: fixture.container
+        )
+
+        let operationIDs = try await repository.trashTracks(
+            targetIDs: Array(fixture.trackIDs.prefix(2)),
+            location: fixture.location
+        )
+
+        #expect(operationIDs.count == 2)
+        #expect(try await repository.tracksPage().items.count == 1)
+        #expect(try await repository.trashOperations().count == 2)
+    }
 }
 
 private struct SharedArtistTrashFixture {

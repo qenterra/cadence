@@ -17,16 +17,15 @@ struct SmartCollectionListeningPage: View {
                 if model.selectedProductionSmartCollectionSummary.isEmpty {
                     noMatches
                 } else {
-                    ScrollView {
-                        ProductionTrackTable(
-                            model: model,
-                            tracks: model.selectedProductionSmartCollectionTracks,
-                            queueSource: selectedProductionQueueSource,
-                            onReachEnd: loadNextProductionPage
-                        )
-                        .padding(.horizontal, 24)
-                        .padding(.bottom, 24)
-                    }
+                    ProductionTrackTable(
+                        model: model,
+                        tracks: model.selectedProductionSmartCollectionTracks,
+                        context: selectedTrackTableContext,
+                        queueSource: selectedProductionQueueSource,
+                        onReachEnd: loadNextProductionPage
+                    )
+                    .padding(.horizontal, 24)
+                    .padding(.bottom, 24)
                 }
             }
         }
@@ -66,6 +65,11 @@ struct SmartCollectionListeningPage: View {
         model.selectedSmartCollectionID.map {
             .smartCollection($0)
         }
+    }
+
+    private var selectedTrackTableContext: TrackTableContext {
+        model.selectedSmartCollectionID.map(TrackTableContext.smartCollection)
+            ?? .library
     }
 
     private func loadNextProductionPage() async {

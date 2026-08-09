@@ -18,7 +18,17 @@ struct ProductionAlbumDetailView: View {
                         backButton
                         header(album)
                         CadenceSeparator()
-                        ProductionTrackList(model: model, tracks: tracks)
+                        ProductionTrackList(
+                            model: model,
+                            tracks: tracks,
+                            context: .album(albumID)
+                        )
+                        .frame(
+                            height: min(
+                                max(CGFloat(tracks.count * 58 + 38), 240),
+                                520
+                            )
+                        )
                     }
                     .padding(28)
                 }

@@ -25,6 +25,7 @@ struct VirtualTrackTablePage: View {
                         playlistID: playlistID,
                         queueSource: queueSource,
                         reorderAction: nil,
+                        actionTrackIDs: [track.id],
                         isSelected: selection.contains(track.id),
                         isFocused: tableHasFocus
                             && selection.contains(track.id),

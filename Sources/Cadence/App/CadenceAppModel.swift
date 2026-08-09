@@ -12,8 +12,32 @@ struct ImportWorkspaceState {
 
 struct PendingLibraryDeletion: Equatable, Sendable {
     let kind: TrashTargetKind
-    let id: UUID
+    let ids: [UUID]
     let title: String
+
+    init(
+        kind: TrashTargetKind,
+        id: UUID,
+        title: String
+    ) {
+        self.kind = kind
+        ids = [id]
+        self.title = title
+    }
+
+    init(
+        kind: TrashTargetKind,
+        ids: [UUID],
+        title: String
+    ) {
+        self.kind = kind
+        self.ids = ids
+        self.title = title
+    }
+
+    var id: UUID? {
+        ids.first
+    }
 }
 
 @MainActor

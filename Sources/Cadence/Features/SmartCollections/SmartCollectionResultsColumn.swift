@@ -58,18 +58,17 @@ struct SmartCollectionResultsColumn: View {
     }
 
     private var results: some View {
-        ScrollView {
-            ProductionTrackTable(
-                model: model,
-                tracks: model.productionSmartCollectionLiveTracks,
-                showsHeader: false,
-                compact: true,
-                queueSource: selectedProductionQueueSource,
-                onReachEnd: loadNextProductionPage
-            )
-            .padding(.horizontal, 14)
-            .padding(.bottom, 16)
-        }
+        ProductionTrackTable(
+            model: model,
+            tracks: model.productionSmartCollectionLiveTracks,
+            context: selectedTrackTableContext,
+            showsHeader: false,
+            compact: true,
+            queueSource: selectedProductionQueueSource,
+            onReachEnd: loadNextProductionPage
+        )
+        .padding(.horizontal, 14)
+        .padding(.bottom, 16)
     }
 
     private var noSelection: some View {
@@ -112,6 +111,11 @@ struct SmartCollectionResultsColumn: View {
         model.selectedSmartCollectionID.map {
             .smartCollection($0)
         }
+    }
+
+    private var selectedTrackTableContext: TrackTableContext {
+        model.selectedSmartCollectionID.map(TrackTableContext.smartCollection)
+            ?? .library
     }
 
     private func loadNextProductionPage() async {
