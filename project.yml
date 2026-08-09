@@ -20,6 +20,9 @@ packages:
   GRDB:
     url: https://github.com/groue/GRDB.swift.git
     exactVersion: 7.10.0
+  AppAuth:
+    url: https://github.com/openid/AppAuth-iOS.git
+    exactVersion: 2.1.0
 
 targets:
   Cadence:
@@ -32,6 +35,7 @@ targets:
     dependencies:
       - package: QenTerraDesignTokens
       - package: GRDB
+      - package: AppAuth
     info:
       path: Sources/Cadence/Resources/Info.plist
       properties:
@@ -40,6 +44,10 @@ targets:
         CFBundleIconName: Cadence
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        CFBundleURLTypes:
+          - CFBundleTypeRole: Editor
+            CFBundleURLSchemes:
+              - com.qenterra.cadence
         LSApplicationCategoryType: public.app-category.music
         LSMinimumSystemVersion: $(MACOSX_DEPLOYMENT_TARGET)
         NSHumanReadableCopyright: Copyright © 2026 Nikita Melnychenko (QenTerra)
@@ -58,6 +66,7 @@ targets:
         com.apple.security.assets.music.read-write: true
         com.apple.security.files.user-selected.read-write: true
         com.apple.security.files.bookmarks.app-scope: true
+        com.apple.security.network.client: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.qenterra.cadence

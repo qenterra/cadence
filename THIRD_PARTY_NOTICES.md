@@ -1,6 +1,15 @@
 # Third-party notices
 
-Cadence does not bundle a third-party runtime library or package dependency.
+Cadence includes the following Swift Package Manager runtime dependencies:
+
+| Package | Version | Role | License | Source |
+| --- | --- | --- | --- | --- |
+| QenTerraDesignTokens | Local QDS `1.9.x` | Shared visual tokens | MIT | QenTerra design system |
+| GRDB.swift | `7.10.0` | Derived lyrics full-text index | MIT | [groue/GRDB.swift](https://github.com/groue/GRDB.swift) |
+| AppAuth | `2.1.0` | Google Drive OAuth 2.0 flow | Apache-2.0 | [openid/AppAuth-iOS](https://github.com/openid/AppAuth-iOS) |
+
+Their complete license texts and copyright notices remain available in their
+linked source distributions. Cadence does not modify or relicense them.
 
 ## Apple frameworks
 

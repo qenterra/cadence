@@ -4,29 +4,12 @@ extension CadenceAppModel {
     static func production(
         librarySession: LibrarySession
     ) -> CadenceAppModel {
-        let destination = librarySession.location.map {
-            ManagedLibraryImportDestination(
-                package: ManagedLibraryPackage(location: $0),
-                repository: librarySession.store.repository
-            )
-        }
-        let duplicateLookup = destination.map { destination in
-            ImportDuplicateLookup { probes in
-                try await destination.duplicateEvidence(probes: probes)
-            }
-        } ?? .empty
-        let importer = destination.map {
-            ManagedLibraryImporter(destination: $0)
-        }
-        let coordinator = ImportCoordinator(
-            service: ImportInspectionService(
-                duplicateLookup: duplicateLookup
-            ),
-            importer: importer
-        )
+        let importRuntime = importRuntime(librarySession: librarySession)
+        let remote = remoteRuntime(librarySession: librarySession)
         let playbackCoordinator = PlaybackCoordinator(
             resolver: ManagedPlaybackTrackResolver(
-                librarySession: librarySession
+                librarySession: librarySession,
+                remoteSource: remote.source
             ),
             backends: [
                 PCMPlaybackBackend(),
@@ -36,7 +19,7 @@ extension CadenceAppModel {
             audioRouteProvider: SystemAudioRouteProvider(),
             qualityProfileStore: UserDefaultsAudioQualityProfileStore()
         )
-        return CadenceAppModel(
+        let model = CadenceAppModel(
             librarySession: librarySession,
             tracks: [],
             tags: [],
@@ -47,13 +30,18 @@ extension CadenceAppModel {
             favoriteAlbumDates: [:],
             favoriteArtistDates: [:],
             importCandidates: [],
-            importCoordinator: coordinator,
-            importDestination: destination,
-            importRecovery: destination.map {
+            importCoordinator: importRuntime.coordinator,
+            importDestination: importRuntime.destination,
+            importRecovery: importRuntime.destination.map {
                 ManagedLibraryImportRecovery(destination: $0)
             },
-            playbackCoordinator: playbackCoordinator
+            playbackCoordinator: playbackCoordinator,
+            remoteLibraryController: remote.controller
         )
+        Task {
+            await remote.controller.restore()
+        }
+        return model
     }
 
     static func preview(
@@ -80,6 +68,57 @@ extension CadenceAppModel {
             favoriteArtistDates: favoriteArtistDates,
             importCandidates: importCandidates,
             artworkRepository: artworkRepository
+        )
+    }
+}
+
+private extension CadenceAppModel {
+    static func importRuntime(
+        librarySession: LibrarySession
+    ) -> (
+        destination: ManagedLibraryImportDestination?,
+        coordinator: ImportCoordinator
+    ) {
+        let destination = librarySession.location.map {
+            ManagedLibraryImportDestination(
+                package: ManagedLibraryPackage(location: $0),
+                repository: librarySession.store.repository
+            )
+        }
+        let duplicateLookup = destination.map { destination in
+            ImportDuplicateLookup { probes in
+                try await destination.duplicateEvidence(probes: probes)
+            }
+        } ?? .empty
+        return (
+            destination,
+            ImportCoordinator(
+                service: ImportInspectionService(
+                    duplicateLookup: duplicateLookup
+                ),
+                importer: destination.map {
+                    ManagedLibraryImporter(destination: $0)
+                }
+            )
+        )
+    }
+
+    static func remoteRuntime(
+        librarySession: LibrarySession
+    ) -> (
+        source: RemotePlaybackSource,
+        controller: RemoteLibraryController
+    ) {
+        let source = RemotePlaybackSource()
+        let expectedLibraryID = librarySession.location.flatMap {
+            try? ManagedLibraryPackage(location: $0).readIdentity().id
+        }
+        return (
+            source,
+            RemoteLibraryController(
+                source: source,
+                expectedLibraryID: expectedLibraryID
+            )
         )
     }
 }

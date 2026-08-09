@@ -19,6 +19,8 @@ flowchart LR
     Playback --> Native["NativePlaybackBackend"]
     Playback --> System["Media keys and Control Center"]
     Managed --> Media["Media, artwork, lyrics, manifests, Trash"]
+    Playback --> RemoteCache["Verified bounded remote cache"]
+    RemoteCache --> Providers["WebDAV or Google Drive"]
 ```
 
 Views render observable state and call model intents. They do not write managed
@@ -84,6 +86,16 @@ Original source files remain untouched.
 
 UI controls, lyrics timing, Now Playing, and the queue observe the coordinator
 instead of maintaining competing clocks.
+
+Remote libraries keep the live SwiftData catalog local. The provider-neutral
+manifest maps track IDs to immutable media objects. WebDAV and Google Drive
+adapters use conditional manifest revisions so concurrent changes fail closed.
+Playback downloads the current object to staging, verifies its size and
+SHA-256, atomically promotes it into a bounded LRU cache, and only then gives a
+local URL to the existing backends. Current and next tracks are pinned; stale
+prefetch work is cancelled. Credentials and OAuth state stay in Keychain. The
+Google adapter keeps the narrow `drive.file` scope and therefore accepts only
+objects created by Cadence under the same OAuth client.
 
 ## Concurrency
 

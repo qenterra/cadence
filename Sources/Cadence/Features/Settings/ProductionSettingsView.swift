@@ -111,6 +111,12 @@ struct ProductionSettingsView: View {
                     .foregroundStyle(.secondary)
                 }
 
+                if let remoteLibraryController = model.remoteLibraryController {
+                    RemoteLibrarySettingsView(
+                        controller: remoteLibraryController
+                    )
+                }
+
                 SettingsSidebarCard(
                     orderRawValue: $navigationOrderRawValue,
                     hiddenRawValue: $hiddenNavigationRawValue

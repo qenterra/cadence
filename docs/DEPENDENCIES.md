@@ -1,7 +1,7 @@
 # Dependencies
 
-Cadence uses Apple platform frameworks at runtime and four Homebrew tools during
-development.
+Cadence uses Apple platform frameworks and three pinned Swift packages at
+runtime, plus four Homebrew tools during development.
 
 ## Runtime
 
@@ -17,11 +17,13 @@ development.
 | MediaPlayer | Active macOS SDK | Now Playing and remote commands | Apple |
 | UniformTypeIdentifiers | Active macOS SDK | File and library package types | Apple |
 | QenTerraDesignTokens | QDS `1.9.x`, local sibling package | Semantic colors, radii, motion, and shared SwiftUI state contracts | QenTerra `design-system/packages/swift` |
+| GRDB.swift | Exactly `7.10.0` | Derived SQLite FTS5 index for lyrics search | [groue/GRDB.swift](https://github.com/groue/GRDB.swift) |
+| AppAuth | Exactly `2.1.0` | OAuth 2.0 authorization and token refresh for Google Drive | [openid/AppAuth-iOS](https://github.com/openid/AppAuth-iOS) |
 
-The QDS package is the only Swift Package Manager dependency. It is resolved
-from the sibling `design-system` checkout and contains no runtime networking,
-analytics, or persistence. Cadence has no vendored framework, network SDK, or
-embedded database outside SwiftData and the operating system.
+QDS resolves from the sibling `design-system` checkout. GRDB and AppAuth are
+locked in `Package.resolved`; neither introduces analytics. GRDB owns only the
+rebuildable lyrics-search index, never the canonical library. AppAuth stores
+Google authorization state through Cadence's Keychain adapter.
 
 ## Development tools
 

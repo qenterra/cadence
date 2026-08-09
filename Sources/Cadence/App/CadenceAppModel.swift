@@ -146,6 +146,7 @@ final class CadenceAppModel {
     var importRecovery: ManagedLibraryImportRecovery?
     let playbackCoordinator: PlaybackCoordinator?
     let libraryRelocator: LibraryRelocator
+    let remoteLibraryController: RemoteLibraryController?
 
     init(
         librarySession: LibrarySession,
@@ -162,6 +163,7 @@ final class CadenceAppModel {
         importDestination: ManagedLibraryImportDestination? = nil,
         importRecovery: ManagedLibraryImportRecovery? = nil,
         playbackCoordinator: PlaybackCoordinator? = nil,
+        remoteLibraryController: RemoteLibraryController? = nil,
         libraryRelocator: LibraryRelocator = LibraryRelocator(),
         artworkRepository: any ArtworkRepository = InMemoryArtworkRepository()
     ) {
@@ -182,6 +184,7 @@ final class CadenceAppModel {
         self.importDestination = importDestination
         self.importRecovery = importRecovery
         self.playbackCoordinator = playbackCoordinator
+        self.remoteLibraryController = remoteLibraryController
         self.libraryRelocator = libraryRelocator
         self.artworkRepository = artworkRepository
         selectedArtistID = tracks.first?.artistID

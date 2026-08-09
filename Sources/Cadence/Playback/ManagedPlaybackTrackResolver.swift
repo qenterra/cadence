@@ -4,12 +4,15 @@ import Foundation
 final class ManagedPlaybackTrackResolver: PlaybackTrackResolving {
     private let librarySession: LibrarySession
     private let fileManager: FileManager
+    private let remoteSource: RemotePlaybackSource?
 
     init(
         librarySession: LibrarySession,
+        remoteSource: RemotePlaybackSource? = nil,
         fileManager: FileManager = .default
     ) {
         self.librarySession = librarySession
+        self.remoteSource = remoteSource
         self.fileManager = fileManager
     }
 
@@ -27,20 +30,35 @@ final class ManagedPlaybackTrackResolver: PlaybackTrackResolving {
         }
 
         let tracks = try await repository.playbackTracks(ids: trackIDs)
-        return tracks.compactMap { track in
-            guard
-                let url = try? location.resolve(
-                    relativePath: track.relativeMediaPath,
-                    directoryHint: .notDirectory
-                ),
-                fileManager.fileExists(atPath: url.path)
-            else {
-                return nil
+        var resolved: [ResolvedPlaybackTrack] = []
+        var missing: [PlaybackTrack] = []
+        for track in tracks {
+            if let url = try? location.resolve(
+                relativePath: track.relativeMediaPath,
+                directoryHint: .notDirectory
+            ),
+                fileManager.fileExists(atPath: url.path) {
+                resolved.append(
+                    ResolvedPlaybackTrack(track: track, mediaURL: url)
+                )
+            } else {
+                missing.append(track)
             }
-            return ResolvedPlaybackTrack(
-                track: track,
-                mediaURL: url
-            )
         }
+        if let remoteSource,
+           !missing.isEmpty {
+            let remoteURLs = try await remoteSource.resolve(
+                trackIDs: missing.map(\.id)
+            )
+            resolved.append(contentsOf: missing.compactMap { track in
+                remoteURLs[track.id].map {
+                    ResolvedPlaybackTrack(track: track, mediaURL: $0)
+                }
+            })
+        }
+        let byID = Dictionary(
+            uniqueKeysWithValues: resolved.map { ($0.track.id, $0) }
+        )
+        return trackIDs.compactMap { byID[$0] }
     }
 }
