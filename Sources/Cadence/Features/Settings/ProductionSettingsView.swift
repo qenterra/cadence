@@ -66,6 +66,28 @@ struct ProductionSettingsView: View {
                         Button("Open Trash", systemImage: "trash") {
                             model.requestNavigationDestination(.trash)
                         }
+                        Button("Move Library…", systemImage: "externaldrive.badge.plus") {
+                            model.chooseLibraryLocation()
+                        }
+                        .disabled(model.isMovingLibrary)
+                    }
+
+                    if let progress = model.libraryRelocationProgress {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text(progress.phase.title)
+                                .font(.callout.weight(.medium))
+                            if let fraction = progress.fractionCompleted {
+                                ProgressView(value: fraction)
+                                    .progressViewStyle(.linear)
+                            } else {
+                                ProgressView()
+                                    .controlSize(.small)
+                            }
+                            Text(progress.label)
+                                .font(.caption.monospacedDigit())
+                                .foregroundStyle(.secondary)
+                        }
+                        .accessibilityElement(children: .combine)
                     }
                 }
 
@@ -103,6 +125,44 @@ struct ProductionSettingsView: View {
             .frame(maxWidth: .infinity, alignment: .topLeading)
         }
         .background(CadenceTheme.contentBackground)
+        .alert(
+            "Library Move Failed",
+            isPresented: Binding(
+                get: { model.libraryRelocationError != nil },
+                set: {
+                    if !$0 {
+                        model.dismissLibraryRelocationError()
+                    }
+                }
+            )
+        ) {
+            Button("OK", role: .cancel) {
+                model.dismissLibraryRelocationError()
+            }
+        } message: {
+            Text(model.libraryRelocationError ?? "Unknown error")
+        }
+        .confirmationDialog(
+            "Cadence.library Already Exists",
+            isPresented: Binding(
+                get: { model.pendingLibraryConflictParent != nil },
+                set: {
+                    if !$0 {
+                        model.libraryRelocationState.pendingConflictParent = nil
+                    }
+                }
+            )
+        ) {
+            Button("Open Existing Library") {
+                Task { await model.openConflictingLibrary() }
+            }
+            Button("Choose Another Folder") {
+                model.chooseAnotherLibraryLocation()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Cadence will never merge with or overwrite an existing library package.")
+        }
     }
 
     private var qualityBinding: Binding<AudioQualityProfile> {

@@ -12,6 +12,8 @@ enum LibrarySessionAvailability: Equatable, Sendable {
 struct LibrarySessionFailure: Equatable, Sendable {
     enum Kind: Equatable, Sendable {
         case locationUnavailable
+        case staleBookmark
+        case identityMismatch
         case blockingPackageFile
         case missingMetadataStore
         case openFailed
@@ -23,31 +25,74 @@ struct LibrarySessionFailure: Equatable, Sendable {
     let revealURL: URL?
 }
 
+private struct LibrarySessionSwitchError: LocalizedError {
+    let message: String
+    var errorDescription: String? {
+        message
+    }
+}
+
 @MainActor
 @Observable
 final class LibrarySession {
-    let location: ManagedLibraryLocation?
+    private(set) var location: ManagedLibraryLocation?
     let store: LibraryStore
+    let locationController: LibraryLocationController?
     private(set) var availability: LibrarySessionAvailability
 
     private init(
         location: ManagedLibraryLocation?,
         store: LibraryStore,
-        availability: LibrarySessionAvailability
+        availability: LibrarySessionAvailability,
+        locationController: LibraryLocationController? = nil
     ) {
         self.location = location
         self.store = store
         self.availability = availability
+        self.locationController = locationController
     }
 
     static func startup(
         fileManager: FileManager = .default
     ) -> LibrarySession {
         do {
-            return try startup(
-                location: .currentUser(fileManager: fileManager),
+            let fallback = try ManagedLibraryLocation.currentUser(
                 fileManager: fileManager
             )
+            let controller = LibraryLocationController()
+            switch controller.resolveActiveLibrary(fallback: fallback) {
+            case let .available(location):
+                return startup(
+                    location: location,
+                    fileManager: fileManager,
+                    locationController: controller
+                )
+            case let .unavailable(previousParent):
+                return failed(
+                    location: previousParent.map(
+                        ManagedLibraryLocation.init(musicDirectory:)
+                    ),
+                    kind: .locationUnavailable,
+                    message: "The saved library location is unavailable.",
+                    locationController: controller
+                )
+            case let .staleBookmark(previousParent):
+                return failed(
+                    location: ManagedLibraryLocation(
+                        musicDirectory: previousParent
+                    ),
+                    kind: .staleBookmark,
+                    message: "The saved library permission must be renewed.",
+                    locationController: controller
+                )
+            case let .identityMismatch(expected, actual):
+                return failed(
+                    location: nil,
+                    kind: .identityMismatch,
+                    message: "Expected library \(expected.id), found \(actual.id).",
+                    locationController: controller
+                )
+            }
         } catch {
             return failed(
                 location: nil,
@@ -59,7 +104,8 @@ final class LibrarySession {
 
     static func startup(
         location: ManagedLibraryLocation,
-        fileManager: FileManager = .default
+        fileManager: FileManager = .default,
+        locationController: LibraryLocationController? = nil
     ) -> LibrarySession {
         let package = ManagedLibraryPackage(location: location)
         var isDirectory: ObjCBool = false
@@ -70,7 +116,8 @@ final class LibrarySession {
             return LibrarySession(
                 location: location,
                 store: LibraryStore(),
-                availability: .empty
+                availability: .empty,
+                locationController: locationController
             )
         }
 
@@ -78,7 +125,8 @@ final class LibrarySession {
             return failed(
                 location: location,
                 kind: .blockingPackageFile,
-                message: "A file blocks \(ManagedLibraryLocation.packageFilename)."
+                message: "A file blocks \(ManagedLibraryLocation.packageFilename).",
+                locationController: locationController
             )
         }
 
@@ -88,7 +136,8 @@ final class LibrarySession {
             return failed(
                 location: location,
                 kind: .missingMetadataStore,
-                message: "Cadence.library is missing its metadata store."
+                message: "Cadence.library is missing its metadata store.",
+                locationController: locationController
             )
         }
 
@@ -102,13 +151,15 @@ final class LibrarySession {
                     container: container,
                     package: package
                 ),
-                availability: .recovering
+                availability: .recovering,
+                locationController: locationController
             )
         } catch {
             return failed(
                 location: location,
                 kind: .openFailed,
-                message: error.localizedDescription
+                message: error.localizedDescription,
+                locationController: locationController
             )
         }
     }
@@ -147,6 +198,35 @@ final class LibrarySession {
         }
     }
 
+    func switchLocation(
+        to location: ManagedLibraryLocation,
+        repository: LibraryRepository
+    ) async throws {
+        let previousLocation = self.location
+        let previousRepository = store.repository
+        availability = .recovering
+        self.location = location
+        store.attach(
+            repository: repository,
+            package: ManagedLibraryPackage(location: location)
+        )
+        await store.loadInitialLibrary()
+        if case let .failed(failure) = store.availability {
+            self.location = previousLocation
+            if let previousRepository {
+                store.attach(
+                    repository: previousRepository,
+                    package: previousLocation.map(ManagedLibraryPackage.init)
+                )
+                await store.loadInitialLibrary()
+            }
+            availability = previousRepository == nil ? .empty : .ready
+            throw LibrarySessionSwitchError(message: failure.message)
+        } else {
+            availability = .ready
+        }
+    }
+
     func finishRecoveryWithoutLibrary() {
         availability = .empty
     }
@@ -167,7 +247,8 @@ final class LibrarySession {
     private static func failed(
         location: ManagedLibraryLocation?,
         kind: LibrarySessionFailure.Kind,
-        message: String
+        message: String,
+        locationController: LibraryLocationController? = nil
     ) -> LibrarySession {
         LibrarySession(
             location: location,
@@ -178,7 +259,8 @@ final class LibrarySession {
                     message: message,
                     revealURL: location?.packageURL
                 )
-            )
+            ),
+            locationController: locationController
         )
     }
 }

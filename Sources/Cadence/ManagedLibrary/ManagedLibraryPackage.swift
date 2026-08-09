@@ -48,6 +48,13 @@ struct ManagedLibraryPackage: Sendable {
         )
     }
 
+    var identityURL: URL {
+        metadataDirectoryURL.appending(
+            path: "LibraryIdentity.json",
+            directoryHint: .notDirectory
+        )
+    }
+
     var stagingDirectoryURL: URL {
         directoryURL("Staging")
     }
@@ -107,6 +114,32 @@ struct ManagedLibraryPackage: Sendable {
                 withIntermediateDirectories: true
             )
         }
+    }
+
+    func readIdentity() throws -> LibraryIdentity {
+        let data = try Data(contentsOf: identityURL)
+        return try JSONDecoder().decode(LibraryIdentity.self, from: data)
+    }
+
+    func writeIdentity(
+        _ identity: LibraryIdentity,
+        fileManager: FileManager = .default
+    ) throws {
+        try fileManager.createDirectory(
+            at: metadataDirectoryURL,
+            withIntermediateDirectories: true
+        )
+        let data = try JSONEncoder().encode(identity)
+        try data.write(to: identityURL, options: .atomic)
+    }
+
+    func readOrCreateIdentity() throws -> LibraryIdentity {
+        if let identity = try? readIdentity() {
+            return identity
+        }
+        let identity = LibraryIdentity()
+        try writeIdentity(identity)
+        return identity
     }
 
     private var requiredDirectories: [URL] {

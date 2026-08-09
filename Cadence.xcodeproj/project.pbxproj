@@ -35,6 +35,7 @@
 		12B981A020F75F7BD580020A /* SmartCollectionResultsColumn.swift in Sources */ = {isa = PBXBuildFile; fileRef = B05FF6EF57E0AB324ED4A523 /* SmartCollectionResultsColumn.swift */; };
 		12BC0709E94BE1FB1EECAEDF /* PlaybackCoordinator+QueueEditing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CE55249AC6E4CFAC07A56E0 /* PlaybackCoordinator+QueueEditing.swift */; };
 		12F2109C0F661B7017452B6D /* ProductionArtworkHaze.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21809669C45FE62B5636C59D /* ProductionArtworkHaze.swift */; };
+		1333D1D1F27F5FB0C3F7EBF2 /* LibraryLocationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8710736DB9D21340E91F3264 /* LibraryLocationController.swift */; };
 		13D1C126F9CF14AC6CC8636E /* PlaybackCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AFB4DCCD1E3CFAC0A1803A2 /* PlaybackCoordinator.swift */; };
 		15437070FD2690DE4AC77159 /* Lyrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCCE81C7A6A96C376FF5CFD2 /* Lyrics.swift */; };
 		154E866493561A90FC5FDB8C /* ArtistRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32E105F856CD41A98AE07781 /* ArtistRecord.swift */; };
@@ -96,6 +97,7 @@
 		373AF8FD9F8DCDC95DC0D96E /* ProductionSmartCollectionEvaluator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2A145231582786F139A38B7 /* ProductionSmartCollectionEvaluator.swift */; };
 		378198C3DF2C9ECCBDFE044A /* LineLevelLRC.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF2A5BAE9634476A99177EF6 /* LineLevelLRC.swift */; };
 		37935E7B1F04C3959255D9C0 /* SmartCollectionValidation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 899E271A047E32AF200F565C /* SmartCollectionValidation.swift */; };
+		3803F0F8EBE6AD391C1F8FF9 /* LibraryRelocationManifest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9111CC68047E661B5738D480 /* LibraryRelocationManifest.swift */; };
 		384F223FD2721135D3C0F16A /* SmartCollectionRuleInfoPopover.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBCC79051BD8F6345956867F /* SmartCollectionRuleInfoPopover.swift */; };
 		3862066A8CA690CE191F4DDD /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = E2B1DAE0F6C28932ECAB0E12 /* Localizable.xcstrings */; };
 		38713530351927D6B3FA0F94 /* ArtworkManagementHost.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE5DC3321A0112EE6148B9F /* ArtworkManagementHost.swift */; };
@@ -111,6 +113,7 @@
 		3CDC5511B1B24F2ADA23FB6D /* ProductionPlaybackQueuePanel+Support.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C28C9E2AB0CA7AF34463048 /* ProductionPlaybackQueuePanel+Support.swift */; };
 		3DC310F03944DEED53325893 /* NativeAllTracksTable.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9765C42A8102A79F8DB2DEA /* NativeAllTracksTable.swift */; };
 		3F36FBEE20D3C965C0E1FD05 /* LibraryRepository+TagBatchAssignment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E73EFEC2027D0BEA506F09E /* LibraryRepository+TagBatchAssignment.swift */; };
+		3FC477B1DE1BE292409899D8 /* LibraryRelocator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CC0F20BD47F6D448B2B6FFB /* LibraryRelocator.swift */; };
 		40C98396A800EFBA43C95FD2 /* ArtistsListeningDomainTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4E3DD5136D3778035E4896A /* ArtistsListeningDomainTests.swift */; };
 		420E594A9E45066F3EFE4C4C /* AlbumRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1034D4F0055BCE8389CCBC6C /* AlbumRecord.swift */; };
 		421D626BCABA5CEC8BC27942 /* PlaybackVolumeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6116AF56D38530A7EFE4D93E /* PlaybackVolumeTests.swift */; };
@@ -167,6 +170,7 @@
 		61FD1C8662B569D31E54C7FB /* ProductionTagEditorInspector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27447A1524F5ADB6D6B4DC50 /* ProductionTagEditorInspector.swift */; };
 		6399CCA72B6928EB77C5D83B /* ArtworkRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2223CA55DBF5096A4F89756 /* ArtworkRecord.swift */; };
 		647982BF5B371DFC4D01BE1E /* LibraryRepository+TagCreation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9853273BBEB512E550628A11 /* LibraryRepository+TagCreation.swift */; };
+		64B04CEBC280F284D202A3C2 /* LibraryRelocatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1CD920CDD739C2F456F838E2 /* LibraryRelocatorTests.swift */; };
 		6554777F020A0303ED888FFB /* LibraryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D85FCCD97933D7AACCA262D5 /* LibraryStore.swift */; };
 		658A5383422A1556EBFD34F6 /* ManagedTrashManifest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03C00ABB1CAFF814BDA0236D /* ManagedTrashManifest.swift */; };
 		6872584BC0857AC568FB8E1B /* ManagedLibraryImporter+Completion.swift in Sources */ = {isa = PBXBuildFile; fileRef = F95C961623BEA7EE44EAEA24 /* ManagedLibraryImporter+Completion.swift */; };
@@ -195,6 +199,7 @@
 		78D9CF276FB29A3938FA9CFA /* ProductionTrackTableRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43F571B9F2C2F06AF7627E92 /* ProductionTrackTableRow.swift */; };
 		78EF37863FAA8CBEF456CD89 /* SmartCollectionRuleSummaryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C1AB92BD8CBED433671BEB4 /* SmartCollectionRuleSummaryTests.swift */; };
 		7922A4EFEF30001DCBBCD0E7 /* CadenceAppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDF587D7EA7C7E08A68748F0 /* CadenceAppModel.swift */; };
+		79B507A4C861B2C3A75CF1CF /* CadenceAppModel+LibraryLocation.swift in Sources */ = {isa = PBXBuildFile; fileRef = E38F3E40D3052A47843FC740 /* CadenceAppModel+LibraryLocation.swift */; };
 		79EC6E96CDB4173353830A8D /* CadenceAppModel+NowPlaying.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED080605CBEEA7FF0AE087D0 /* CadenceAppModel+NowPlaying.swift */; };
 		7A4BA7D977D3E60306CD35D7 /* ManagedTrashManifestStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C39DAEF3DFF042D5B4FF04AD /* ManagedTrashManifestStore.swift */; };
 		7C10A0602882B2C51D263B6B /* TrackTableLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D3B16AE33C334038441D572 /* TrackTableLayout.swift */; };
@@ -290,6 +295,7 @@
 		B7286FB118E9758E07A7674D /* ManagedLibraryImporter+Copy.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA14EF9B925EBBF6FD6A66F1 /* ManagedLibraryImporter+Copy.swift */; };
 		B7605226CD94462A7D9489C9 /* NavigationRail.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07C40AA128D25F46B32821C5 /* NavigationRail.swift */; };
 		B86A40580EA10DA72CB1B1F0 /* TrackArtistCreditRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = A068A72A512AC652B80D8F6D /* TrackArtistCreditRecord.swift */; };
+		B8F090ED20B2D223097A021D /* LibraryRelocationRecovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 464D0D2D42FD9B9585BF8756 /* LibraryRelocationRecovery.swift */; };
 		B914A9FF6AE2F839EA489737 /* SmartCollectionListeningPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA8536085C0EADB1F6496AA2 /* SmartCollectionListeningPage.swift */; };
 		B965CD84014EBC25DD335D66 /* LibraryRepository+TrackQueries.swift in Sources */ = {isa = PBXBuildFile; fileRef = 569A23D4D03492202233FCE9 /* LibraryRepository+TrackQueries.swift */; };
 		B9B447813ABAD81BC8A2B26C /* ManagedLyricEditManifest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8668E3E0414090E782C5B01A /* ManagedLyricEditManifest.swift */; };
@@ -310,6 +316,7 @@
 		C10DEA424A32F36BE6F8F906 /* SmartCollectionRuleBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 073FF9A3EBD25497B3EE9A82 /* SmartCollectionRuleBuilder.swift */; };
 		C231AAE4DA97486B70B22172 /* PlaybackTestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2088ADCFF099782A727EBFE /* PlaybackTestSupport.swift */; };
 		C25F14A9EA6C0EE59509C663 /* CadenceAppModel+ProductionCatalogActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D3606FC1138BA5BFB6E9CD9 /* CadenceAppModel+ProductionCatalogActions.swift */; };
+		C3A534FADEFF9EED3036E9F3 /* LibraryLocationControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFC34A2E52077291F71ED330 /* LibraryLocationControllerTests.swift */; };
 		C3B394EAE9E601B3BBD1B2CB /* SystemMediaSessionProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13622D08D6EE56B07AFC3F2C /* SystemMediaSessionProtocol.swift */; };
 		C4C2EB73A70700EABDF59158 /* LibraryRepository+MetadataRepair.swift in Sources */ = {isa = PBXBuildFile; fileRef = D74F1EE9BBC843894AE7F472 /* LibraryRepository+MetadataRepair.swift */; };
 		C6D711DF450EB6E5713B6A9A /* SettingsAboutSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22CDCF56C2F51565940B21FD /* SettingsAboutSection.swift */; };
@@ -430,6 +437,7 @@
 		1C1AB92BD8CBED433671BEB4 /* SmartCollectionRuleSummaryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartCollectionRuleSummaryTests.swift; sourceTree = "<group>"; };
 		1C28C9E2AB0CA7AF34463048 /* ProductionPlaybackQueuePanel+Support.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ProductionPlaybackQueuePanel+Support.swift"; sourceTree = "<group>"; };
 		1CCF9065B516E83BFAEA3085 /* GuideModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuideModels.swift; sourceTree = "<group>"; };
+		1CD920CDD739C2F456F838E2 /* LibraryRelocatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryRelocatorTests.swift; sourceTree = "<group>"; };
 		1CF246AE7FF79512A54A8354 /* LibraryProjectionFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryProjectionFactory.swift; sourceTree = "<group>"; };
 		1D74EE3C58D64BBC011DC5CB /* MockAlbumFavorites.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockAlbumFavorites.swift; sourceTree = "<group>"; };
 		1E73EFEC2027D0BEA506F09E /* LibraryRepository+TagBatchAssignment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LibraryRepository+TagBatchAssignment.swift"; sourceTree = "<group>"; };
@@ -500,6 +508,7 @@
 		44162A1B24D01710301FCFC2 /* CadenceAppModel+TestFixture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CadenceAppModel+TestFixture.swift"; sourceTree = "<group>"; };
 		45BD2A150C2ED124CFCDAEDB /* AlbumsListeningAppModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlbumsListeningAppModelTests.swift; sourceTree = "<group>"; };
 		45C9C7FCC2BA948CE1B5E7AA /* ManagedArtworkService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManagedArtworkService.swift; sourceTree = "<group>"; };
+		464D0D2D42FD9B9585BF8756 /* LibraryRelocationRecovery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryRelocationRecovery.swift; sourceTree = "<group>"; };
 		46DEB52ED9A83B9F97690E3A /* LibraryFetchDescriptors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryFetchDescriptors.swift; sourceTree = "<group>"; };
 		488D79C8CCEF84D038DC8872 /* LibraryRepository+Tags.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LibraryRepository+Tags.swift"; sourceTree = "<group>"; };
 		492EDBFF01F3BFE3433E9CBC /* CadenceAppModel+PlaybackState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CadenceAppModel+PlaybackState.swift"; sourceTree = "<group>"; };
@@ -507,6 +516,7 @@
 		497380A627E8553218AC86ED /* ProductionTrashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductionTrashView.swift; sourceTree = "<group>"; };
 		4A44E6D2C6A9BE2F2A494C42 /* CadenceAppModel+TagNavigation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CadenceAppModel+TagNavigation.swift"; sourceTree = "<group>"; };
 		4C6C541CF4ECEF148AFE1316 /* LibraryStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryStoreTests.swift; sourceTree = "<group>"; };
+		4CC0F20BD47F6D448B2B6FFB /* LibraryRelocator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryRelocator.swift; sourceTree = "<group>"; };
 		4D3B16AE33C334038441D572 /* TrackTableLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackTableLayout.swift; sourceTree = "<group>"; };
 		4E8ACA67708D980F66F7D6B9 /* SmartCollectionAppModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartCollectionAppModelTests.swift; sourceTree = "<group>"; };
 		4E9E6954B42AA3ECE8151339 /* ProductionTrackTable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductionTrackTable.swift; sourceTree = "<group>"; };
@@ -604,6 +614,7 @@
 		856A4B913FE19DB41FD8F368 /* LibraryUnavailableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryUnavailableView.swift; sourceTree = "<group>"; };
 		85CB99CDF9830D943E2FA53D /* BrowserRowSurface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowserRowSurface.swift; sourceTree = "<group>"; };
 		8668E3E0414090E782C5B01A /* ManagedLyricEditManifest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManagedLyricEditManifest.swift; sourceTree = "<group>"; };
+		8710736DB9D21340E91F3264 /* LibraryLocationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryLocationController.swift; sourceTree = "<group>"; };
 		871C857E551172D8D61C52E5 /* MetadataRepairTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetadataRepairTests.swift; sourceTree = "<group>"; };
 		89326A003F467B8BFE2FB625 /* CadenceSchema.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CadenceSchema.swift; sourceTree = "<group>"; };
 		895170B224640B017EBE35A4 /* AppearanceController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppearanceController.swift; sourceTree = "<group>"; };
@@ -619,6 +630,7 @@
 		8ED5F188ED9C80B4582EB800 /* LibraryColumnWidthsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryColumnWidthsTests.swift; sourceTree = "<group>"; };
 		905E4602E03EF68E4C8FBCF1 /* LibraryStore+Albums.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LibraryStore+Albums.swift"; sourceTree = "<group>"; };
 		91071854FAEB3F3EE6487D38 /* QuickTagMenuItems.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickTagMenuItems.swift; sourceTree = "<group>"; };
+		9111CC68047E661B5738D480 /* LibraryRelocationManifest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryRelocationManifest.swift; sourceTree = "<group>"; };
 		91D574EBD922DD08F738A8EC /* ManagedArtworkEditingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManagedArtworkEditingTests.swift; sourceTree = "<group>"; };
 		921B625DD359C33D4B52ABC0 /* LibraryStore+Lyrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LibraryStore+Lyrics.swift"; sourceTree = "<group>"; };
 		9222D5FF6229C3A5BF66A0B0 /* ImportFileInspectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportFileInspectorTests.swift; sourceTree = "<group>"; };
@@ -668,6 +680,7 @@
 		AEC68202B0775747BE17A074 /* ArtworkView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtworkView.swift; sourceTree = "<group>"; };
 		AED8BE595A50961E147FC449 /* TagSuggestionEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TagSuggestionEngine.swift; sourceTree = "<group>"; };
 		AFAF02371C2AFE2CC3759E5F /* TagSmartCollectionRemediationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TagSmartCollectionRemediationTests.swift; sourceTree = "<group>"; };
+		AFC34A2E52077291F71ED330 /* LibraryLocationControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryLocationControllerTests.swift; sourceTree = "<group>"; };
 		AFCF3AE56B2C3C0BDABF28C2 /* ImportInspection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportInspection.swift; sourceTree = "<group>"; };
 		B05FF6EF57E0AB324ED4A523 /* SmartCollectionResultsColumn.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartCollectionResultsColumn.swift; sourceTree = "<group>"; };
 		B0CA1AA4F9E59614EBB8C20E /* TagSuggestion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TagSuggestion.swift; sourceTree = "<group>"; };
@@ -748,6 +761,7 @@
 		E19B1B77C472ED7BEB2DE7A5 /* SmartCollectionListeningLifecycleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartCollectionListeningLifecycleTests.swift; sourceTree = "<group>"; };
 		E1EDC4C2C7E9E165F6A03E67 /* CadenceAppModel+TagSummaries.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CadenceAppModel+TagSummaries.swift"; sourceTree = "<group>"; };
 		E2B1DAE0F6C28932ECAB0E12 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
+		E38F3E40D3052A47843FC740 /* CadenceAppModel+LibraryLocation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CadenceAppModel+LibraryLocation.swift"; sourceTree = "<group>"; };
 		E40D3BF7A8D8BBFAE9ADB975 /* CadenceAppModelFactoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CadenceAppModelFactoryTests.swift; sourceTree = "<group>"; };
 		E4E3357A37CB38423F0DFDDD /* MetadataReader+Artwork.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MetadataReader+Artwork.swift"; sourceTree = "<group>"; };
 		E58947A7A402EF9F02EE1F57 /* NowPlayingLayoutMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingLayoutMetrics.swift; sourceTree = "<group>"; };
@@ -892,6 +906,10 @@
 		2EB6E49ADE22CF363E822B14 /* ManagedLibrary */ = {
 			isa = PBXGroup;
 			children = (
+				8710736DB9D21340E91F3264 /* LibraryLocationController.swift */,
+				9111CC68047E661B5738D480 /* LibraryRelocationManifest.swift */,
+				464D0D2D42FD9B9585BF8756 /* LibraryRelocationRecovery.swift */,
+				4CC0F20BD47F6D448B2B6FFB /* LibraryRelocator.swift */,
 				EC66AFE599CCF078D7123500 /* ManagedArtworkEditManifest.swift */,
 				45C9C7FCC2BA948CE1B5E7AA /* ManagedArtworkService.swift */,
 				4EDAB23BA4EAFE7491628D14 /* ManagedLibraryLocation.swift */,
@@ -1016,9 +1034,11 @@
 				24C65D4927D501282C424699 /* ImportPreviewAppModelTests.swift */,
 				5615C5DAE97EF6578D4E498A /* ImportPreviewTests.swift */,
 				8ED5F188ED9C80B4582EB800 /* LibraryColumnWidthsTests.swift */,
+				AFC34A2E52077291F71ED330 /* LibraryLocationControllerTests.swift */,
 				38C4D35767E66578A3EECA1D /* LibraryOperationFailureTests.swift */,
 				735EA3BFCF55852F3D61A76B /* LibraryProjectionFactoryTests.swift */,
 				0D8860536F1C4E221E59556B /* LibraryRecoveryTests.swift */,
+				1CD920CDD739C2F456F838E2 /* LibraryRelocatorTests.swift */,
 				50A417E560B125F872D5285A /* LibraryRepositoryTests.swift */,
 				A8E46757CC56DC78E591237D /* LibrarySchemaTests.swift */,
 				4C6C541CF4ECEF148AFE1316 /* LibraryStoreTests.swift */,
@@ -1248,6 +1268,7 @@
 				D98C664E3407D9F3B14A757D /* CadenceAppModel+Factory.swift */,
 				75D60B7EB9BC4CFB38F90AFA /* CadenceAppModel+ImportPreview.swift */,
 				237B0495B4E9EDDBA3E6CF5D /* CadenceAppModel+ImportState.swift */,
+				E38F3E40D3052A47843FC740 /* CadenceAppModel+LibraryLocation.swift */,
 				599B08829C9539285ED5CB80 /* CadenceAppModel+LyricsEditing.swift */,
 				578B6D85A6B68F8E3AA32EA1 /* CadenceAppModel+LyricsPersistence.swift */,
 				EB493F4D6E83A110ED1A0B8F /* CadenceAppModel+ManagedImport.swift */,
@@ -1598,6 +1619,7 @@
 				315E331A1C75D83DFCC75E71 /* CadenceAppModel+Factory.swift in Sources */,
 				1CA75D8164C407467C615577 /* CadenceAppModel+ImportPreview.swift in Sources */,
 				3B6B308C00148E373CFC07BE /* CadenceAppModel+ImportState.swift in Sources */,
+				79B507A4C861B2C3A75CF1CF /* CadenceAppModel+LibraryLocation.swift in Sources */,
 				DB21BAEBFAD541629A2E98C5 /* CadenceAppModel+LyricsEditing.swift in Sources */,
 				E661642168D9F0ED66A8A321 /* CadenceAppModel+LyricsPersistence.swift in Sources */,
 				CAB17CE75E42B762A170B490 /* CadenceAppModel+ManagedImport.swift in Sources */,
@@ -1656,11 +1678,15 @@
 				5436D9449E12845DF8CD3BAA /* ImportSource.swift in Sources */,
 				E7C88E5D49DF6C0751720A15 /* LibraryContainerFactory.swift in Sources */,
 				DF6A92293FB77A7AA4A06260 /* LibraryFetchDescriptors.swift in Sources */,
+				1333D1D1F27F5FB0C3F7EBF2 /* LibraryLocationController.swift in Sources */,
 				51480A4B8E7514BFBA7C60B6 /* LibraryOperationFailure.swift in Sources */,
 				DC993B18890A8ACED354BEBD /* LibraryPageBuilder.swift in Sources */,
 				453FBF3C6F11F81F50B33C89 /* LibraryPreview.swift in Sources */,
 				CB461139E9D046848CEB75E8 /* LibraryProjectionFactory.swift in Sources */,
 				DAC2F816535DB946E274583D /* LibraryProjections.swift in Sources */,
+				3803F0F8EBE6AD391C1F8FF9 /* LibraryRelocationManifest.swift in Sources */,
+				B8F090ED20B2D223097A021D /* LibraryRelocationRecovery.swift in Sources */,
+				3FC477B1DE1BE292409899D8 /* LibraryRelocator.swift in Sources */,
 				EE0AEF8597257AD58E8A5565 /* LibraryRepository+Artwork.swift in Sources */,
 				9F8765F466F7B1C9750D0A66 /* LibraryRepository+ArtworkEditing.swift in Sources */,
 				DA15B70414572F4884C6B77A /* LibraryRepository+Catalog.swift in Sources */,
@@ -1882,9 +1908,11 @@
 				956519968E41B82DFD2A140D /* ImportPreviewAppModelTests.swift in Sources */,
 				F0FF7A310DDDA9149710AD0D /* ImportPreviewTests.swift in Sources */,
 				C0D45B4FCA6752E021EE86DF /* LibraryColumnWidthsTests.swift in Sources */,
+				C3A534FADEFF9EED3036E9F3 /* LibraryLocationControllerTests.swift in Sources */,
 				2D86A3407CB6E27FF81C390B /* LibraryOperationFailureTests.swift in Sources */,
 				A4B76CE42F2A45BC54F64A5A /* LibraryProjectionFactoryTests.swift in Sources */,
 				B6A3055E683B53B30345E701 /* LibraryRecoveryTests.swift in Sources */,
+				64B04CEBC280F284D202A3C2 /* LibraryRelocatorTests.swift in Sources */,
 				09B17784DD3C570EE5FF1ECF /* LibraryRepositoryTests.swift in Sources */,
 				7F271EC02A306060D3EF5325 /* LibrarySchemaTests.swift in Sources */,
 				25BFC73DD307CB6AACA0FAFE /* LibraryStoreTests.swift in Sources */,

@@ -235,7 +235,13 @@
     "Cadence Library Unavailable" : {
 
     },
+    "Cadence will never merge with or overwrite an existing library package." : {
+
+    },
     "Cadence will scan a preview before anything is imported." : {
+
+    },
+    "Cadence.library Already Exists" : {
 
     },
     "Cancel" : {
@@ -554,6 +560,9 @@
     "Library Is Empty" : {
 
     },
+    "Library Move Failed" : {
+
+    },
     "Library Operation Failed" : {
 
     },
@@ -579,6 +588,9 @@
 
     },
     "Loading track" : {
+
+    },
+    "Locate Library…" : {
 
     },
     "Location" : {
@@ -624,6 +636,9 @@
 
     },
     "Move Down" : {
+
+    },
+    "Move Library…" : {
 
     },
     "Move Up" : {
@@ -720,6 +735,9 @@
 
     },
     "OK" : {
+
+    },
+    "Open Existing Library" : {
 
     },
     "Open Sound Settings…" : {

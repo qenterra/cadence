@@ -233,6 +233,8 @@ private extension CadenceRootView {
                 Task {
                     await model.retryManagedLibrary()
                 }
+            } locate: {
+                model.locateUnavailableLibrary()
             }
         } else if shouldPresentProductionSearch {
             ProductionSearchResultsView(

@@ -10,6 +10,13 @@ struct ImportWorkspaceState {
     let initialCandidates: [ImportCandidatePreview]
 }
 
+struct LibraryRelocationWorkspaceState {
+    var progress: LibraryRelocationProgress?
+    var error: String?
+    var pendingConflictParent: URL?
+    var isMoving = false
+}
+
 struct PendingLibraryDeletion: Equatable, Sendable {
     let kind: TrashTargetKind
     let ids: [UUID]
@@ -130,12 +137,14 @@ final class CadenceAppModel {
     var importWorkspaceState: ImportWorkspaceState
     var pendingLibraryDeletion: PendingLibraryDeletion?
     var libraryOperationError: String?
+    var libraryRelocationState = LibraryRelocationWorkspaceState()
 
     private(set) var favoriteTrackIDs: Set<TrackPreview.ID>
-    let importCoordinator: ImportCoordinator?
-    let importDestination: ManagedLibraryImportDestination?
-    let importRecovery: ManagedLibraryImportRecovery?
+    var importCoordinator: ImportCoordinator?
+    var importDestination: ManagedLibraryImportDestination?
+    var importRecovery: ManagedLibraryImportRecovery?
     let playbackCoordinator: PlaybackCoordinator?
+    let libraryRelocator: LibraryRelocator
 
     init(
         librarySession: LibrarySession,
@@ -152,6 +161,7 @@ final class CadenceAppModel {
         importDestination: ManagedLibraryImportDestination? = nil,
         importRecovery: ManagedLibraryImportRecovery? = nil,
         playbackCoordinator: PlaybackCoordinator? = nil,
+        libraryRelocator: LibraryRelocator = LibraryRelocator(),
         artworkRepository: any ArtworkRepository = InMemoryArtworkRepository()
     ) {
         self.librarySession = librarySession
@@ -171,6 +181,7 @@ final class CadenceAppModel {
         self.importDestination = importDestination
         self.importRecovery = importRecovery
         self.playbackCoordinator = playbackCoordinator
+        self.libraryRelocator = libraryRelocator
         self.artworkRepository = artworkRepository
         selectedArtistID = tracks.first?.artistID
         selectedAlbumID = tracks.first?.albumID

@@ -45,7 +45,12 @@ extension CadenceAppModel {
     }
 
     func retryManagedLibrary() async {
-        guard case .failed = librarySession.availability else {
+        guard
+            case let .failed(failure) = librarySession.availability,
+            failure.kind != .locationUnavailable,
+            failure.kind != .staleBookmark,
+            failure.kind != .identityMismatch
+        else {
             return
         }
         await openAndRecoverManagedLibrary()
@@ -57,6 +62,11 @@ extension CadenceAppModel {
         }
         librarySession.beginRecovery()
         do {
+            if let location = librarySession.location {
+                _ = await LibraryRelocationRecovery().recover(
+                    activeLocation: location
+                )
+            }
             let repository = try await importDestination.prepareRepository()
             librarySession.store.attach(
                 repository: repository,
