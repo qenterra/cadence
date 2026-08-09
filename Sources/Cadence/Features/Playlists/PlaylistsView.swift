@@ -172,12 +172,14 @@ private extension PlaylistsView {
             }
         } label: {
             HStack(spacing: 11) {
-                Image(systemName: "music.note.list")
-                    .frame(width: 28, height: 28)
-                    .background(
-                        CadenceTheme.subduedFill,
-                        in: RoundedRectangle(cornerRadius: CadenceTheme.radiusControl)
-                    )
+                ProductionArtworkView(
+                    model: model,
+                    artworkID: playlist.customArtworkID,
+                    title: playlist.name,
+                    placeholder: .playlist,
+                    cornerRadius: CadenceTheme.radiusControl
+                )
+                .frame(width: 28, height: 28)
 
                 VStack(alignment: .leading, spacing: 3) {
                     Text(playlist.name)
@@ -220,7 +222,7 @@ private extension PlaylistsView {
         _ playlist: LibraryPlaylistProjection
     ) -> some View {
         HStack(alignment: .bottom, spacing: 20) {
-            playlistArtwork
+            playlistArtwork(playlist)
             playlistHeaderDetails(playlist)
 
             Spacer()
@@ -235,15 +237,25 @@ private extension PlaylistsView {
         .padding(28)
     }
 
-    private var playlistArtwork: some View {
-        RoundedRectangle(cornerRadius: CadenceTheme.radiusPanel, style: .continuous)
-            .fill(CadenceTheme.secondarySurface)
-            .overlay {
-                Image(systemName: "music.note.list")
-                    .font(.system(size: 46, weight: .light))
-                    .foregroundStyle(.secondary)
-            }
-            .frame(width: 150, height: 150)
+    private func playlistArtwork(
+        _ playlist: LibraryPlaylistProjection
+    ) -> some View {
+        ProductionArtworkView(
+            model: model,
+            artworkID: playlist.customArtworkID,
+            title: playlist.name,
+            placeholder: .playlist,
+            variant: .original,
+            cornerRadius: CadenceTheme.radiusPanel
+        )
+        .frame(width: 150, height: 150)
+        .contextMenu {
+            ArtworkMenuItems(
+                model: model,
+                target: .managedPlaylist(playlist.id),
+                label: "Playlist Artwork"
+            )
+        }
     }
 
     private func playlistHeaderDetails(
@@ -301,6 +313,12 @@ private extension PlaylistsView {
     private func playlistActions(
         _ playlist: LibraryPlaylistProjection
     ) -> some View {
+        ArtworkMenuItems(
+            model: model,
+            target: .managedPlaylist(playlist.id),
+            label: "Playlist Artwork"
+        )
+        Divider()
         Button("Rename…", systemImage: "pencil") {
             Task {
                 await store.selectPlaylist(playlist.id)

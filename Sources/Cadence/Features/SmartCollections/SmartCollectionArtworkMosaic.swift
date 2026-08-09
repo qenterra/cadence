@@ -5,38 +5,50 @@ struct SmartCollectionArtworkMosaic: View {
 
     let layout: SmartCollectionArtworkLayout
     let title: String
+    var artworkID: UUID?
 
     var body: some View {
         Group {
-            switch layout.kind {
-            case .empty:
-                emptyArtwork
-            case .single:
-                tile(at: 0)
-            case .split:
-                HStack(spacing: 1) {
+            if let artworkID {
+                ProductionArtworkView(
+                    model: model,
+                    artworkID: artworkID,
+                    title: title,
+                    placeholder: .smartCollection,
+                    variant: .original,
+                    cornerRadius: CadenceTheme.radiusGroup
+                )
+            } else {
+                switch layout.kind {
+                case .empty:
+                    emptyArtwork
+                case .single:
                     tile(at: 0)
-                    tile(at: 1)
-                }
-            case .trio:
-                HStack(spacing: 1) {
-                    tile(at: 0)
-
-                    VStack(spacing: 1) {
-                        tile(at: 1)
-                        tile(at: 2)
-                    }
-                }
-            case .grid:
-                VStack(spacing: 1) {
+                case .split:
                     HStack(spacing: 1) {
                         tile(at: 0)
                         tile(at: 1)
                     }
-
+                case .trio:
                     HStack(spacing: 1) {
-                        tile(at: 2)
-                        tile(at: 3)
+                        tile(at: 0)
+
+                        VStack(spacing: 1) {
+                            tile(at: 1)
+                            tile(at: 2)
+                        }
+                    }
+                case .grid:
+                    VStack(spacing: 1) {
+                        HStack(spacing: 1) {
+                            tile(at: 0)
+                            tile(at: 1)
+                        }
+
+                        HStack(spacing: 1) {
+                            tile(at: 2)
+                            tile(at: 3)
+                        }
                     }
                 }
             }

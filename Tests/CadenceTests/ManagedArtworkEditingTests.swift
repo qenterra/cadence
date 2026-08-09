@@ -40,6 +40,39 @@ struct ManagedArtworkEditingTests {
                 .customArtworkID == nil
         )
     }
+
+    @Test("Playlist and Smart Collection artwork use the managed edit pipeline")
+    func collectionOwnerParity() async throws {
+        for ownerKind in [
+            ArtworkOwnerKind.playlist,
+            ArtworkOwnerKind.smartCollection,
+        ] {
+            let fixture = try ManagedArtworkFixture()
+            defer { fixture.remove() }
+            let ownerID = try #require(fixture.ownerID(for: ownerKind))
+
+            let artworkID = try await fixture.service.setArtwork(
+                fixture.request(ownerKind: ownerKind, ownerID: ownerID)
+            )
+            #expect(
+                try await fixture.repository.artworkEditSnapshot(
+                    ownerKind: ownerKind,
+                    ownerID: ownerID
+                )?.id == artworkID
+            )
+
+            try await fixture.service.removeArtwork(
+                ownerKind: ownerKind,
+                ownerID: ownerID
+            )
+            #expect(
+                try await fixture.repository.artworkEditSnapshot(
+                    ownerKind: ownerKind,
+                    ownerID: ownerID
+                ) == nil
+            )
+        }
+    }
 }
 
 struct ManagedArtworkRecoveryTests {
@@ -151,6 +184,8 @@ private struct ManagedArtworkFixture {
     let service: ManagedArtworkService
     let store: ManagedArtworkEditManifestStore
     let albumID: UUID
+    let playlistID: UUID
+    let smartCollectionID: UUID
     let image: Data
 
     init() throws {
@@ -165,10 +200,21 @@ private struct ManagedArtworkFixture {
         let context = ModelContext(container)
         let artist = ArtistRecord(name: "Artwork Artist")
         let album = AlbumRecord(title: "Artwork Album", artist: artist)
+        let playlist = PlaylistRecord(name: "Artwork Playlist")
+        let smartCollection = SmartCollectionRecord(
+            name: "Artwork Mix",
+            ruleData: Data("fixture".utf8),
+            sortDescriptorRawValue: "canonical:ascending",
+            playbackPreferenceRawValue: "ordered"
+        )
         context.insert(artist)
         context.insert(album)
+        context.insert(playlist)
+        context.insert(smartCollection)
         try context.save()
         albumID = album.id
+        playlistID = playlist.id
+        smartCollectionID = smartCollection.id
         repository = LibraryRepository(modelContainer: container)
         service = ManagedArtworkService(
             package: package,
@@ -185,13 +231,40 @@ private struct ManagedArtworkFixture {
     }
 
     func request(scale: CGFloat) -> ManagedArtworkEditRequest {
-        ManagedArtworkEditRequest(
+        request(
             ownerKind: .album,
             ownerID: albumID,
+            scale: scale
+        )
+    }
+
+    func request(
+        ownerKind: ArtworkOwnerKind,
+        ownerID: UUID,
+        scale: CGFloat = 1
+    ) -> ManagedArtworkEditRequest {
+        ManagedArtworkEditRequest(
+            ownerKind: ownerKind,
+            ownerID: ownerID,
             data: image,
             scale: scale,
             normalizedOffset: .zero
         )
+    }
+
+    func ownerID(
+        for ownerKind: ArtworkOwnerKind
+    ) -> UUID? {
+        switch ownerKind {
+        case .album:
+            albumID
+        case .playlist:
+            playlistID
+        case .smartCollection:
+            smartCollectionID
+        case .artist, .track:
+            nil
+        }
     }
 
     func manifest(

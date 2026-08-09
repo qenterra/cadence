@@ -7,6 +7,8 @@ enum ArtworkTarget: Hashable, Sendable {
     case managedArtist(UUID)
     case managedAlbum(UUID)
     case managedTrack(UUID)
+    case managedPlaylist(UUID)
+    case managedSmartCollection(UUID)
 }
 
 enum ArtworkCropShape: Hashable, Sendable {
@@ -66,6 +68,8 @@ enum ArtworkPlaceholder: String, Hashable, Sendable {
     case artist
     case album
     case track
+    case playlist
+    case smartCollection
 
     var symbolName: String {
         switch self {
@@ -75,6 +79,10 @@ enum ArtworkPlaceholder: String, Hashable, Sendable {
             "square.stack.fill"
         case .track:
             "music.note"
+        case .playlist:
+            "music.note.list"
+        case .smartCollection:
+            "sparkles.rectangle.stack"
         }
     }
 }

@@ -9,7 +9,7 @@ extension LibraryStore {
         guard let artworkService, location != nil else {
             throw ManagedArtworkEditError.unavailableLibrary
         }
-        let previousArtworkID = currentArtworkID(
+        let previousArtworkID = await currentArtworkID(
             ownerKind: request.ownerKind,
             ownerID: request.ownerID
         )
@@ -17,6 +17,9 @@ extension LibraryStore {
         previousArtworkID.map { artworkAssetCache.invalidate(id: $0) }
         artworkAssetCache.invalidate(id: newArtworkID)
         await loadInitialLibrary()
+        if request.ownerKind == .playlist {
+            await loadPlaylists()
+        }
     }
 
     func removeArtwork(
@@ -27,7 +30,7 @@ extension LibraryStore {
         guard let artworkService, location != nil else {
             throw ManagedArtworkEditError.unavailableLibrary
         }
-        let previousArtworkID = currentArtworkID(
+        let previousArtworkID = await currentArtworkID(
             ownerKind: ownerKind,
             ownerID: ownerID
         )
@@ -37,6 +40,9 @@ extension LibraryStore {
         )
         previousArtworkID.map { artworkAssetCache.invalidate(id: $0) }
         await loadInitialLibrary()
+        if ownerKind == .playlist {
+            await loadPlaylists()
+        }
     }
 
     func recoverArtworkEdits() async throws -> ManagedArtworkRecoveryResult {
@@ -49,14 +55,25 @@ extension LibraryStore {
     private func currentArtworkID(
         ownerKind: ArtworkOwnerKind,
         ownerID: UUID
-    ) -> UUID? {
-        switch ownerKind {
+    ) async -> UUID? {
+        let cachedID: UUID? = switch ownerKind {
         case .artist:
             artists.first { $0.id == ownerID }?.customArtworkID
         case .album:
             albums.first { $0.id == ownerID }?.customArtworkID
         case .track:
             tracks.first { $0.id == ownerID }?.customArtworkID
+        case .playlist:
+            playlists.first { $0.id == ownerID }?.customArtworkID
+        case .smartCollection:
+            nil
         }
+        if let cachedID {
+            return cachedID
+        }
+        return try? await repository?.artworkEditSnapshot(
+            ownerKind: ownerKind,
+            ownerID: ownerID
+        )?.id
     }
 }

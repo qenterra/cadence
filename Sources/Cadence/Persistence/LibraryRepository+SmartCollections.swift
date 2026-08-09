@@ -41,6 +41,7 @@ extension LibraryRepository {
                 ]
             )
         )
+        let artworkIDs = try artworkIDs(ownerKind: .smartCollection)
         let decoder = JSONDecoder()
         return try records.map { record in
             let archive = try decoder.decode(
@@ -56,7 +57,8 @@ extension LibraryRepository {
                 id: record.id,
                 name: record.name,
                 rule: archive.root,
-                modifiedAt: record.modifiedAt
+                modifiedAt: record.modifiedAt,
+                customArtworkID: artworkIDs[record.id]
             )
         }
     }

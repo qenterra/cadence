@@ -2,6 +2,15 @@ import Foundation
 import SwiftData
 
 extension LibraryRepository {
+    func artistReleaseSections(
+        artistID: UUID
+    ) throws -> ArtistReleaseSections {
+        try ArtistReleaseSections.build(
+            artistID: artistID,
+            releases: albums(artistID: artistID)
+        )
+    }
+
     func albums(
         artistID: UUID,
         limit: Int = maximumPageSize

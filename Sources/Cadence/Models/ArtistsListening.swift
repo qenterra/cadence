@@ -175,6 +175,55 @@ struct ArtistTrackTableColumnWidths: Hashable, Sendable {
     }
 }
 
+struct ArtistReleaseSections: Hashable, Sendable {
+    let singles: [LibraryAlbumProjection]
+    let eps: [LibraryAlbumProjection]
+    let albums: [LibraryAlbumProjection]
+    let appearsOn: [LibraryAlbumProjection]
+
+    static let empty = ArtistReleaseSections(
+        singles: [],
+        eps: [],
+        albums: [],
+        appearsOn: []
+    )
+
+    static func build(
+        artistID: UUID,
+        releases: [LibraryAlbumProjection]
+    ) -> Self {
+        let unique = Dictionary(
+            releases.map { ($0.id, $0) },
+            uniquingKeysWith: { first, _ in first }
+        ).values
+        let owned = unique.filter { $0.artistID == artistID }
+        let appearsOn = unique.filter { $0.artistID != artistID }
+        return ArtistReleaseSections(
+            singles: sorted(owned.filter { $0.releaseKind == .single }),
+            eps: sorted(owned.filter { $0.releaseKind == .ep }),
+            albums: sorted(owned.filter { $0.releaseKind == .album }),
+            appearsOn: sorted(appearsOn)
+        )
+    }
+
+    private static func sorted(
+        _ releases: some Sequence<LibraryAlbumProjection>
+    ) -> [LibraryAlbumProjection] {
+        releases.sorted { lhs, rhs in
+            let lhsYear = lhs.year ?? .min
+            let rhsYear = rhs.year ?? .min
+            if lhsYear != rhsYear {
+                return lhsYear > rhsYear
+            }
+            let titleOrder = lhs.title.localizedStandardCompare(rhs.title)
+            if titleOrder != .orderedSame {
+                return titleOrder == .orderedAscending
+            }
+            return lhs.id.uuidString < rhs.id.uuidString
+        }
+    }
+}
+
 enum ArtistListeningProjection {
     static func sortedArtists(
         _ artists: [ArtistPreview],

@@ -85,6 +85,13 @@ struct ProductionAlbumDetailView: View {
                 cornerRadius: CadenceTheme.radiusPanel
             )
             .frame(width: 210, height: 210)
+            .contextMenu {
+                ArtworkMenuItems(
+                    model: model,
+                    target: .managedAlbum(album.id),
+                    label: "Album Artwork"
+                )
+            }
 
             VStack(alignment: .leading, spacing: 8) {
                 Text("ALBUM")

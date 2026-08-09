@@ -59,8 +59,10 @@ final class ArtworkRecord {
     }
 }
 
-enum ArtworkOwnerKind: String, Codable, Sendable {
+enum ArtworkOwnerKind: String, CaseIterable, Codable, Sendable {
     case artist
     case album
     case track
+    case playlist
+    case smartCollection
 }

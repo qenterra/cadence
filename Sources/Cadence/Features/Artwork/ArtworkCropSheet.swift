@@ -148,6 +148,10 @@ struct ArtworkCropSheet: View {
             "Album Artwork"
         case .track, .managedTrack:
             "Track Artwork"
+        case .managedPlaylist:
+            "Playlist Artwork"
+        case .managedSmartCollection:
+            "Collection Artwork"
         }
     }
 

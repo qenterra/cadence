@@ -252,7 +252,7 @@ private struct ArtworkPlaceholderView: View {
         switch kind {
         case .artist:
             0.2
-        case .album:
+        case .album, .playlist, .smartCollection:
             0.26
         case .track:
             0.3

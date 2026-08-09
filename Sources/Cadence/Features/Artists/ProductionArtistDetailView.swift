@@ -6,7 +6,7 @@ struct ProductionArtistDetailView: View {
     let artistID: UUID
 
     @State private var artist: LibraryArtistProjection?
-    @State private var albums: [LibraryAlbumProjection] = []
+    @State private var releases = ArtistReleaseSections.empty
     @State private var tracks: [LibraryTrackProjection] = []
     @State private var isLoading = true
 
@@ -18,18 +18,20 @@ struct ProductionArtistDetailView: View {
                         backButton
                         header(artist)
                         CadenceSeparator()
-                        if !albums.isEmpty {
-                            Text("Albums")
-                                .font(.title2.bold())
-                            albumGrid
-                            CadenceSeparator()
-                        }
-                        Text("Tracks")
+                        releaseSection("Singles", releases.singles)
+                        releaseSection("EPs", releases.eps)
+                        releaseSection("Albums", releases.albums)
+                        releaseSection("Appears On", releases.appearsOn)
+                        Text("All Tracks")
                             .font(.title2.bold())
                         ProductionTrackList(
                             model: model,
                             tracks: tracks,
-                            context: .artist(artistID)
+                            context: .artist(artistID),
+                            defaultSortDescriptor: TrackTableSortDescriptor(
+                                field: .year,
+                                direction: .descending
+                            )
                         )
                         .frame(
                             height: min(
@@ -50,16 +52,22 @@ struct ProductionArtistDetailView: View {
         .task(id: artistID) {
             isLoading = true
             async let loadedArtist = store.artist(id: artistID)
-            async let loadedAlbums = store.albums(artistID: artistID)
+            async let loadedReleases = store.artistReleaseSections(
+                artistID: artistID
+            )
             async let loadedTracks = store.tracks(artistID: artistID)
             artist = await loadedArtist
-            albums = await loadedAlbums
+            releases = await loadedReleases
             tracks = await loadedTracks
             isLoading = false
         }
     }
+}
 
-    private var albumGrid: some View {
+private extension ProductionArtistDetailView {
+    private func albumGrid(
+        _ albums: [LibraryAlbumProjection]
+    ) -> some View {
         LazyVGrid(
             columns: [
                 GridItem(.adaptive(minimum: 170), spacing: 16),
@@ -70,6 +78,19 @@ struct ProductionArtistDetailView: View {
             ForEach(albums) { album in
                 albumTile(album)
             }
+        }
+    }
+
+    @ViewBuilder
+    private func releaseSection(
+        _ title: String,
+        _ albums: [LibraryAlbumProjection]
+    ) -> some View {
+        if !albums.isEmpty {
+            Text(title)
+                .font(.title2.bold())
+            albumGrid(albums)
+            CadenceSeparator()
         }
     }
 
@@ -138,6 +159,13 @@ struct ProductionArtistDetailView: View {
             )
             .frame(width: 190, height: 190)
             .clipShape(Circle())
+            .contextMenu {
+                ArtworkMenuItems(
+                    model: model,
+                    target: .managedArtist(artist.id),
+                    label: "Artist Image"
+                )
+            }
 
             VStack(alignment: .leading, spacing: 8) {
                 Text("ARTIST")

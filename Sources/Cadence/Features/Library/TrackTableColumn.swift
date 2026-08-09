@@ -19,7 +19,7 @@ enum TrackTableColumn: String, CaseIterable, Identifiable, Codable, Sendable {
         }
     }
 
-    static let defaultVisible: [Self] = [.album, .time]
+    static let defaultVisible: [Self] = [.album, .year, .time]
 
     static var defaultRawValue: String {
         encode(defaultVisible)
@@ -44,5 +44,17 @@ enum TrackTableColumn: String, CaseIterable, Identifiable, Codable, Sendable {
             .filter(values.contains)
             .map(\.rawValue)
             .joined(separator: ",")
+    }
+
+    static func migrateDefaults(
+        rawValue: String,
+        version: Int
+    ) -> (rawValue: String, version: Int) {
+        guard version < 1 else {
+            return (rawValue, version)
+        }
+        var columns = Set(decode(rawValue))
+        columns.insert(.year)
+        return (encode(columns), 1)
     }
 }

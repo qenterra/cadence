@@ -73,7 +73,8 @@ enum LibraryProjectionFactory {
             totalDuration: album.totalDuration,
             isFavorite: album.isFavorite,
             favoriteDate: album.favoriteDate,
-            customArtworkID: album.customArtworkID
+            customArtworkID: album.customArtworkID,
+            releaseKind: ReleaseKind.classify(album: album)
         )
     }
 

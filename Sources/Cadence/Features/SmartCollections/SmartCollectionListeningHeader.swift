@@ -11,9 +11,13 @@ struct SmartCollectionListeningHeader: View {
                 SmartCollectionArtworkMosaic(
                     model: model,
                     layout: model.selectedSmartCollectionArtwork,
-                    title: collection.name
+                    title: collection.name,
+                    artworkID: collection.customArtworkID
                 )
                 .frame(width: 168)
+                .contextMenu {
+                    collectionArtworkMenu(collection.id)
+                }
 
                 VStack(alignment: .leading, spacing: 0) {
                     Text("SMART COLLECTION")
@@ -103,6 +107,12 @@ struct SmartCollectionListeningHeader: View {
                     model.requestRenameSmartCollection(collectionID)
                 }
 
+                ArtworkMenuItems(
+                    model: model,
+                    target: .managedSmartCollection(collectionID),
+                    label: "Collection Artwork"
+                )
+
                 Divider()
 
                 Button("Delete", systemImage: "trash", role: .destructive) {
@@ -117,6 +127,16 @@ struct SmartCollectionListeningHeader: View {
         .frame(width: 30)
         .help("More collection actions")
         .accessibilityLabel("More collection actions")
+    }
+
+    private func collectionArtworkMenu(
+        _ collectionID: UUID
+    ) -> some View {
+        ArtworkMenuItems(
+            model: model,
+            target: .managedSmartCollection(collectionID),
+            label: "Collection Artwork"
+        )
     }
 
     private var smartCollectionTagTitles: [String: String] {

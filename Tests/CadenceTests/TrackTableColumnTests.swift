@@ -2,15 +2,15 @@
 import Testing
 
 struct TrackTableColumnTests {
-    @Test("Track tables default to Song, Album, and Time")
+    @Test("Track tables default to Song, Album, Year, and Time")
     func defaultColumns() {
         #expect(
-            TrackTableColumn.defaultVisible == [.album, .time]
+            TrackTableColumn.defaultVisible == [.album, .year, .time]
         )
         #expect(
             TrackTableColumn.decode(
                 TrackTableColumn.defaultRawValue
-            ) == [.album, .time]
+            ) == [.album, .year, .time]
         )
     }
 
@@ -29,6 +29,26 @@ struct TrackTableColumnTests {
         #expect(
             TrackTableColumn.decode(encoded)
                 == [.album, .year, .dateAdded, .playCount, .time]
+        )
+    }
+
+    @Test("Existing installations receive the Year column once")
+    func defaultMigration() {
+        let migrated = TrackTableColumn.migrateDefaults(
+            rawValue: TrackTableColumn.encode([.album, .time]),
+            version: 0
+        )
+
+        #expect(
+            TrackTableColumn.decode(migrated.rawValue)
+                == [.album, .year, .time]
+        )
+        #expect(migrated.version == 1)
+        #expect(
+            TrackTableColumn.migrateDefaults(
+                rawValue: TrackTableColumn.encode([.album]),
+                version: 1
+            ).rawValue == TrackTableColumn.encode([.album])
         )
     }
 }

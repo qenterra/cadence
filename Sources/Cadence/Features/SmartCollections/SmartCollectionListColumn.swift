@@ -121,6 +121,12 @@ private struct SmartCollectionListRow: View {
                     model.requestRenameSmartCollection(item.id)
                 }
 
+                ArtworkMenuItems(
+                    model: model,
+                    target: .managedSmartCollection(item.id),
+                    label: "Collection Artwork"
+                )
+
                 Divider()
 
                 Button("Delete", systemImage: "trash", role: .destructive) {

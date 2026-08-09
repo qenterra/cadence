@@ -37,6 +37,25 @@ struct ManagedArtworkEditRequest: Sendable {
 }
 
 extension LibraryRepository {
+    func artworkIDs(
+        ownerKind: ArtworkOwnerKind
+    ) throws -> [UUID: UUID] {
+        let rawKind = ownerKind.rawValue
+        let predicate = #Predicate<ArtworkRecord> {
+            $0.ownerKindRawValue == rawKind
+        }
+        let records = try modelContext.fetch(
+            FetchDescriptor(predicate: predicate)
+        )
+        var ids: [UUID: UUID] = [:]
+        for record in records {
+            guard ids.updateValue(record.id, forKey: record.ownerID) == nil else {
+                throw ManagedArtworkEditError.inconsistentMetadata
+            }
+        }
+        return ids
+    }
+
     func artworkEditSnapshot(
         ownerKind: ArtworkOwnerKind,
         ownerID: UUID
@@ -134,6 +153,27 @@ private extension LibraryRepository {
                 throw ManagedArtworkEditError.missingOwner
             }
             return owner.customArtworkID
+        case .playlist:
+            let predicate = #Predicate<PlaylistRecord> { $0.id == ownerID }
+            guard let owner = try modelContext.fetch(
+                FetchDescriptor(predicate: predicate)
+            ).first else {
+                throw ManagedArtworkEditError.missingOwner
+            }
+            return owner.customArtworkID
+        case .smartCollection:
+            let predicate = #Predicate<SmartCollectionRecord> {
+                $0.id == ownerID
+            }
+            guard try !modelContext.fetch(
+                FetchDescriptor(predicate: predicate)
+            ).isEmpty else {
+                throw ManagedArtworkEditError.missingOwner
+            }
+            return try ownerArtworkRecord(
+                ownerKind: ownerKind,
+                ownerID: ownerID
+            )?.id
         }
     }
 
@@ -167,7 +207,41 @@ private extension LibraryRepository {
                 throw ManagedArtworkEditError.missingOwner
             }
             owner.customArtworkID = artworkID
+        case .playlist:
+            let predicate = #Predicate<PlaylistRecord> { $0.id == ownerID }
+            guard let owner = try modelContext.fetch(
+                FetchDescriptor(predicate: predicate)
+            ).first else {
+                throw ManagedArtworkEditError.missingOwner
+            }
+            owner.customArtworkID = artworkID
+        case .smartCollection:
+            let predicate = #Predicate<SmartCollectionRecord> {
+                $0.id == ownerID
+            }
+            guard try !modelContext.fetch(
+                FetchDescriptor(predicate: predicate)
+            ).isEmpty else {
+                throw ManagedArtworkEditError.missingOwner
+            }
         }
+    }
+
+    func ownerArtworkRecord(
+        ownerKind: ArtworkOwnerKind,
+        ownerID: UUID
+    ) throws -> ArtworkRecord? {
+        let rawKind = ownerKind.rawValue
+        let predicate = #Predicate<ArtworkRecord> {
+            $0.ownerKindRawValue == rawKind && $0.ownerID == ownerID
+        }
+        var descriptor = FetchDescriptor(predicate: predicate)
+        descriptor.fetchLimit = 2
+        let records = try modelContext.fetch(descriptor)
+        guard records.count < 2 else {
+            throw ManagedArtworkEditError.inconsistentMetadata
+        }
+        return records.first
     }
 
     func artworkRecord(id: UUID) throws -> ArtworkRecord? {

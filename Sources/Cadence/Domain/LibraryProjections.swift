@@ -141,6 +141,7 @@ struct LibraryAlbumProjection: Identifiable, Hashable, Sendable {
     let isFavorite: Bool
     let favoriteDate: Date?
     let customArtworkID: UUID?
+    let releaseKind: ReleaseKind
 }
 
 struct LibraryTagProjection: Identifiable, Hashable, Sendable {

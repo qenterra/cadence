@@ -17,11 +17,15 @@ struct ProductionTrackTable: View {
     var virtualWindow: LibraryTrackWindow?
     var repositorySortAction: ((LibraryTrackSort) async -> Void)?
     var selection: Binding<Set<UUID>>?
+    var defaultSortDescriptor: TrackTableSortDescriptor?
 
     @State private var localSelection: Set<UUID> = []
+    @State private var usesDefaultSort = true
 
     @AppStorage("trackTable.visibleColumns")
     private var visibleColumnsRaw = TrackTableColumn.defaultRawValue
+    @AppStorage("trackTable.columnDefaultsVersion")
+    private var columnDefaultsVersion = 0
     @AppStorage("trackTable.sortField")
     private var sortFieldRaw = TrackTableSortField.song.rawValue
     @AppStorage("trackTable.sortDirection")
@@ -90,6 +94,14 @@ struct ProductionTrackTable: View {
         .task(id: repositorySort) {
             await repositorySortAction?(repositorySort)
         }
+        .task {
+            let migrated = TrackTableColumn.migrateDefaults(
+                rawValue: visibleColumnsRaw,
+                version: columnDefaultsVersion
+            )
+            visibleColumnsRaw = migrated.rawValue
+            columnDefaultsVersion = migrated.version
+        }
         .onChange(of: displayedTracks.map(\.id), initial: true) {
             guard virtualWindow == nil else {
                 return
@@ -100,6 +112,7 @@ struct ProductionTrackTable: View {
         }
         .onChange(of: context) {
             selectedTrackIDs.wrappedValue = []
+            usesDefaultSort = true
         }
     }
 }
@@ -113,7 +126,7 @@ private extension ProductionTrackTable {
         guard repositorySortAction == nil else {
             return tracks
         }
-        return sortDescriptor.sorted(tracks)
+        return effectiveSortDescriptor.sorted(tracks)
     }
 
     var selectedTrackIDs: Binding<Set<UUID>> {
@@ -132,7 +145,7 @@ private extension ProductionTrackTable {
     }
 
     var repositorySort: LibraryTrackSort {
-        let field: LibraryTrackSortField = switch sortDescriptor.field {
+        let field: LibraryTrackSortField = switch effectiveSortDescriptor.field {
         case .song: .song
         case .album: .album
         case .year: .year
@@ -142,7 +155,7 @@ private extension ProductionTrackTable {
         }
         return LibraryTrackSort(
             field: field,
-            direction: sortDescriptor.direction == .ascending
+            direction: effectiveSortDescriptor.direction == .ascending
                 ? .ascending
                 : .descending
         )
@@ -155,6 +168,13 @@ private extension ProductionTrackTable {
                 rawValue: sortDirectionRaw
             ) ?? .ascending
         )
+    }
+
+    var effectiveSortDescriptor: TrackTableSortDescriptor {
+        if usesDefaultSort, let defaultSortDescriptor {
+            return defaultSortDescriptor
+        }
+        return sortDescriptor
     }
 
     func header(
@@ -227,8 +247,8 @@ private extension ProductionTrackTable {
             alignment: field == .song || field == .album
                 ? .leading
                 : .trailing,
-            isSorted: sortDescriptor.field == field,
-            direction: sortDescriptor.direction,
+            isSorted: effectiveSortDescriptor.field == field,
+            direction: effectiveSortDescriptor.direction,
             minimumWidth: range.minimum,
             maximumWidth: range.maximum,
             resolvedWidth: resolvedWidth,
@@ -238,8 +258,10 @@ private extension ProductionTrackTable {
     }
 
     func activateSort(_ field: TrackTableSortField) {
-        var direction = sortDescriptor.direction
-        if sortDescriptor.field == field {
+        let current = effectiveSortDescriptor
+        usesDefaultSort = false
+        var direction = current.direction
+        if current.field == field {
             direction.toggle()
         } else {
             direction = .ascending

@@ -3,6 +3,46 @@ import Foundation
 import Testing
 
 struct ArtistsListeningDomainTests {
+    @Test("Owned releases are classified while credited releases appear separately")
+    func releaseOwnershipSections() {
+        let artistID = UUID()
+        let otherArtistID = UUID()
+        let single = release(
+            title: "Signal",
+            artistID: artistID,
+            year: 2026,
+            kind: .single
+        )
+        let ep = release(
+            title: "Night Drive",
+            artistID: artistID,
+            year: 2025,
+            kind: .ep
+        )
+        let album = release(
+            title: "Static",
+            artistID: artistID,
+            year: 2024,
+            kind: .album
+        )
+        let featured = release(
+            title: "Guest Signal",
+            artistID: otherArtistID,
+            year: 2027,
+            kind: .album
+        )
+
+        let sections = ArtistReleaseSections.build(
+            artistID: artistID,
+            releases: [album, featured, single, ep]
+        )
+
+        #expect(sections.singles.map(\.id) == [single.id])
+        #expect(sections.eps.map(\.id) == [ep.id])
+        #expect(sections.albums.map(\.id) == [album.id])
+        #expect(sections.appearsOn.map(\.id) == [featured.id])
+    }
+
     @Test("Artist sorting uses approved defaults and deterministic ties")
     func sorting() {
         let artists = [
@@ -162,6 +202,30 @@ struct ArtistsListeningDomainTests {
         #expect(columns.title >= 188)
         #expect(columns.album >= 172)
         #expect(abs(columns.total - 900) < 0.001)
+    }
+}
+
+private extension ArtistsListeningDomainTests {
+    func release(
+        title: String,
+        artistID: UUID,
+        year: Int,
+        kind: ReleaseKind
+    ) -> LibraryAlbumProjection {
+        LibraryAlbumProjection(
+            id: UUID(),
+            title: title,
+            artistID: artistID,
+            artist: "Artist",
+            year: year,
+            dateAdded: .now,
+            trackCount: 1,
+            totalDuration: 180,
+            isFavorite: false,
+            favoriteDate: nil,
+            customArtworkID: nil,
+            releaseKind: kind
+        )
     }
 }
 

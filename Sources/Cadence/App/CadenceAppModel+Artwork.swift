@@ -74,6 +74,9 @@ extension CadenceAppModel {
                         location: librarySession.location
                     )
                     artworkRevision += 1
+                    if managed.kind == .smartCollection {
+                        await loadPersistedSmartCollections()
+                    }
                 } catch {
                     artworkImportError = error.localizedDescription
                 }
@@ -107,6 +110,9 @@ extension CadenceAppModel {
                         location: librarySession.location
                     )
                     artworkRevision += 1
+                    if managed.kind == .smartCollection {
+                        await loadPersistedSmartCollections()
+                    }
                 } catch {
                     artworkImportError = error.localizedDescription
                 }
@@ -208,7 +214,8 @@ extension CadenceAppModel {
             albums.contains { $0.id == id }
         case let .track(id):
             tracks.contains { $0.id == id }
-        case .managedArtist, .managedAlbum, .managedTrack:
+        case .managedArtist, .managedAlbum, .managedTrack,
+             .managedPlaylist, .managedSmartCollection:
             false
         }
     }
@@ -238,7 +245,8 @@ extension CadenceAppModel {
                 return nil
             }
             return (track.title, .square)
-        case .managedArtist, .managedAlbum, .managedTrack:
+        case .managedArtist, .managedAlbum, .managedTrack,
+             .managedPlaylist, .managedSmartCollection:
             return nil
         }
     }
@@ -269,6 +277,20 @@ extension CadenceAppModel {
                 return nil
             }
             return (track.title, .square)
+        case .playlist:
+            guard let playlist = librarySession.store.playlists.first(
+                where: { $0.id == id }
+            ) else {
+                return nil
+            }
+            return (playlist.name, .square)
+        case .smartCollection:
+            guard let collection = smartCollections.first(
+                where: { $0.id == id }
+            ) else {
+                return nil
+            }
+            return (collection.name, .square)
         }
     }
 
@@ -283,6 +305,10 @@ extension CadenceAppModel {
             librarySession.store.albums.contains { $0.id == id }
         case .track:
             librarySession.store.tracks.contains { $0.id == id }
+        case .playlist:
+            librarySession.store.playlists.contains { $0.id == id }
+        case .smartCollection:
+            smartCollections.contains { $0.id == id }
         }
     }
 
@@ -300,6 +326,11 @@ extension CadenceAppModel {
         case .track:
             librarySession.store.tracks.first { $0.id == id }?
                 .customArtworkID
+        case .playlist:
+            librarySession.store.playlists.first { $0.id == id }?
+                .customArtworkID
+        case .smartCollection:
+            smartCollections.first { $0.id == id }?.customArtworkID
         }
     }
 }
@@ -317,6 +348,10 @@ private extension ArtworkTarget {
             (.album, id)
         case let .managedTrack(id):
             (.track, id)
+        case let .managedPlaylist(id):
+            (.playlist, id)
+        case let .managedSmartCollection(id):
+            (.smartCollection, id)
         case .artist, .album, .track:
             nil
         }

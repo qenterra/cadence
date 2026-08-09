@@ -42,6 +42,14 @@ extension LibraryStore {
         await (try? repository?.albums(artistID: artistID)) ?? []
     }
 
+    func artistReleaseSections(
+        artistID: UUID
+    ) async -> ArtistReleaseSections {
+        await (
+            try? repository?.artistReleaseSections(artistID: artistID)
+        ) ?? .empty
+    }
+
     func tracks(tagID: UUID) async -> [LibraryTrackProjection] {
         await (try? repository?.tracks(tagID: tagID).items) ?? []
     }
