@@ -115,13 +115,14 @@ final class PlaybackCoordinator {
     }
 
     func play() {
-        guard state.currentTrack != nil,
-              state.failure == nil
-        else {
+        guard state.currentTrack != nil else {
             return
         }
         if routeFailureIsActive {
             retryAudioRouteAndPlay()
+            return
+        }
+        guard state.failure == nil else {
             return
         }
         activeBackend?.play()

@@ -662,6 +662,9 @@
     "Next Line" : {
 
     },
+    "Next Track" : {
+
+    },
     "Next transition is gapless-capable" : {
 
     },
@@ -761,6 +764,12 @@
     "Play a track to create a playback queue." : {
 
     },
+    "Play or Pause" : {
+
+    },
+    "Playback" : {
+
+    },
     "Playback Queue" : {
 
     },
@@ -792,6 +801,9 @@
 
     },
     "Previous Line" : {
+
+    },
+    "Previous Track" : {
 
     },
     "Quality Profile" : {
@@ -894,6 +906,9 @@
 
     },
     "Scanning Music" : {
+
+    },
+    "Search Shortcuts" : {
 
     },
     "Search Tracks" : {
@@ -1005,6 +1020,9 @@
     "Technical Details" : {
 
     },
+    "Text fields, menus, sheets, and editors keep their local keyboard behavior." : {
+
+    },
     "The clipboard does not contain a valid line-level LRC document." : {
 
     },
@@ -1075,6 +1093,12 @@
 
     },
     "Volume" : {
+
+    },
+    "Volume Down" : {
+
+    },
+    "Volume Up" : {
 
     },
     "Year" : {

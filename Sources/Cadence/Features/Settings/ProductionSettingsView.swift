@@ -94,6 +94,8 @@ struct ProductionSettingsView: View {
                     hiddenRawValue: $hiddenNavigationRawValue
                 )
 
+                ShortcutsSettingsView()
+
                 SettingsAboutSection()
             }
             .frame(maxWidth: 760, alignment: .leading)

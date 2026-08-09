@@ -155,12 +155,55 @@ struct CadenceRootView: View {
             model.shutdownPlayback()
         }
         .onKeyPress(.space, phases: .down) { _ in
-            model.handlePlaybackShortcut() ? .handled : .ignored
+            commandResult(.togglePlayback)
+        }
+        .onKeyPress(.leftArrow, phases: .down) { keyPress in
+            commandResult(
+                .previousTrack,
+                keyPress: keyPress,
+                requiredModifiers: .command
+            )
+        }
+        .onKeyPress(.rightArrow, phases: .down) { keyPress in
+            commandResult(
+                .nextTrack,
+                keyPress: keyPress,
+                requiredModifiers: .command
+            )
+        }
+        .onKeyPress(.upArrow, phases: .down) { keyPress in
+            commandResult(
+                .volumeUp,
+                keyPress: keyPress,
+                requiredModifiers: .command
+            )
+        }
+        .onKeyPress(.downArrow, phases: .down) { keyPress in
+            commandResult(
+                .volumeDown,
+                keyPress: keyPress,
+                requiredModifiers: .command
+            )
         }
     }
 }
 
 private extension CadenceRootView {
+    private func commandResult(
+        _ command: AppCommand,
+        keyPress: KeyPress? = nil,
+        requiredModifiers: EventModifiers = []
+    ) -> KeyPress.Result {
+        if let keyPress,
+           keyPress.modifiers != requiredModifiers {
+            return .ignored
+        }
+        return AppCommandRouter(model: model).handle(
+            command,
+            focus: .none
+        ) ? .handled : .ignored
+    }
+
     private var navigationSelection: Binding<NavigationDestination> {
         Binding(
             get: { model.selectedDestination },

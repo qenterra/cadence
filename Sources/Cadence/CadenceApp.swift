@@ -28,6 +28,51 @@ struct CadenceApp: App {
         .defaultSize(width: 1512, height: 982)
         .windowToolbarStyle(.unifiedCompact(showsTitle: false))
         .commands {
+            CommandMenu("Playback") {
+                Button("Play or Pause") {
+                    AppCommandRouter(model: model).handle(
+                        .togglePlayback,
+                        focus: .none
+                    )
+                }
+
+                Divider()
+
+                Button("Previous Track") {
+                    AppCommandRouter(model: model).handle(
+                        .previousTrack,
+                        focus: .none
+                    )
+                }
+                .keyboardShortcut(.leftArrow, modifiers: .command)
+
+                Button("Next Track") {
+                    AppCommandRouter(model: model).handle(
+                        .nextTrack,
+                        focus: .none
+                    )
+                }
+                .keyboardShortcut(.rightArrow, modifiers: .command)
+
+                Divider()
+
+                Button("Volume Up") {
+                    AppCommandRouter(model: model).handle(
+                        .volumeUp,
+                        focus: .none
+                    )
+                }
+                .keyboardShortcut(.upArrow, modifiers: .command)
+
+                Button("Volume Down") {
+                    AppCommandRouter(model: model).handle(
+                        .volumeDown,
+                        focus: .none
+                    )
+                }
+                .keyboardShortcut(.downArrow, modifiers: .command)
+            }
+
             CommandMenu("Import") {
                 Button("Choose Folder") {
                     model.chooseImportFolder()
