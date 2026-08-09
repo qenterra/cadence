@@ -299,6 +299,9 @@ private extension LibraryRelocator {
     func regularFiles(
         in root: URL
     ) throws -> [URL] {
+        let derivedSearchPath = root
+            .appending(path: "Metadata/Search.sqlite")
+            .standardizedFileURL.path
         guard let enumerator = fileManager.enumerator(
             at: root,
             includingPropertiesForKeys: [.isRegularFileKey],
@@ -308,6 +311,9 @@ private extension LibraryRelocator {
         }
         return try enumerator.compactMap { element in
             guard let url = element as? URL else { return nil }
+            guard !url.standardizedFileURL.path.hasPrefix(derivedSearchPath) else {
+                return nil
+            }
             return try url.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile == true
                 ? url
                 : nil

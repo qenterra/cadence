@@ -218,6 +218,15 @@ private extension CadenceRootView {
             NowPlayingView(model: model)
         case .lyricsEditor:
             LyricsEditorView(model: model)
+        case .lyricsSearch:
+            if let target = model.lyricsSearchTarget {
+                LyricsSearchPreviewView(
+                    model: model,
+                    target: target
+                )
+            } else {
+                destinationContent
+            }
         case .hidden:
             destinationContent
         }

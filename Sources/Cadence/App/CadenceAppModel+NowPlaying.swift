@@ -76,6 +76,8 @@ extension CadenceAppModel {
             dismissNowPlaying()
         case .lyricsEditor:
             requestCloseLyricsEditor()
+        case .lyricsSearch:
+            dismissLyricsSearchResult()
         }
     }
 
@@ -136,6 +138,7 @@ extension CadenceAppModel {
             isLoadingLyricDraft = false
             lyricLoadRequestID = nil
             lyricPersistenceError = nil
+            lyricsSearchTarget = nil
             playbackWorkspace = .hidden
             requestNavigationDestination(destination)
         case let .nowPlayingPanel(panel):
@@ -160,5 +163,17 @@ extension CadenceAppModel {
             replaceLyricDraftForCurrentTrack()
             playbackWorkspace = .lyricsEditor
         }
+    }
+
+    func presentLyricsSearchResult(
+        _ result: LyricsCatalogSearchResult
+    ) {
+        lyricsSearchTarget = result
+        playbackWorkspace = .lyricsSearch
+    }
+
+    func dismissLyricsSearchResult() {
+        lyricsSearchTarget = nil
+        playbackWorkspace = .hidden
     }
 }

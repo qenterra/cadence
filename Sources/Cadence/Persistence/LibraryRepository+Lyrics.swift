@@ -63,6 +63,12 @@ extension LibraryRepository {
         }
     }
 
+    func allLyricMetadata() throws -> [ManagedLyricMetadata] {
+        try modelContext.fetch(
+            FetchDescriptor<LyricRecord>()
+        ).map(lyricMetadata)
+    }
+
     func applyLyricMutation(
         trackID: UUID,
         mutation: ManagedLyricMutation
@@ -127,5 +133,19 @@ extension LibraryRepository {
         var descriptor = FetchDescriptor(predicate: predicate)
         descriptor.fetchLimit = 1
         return try modelContext.fetch(descriptor).first
+    }
+
+    private func lyricMetadata(
+        _ record: LyricRecord
+    ) -> ManagedLyricMetadata {
+        ManagedLyricMetadata(
+            trackID: record.trackID,
+            relativePath: record.relativePath,
+            textEncoding: record.textEncoding,
+            parsingStatus: record.parsingStatus,
+            timingStatus: record.timingStatus,
+            contentHash: record.contentHash,
+            modifiedAt: record.modifiedAt
+        )
     }
 }

@@ -195,10 +195,20 @@ enum CatalogSearchGroup: String, CaseIterable, Hashable, Identifiable, Sendable 
     case albums
     case tags
     case tracks
+    case lyrics
 
     var id: Self {
         self
     }
+}
+
+struct LyricsCatalogSearchResult: Identifiable, Hashable, Sendable {
+    var id: UUID {
+        track.id
+    }
+
+    let track: LibraryTrackProjection
+    let match: LyricsSearchMatch
 }
 
 struct CatalogSearchResults: Equatable, Sendable {
@@ -206,6 +216,7 @@ struct CatalogSearchResults: Equatable, Sendable {
     var albums: [LibraryAlbumProjection]
     var artists: [LibraryArtistProjection]
     var tags: [LibraryTagProjection]
+    var lyrics: [LyricsCatalogSearchResult]
     var trackCursor: LibraryPageCursor?
     var albumCursor: LibraryPageCursor?
     var artistCursor: LibraryPageCursor?
@@ -216,6 +227,7 @@ struct CatalogSearchResults: Equatable, Sendable {
         albums: [],
         artists: [],
         tags: [],
+        lyrics: [],
         trackCursor: nil,
         albumCursor: nil,
         artistCursor: nil,
@@ -227,6 +239,7 @@ struct CatalogSearchResults: Equatable, Sendable {
             && albums.isEmpty
             && artists.isEmpty
             && tags.isEmpty
+            && lyrics.isEmpty
     }
 
     func hasMore(_ group: CatalogSearchGroup) -> Bool {
@@ -235,6 +248,7 @@ struct CatalogSearchResults: Equatable, Sendable {
         case .albums: albumCursor != nil
         case .tags: tagCursor != nil
         case .tracks: trackCursor != nil
+        case .lyrics: false
         }
     }
 }

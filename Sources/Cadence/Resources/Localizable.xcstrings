@@ -220,6 +220,9 @@
     "Back to Now Playing" : {
 
     },
+    "Back to Search" : {
+
+    },
     "Browse a tag or use the editor to assign one." : {
 
     },
@@ -530,6 +533,9 @@
     "Import music to start listening" : {
 
     },
+    "Indexing Lyrics…" : {
+
+    },
     "Inherited" : {
 
     },
@@ -581,6 +587,9 @@
     "Loading Library" : {
 
     },
+    "Loading Lyrics" : {
+
+    },
     "Loading Lyrics…" : {
 
     },
@@ -613,6 +622,25 @@
     },
     "Lyrics Editor" : {
 
+    },
+    "Lyrics Matches" : {
+
+    },
+    "Lyrics Search Unavailable" : {
+
+    },
+    "Lyrics Unavailable" : {
+
+    },
+    "Lyrics match in %@ by %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Lyrics match in %1$@ by %2$@"
+          }
+        }
+      }
     },
     "Managed audio, artwork, and lyrics in Trash cannot be recovered." : {
 
@@ -740,6 +768,9 @@
     "Open Existing Library" : {
 
     },
+    "Open Lyrics" : {
+
+    },
     "Open Sound Settings…" : {
 
     },
@@ -786,6 +817,9 @@
 
     },
     "Play a track to create a playback queue." : {
+
+    },
+    "Play from Beginning" : {
 
     },
     "Play or Pause" : {
@@ -1042,6 +1076,9 @@
 
     },
     "The clipboard does not contain a valid line-level LRC document." : {
+
+    },
+    "The matching lyric file could not be opened." : {
 
     },
     "This Smart Collection has unsaved changes." : {

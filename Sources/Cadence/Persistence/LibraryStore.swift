@@ -47,12 +47,21 @@ struct ProductionSmartCollectionStoreResult: Sendable {
     var nextOffset: Int?
 }
 
+enum LyricsSearchIndexState: Equatable, Sendable {
+    case unavailable
+    case idle
+    case indexing
+    case ready
+    case failed(String)
+}
+
 @MainActor
 @Observable
 final class LibraryStore {
     private(set) var repository: LibraryRepository?
     private(set) var lyricsService: ManagedLyricsService?
     private(set) var artworkService: ManagedArtworkService?
+    @ObservationIgnored var lyricsSearchIndexer: LyricsSearchIndexer?
     var trackCursor: LibraryPageCursor?
     var trackRequestGeneration = 0
     var tagCursor: LibraryPageCursor?
@@ -97,6 +106,7 @@ final class LibraryStore {
     private(set) var isCatalogSearching = false
     var loadingCatalogSearchGroups: Set<CatalogSearchGroup> = []
     var operationFailure: LibraryOperationFailure?
+    var lyricsSearchIndexState = LyricsSearchIndexState.unavailable
     var searchQuery = ""
     var trackQuery = LibraryTrackQuery.allTracks
     var isLoadingNextTracks = false
@@ -145,12 +155,14 @@ final class LibraryStore {
                 )
             }
             availability = .ready
+            configureLyricsSearch(package: package, repository: repository)
         } else {
             repository = nil
             trackPageLoader = nil
             allTracksWindow = nil
             lyricsService = nil
             artworkService = nil
+            lyricsSearchIndexer = nil
             availability = .empty
         }
     }
@@ -209,6 +221,7 @@ final class LibraryStore {
                 repository: repository
             )
         }
+        configureLyricsSearch(package: package, repository: repository)
         availability = .ready
     }
 
@@ -221,6 +234,7 @@ final class LibraryStore {
         availability = .loading
         do {
             try await apply(initialSnapshot(from: repository))
+            await synchronizeLyricsSearch()
         } catch {
             resetLibrary(
                 availability: .failed(
@@ -248,7 +262,13 @@ final class LibraryStore {
 
         isCatalogSearching = true
         do {
-            let results = try await repository.catalogSearch(query: query)
+            async let catalog = repository.catalogSearch(query: query)
+            async let lyricMatches = lyricsCatalogResults(
+                query: query,
+                limit: 40
+            )
+            var results = try await catalog
+            results.lyrics = await lyricMatches
             guard generation == catalogSearchGeneration else {
                 return
             }
@@ -287,6 +307,29 @@ final class LibraryStore {
         }
         Task {
             await searchCatalog(query)
+        }
+    }
+}
+
+private extension LibraryStore {
+    func configureLyricsSearch(
+        package: ManagedLibraryPackage?,
+        repository: LibraryRepository
+    ) {
+        guard let package else {
+            lyricsSearchIndexer = nil
+            lyricsSearchIndexState = .unavailable
+            return
+        }
+        do {
+            lyricsSearchIndexer = try LyricsSearchIndexer(
+                package: package,
+                repository: repository
+            )
+            lyricsSearchIndexState = .idle
+        } catch {
+            lyricsSearchIndexer = nil
+            lyricsSearchIndexState = .failed(error.localizedDescription)
         }
     }
 }

@@ -17,6 +17,9 @@ settings:
 packages:
   QenTerraDesignTokens:
     path: ../design-system/packages/swift
+  GRDB:
+    url: https://github.com/groue/GRDB.swift.git
+    exactVersion: 7.10.0
 
 targets:
   Cadence:
@@ -28,6 +31,7 @@ targets:
       - path: icon/Cadence.icon
     dependencies:
       - package: QenTerraDesignTokens
+      - package: GRDB
     info:
       path: Sources/Cadence/Resources/Info.plist
       properties:

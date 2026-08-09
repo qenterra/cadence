@@ -30,6 +30,16 @@ extension LibraryRepository {
         return try trackProjection(record)
     }
 
+    func tracks(ids: Set<UUID>) throws -> [LibraryTrackProjection] {
+        guard !ids.isEmpty else { return [] }
+        let predicate = #Predicate<TrackRecord> { track in
+            ids.contains(track.id)
+        }
+        return try trackProjections(
+            modelContext.fetch(FetchDescriptor(predicate: predicate))
+        )
+    }
+
     func artist(id: UUID) throws -> LibraryArtistProjection? {
         let predicate = #Predicate<ArtistRecord> { $0.id == id }
         var descriptor = FetchDescriptor(predicate: predicate)
@@ -182,6 +192,7 @@ extension LibraryRepository {
             albums: albums.items,
             artists: artists.items,
             tags: tags.items,
+            lyrics: [],
             trackCursor: tracks.nextCursor,
             albumCursor: albums.nextCursor,
             artistCursor: artists.nextCursor,

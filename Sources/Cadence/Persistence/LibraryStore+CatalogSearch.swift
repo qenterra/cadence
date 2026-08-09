@@ -41,6 +41,7 @@ extension LibraryStore {
         case .albums: catalogSearchResults.albumCursor
         case .tags: catalogSearchResults.tagCursor
         case .tracks: catalogSearchResults.trackCursor
+        case .lyrics: nil
         }
     }
 
@@ -92,6 +93,8 @@ extension LibraryStore {
             }
             catalogSearchResults.tracks.append(contentsOf: page.items)
             catalogSearchResults.trackCursor = page.nextCursor
+        case .lyrics:
+            break
         }
     }
 

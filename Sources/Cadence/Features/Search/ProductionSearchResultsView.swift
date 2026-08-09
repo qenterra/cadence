@@ -10,6 +10,14 @@ struct ProductionSearchResultsView: View {
             if store.isCatalogSearching, store.catalogSearchResults.isEmpty {
                 ProgressView("Searching Library")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if store.catalogSearchResults.isEmpty,
+                      case let .failed(message) = store.lyricsSearchIndexState {
+                ContentUnavailableView(
+                    "Lyrics Search Unavailable",
+                    systemImage: "exclamationmark.triangle",
+                    description: Text(message)
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if store.catalogSearchResults.isEmpty {
                 ContentUnavailableView.search(
                     text: store.catalogSearchQuery
@@ -77,11 +85,14 @@ private extension ProductionSearchResultsView {
             tagsSection
         case .tracks:
             tracksSection
+        case .lyrics:
+            lyricsSection
         case nil:
             artistsSection
             albumsSection
             tagsSection
             tracksSection
+            lyricsSection
         }
     }
 
@@ -91,6 +102,7 @@ private extension ProductionSearchResultsView {
         case .albums: "Albums"
         case .tags: "Tags"
         case .tracks: "Tracks"
+        case .lyrics: "Lyrics"
         case nil: "Search"
         }
     }
@@ -249,6 +261,13 @@ private extension ProductionSearchResultsView {
                 )
             }
         }
+    }
+
+    private var lyricsSection: some View {
+        LyricsSearchResultsSection(
+            model: model,
+            store: store
+        )
     }
 
     private func resultSection(

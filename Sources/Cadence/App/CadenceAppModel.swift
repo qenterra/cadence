@@ -103,6 +103,7 @@ final class CadenceAppModel {
     var lyricPersistenceError: String?
     var lyricsRevision = 0
     var lyricLoadRequestID: UUID?
+    var lyricsSearchTarget: LyricsCatalogSearchResult?
     var albumsPresentation: AlbumsPresentation = .overview
     var allAlbumsSortDescriptor: AlbumSortDescriptor = .allAlbums
     var albumShelfSortDescriptors: [AlbumShelfKind: AlbumSortDescriptor] = [:]

@@ -7,7 +7,9 @@ extension LibraryStore {
         guard let lyricsService else {
             return nil
         }
-        return try await lyricsService.load(trackID: trackID)
+        let document = try await lyricsService.load(trackID: trackID)
+        await synchronizeLyricsSearch(trackIDs: [trackID])
+        return document
     }
 
     func saveLyrics(
@@ -17,12 +19,17 @@ extension LibraryStore {
             throw ManagedLyricsServiceError.unavailable
         }
         try await lyricsService.save(document)
+        if case let .managed(trackID) = document.trackID {
+            await synchronizeLyricsSearch(trackIDs: [trackID])
+        }
     }
 
     func recoverLyricsEdits() async throws -> ManagedLyricsRecoveryResult {
         guard let lyricsService else {
             return .empty
         }
-        return try await lyricsService.recover()
+        let result = try await lyricsService.recover()
+        await synchronizeLyricsSearch()
+        return result
     }
 }

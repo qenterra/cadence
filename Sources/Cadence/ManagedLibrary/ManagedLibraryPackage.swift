@@ -55,6 +55,13 @@ struct ManagedLibraryPackage: Sendable {
         )
     }
 
+    var lyricsSearchDatabaseURL: URL {
+        metadataDirectoryURL.appending(
+            path: "Search.sqlite",
+            directoryHint: .notDirectory
+        )
+    }
+
     var stagingDirectoryURL: URL {
         directoryURL("Staging")
     }

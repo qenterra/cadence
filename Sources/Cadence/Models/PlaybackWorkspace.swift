@@ -4,6 +4,7 @@ enum PlaybackWorkspace: Hashable, Sendable {
     case hidden
     case nowPlaying
     case lyricsEditor
+    case lyricsSearch
 }
 
 enum NowPlayingPanel: String, CaseIterable, Identifiable, Sendable {

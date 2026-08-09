@@ -17,6 +17,9 @@ struct LibraryRelocatorTests {
         try Data("audio".utf8).write(
             to: package.mediaDirectoryURL.appending(path: "track.flac")
         )
+        try Data("derived index".utf8).write(
+            to: package.lyricsSearchDatabaseURL
+        )
 
         let relocator = LibraryRelocator(
             validate: { _ in try LibraryContainerFactory.inMemory() }
@@ -31,6 +34,18 @@ struct LibraryRelocatorTests {
         #expect(FileManager.default.fileExists(atPath: source.packageURL.path))
         #expect(prepared.manifest.phase == .destinationValidated)
         #expect(!prepared.manifest.files.isEmpty)
+        #expect(
+            !prepared.manifest.files.contains {
+                $0.relativePath.hasPrefix("Metadata/Search.sqlite")
+            }
+        )
+        #expect(
+            !FileManager.default.fileExists(
+                atPath: ManagedLibraryPackage(
+                    location: prepared.destination
+                ).lyricsSearchDatabaseURL.path
+            )
+        )
     }
 
     @Test("An existing destination is reported and never overwritten")
