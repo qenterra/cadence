@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 struct ProductionNowPlayingView: View {
@@ -9,6 +10,7 @@ struct ProductionNowPlayingView: View {
     @State private var newTagPath = ""
     @State private var tagError: String?
     @State private var isAddingTag = false
+    @State private var isArtworkHovered = false
 
     var body: some View {
         GeometryReader { geometry in
@@ -19,7 +21,6 @@ struct ProductionNowPlayingView: View {
             HStack(spacing: 0) {
                 trackContext
                     .frame(width: layout.contextWidth)
-                    .guideAnchor(.nowPlaying)
 
                 Rectangle()
                     .fill(CadenceTheme.separator)
@@ -60,6 +61,26 @@ private extension ProductionNowPlayingView {
             )
             .aspectRatio(1, contentMode: .fit)
             .frame(maxWidth: 420)
+            .overlay {
+                if isArtworkHovered {
+                    RoundedRectangle(
+                        cornerRadius: CadenceTheme.radiusHero,
+                        style: .continuous
+                    )
+                    .fill(.black.opacity(0.36))
+
+                    Image(systemName: "arrow.up.left.and.arrow.down.right")
+                        .font(.title2.weight(.semibold))
+                        .foregroundStyle(.white)
+                        .symbolEffect(.bounce, value: isArtworkHovered)
+                }
+            }
+            .contentShape(RoundedRectangle(cornerRadius: CadenceTheme.radiusHero))
+            .onHover { isArtworkHovered = $0 }
+            .onTapGesture {
+                NSApp.keyWindow?.toggleFullScreen(nil)
+            }
+            .accessibilityHint("Opens Now Playing in full screen")
             .contextMenu {
                 ArtworkMenuItems(
                     model: model,
@@ -346,11 +367,6 @@ private extension ProductionNowPlayingView {
             }
             .padding(.horizontal, 28)
             .frame(height: 76)
-            .guideAnchor(
-                model.selectedNowPlayingPanel == .lyrics
-                    ? .lyrics
-                    : .queue
-            )
 
             Rectangle()
                 .fill(CadenceTheme.separator)

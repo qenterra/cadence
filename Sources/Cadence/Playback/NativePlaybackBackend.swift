@@ -7,6 +7,10 @@ final class NativePlaybackBackend: NSObject, PlaybackBackend {
     var onEvent: ((PlaybackBackendEvent) -> Void)?
 
     private let player = AVPlayer()
+
+    var airPlayPlayer: AVPlayer {
+        player
+    }
     private var periodicTimeObserver: Any?
     private var timeControlStatusObservation: NSKeyValueObservation?
     private var currentTrackID: UUID?

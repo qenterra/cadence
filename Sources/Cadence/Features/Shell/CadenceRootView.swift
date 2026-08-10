@@ -2,7 +2,7 @@ import SwiftUI
 
 struct CadenceRootView: View {
     @Bindable var model: CadenceAppModel
-    @Bindable var guideCoordinator: GuideCoordinator
+    @State private var isSearchPresented = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -61,6 +61,7 @@ struct CadenceRootView: View {
                 isEnabled: model.playbackWorkspace == .hidden
                     && supportsSearch,
                 text: activeSearchBinding,
+                isPresented: $isSearchPresented,
                 prompt: searchHelp
             )
         )
@@ -69,12 +70,6 @@ struct CadenceRootView: View {
                 Menu {
                     Button("Import Music", systemImage: "folder.badge.plus") {
                         model.requestNavigationDestination(.importMusic)
-                    }
-
-                    Divider()
-
-                    Button("Settings", systemImage: "gearshape") {
-                        model.requestNavigationDestination(.settings)
                     }
                 } label: {
                     Label("More", systemImage: "ellipsis")
@@ -86,10 +81,6 @@ struct CadenceRootView: View {
         }
         .lyricsDraftTransitionAlert(model: model)
         .artworkManagement(model: model)
-        .cadenceGuideHost(
-            model: model,
-            coordinator: guideCoordinator
-        )
         .confirmationDialog(
             "Move to Trash?",
             isPresented: libraryDeletionPresented,
@@ -149,10 +140,19 @@ struct CadenceRootView: View {
             }
             await model.loadPersistedSmartCollections()
             await model.librarySession.store.loadPlaylists()
-            guideCoordinator.presentWelcomeIfNeeded()
         }
         .onDisappear {
             model.shutdownPlayback()
+        }
+        .onChange(of: model.selectedDestination) {
+            dismissSearch()
+        }
+        .onKeyPress(.escape, phases: .down) { _ in
+            guard isSearchPresented || !activeSearchQuery.isEmpty else {
+                return .ignored
+            }
+            dismissSearch()
+            return .handled
         }
         .onKeyPress(.space, phases: .down) { _ in
             commandResult(.togglePlayback)
@@ -252,6 +252,11 @@ private extension CadenceRootView {
             )
         } else {
             switch model.selectedDestination {
+            case .home:
+                ProductionHomeView(
+                    model: model,
+                    store: model.librarySession.store
+                )
             case .library:
                 LibraryView(model: model)
             case .allTracks:
@@ -276,18 +281,16 @@ private extension CadenceRootView {
                 ImportMusicView(model: model)
             case .trash:
                 ProductionTrashView(model: model)
-            case .settings:
-                ProductionSettingsView(model: model)
             }
         }
     }
 
     private var supportsSearch: Bool {
         switch model.selectedDestination {
-        case .library, .allTracks, .albums, .artists, .tags,
+        case .home, .library, .allTracks, .albums, .artists, .tags,
              .smartCollections, .playlists:
             true
-        case .importMusic, .trash, .settings:
+        case .importMusic, .trash:
             false
         }
     }
@@ -302,7 +305,8 @@ private extension CadenceRootView {
 
     private var shouldPresentProductionSearch: Bool {
         supportsSearch
-            && !SearchNormalizer.normalize(activeSearchQuery).isEmpty
+            && (isSearchPresented
+                || !SearchNormalizer.normalize(activeSearchQuery).isEmpty)
     }
 
     private var productionSearchBinding: Binding<String> {
@@ -320,6 +324,11 @@ private extension CadenceRootView {
 
     private var activeSearchBinding: Binding<String> {
         productionSearchBinding
+    }
+
+    private func dismissSearch() {
+        isSearchPresented = false
+        model.librarySession.store.clearCatalogSearch()
     }
 
     private var libraryDeletionPresented: Binding<Bool> {
@@ -359,12 +368,14 @@ private extension CadenceRootView {
 private struct CadenceSearchModifier: ViewModifier {
     let isEnabled: Bool
     @Binding var text: String
+    @Binding var isPresented: Bool
     let prompt: String
 
     func body(content: Content) -> some View {
         if isEnabled {
             content.searchable(
                 text: $text,
+                isPresented: $isPresented,
                 placement: .toolbar,
                 prompt: Text(prompt)
             )

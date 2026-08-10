@@ -66,11 +66,24 @@ extension CadenceAppModel {
                 ?? previewVolume
         }
         set {
+            let clampedVolume = min(max(newValue, 0), 1)
+            if clampedVolume > 0 {
+                mutedVolume = nil
+            }
             guard let playbackCoordinator else {
-                previewVolume = newValue
+                previewVolume = clampedVolume
                 return
             }
-            playbackCoordinator.setVolume(Float(newValue))
+            playbackCoordinator.setVolume(Float(clampedVolume))
+        }
+    }
+
+    func toggleMute() {
+        if volume > 0 {
+            mutedVolume = volume
+            volume = 0
+        } else {
+            volume = mutedVolume ?? 0.72
         }
     }
 

@@ -64,6 +64,17 @@ private extension LyricsSearchPreviewView {
                     source: .adHoc
                 )
             }
+
+            if let timestamp = target.match.timestamp {
+                Button("Play from This Line", systemImage: "play.circle") {
+                    model.playProductionTrack(
+                        target.track,
+                        within: [target.track],
+                        source: .adHoc,
+                        startingAt: timestamp
+                    )
+                }
+            }
         }
         .padding(.horizontal, 24)
         .frame(height: 68)

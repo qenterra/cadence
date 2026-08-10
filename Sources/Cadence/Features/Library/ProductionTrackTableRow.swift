@@ -4,16 +4,12 @@ struct TrackTableResolvedWidths: Equatable, Sendable {
     let song: Double
     let album: Double
     let year: Double
-    let dateAdded: Double
-    let playCount: Double
     let time: Double
 
     subscript(column: TrackTableColumn) -> Double {
         switch column {
         case .album: album
         case .year: year
-        case .dateAdded: dateAdded
-        case .playCount: playCount
         case .time: time
         }
     }
@@ -88,12 +84,6 @@ struct ProductionTrackTableRow: View {
         .dropDestination(for: String.self) { values, _ in
             _ = reorder(values)
         }
-        .overlay(alignment: .bottom) {
-            Rectangle()
-                .fill(CadenceTheme.separator)
-                .frame(height: 1)
-                .padding(.leading, 54)
-        }
     }
 
     private var song: some View {
@@ -107,6 +97,38 @@ struct ProductionTrackTableRow: View {
             .help("Play \(track.title)")
 
             songMetadata
+
+            Spacer(minLength: 0)
+
+            if isHovered || track.isFavorite {
+                Button {
+                    Task {
+                        try? await model.librarySession.store.setTrackFavorite(
+                            id: track.id,
+                            isFavorite: !track.isFavorite
+                        )
+                    }
+                } label: {
+                    Image(systemName: track.isFavorite ? "heart.fill" : "heart")
+                        .foregroundStyle(
+                            track.isFavorite
+                                ? CadenceTheme.primaryAccent
+                                : CadenceTheme.primaryAccent.opacity(0.7)
+                        )
+                        .frame(width: 28, height: 28)
+                }
+                .buttonStyle(CadenceRowButtonStyle())
+                .help(
+                    track.isFavorite
+                        ? "Remove from Favorites"
+                        : "Add to Favorites"
+                )
+                .accessibilityLabel(
+                    track.isFavorite
+                        ? "Remove \(track.title) from Favorites"
+                        : "Add \(track.title) to Favorites"
+                )
+            }
         }
     }
 
@@ -121,7 +143,7 @@ struct ProductionTrackTableRow: View {
         )
         .frame(width: 40, height: 40)
         .overlay {
-            if model.isCurrentProductionTrack(track.id) {
+            if isHovered || model.isCurrentProductionTrack(track.id) {
                 RoundedRectangle(
                     cornerRadius: CadenceTheme.radiusControl,
                     style: .continuous
@@ -130,10 +152,15 @@ struct ProductionTrackTableRow: View {
                 Image(
                     systemName: model.isCurrentProductionTrackPlaying
                         ? "waveform"
-                        : "speaker.fill"
+                        : "play.fill"
                 )
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(.white)
+                .symbolEffect(
+                    .variableColor.iterative,
+                    options: .repeating,
+                    isActive: model.isCurrentProductionTrackPlaying
+                )
             }
         }
     }
@@ -161,6 +188,21 @@ struct ProductionTrackTableRow: View {
                         CadenceTheme.subduedFill,
                         in: Capsule()
                     )
+
+                if track.isExplicit {
+                    Text("E")
+                        .font(.system(size: 9, weight: .bold))
+                        .foregroundStyle(.secondary)
+                        .frame(width: 16, height: 16)
+                        .background(
+                            CadenceTheme.subduedFill,
+                            in: RoundedRectangle(
+                                cornerRadius: 3,
+                                style: .continuous
+                            )
+                        )
+                        .accessibilityLabel("Explicit")
+                }
 
                 if track.hasSynchronizedLyrics {
                     Text("LRC")
@@ -216,16 +258,6 @@ struct ProductionTrackTableRow: View {
                 track.year?.formatted(.number.grouping(.never))
                     ?? "—"
             )
-        case .dateAdded:
-            Text(
-                track.dateAdded.formatted(
-                    .dateTime.year().month(.abbreviated).day()
-                )
-            )
-            .lineLimit(1)
-        case .playCount:
-            Text(track.playCount.formatted())
-                .monospacedDigit()
         case .time:
             Text(timeText(track.duration))
                 .monospacedDigit()

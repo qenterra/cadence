@@ -4,17 +4,13 @@ import SwiftUI
 @main
 struct CadenceApp: App {
     @State private var model = Self.makeInitialModel()
-    @State private var guideCoordinator = GuideCoordinator()
     @State private var appearanceController = AppearanceController()
     @AppStorage("appearance")
     private var appearanceRawValue = CadenceAppearance.system.rawValue
 
     var body: some Scene {
         WindowGroup("Cadence") {
-            CadenceRootView(
-                model: model,
-                guideCoordinator: guideCoordinator
-            )
+            CadenceRootView(model: model)
             .frame(
                 minWidth: AdaptiveLayoutPolicy.minimumWindowSize.width,
                 minHeight: AdaptiveLayoutPolicy.minimumWindowSize.height
@@ -31,6 +27,12 @@ struct CadenceApp: App {
         .defaultSize(width: 1512, height: 982)
         .windowResizability(.contentMinSize)
         .windowToolbarStyle(.unifiedCompact(showsTitle: false))
+
+        Settings {
+            CadenceSettingsWindow(model: model)
+                .preferredColorScheme(appearance.colorScheme)
+                .tint(CadenceTheme.primaryAccent)
+        }
         .commands {
             CommandMenu("Playback") {
                 Button("Play or Pause") {
@@ -167,13 +169,6 @@ struct CadenceApp: App {
                         || !model.canRevertSmartCollectionDraft
                 )
             }
-
-            CommandGroup(before: .help) {
-                Button("Cadence Guide") {
-                    guideCoordinator.presentChapterPicker()
-                }
-                .keyboardShortcut("?", modifiers: [.option, .command])
-            }
         }
     }
 
@@ -186,6 +181,22 @@ struct CadenceApp: App {
             return .production(librarySession: .preview())
         }
         return .production(librarySession: .startup())
+    }
+}
+
+private struct CadenceSettingsWindow: View {
+    @Bindable var model: CadenceAppModel
+
+    var body: some View {
+        TabView {
+            ForEach(CadenceSettingsTab.allCases) { tab in
+                ProductionSettingsView(model: model, tab: tab)
+                    .tabItem {
+                        Label(tab.title, systemImage: tab.symbolName)
+                    }
+            }
+        }
+        .frame(width: 760, height: 640, alignment: .topLeading)
     }
 }
 

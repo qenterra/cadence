@@ -3,18 +3,15 @@ import SwiftUI
 struct CadencePageHeader<Actions: View>: View {
     let title: String
     let subtitle: String?
-    let guideAnchor: GuideAnchor?
     @ViewBuilder let actions: Actions
 
     init(
         _ title: String,
         subtitle: String? = nil,
-        guideAnchor: GuideAnchor? = nil,
         @ViewBuilder actions: () -> Actions
     ) {
         self.title = title
         self.subtitle = subtitle
-        self.guideAnchor = guideAnchor
         self.actions = actions()
     }
 
@@ -29,7 +26,6 @@ struct CadencePageHeader<Actions: View>: View {
                         .foregroundStyle(.secondary)
                 }
             }
-            .guideAnchor(guideAnchor)
 
             Spacer(minLength: 24)
             actions
@@ -41,13 +37,11 @@ struct CadencePageHeader<Actions: View>: View {
 extension CadencePageHeader where Actions == EmptyView {
     init(
         _ title: String,
-        subtitle: String? = nil,
-        guideAnchor: GuideAnchor? = nil
+        subtitle: String? = nil
     ) {
         self.init(
             title,
-            subtitle: subtitle,
-            guideAnchor: guideAnchor
+            subtitle: subtitle
         ) {
             EmptyView()
         }

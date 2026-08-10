@@ -12,7 +12,6 @@ struct AlbumPreview: Identifiable, Hashable, Sendable {
     let title: String
     let artist: String
     let year: Int
-    let dateAdded: Date
     let trackCount: Int
     let totalDuration: TimeInterval
     let artworkPalette: ArtworkPalette?

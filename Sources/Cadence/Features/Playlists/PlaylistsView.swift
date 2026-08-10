@@ -82,7 +82,6 @@ private extension PlaylistsView {
                 .buttonStyle(.plain)
                 .help("New Playlist")
             }
-            .guideAnchor(.playlists)
 
             if store.playlists.isEmpty {
                 ContentUnavailableView(
@@ -166,53 +165,56 @@ private extension PlaylistsView {
     private func playlistRow(
         _ playlist: LibraryPlaylistProjection
     ) -> some View {
-        Button {
-            Task {
-                await store.selectPlaylist(playlist.id)
-            }
-        } label: {
-            HStack(spacing: 11) {
-                ProductionArtworkView(
-                    model: model,
-                    artworkID: playlist.customArtworkID,
-                    title: playlist.name,
-                    placeholder: .playlist,
-                    cornerRadius: CadenceTheme.radiusControl
-                )
-                .frame(width: 28, height: 28)
-
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(playlist.name)
-                        .foregroundStyle(.primary)
-                        .lineLimit(1)
-                    Text("\(playlist.trackCount) tracks")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+        HStack(spacing: 11) {
+            Button {
+                Task {
+                    await store.selectPlaylist(playlist.id)
                 }
+            } label: {
+                HStack(spacing: 11) {
+                    ProductionArtworkView(
+                        model: model,
+                        artworkID: playlist.customArtworkID,
+                        title: playlist.name,
+                        placeholder: .playlist,
+                        cornerRadius: CadenceTheme.radiusControl
+                    )
+                    .frame(width: 28, height: 28)
 
-                Spacer()
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(playlist.name)
+                            .foregroundStyle(.primary)
+                            .lineLimit(1)
+                        Text("\(playlist.trackCount) tracks")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
 
-                Menu {
-                    playlistActions(playlist)
-                } label: {
-                    Image(systemName: "ellipsis")
-                        .frame(width: 26, height: 26)
+                    Spacer(minLength: 0)
                 }
-                .menuIndicator(.hidden)
-                .menuStyle(.borderlessButton)
+                .contentShape(Rectangle())
             }
-            .padding(.horizontal, 10)
-            .frame(height: WorkspaceLayout.rowHeight)
-            .background {
-                BrowserRowSurface(
-                    isSelected: store.selectedPlaylistID == playlist.id,
-                    isHovered: false,
-                    isFocused: false
-                )
+            .buttonStyle(.plain)
+
+            Menu {
+                playlistActions(playlist)
+            } label: {
+                Image(systemName: "ellipsis")
+                    .frame(width: 26, height: 26)
             }
-            .contentShape(Rectangle())
+            .menuIndicator(.hidden)
+            .menuStyle(.borderlessButton)
         }
-        .buttonStyle(.plain)
+        .padding(.horizontal, 10)
+        .frame(height: WorkspaceLayout.rowHeight)
+        .background {
+            BrowserRowSurface(
+                isSelected: store.selectedPlaylistID == playlist.id,
+                isHovered: false,
+                isFocused: false
+            )
+        }
+        .contentShape(Rectangle())
         .contextMenu {
             playlistActions(playlist)
         }
@@ -313,6 +315,16 @@ private extension PlaylistsView {
     private func playlistActions(
         _ playlist: LibraryPlaylistProjection
     ) -> some View {
+        Button(
+            HomePinStore.contains(playlist.id, in: .playlist)
+                ? "Unpin from Home"
+                : "Pin to Home",
+            systemImage: HomePinStore.contains(playlist.id, in: .playlist)
+                ? "pin.slash"
+                : "pin"
+        ) {
+            HomePinStore.toggle(playlist.id, in: .playlist)
+        }
         ArtworkMenuItems(
             model: model,
             target: .managedPlaylist(playlist.id),

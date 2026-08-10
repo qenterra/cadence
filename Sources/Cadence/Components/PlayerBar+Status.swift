@@ -1,4 +1,3 @@
-import AppKit
 import SwiftUI
 
 extension PlayerBar {
@@ -45,52 +44,14 @@ extension PlayerBar {
     }
 
     var audioOutputMenu: some View {
-        Menu {
-            Section("Current Output") {
-                Label(
-                    model.playbackOutputRoute.name,
-                    systemImage: audioRouteSymbol
-                )
-                Text(model.playbackPathStatus)
-            }
-            Divider()
-            Button("Open Sound Settings…", systemImage: "gear") {
-                openSoundSettings()
-            }
-        } label: {
-            Image(systemName: "airplayaudio")
-                .foregroundStyle(.secondary)
-                .frame(width: 34, height: 34)
-        }
-        .menuIndicator(.hidden)
-        .menuStyle(.borderlessButton)
+        AirPlayRoutePicker(
+            player: model.playbackCoordinator?.airPlayPlayer
+        )
+        .frame(width: 34, height: 34)
         .help("Audio Output: \(model.playbackOutputRoute.name)")
         .accessibilityLabel(
             "Audio Output, \(model.playbackOutputRoute.name)"
         )
     }
 
-    private var audioRouteSymbol: String {
-        switch model.playbackOutputRoute.transport {
-        case .airPlay:
-            "airplayaudio"
-        case .bluetooth:
-            "wave.3.right"
-        case .builtIn:
-            "laptopcomputer"
-        case .wired:
-            "headphones"
-        case .unknown:
-            "speaker.wave.2"
-        }
-    }
-
-    private func openSoundSettings() {
-        guard let url = URL(
-            string: "x-apple.systempreferences:com.apple.Sound-Settings.extension"
-        ) else {
-            return
-        }
-        NSWorkspace.shared.open(url)
-    }
 }

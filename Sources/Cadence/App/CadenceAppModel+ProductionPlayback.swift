@@ -5,7 +5,8 @@ extension CadenceAppModel {
         _ track: LibraryTrackProjection,
         within queueTracks: [LibraryTrackProjection],
         source requestedSource: PlaybackQueueSource? = nil,
-        isShuffled: Bool = false
+        isShuffled: Bool = false,
+        startingAt time: TimeInterval? = nil
     ) {
         guard let playbackCoordinator else {
             return
@@ -19,12 +20,15 @@ extension CadenceAppModel {
             } else {
                 queueTracks.map(\.id)
             }
-            _ = await playbackCoordinator.startQueue(
+            let didStart = await playbackCoordinator.startQueue(
                 source: source,
                 trackIDs: trackIDs,
                 startingAt: track.id,
                 isShuffled: isShuffled
             )
+            if didStart, let time, time > 0 {
+                await playbackCoordinator.seek(to: time)
+            }
         }
     }
 

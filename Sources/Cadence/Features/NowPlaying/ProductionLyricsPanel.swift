@@ -68,13 +68,20 @@ struct ProductionLyricsPanel: View {
         return ScrollViewReader { proxy in
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 18) {
-                    ForEach(document.lines) { line in
+                    ForEach(
+                        Array(document.lines.enumerated()),
+                        id: \.element.id
+                    ) { index, line in
                         if line.isBlank {
                             Color.clear.frame(height: 10)
                         } else {
                             lyricLine(
                                 line,
-                                isActive: currentLineID == line.id
+                                isActive: currentLineID == line.id,
+                                animationDuration: lineDuration(
+                                    at: index,
+                                    in: document
+                                )
                             )
                             .id(line.id)
                         }
@@ -104,7 +111,8 @@ struct ProductionLyricsPanel: View {
 
     private func lyricLine(
         _ line: LyricLine,
-        isActive: Bool
+        isActive: Bool,
+        animationDuration: TimeInterval
     ) -> some View {
         Button {
             if let startTime = line.startTime {
@@ -114,7 +122,9 @@ struct ProductionLyricsPanel: View {
             HStack(alignment: .top, spacing: 0) {
                 ProductionLyricLineLabel(
                     text: line.text,
-                    isActive: isActive
+                    isActive: isActive,
+                    animationDuration: animationDuration,
+                    isSynchronized: line.startTime != nil
                 )
                 Spacer(minLength: 0)
             }
@@ -127,6 +137,20 @@ struct ProductionLyricsPanel: View {
             reduceMotion ? nil : .smooth(duration: 0.24),
             value: isActive
         )
+    }
+
+    private func lineDuration(
+        at index: Int,
+        in document: LyricDocument
+    ) -> TimeInterval {
+        guard let startTime = document.lines[index].startTime else {
+            return 0
+        }
+        let nextStartTime = document.lines.dropFirst(index + 1)
+            .lazy
+            .compactMap(\.startTime)
+            .first
+        return max((nextStartTime ?? startTime + 4) - startTime, 1.2)
     }
 
     private func activeLine(
@@ -165,8 +189,11 @@ private extension LyricTimingStatus {
 private struct ProductionLyricLineLabel: View {
     let text: String
     let isActive: Bool
+    let animationDuration: TimeInterval
+    let isSynchronized: Bool
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var colorScheme
     @State private var shimmerPhase = -1.0
 
     var body: some View {
@@ -193,7 +220,7 @@ private struct ProductionLyricLineLabel: View {
     }
 
     private var foregroundStyle: LinearGradient {
-        guard isActive, !reduceMotion else {
+        guard isActive, isSynchronized, !reduceMotion else {
             return LinearGradient(
                 colors: [
                     isActive ? Color.primary : Color.secondary,
@@ -204,11 +231,14 @@ private struct ProductionLyricLineLabel: View {
             )
         }
 
+        let highlight = colorScheme == .dark
+            ? Color.white
+            : CadenceTheme.primaryAccent
         return LinearGradient(
             colors: [
-                Color.primary.opacity(0.92),
-                Color.white,
-                Color.primary.opacity(0.92),
+                Color.primary.opacity(0.88),
+                highlight,
+                Color.primary.opacity(0.88),
             ],
             startPoint: UnitPoint(x: shimmerPhase - 0.55, y: 0.5),
             endPoint: UnitPoint(x: shimmerPhase + 0.55, y: 0.5)
@@ -217,11 +247,11 @@ private struct ProductionLyricLineLabel: View {
 
     private func updateShimmer(_ active: Bool) {
         shimmerPhase = -0.25
-        guard active, !reduceMotion else {
+        guard active, isSynchronized, !reduceMotion else {
             return
         }
         withAnimation(
-            .linear(duration: 2.8)
+            .linear(duration: animationDuration)
                 .repeatForever(autoreverses: false)
         ) {
             shimmerPhase = 1.25

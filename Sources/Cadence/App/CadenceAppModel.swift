@@ -59,7 +59,7 @@ final class CadenceAppModel {
     var smartCollections: [SmartCollectionPreview]
     var lyricDocuments: [TrackPreview.ID: LyricDocument]
 
-    var selectedDestination: NavigationDestination = .library
+    var selectedDestination: NavigationDestination = .home
     var selectedArtistID: ArtistPreview.ID?
     var selectedAlbumID: AlbumPreview.ID?
     var selectedTrackID: TrackPreview.ID?
@@ -81,6 +81,7 @@ final class CadenceAppModel {
     var previewRepeatMode: RepeatMode = .off
     var previewProgress = 0.32
     var previewVolume = 0.72
+    var mutedVolume: Double?
     var activePlaybackQueue: PlaybackQueue?
     var selectedSmartCollectionID: SmartCollectionPreview.ID?
     var smartCollectionDraft: SmartCollectionDraft?
@@ -241,7 +242,6 @@ extension CadenceAppModel {
                     title: firstTrack?.album ?? albumID,
                     artist: firstTrack?.artist ?? "Unknown Artist",
                     year: firstTrack?.year ?? 0,
-                    dateAdded: albumTracks.map(\.dateAdded).min() ?? .distantPast,
                     trackCount: albumTracks.count,
                     totalDuration: albumTracks.reduce(0) { $0 + $1.duration },
                     artworkPalette: albumTracks.compactMap(\.artworkPalette).first,

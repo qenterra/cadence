@@ -119,8 +119,7 @@ extension LibraryRepository {
         let artists = try reusableArtists(for: entries)
         let albums = try reusableAlbums(
             for: entries,
-            artists: artists,
-            dateAdded: manifest.createdAt
+            artists: artists
         )
         insertEmbeddedArtwork(
             entries: entries,
@@ -145,7 +144,6 @@ extension LibraryRepository {
             insertTrack(
                 entry,
                 importID: manifest.importID,
-                dateAdded: manifest.createdAt,
                 artists: artists,
                 albums: albums
             )
@@ -197,7 +195,6 @@ extension LibraryRepository {
     private func insertTrack(
         _ entry: ManagedImportManifest.Entry,
         importID: UUID,
-        dateAdded: Date,
         artists: [String: ArtistRecord],
         albums: [ManagedAlbumIdentity: AlbumRecord]
     ) {
@@ -217,8 +214,7 @@ extension LibraryRepository {
             entry: entry,
             importID: importID,
             artist: artists[primaryArtistKey],
-            album: albums[albumKey],
-            dateAdded: dateAdded
+            album: albums[albumKey]
         )
         modelContext.insert(track)
         for (position, name) in entry.metadata.creditArtistNames.enumerated() {
@@ -259,8 +255,7 @@ extension LibraryRepository {
         entry: ManagedImportManifest.Entry,
         importID: UUID,
         artist: ArtistRecord?,
-        album: AlbumRecord?,
-        dateAdded: Date
+        album: AlbumRecord?
     ) -> TrackRecord {
         TrackRecord(
             id: entry.trackID,
@@ -280,7 +275,6 @@ extension LibraryRepository {
             album: album,
             trackNumber: entry.metadata.trackNumber,
             discNumber: entry.metadata.discNumber,
-            dateAdded: dateAdded,
             spatialFormat: entry.metadata.spatialFormat,
             sourceMetadata: encodedSourceMetadata(entry.metadata)
         )

@@ -103,6 +103,24 @@ struct ProductionCatalogTests {
         #expect(try await repository.artist(id: fixture.artistID)?.isFavorite == false)
     }
 
+    @Test("Track favorite state is persisted by the production repository")
+    func trackFavoriteMutation() async throws {
+        let fixture = try makeCatalogFixture()
+        let repository = LibraryRepository(modelContainer: fixture.container)
+
+        let favorite = try await repository.setTrackFavorite(
+            id: fixture.trackID,
+            isFavorite: true
+        )
+        #expect(favorite.isFavorite)
+
+        let restored = try await repository.setTrackFavorite(
+            id: fixture.trackID,
+            isFavorite: false
+        )
+        #expect(!restored.isFavorite)
+    }
+
     private func makeCatalogFixture() throws -> CatalogFixture {
         let container = try LibraryContainerFactory.inMemory()
         let context = ModelContext(container)

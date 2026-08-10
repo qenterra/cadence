@@ -9,22 +9,19 @@ struct AlbumsListeningDomainTests {
             id: "a",
             title: "Échoes",
             artist: "Beta",
-            year: 2024,
-            dateAdded: date(10)
+            year: 2024
         )
         let second = album(
             id: "b",
             title: "echoes",
             artist: "Alpha",
-            year: 2026,
-            dateAdded: date(20)
+            year: 2026
         )
         let third = album(
             id: "c",
             title: "After",
             artist: "Alpha",
-            year: 2025,
-            dateAdded: date(30)
+            year: 2025
         )
         let albums = [first, second, third]
 
@@ -34,10 +31,6 @@ struct AlbumsListeningDomainTests {
                 albums,
                 descriptor: .defaultDescriptor(for: .title)
             ) == ["c", "a", "b"]
-        )
-        #expect(
-            sortedIDs(albums, descriptor: .recentlyAdded)
-                == ["c", "b", "a"]
         )
         #expect(
             sortedIDs(
@@ -179,15 +172,13 @@ private extension AlbumsListeningDomainTests {
         id: String,
         title: String,
         artist: String,
-        year: Int = 2026,
-        dateAdded: Date = Date(timeIntervalSince1970: 0)
+        year: Int = 2026
     ) -> AlbumPreview {
         AlbumPreview(
             id: id,
             title: title,
             artist: artist,
             year: year,
-            dateAdded: dateAdded,
             trackCount: 1,
             totalDuration: 240,
             artworkPalette: .silver,
@@ -213,8 +204,6 @@ private extension AlbumsListeningDomainTests {
             sampleRate: 96,
             duration: 240,
             fileSize: "80 MB",
-            dateAdded: date(0),
-            playCount: 0,
             lastPlayed: nil,
             rating: 5,
             isFavorite: false,

@@ -59,7 +59,7 @@ struct ContextualNavigationTests {
         #expect(model.presentedAlbum?.id == firstAlbum.id)
 
         model.requestAlbumsBack()
-        #expect(model.selectedDestination == .library)
+        #expect(model.selectedDestination == .home)
         #expect(model.contextualNavigationHistory.isEmpty)
     }
 

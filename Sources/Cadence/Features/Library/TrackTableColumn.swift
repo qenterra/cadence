@@ -1,8 +1,6 @@
 enum TrackTableColumn: String, CaseIterable, Identifiable, Codable, Sendable {
     case album
     case year
-    case dateAdded
-    case playCount
     case time
 
     var id: Self {
@@ -13,8 +11,6 @@ enum TrackTableColumn: String, CaseIterable, Identifiable, Codable, Sendable {
         switch self {
         case .album: "Album"
         case .year: "Year"
-        case .dateAdded: "Date Added"
-        case .playCount: "Plays"
         case .time: "Time"
         }
     }
@@ -50,11 +46,11 @@ enum TrackTableColumn: String, CaseIterable, Identifiable, Codable, Sendable {
         rawValue: String,
         version: Int
     ) -> (rawValue: String, version: Int) {
-        guard version < 1 else {
+        guard version < 2 else {
             return (rawValue, version)
         }
         var columns = Set(decode(rawValue))
         columns.insert(.year)
-        return (encode(columns), 1)
+        return (encode(columns), 2)
     }
 }

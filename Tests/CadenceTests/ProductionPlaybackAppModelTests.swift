@@ -5,6 +5,18 @@ import Testing
 
 @MainActor
 struct ProductionPlaybackAppModelTests {
+    @Test("Mute restores the last audible volume")
+    func muteToggleRestoresVolume() {
+        let model = CadenceAppModel.testFixture()
+        model.volume = 0.42
+
+        model.toggleMute()
+        #expect(model.volume == 0)
+
+        model.toggleMute()
+        #expect(model.volume == 0.42)
+    }
+
     @Test("Production app state reflects the real coordinator")
     func stateBridge() async {
         let resolved = [

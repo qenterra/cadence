@@ -13,7 +13,6 @@ struct ProductionTrackTable: View {
     var queueSource: PlaybackQueueSource?
     var reorderAction: (([UUID]) -> Void)?
     var onReachEnd: (() async -> Void)?
-    var scrollAxes: Axis.Set = .horizontal
     var virtualWindow: LibraryTrackWindow?
     var repositorySortAction: ((LibraryTrackSort) async -> Void)?
     var selection: Binding<Set<UUID>>?
@@ -36,10 +35,6 @@ struct ProductionTrackTable: View {
     private var albumWidth = TrackTableWidth.album.defaultValue
     @AppStorage("trackTable.yearWidth")
     private var yearWidth = TrackTableWidth.year.defaultValue
-    @AppStorage("trackTable.dateAddedWidth")
-    private var dateAddedWidth = TrackTableWidth.dateAdded.defaultValue
-    @AppStorage("trackTable.playCountWidth")
-    private var playCountWidth = TrackTableWidth.playCount.defaultValue
     @AppStorage("trackTable.timeWidth")
     private var timeWidth = TrackTableWidth.time.defaultValue
 
@@ -138,8 +133,6 @@ private extension ProductionTrackTable {
             song: songWidth,
             album: albumWidth,
             year: yearWidth,
-            dateAdded: dateAddedWidth,
-            playCount: playCountWidth,
             time: timeWidth
         )
     }
@@ -149,8 +142,6 @@ private extension ProductionTrackTable {
         case .song: .song
         case .album: .album
         case .year: .year
-        case .dateAdded: .dateAdded
-        case .playCount: .playCount
         case .time: .duration
         }
         return LibraryTrackSort(
@@ -233,7 +224,6 @@ private extension ProductionTrackTable {
                 )
             }
         }
-        .guideAnchor(.trackTable)
     }
 
     func headerCell(
@@ -293,8 +283,6 @@ private extension ProductionTrackTable {
         switch column {
         case .album: .album
         case .year: .year
-        case .dateAdded: .dateAdded
-        case .playCount: .playCount
         case .time: .time
         }
     }
@@ -305,8 +293,6 @@ private extension ProductionTrackTable {
         switch column {
         case .album: $albumWidth
         case .year: $yearWidth
-        case .dateAdded: $dateAddedWidth
-        case .playCount: $playCountWidth
         case .time: $timeWidth
         }
     }
@@ -317,8 +303,6 @@ private extension ProductionTrackTable {
         switch column {
         case .album: TrackTableWidth.album
         case .year: TrackTableWidth.year
-        case .dateAdded: TrackTableWidth.dateAdded
-        case .playCount: TrackTableWidth.playCount
         case .time: TrackTableWidth.time
         }
     }

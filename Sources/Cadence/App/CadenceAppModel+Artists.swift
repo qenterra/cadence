@@ -99,11 +99,11 @@ extension CadenceAppModel {
         )
     }
 
-    func mostPlayedTracks(
+    func recentlyPlayedTracks(
         for artist: ArtistPreview,
         limit: Int = 5
     ) -> [TrackPreview] {
-        ArtistListeningProjection.mostPlayed(
+        ArtistListeningProjection.recentlyPlayed(
             tracksForArtist(artist.id),
             limit: limit
         )

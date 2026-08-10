@@ -261,8 +261,6 @@ private extension SmartCollectionRuleEvaluatorTests {
             sampleRate: 96,
             duration: 240,
             fileSize: "80 MB",
-            dateAdded: Date(timeIntervalSince1970: 0),
-            playCount: 0,
             lastPlayed: nil,
             rating: rating,
             isFavorite: false,

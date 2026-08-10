@@ -88,8 +88,6 @@ struct DocumentationScreenshotTests {
         fixture.model.selectedProductionTagID = fixture.tagID
         try await fixture.capture("cadence-tags.png")
 
-        fixture.model.selectedDestination = .settings
-        try await fixture.capture("cadence-settings.png")
     }
 
     private static var updateMarker: URL {
@@ -106,7 +104,6 @@ private final class DocumentationScreenshotFixture {
     let model: CadenceAppModel
     let albumID: UUID
     let tagID: UUID
-    private let guideCoordinator: GuideCoordinator
 
     init(
         model: CadenceAppModel,
@@ -116,11 +113,6 @@ private final class DocumentationScreenshotFixture {
         self.model = model
         self.albumID = albumID
         self.tagID = tagID
-        guideCoordinator = GuideCoordinator(
-            progressStore: InMemoryGuideProgressStore(
-                completedOnboardingVersion: GuideCatalog.onboardingVersion
-            )
-        )
     }
 
     static func make() async throws -> DocumentationScreenshotFixture {
@@ -173,10 +165,7 @@ private final class DocumentationScreenshotFixture {
         contentSize: NSSize = .minimum,
         appearance: DocumentationScreenshotAppearance = .dark
     ) async throws {
-        let rootView = CadenceRootView(
-            model: model,
-            guideCoordinator: guideCoordinator
-        )
+        let rootView = CadenceRootView(model: model)
         .frame(width: contentSize.width, height: contentSize.height)
         .environment(\.colorScheme, appearance.colorScheme)
         .tint(CadenceTheme.primaryAccent)
@@ -314,9 +303,6 @@ private extension DocumentationScreenshotFixture {
                 artist: album.artist,
                 album: album,
                 trackNumber: index % 3 + 1,
-                dateAdded: Date(timeIntervalSince1970: 1_760_000_000)
-                    .addingTimeInterval(Double(index * 60)),
-                playCount: 24 - index,
                 spatialFormat: .stereo
             )
         }

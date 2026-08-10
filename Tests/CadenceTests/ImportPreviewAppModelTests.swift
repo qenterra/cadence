@@ -141,6 +141,7 @@ struct ImportPreviewAppModelTests {
     func navigationDestinations() {
         #expect(
             NavigationDestination.allCases == [
+                .home,
                 .library,
                 .allTracks,
                 .albums,
@@ -150,8 +151,27 @@ struct ImportPreviewAppModelTests {
                 .playlists,
                 .importMusic,
                 .trash,
-                .settings,
             ]
         )
+    }
+
+    @Test("Home is a first-class navigation destination")
+    func homeNavigationDestination() {
+        #expect(
+            NavigationDestination(rawValue: "home")?.title == "Home"
+        )
+    }
+
+    @Test("New app models open Home")
+    @MainActor
+    func defaultNavigationDestination() {
+        let model = CadenceAppModel.testFixture()
+
+        #expect(model.selectedDestination.rawValue == "home")
+    }
+
+    @Test("Settings is not a navigation destination")
+    func settingsBelongToTheApplicationMenu() {
+        #expect(NavigationDestination(rawValue: "settings") == nil)
     }
 }

@@ -28,13 +28,14 @@ enum LibraryProjectionFactory {
             channelCount: track.channelCount,
             bitDepth: track.bitDepth,
             isFavorite: track.isFavorite,
+            isExplicit: TrackContentRating.isExplicit(
+                sourceMetadata: track.sourceMetadata
+            ),
             customArtworkID: track.customArtworkID,
             artworkID:
             track.customArtworkID ?? track.album?.customArtworkID,
             relativeMediaPath: track.relativeMediaPath,
-            dateAdded: track.dateAdded,
             lastPlayedAt: track.lastPlayedAt,
-            playCount: track.playCount,
             hasSynchronizedLyrics: track.lyrics?.parsingStatus == .valid
                 && track.lyrics?.timingStatus == .synchronized
         )
@@ -68,7 +69,6 @@ enum LibraryProjectionFactory {
             artistID: album.artist?.id,
             artist: artistNames.joined(separator: ", "),
             year: album.year,
-            dateAdded: album.dateAdded,
             trackCount: album.trackCount,
             totalDuration: album.totalDuration,
             isFavorite: album.isFavorite,

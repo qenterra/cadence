@@ -21,14 +21,12 @@ struct TrackTableColumnTests {
                 .time,
                 .year,
                 .album,
-                .dateAdded,
-                .playCount,
             ]
         )
 
         #expect(
             TrackTableColumn.decode(encoded)
-                == [.album, .year, .dateAdded, .playCount, .time]
+                == [.album, .year, .time]
         )
     }
 
@@ -43,11 +41,11 @@ struct TrackTableColumnTests {
             TrackTableColumn.decode(migrated.rawValue)
                 == [.album, .year, .time]
         )
-        #expect(migrated.version == 1)
+        #expect(migrated.version == 2)
         #expect(
             TrackTableColumn.migrateDefaults(
                 rawValue: TrackTableColumn.encode([.album]),
-                version: 1
+                version: 2
             ).rawValue == TrackTableColumn.encode([.album])
         )
     }
