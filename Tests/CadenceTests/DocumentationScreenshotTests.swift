@@ -87,7 +87,6 @@ struct DocumentationScreenshotTests {
         fixture.model.selectedDestination = .tags
         fixture.model.selectedProductionTagID = fixture.tagID
         try await fixture.capture("cadence-tags.png")
-
     }
 
     private static var updateMarker: URL {
@@ -166,9 +165,9 @@ private final class DocumentationScreenshotFixture {
         appearance: DocumentationScreenshotAppearance = .dark
     ) async throws {
         let rootView = CadenceRootView(model: model)
-        .frame(width: contentSize.width, height: contentSize.height)
-        .environment(\.colorScheme, appearance.colorScheme)
-        .tint(CadenceTheme.primaryAccent)
+            .frame(width: contentSize.width, height: contentSize.height)
+            .environment(\.colorScheme, appearance.colorScheme)
+            .tint(CadenceTheme.primaryAccent)
 
         let hostingView = NSHostingView(rootView: rootView)
         let window = NSWindow(

@@ -11,18 +11,18 @@ struct CadenceApp: App {
     var body: some Scene {
         WindowGroup("Cadence") {
             CadenceRootView(model: model)
-            .frame(
-                minWidth: AdaptiveLayoutPolicy.minimumWindowSize.width,
-                minHeight: AdaptiveLayoutPolicy.minimumWindowSize.height
-            )
-            .preferredColorScheme(appearance.colorScheme)
-            .tint(CadenceTheme.primaryAccent)
-            .onChange(
-                of: appearanceRawValue,
-                initial: true
-            ) { _, _ in
-                appearanceController.apply(appearance)
-            }
+                .frame(
+                    minWidth: AdaptiveLayoutPolicy.minimumWindowSize.width,
+                    minHeight: AdaptiveLayoutPolicy.minimumWindowSize.height
+                )
+                .preferredColorScheme(appearance.colorScheme)
+                .tint(CadenceTheme.primaryAccent)
+                .onChange(
+                    of: appearanceRawValue,
+                    initial: true
+                ) { _, _ in
+                    appearanceController.apply(appearance)
+                }
         }
         .defaultSize(width: 1512, height: 982)
         .windowResizability(.contentMinSize)

@@ -146,7 +146,7 @@ struct LibrarySchemaTests {
                     duration: 180,
                     codec: "FLAC",
                     container: "FLAC",
-                    sampleRate: 48_000,
+                    sampleRate: 48000,
                     channelCount: 2,
                     contentHash: String(repeating: "a", count: 64),
                     relativeMediaPath: "Media/Signal.flac",

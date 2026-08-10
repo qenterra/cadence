@@ -8,7 +8,9 @@ enum CadenceSettingsTab: String, CaseIterable, Identifiable {
     case shortcuts
     case about
 
-    var id: Self { self }
+    var id: Self {
+        self
+    }
 
     var title: String {
         switch self {

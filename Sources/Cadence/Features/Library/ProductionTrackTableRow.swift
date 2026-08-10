@@ -197,7 +197,7 @@ struct ProductionTrackTableRow: View {
                         .background(
                             CadenceTheme.subduedFill,
                             in: RoundedRectangle(
-                                cornerRadius: 3,
+                                cornerRadius: CadenceTheme.radiusControl,
                                 style: .continuous
                             )
                         )

@@ -71,8 +71,8 @@ struct AppCommandRouterTests {
     }
 
     @Test("Shortcut reference uses native macOS key glyphs")
-    func shortcutReferenceGlyphs() {
-        let nextTrack = try! #require(
+    func shortcutReferenceGlyphs() throws {
+        let nextTrack = try #require(
             ShortcutCatalog.entries.first { $0.id == "next" }
         )
 

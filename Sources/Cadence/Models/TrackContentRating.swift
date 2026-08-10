@@ -14,7 +14,7 @@ enum TrackContentRating {
 
         return snapshot.items.contains { item in
             let key = [item.identifier, item.rawKey, item.canonicalKey]
-                .compactMap { $0 }
+                .compactMap(\.self)
                 .joined(separator: " ")
                 .lowercased()
                 .filter(\.isLetter)

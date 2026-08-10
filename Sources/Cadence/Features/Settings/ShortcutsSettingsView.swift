@@ -18,7 +18,9 @@ enum ShortcutKey: String, Identifiable, Equatable, Sendable {
     case delete
     case click
 
-    var id: String { rawValue }
+    var id: String {
+        rawValue
+    }
 
     var glyph: String {
         switch self {
@@ -149,7 +151,9 @@ private struct ShortcutKeyGlyphs: View {
                 .frame(minWidth: 18, minHeight: 18)
                 .padding(.horizontal, 5)
                 .background(CadenceTheme.subduedFill)
-                .clipShape(RoundedRectangle(cornerRadius: 4))
+                .clipShape(
+                    RoundedRectangle(cornerRadius: CadenceTheme.radiusControl)
+                )
                 .accessibilityLabel(key.glyph)
             }
         }

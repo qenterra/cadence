@@ -97,7 +97,9 @@ struct ProductionAlbumsView: View {
     }
 
     private func comparison(of lhs: Int, and rhs: Int) -> ComparisonResult {
-        if lhs == rhs { return .orderedSame }
+        if lhs == rhs {
+            return .orderedSame
+        }
         return lhs < rhs ? .orderedAscending : .orderedDescending
     }
 

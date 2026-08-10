@@ -11,6 +11,7 @@ final class NativePlaybackBackend: NSObject, PlaybackBackend {
     var airPlayPlayer: AVPlayer {
         player
     }
+
     private var periodicTimeObserver: Any?
     private var timeControlStatusObservation: NSKeyValueObservation?
     private var currentTrackID: UUID?

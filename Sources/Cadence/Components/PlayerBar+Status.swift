@@ -53,5 +53,4 @@ extension PlayerBar {
             "Audio Output, \(model.playbackOutputRoute.name)"
         )
     }
-
 }
