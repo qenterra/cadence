@@ -218,9 +218,7 @@ struct LibraryUXInfrastructureTests {
             customArtworkID: nil,
             artworkID: nil,
             relativeMediaPath: "\(UUID()).flac",
-            dateAdded: .now,
             lastPlayedAt: nil,
-            playCount: 0,
             hasSynchronizedLyrics: false
         )
     }

@@ -217,8 +217,7 @@ private extension LibraryRepository {
             id: entry.id,
             playlistID: entry.playlistID,
             trackID: entry.trackID,
-            position: entry.position,
-            dateAdded: entry.dateAdded
+            position: entry.position
         )
     }
 }

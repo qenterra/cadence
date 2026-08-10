@@ -146,8 +146,7 @@ extension LibraryRepository {
                     id: snapshot.id,
                     playlistID: snapshot.playlistID,
                     trackID: snapshot.trackID,
-                    position: insertion,
-                    dateAdded: snapshot.dateAdded
+                    position: insertion
                 )
                 modelContext.insert(restored)
                 existing.append(restored)

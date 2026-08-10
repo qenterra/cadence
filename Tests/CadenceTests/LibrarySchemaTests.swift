@@ -9,7 +9,7 @@ struct LibrarySchemaTests {
         let container = try LibraryContainerFactory.inMemory()
         let entityNames = Set(container.schema.entities.map(\.name))
 
-        #expect(CadenceSchemaV4.versionIdentifier == Schema.Version(4, 0, 0))
+        #expect(CadenceSchemaV5.versionIdentifier == Schema.Version(5, 0, 0))
         #expect(
             entityNames == [
                 "AlbumRecord",
@@ -113,57 +113,17 @@ struct LibrarySchemaTests {
         }
     }
 
-    @Test("Version four stores retain inert legacy bookkeeping fields")
-    func versionFourLegacyBookkeepingRoundTrip() throws {
+    @Test("Version four stores migrate without legacy bookkeeping fields")
+    func versionFourBookkeepingRemovalMigration() throws {
         try withTemporaryDirectory { directory in
             let storeURL = directory.appending(
                 path: "VersionFour.store",
                 directoryHint: .notDirectory
             )
-            let importID = UUID()
             let addedAt = Date(timeIntervalSinceReferenceDate: 765_432)
-            let schema = Schema(versionedSchema: CadenceSchemaV4.self)
-            let configuration = ModelConfiguration(
-                "CadenceVersionFourFixture",
-                schema: schema,
-                url: storeURL,
-                cloudKitDatabase: .none
-            )
+            try createVersionFourStore(at: storeURL, addedAt: addedAt)
 
-            do {
-                let container = try ModelContainer(
-                    for: schema,
-                    configurations: [configuration]
-                )
-                let context = ModelContext(container)
-                let album = AlbumRecord(
-                    title: "Signal Archive",
-                    dateAdded: addedAt
-                )
-                let track = TrackRecord(
-                    originalFilename: "Signal.flac",
-                    title: "Signal",
-                    duration: 180,
-                    codec: "FLAC",
-                    container: "FLAC",
-                    sampleRate: 48000,
-                    channelCount: 2,
-                    contentHash: String(repeating: "a", count: 64),
-                    relativeMediaPath: "Media/Signal.flac",
-                    importSessionID: importID,
-                    album: album,
-                    dateAdded: addedAt,
-                    playCount: 42
-                )
-                context.insert(album)
-                context.insert(track)
-                try context.save()
-            }
-
-            let reopenedContainer = try ModelContainer(
-                for: schema,
-                configurations: [configuration]
-            )
+            let reopenedContainer = try openMigratedStore(at: storeURL)
             let reopenedContext = ModelContext(reopenedContainer)
             let track = try #require(
                 reopenedContext.fetch(FetchDescriptor<TrackRecord>()).first
@@ -172,9 +132,8 @@ struct LibrarySchemaTests {
                 reopenedContext.fetch(FetchDescriptor<AlbumRecord>()).first
             )
 
-            #expect(track.dateAdded == addedAt)
-            #expect(track.playCount == 42)
-            #expect(album.dateAdded == addedAt)
+            #expect(track.title == "Signal")
+            #expect(album.title == "Signal Archive")
         }
     }
 
@@ -222,69 +181,6 @@ struct LibrarySchemaTests {
         }
     }
 
-    private func createVersionOneStore(
-        at storeURL: URL,
-        trackID: UUID,
-        importID: UUID
-    ) throws {
-        let schema = Schema(versionedSchema: CadenceSchemaV1.self)
-        let configuration = ModelConfiguration(
-            "CadenceMigrationFixture",
-            schema: schema,
-            url: storeURL,
-            cloudKitDatabase: .none
-        )
-        let container = try ModelContainer(
-            for: schema,
-            configurations: [configuration]
-        )
-        let context = ModelContext(container)
-        let artist = ArtistRecord(name: "Legacy Artist", trackCount: 1)
-        context.insert(artist)
-        context.insert(
-            ImportSessionRecord(
-                id: importID,
-                sourceDisplayName: "Migration Fixture",
-                state: .complete,
-                importedCount: 1
-            )
-        )
-        context.insert(
-            TrackRecord(
-                id: trackID,
-                originalFilename: "Signal.flac",
-                title: "Signal",
-                duration: 180,
-                codec: "FLAC",
-                container: "FLAC",
-                sampleRate: 48000,
-                channelCount: 2,
-                contentHash: String(repeating: "a", count: 64),
-                relativeMediaPath: "Media/\(trackID.uuidString).flac",
-                importSessionID: importID,
-                artist: artist
-            )
-        )
-        try context.save()
-    }
-
-    private func openMigratedStore(
-        at storeURL: URL
-    ) throws -> ModelContainer {
-        let schema = Schema(versionedSchema: CadenceSchemaV4.self)
-        let configuration = ModelConfiguration(
-            "CadenceMigrationFixture",
-            schema: schema,
-            url: storeURL,
-            cloudKitDatabase: .none
-        )
-        return try ModelContainer(
-            for: schema,
-            migrationPlan: CadenceMigrationPlan.self,
-            configurations: [configuration]
-        )
-    }
-
     @Test("In-memory stores never create the real managed package")
     func inMemoryHasNoPackageSideEffect() throws {
         try withTemporaryDirectory { musicDirectory in
@@ -301,22 +197,117 @@ struct LibrarySchemaTests {
             )
         }
     }
+}
 
-    private func withTemporaryDirectory(
-        _ operation: (URL) throws -> Void
-    ) throws {
-        let directory = FileManager.default.temporaryDirectory
-            .appending(
-                path: "CadenceSchemaTests-\(UUID().uuidString)",
-                directoryHint: .isDirectory
-            )
-        try FileManager.default.createDirectory(
-            at: directory,
-            withIntermediateDirectories: true
+private func createVersionFourStore(at storeURL: URL, addedAt: Date) throws {
+    let schema = Schema(versionedSchema: CadenceSchemaV4.self)
+    let configuration = ModelConfiguration(
+        "CadenceVersionFourFixture",
+        schema: schema,
+        url: storeURL,
+        cloudKitDatabase: .none
+    )
+    let container = try ModelContainer(for: schema, configurations: [configuration])
+    let context = ModelContext(container)
+    let album = CadenceLegacySchemaModels.AlbumRecord(
+        title: "Signal Archive",
+        dateAdded: addedAt
+    )
+    let track = CadenceLegacySchemaModels.TrackRecord(
+        originalFilename: "Signal.flac",
+        title: "Signal",
+        duration: 180,
+        codec: "FLAC",
+        container: "FLAC",
+        sampleRate: 48000,
+        channelCount: 2,
+        contentHash: String(repeating: "a", count: 64),
+        relativeMediaPath: "Media/Signal.flac",
+        importSessionID: UUID(),
+        album: album,
+        dateAdded: addedAt,
+        playCount: 42
+    )
+    context.insert(album)
+    context.insert(track)
+    try context.save()
+}
+
+private func createVersionOneStore(
+    at storeURL: URL,
+    trackID: UUID,
+    importID: UUID
+) throws {
+    let schema = Schema(versionedSchema: CadenceSchemaV1.self)
+    let configuration = ModelConfiguration(
+        "CadenceMigrationFixture",
+        schema: schema,
+        url: storeURL,
+        cloudKitDatabase: .none
+    )
+    let container = try ModelContainer(for: schema, configurations: [configuration])
+    let context = ModelContext(container)
+    let artist = CadenceLegacySchemaModels.ArtistRecord(
+        name: "Legacy Artist",
+        trackCount: 1
+    )
+    context.insert(artist)
+    context.insert(
+        ImportSessionRecord(
+            id: importID,
+            sourceDisplayName: "Migration Fixture",
+            state: .complete,
+            importedCount: 1
         )
-        defer {
-            try? FileManager.default.removeItem(at: directory)
-        }
-        try operation(directory)
+    )
+    context.insert(
+        CadenceLegacySchemaModels.TrackRecord(
+            id: trackID,
+            originalFilename: "Signal.flac",
+            title: "Signal",
+            duration: 180,
+            codec: "FLAC",
+            container: "FLAC",
+            sampleRate: 48000,
+            channelCount: 2,
+            contentHash: String(repeating: "a", count: 64),
+            relativeMediaPath: "Media/\(trackID.uuidString).flac",
+            importSessionID: importID,
+            artist: artist
+        )
+    )
+    try context.save()
+}
+
+private func openMigratedStore(at storeURL: URL) throws -> ModelContainer {
+    let schema = Schema(versionedSchema: CadenceSchemaV5.self)
+    let configuration = ModelConfiguration(
+        "CadenceMigrationFixture",
+        schema: schema,
+        url: storeURL,
+        cloudKitDatabase: .none
+    )
+    return try ModelContainer(
+        for: schema,
+        migrationPlan: CadenceMigrationPlan.self,
+        configurations: [configuration]
+    )
+}
+
+private func withTemporaryDirectory(
+    _ operation: (URL) throws -> Void
+) throws {
+    let directory = FileManager.default.temporaryDirectory
+        .appending(
+            path: "CadenceSchemaTests-\(UUID().uuidString)",
+            directoryHint: .isDirectory
+        )
+    try FileManager.default.createDirectory(
+        at: directory,
+        withIntermediateDirectories: true
+    )
+    defer {
+        try? FileManager.default.removeItem(at: directory)
     }
+    try operation(directory)
 }

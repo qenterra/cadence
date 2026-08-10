@@ -2,7 +2,7 @@ import SwiftData
 
 enum LibraryContainerFactory {
     static func inMemory() throws -> ModelContainer {
-        let schema = Schema(versionedSchema: CadenceSchemaV4.self)
+        let schema = Schema(versionedSchema: CadenceSchemaV5.self)
         let configuration = ModelConfiguration(
             "CadenceInMemory",
             schema: schema,
@@ -21,7 +21,7 @@ enum LibraryContainerFactory {
     static func persistent(
         package: ManagedLibraryPackage
     ) throws -> ModelContainer {
-        let schema = Schema(versionedSchema: CadenceSchemaV4.self)
+        let schema = Schema(versionedSchema: CadenceSchemaV5.self)
         let configuration = ModelConfiguration(
             "CadenceLibrary",
             schema: schema,

@@ -114,9 +114,7 @@ struct LibraryTrackProjection: Identifiable, Hashable, Sendable {
         customArtworkID: UUID?,
         artworkID: UUID?,
         relativeMediaPath: String,
-        dateAdded _: Date? = nil,
         lastPlayedAt: Date?,
-        playCount _: Int = 0,
         hasSynchronizedLyrics: Bool
     ) {
         self.id = id
