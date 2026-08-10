@@ -59,7 +59,7 @@ struct ContextualNavigationTests {
         #expect(model.presentedAlbum?.id == firstAlbum.id)
 
         model.requestAlbumsBack()
-        #expect(model.selectedDestination == .home)
+        #expect(model.selectedDestination == .library)
         #expect(model.contextualNavigationHistory.isEmpty)
     }
 
@@ -88,7 +88,7 @@ struct ContextualNavigationTests {
         model.requestOpenArtistContextually(id: "missing")
 
         #expect(model.contextualNavigationHistory.isEmpty)
-        #expect(model.selectedDestination == .library)
+        #expect(model.selectedDestination == .home)
     }
 
     @Test("Dirty Smart Collection asks before contextual navigation")

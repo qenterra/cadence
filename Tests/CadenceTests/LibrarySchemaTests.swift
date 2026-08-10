@@ -113,6 +113,71 @@ struct LibrarySchemaTests {
         }
     }
 
+    @Test("Version four stores retain inert legacy bookkeeping fields")
+    func versionFourLegacyBookkeepingRoundTrip() throws {
+        try withTemporaryDirectory { directory in
+            let storeURL = directory.appending(
+                path: "VersionFour.store",
+                directoryHint: .notDirectory
+            )
+            let importID = UUID()
+            let addedAt = Date(timeIntervalSinceReferenceDate: 765_432)
+            let schema = Schema(versionedSchema: CadenceSchemaV4.self)
+            let configuration = ModelConfiguration(
+                "CadenceVersionFourFixture",
+                schema: schema,
+                url: storeURL,
+                cloudKitDatabase: .none
+            )
+
+            do {
+                let container = try ModelContainer(
+                    for: schema,
+                    configurations: [configuration]
+                )
+                let context = ModelContext(container)
+                let album = AlbumRecord(
+                    title: "Signal Archive",
+                    dateAdded: addedAt
+                )
+                let track = TrackRecord(
+                    originalFilename: "Signal.flac",
+                    title: "Signal",
+                    duration: 180,
+                    codec: "FLAC",
+                    container: "FLAC",
+                    sampleRate: 48_000,
+                    channelCount: 2,
+                    contentHash: String(repeating: "a", count: 64),
+                    relativeMediaPath: "Media/Signal.flac",
+                    importSessionID: importID,
+                    album: album,
+                    dateAdded: addedAt,
+                    playCount: 42
+                )
+                context.insert(album)
+                context.insert(track)
+                try context.save()
+            }
+
+            let reopenedContainer = try ModelContainer(
+                for: schema,
+                configurations: [configuration]
+            )
+            let reopenedContext = ModelContext(reopenedContainer)
+            let track = try #require(
+                reopenedContext.fetch(FetchDescriptor<TrackRecord>()).first
+            )
+            let album = try #require(
+                reopenedContext.fetch(FetchDescriptor<AlbumRecord>()).first
+            )
+
+            #expect(track.dateAdded == addedAt)
+            #expect(track.playCount == 42)
+            #expect(album.dateAdded == addedAt)
+        }
+    }
+
     @Test("Version one stores migrate to the current schema without data loss")
     func versionOneMigration() throws {
         try withTemporaryDirectory { directory in

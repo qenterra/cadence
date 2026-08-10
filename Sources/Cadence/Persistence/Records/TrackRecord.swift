@@ -6,6 +6,7 @@ final class TrackRecord {
     #Index<TrackRecord>(
         [\.normalizedTitle],
         [\.normalizedTitle, \.sortIdentity],
+        [\.dateAdded],
         [\.lastPlayedAt],
         [\.importSessionID]
     )
@@ -21,7 +22,11 @@ final class TrackRecord {
     var discNumber: Int?
     var duration: TimeInterval
     var sourceFrameCount: Int64?
+    // Kept only to reopen V4 libraries. Cadence no longer reads or updates it.
+    var dateAdded: Date
     var lastPlayedAt: Date?
+    // Kept only to reopen V4 libraries. Cadence no longer reads or updates it.
+    var playCount: Int
     var skipCount: Int
     var isFavorite: Bool
     var codec: String
@@ -62,7 +67,9 @@ final class TrackRecord {
         trackNumber: Int? = nil,
         discNumber: Int? = nil,
         sourceFrameCount: Int64? = nil,
+        dateAdded: Date = .now,
         lastPlayedAt: Date? = nil,
+        playCount: Int = 0,
         skipCount: Int = 0,
         isFavorite: Bool = false,
         spatialFormat: StoredSpatialFormat = .unknown,
@@ -82,7 +89,9 @@ final class TrackRecord {
         self.discNumber = discNumber
         self.duration = duration
         self.sourceFrameCount = sourceFrameCount
+        self.dateAdded = dateAdded
         self.lastPlayedAt = lastPlayedAt
+        self.playCount = playCount
         self.skipCount = skipCount
         self.isFavorite = isFavorite
         self.codec = codec
