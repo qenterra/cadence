@@ -3,7 +3,7 @@ import SwiftUI
 struct PlayerBar: View {
     @Bindable var model: CadenceAppModel
     @State private var pendingSeekProgress: Double?
-    @State private var isQualityProfilePresented = false
+    @State var isQualityProfilePresented = false
     @State private var isArtworkHovered = false
 
     var body: some View {
@@ -175,6 +175,7 @@ private extension PlayerBar {
                     model.togglePlayback()
                 } label: {
                     Image(systemName: model.isPlaying ? "pause.fill" : "play.fill")
+                        .contentTransition(.symbolEffect(.replace))
                         .font(.system(size: 14, weight: .bold))
                         .frame(width: 34, height: 34)
                         .foregroundStyle(CadenceTheme.contentBackground)
@@ -217,6 +218,7 @@ private extension PlayerBar {
                 model.toggleMute()
             } label: {
                 Image(systemName: volumeSymbol)
+                    .contentTransition(.symbolEffect(.replace))
                     .foregroundStyle(.secondary)
                     .frame(width: 28, height: 28)
             }
@@ -320,78 +322,5 @@ private extension PlayerBar {
                 .foregroundStyle(CadenceTheme.primaryAccent.opacity(0.68))
                 .lineLimit(1)
         }
-    }
-}
-
-private extension PlayerBar {
-    var qualityProfileMenu: some View {
-        Button {
-            isQualityProfilePresented.toggle()
-        } label: {
-            Image(systemName: "slider.horizontal.3")
-                .foregroundStyle(
-                    isQualityProfilePresented ? .primary : .secondary
-                )
-                .frame(width: 34, height: 34)
-                .background {
-                    if isQualityProfilePresented {
-                        RoundedRectangle(
-                            cornerRadius: CadenceTheme.radiusControl,
-                            style: .continuous
-                        )
-                        .fill(CadenceTheme.selectionFill)
-                    }
-                }
-        }
-        .buttonStyle(CadenceRowButtonStyle())
-        .popover(
-            isPresented: $isQualityProfilePresented,
-            arrowEdge: .bottom
-        ) {
-            qualityProfilePopover
-        }
-        .help("Quality Profile: \(model.qualityProfile.title)")
-        .accessibilityLabel(
-            "Quality Profile, \(model.qualityProfile.title)"
-        )
-    }
-
-    var qualityProfilePopover: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("Quality Profile")
-                .font(.headline)
-                .padding(.horizontal, 10)
-                .padding(.top, 8)
-                .padding(.bottom, 4)
-
-            ForEach(AudioQualityProfile.allCases) { profile in
-                Button {
-                    model.selectQualityProfile(profile)
-                } label: {
-                    HStack(spacing: 10) {
-                        Image(systemName: "checkmark")
-                            .opacity(model.qualityProfile == profile ? 1 : 0)
-                            .frame(width: 14)
-                        Text(profile.title)
-                        Spacer()
-                    }
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(CadenceMenuRowButtonStyle())
-            }
-
-            Divider()
-                .padding(.vertical, 4)
-
-            Toggle(
-                "Spatialize Stereo",
-                isOn: $model.isStereoSpatializationEnabled
-            )
-            .disabled(model.qualityProfile != .immersive)
-            .padding(.horizontal, 10)
-            .padding(.bottom, 8)
-        }
-        .padding(6)
-        .frame(width: 220)
     }
 }

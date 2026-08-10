@@ -37,6 +37,11 @@ struct CadenceRowButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .opacity(configuration.isPressed ? 0.72 : 1)
+            .symbolEffect(
+                .bounce.down,
+                options: .nonRepeating,
+                isActive: configuration.isPressed && !reduceMotion
+            )
             .animation(
                 reduceMotion ? nil : .easeOut(duration: CadenceTheme.motionPress),
                 value: configuration.isPressed

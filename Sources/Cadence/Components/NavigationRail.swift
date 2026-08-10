@@ -74,6 +74,7 @@ struct NavigationRail: View {
                         ? "sidebar.left"
                         : "sidebar.right"
                 )
+                .contentTransition(.symbolEffect(.replace))
                 .font(.system(size: 15, weight: .medium))
                 .frame(width: 28)
 

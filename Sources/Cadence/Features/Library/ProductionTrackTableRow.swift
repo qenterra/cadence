@@ -110,6 +110,7 @@ struct ProductionTrackTableRow: View {
                     }
                 } label: {
                     Image(systemName: track.isFavorite ? "heart.fill" : "heart")
+                        .contentTransition(.symbolEffect(.replace))
                         .foregroundStyle(
                             track.isFavorite
                                 ? CadenceTheme.primaryAccent
@@ -154,6 +155,7 @@ struct ProductionTrackTableRow: View {
                         ? "waveform"
                         : "play.fill"
                 )
+                .contentTransition(.symbolEffect(.replace))
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(.white)
                 .symbolEffect(

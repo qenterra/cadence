@@ -53,4 +53,80 @@ extension PlayerBar {
             "Audio Output, \(model.playbackOutputRoute.name)"
         )
     }
+
+    var qualityProfileMenu: some View {
+        Button {
+            isQualityProfilePresented.toggle()
+        } label: {
+            Image(systemName: "slider.horizontal.3")
+                .symbolEffect(
+                    .pulse,
+                    options: .nonRepeating,
+                    isActive: isQualityProfilePresented
+                )
+                .foregroundStyle(
+                    isQualityProfilePresented ? .primary : .secondary
+                )
+                .frame(width: 34, height: 34)
+                .background {
+                    if isQualityProfilePresented {
+                        RoundedRectangle(
+                            cornerRadius: CadenceTheme.radiusControl,
+                            style: .continuous
+                        )
+                        .fill(CadenceTheme.selectionFill)
+                    }
+                }
+        }
+        .buttonStyle(CadenceRowButtonStyle())
+        .popover(
+            isPresented: $isQualityProfilePresented,
+            arrowEdge: .bottom
+        ) {
+            qualityProfilePopover
+        }
+        .help("Quality Profile: \(model.qualityProfile.title)")
+        .accessibilityLabel(
+            "Quality Profile, \(model.qualityProfile.title)"
+        )
+    }
+
+    var qualityProfilePopover: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("Quality Profile")
+                .font(.headline)
+                .padding(.horizontal, 10)
+                .padding(.top, 8)
+                .padding(.bottom, 4)
+
+            ForEach(AudioQualityProfile.allCases) { profile in
+                Button {
+                    model.selectQualityProfile(profile)
+                } label: {
+                    HStack(spacing: 10) {
+                        Image(systemName: "checkmark")
+                            .opacity(model.qualityProfile == profile ? 1 : 0)
+                            .frame(width: 14)
+                        Text(profile.title)
+                        Spacer()
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(CadenceMenuRowButtonStyle())
+            }
+
+            Divider()
+                .padding(.vertical, 4)
+
+            Toggle(
+                "Spatialize Stereo",
+                isOn: $model.isStereoSpatializationEnabled
+            )
+            .disabled(model.qualityProfile != .immersive)
+            .padding(.horizontal, 10)
+            .padding(.bottom, 8)
+        }
+        .padding(6)
+        .frame(width: 220)
+    }
 }

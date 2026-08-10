@@ -226,3 +226,74 @@ struct MetadataReaderTests {
         return item
     }
 }
+
+struct TrackContentRatingTests {
+    @Test("Explicit rating checks each source metadata key independently")
+    func recognizedExplicitRating() throws {
+        let metadata = try encodedSnapshot(
+            item(
+                identifier: "commonIdentifierContentRating",
+                rawKey: "rtng",
+                canonicalKey: "mdta/com.apple.quicktime.content.rating",
+                numberValue: 1
+            )
+        )
+
+        #expect(TrackContentRating.isExplicit(sourceMetadata: metadata))
+    }
+
+    @Test("Explicit words outside rating metadata do not create a warning")
+    func unrelatedExplicitWord() throws {
+        let metadata = try encodedSnapshot(
+            item(
+                identifier: "commonIdentifierTitle",
+                rawKey: "TITLE",
+                canonicalKey: "title",
+                stringValue: "Explicit Intentions"
+            )
+        )
+
+        #expect(!TrackContentRating.isExplicit(sourceMetadata: metadata))
+    }
+
+    @Test("Clean rating values remain unmarked")
+    func cleanRating() throws {
+        let metadata = try encodedSnapshot(
+            item(
+                identifier: "commonIdentifierContentRating",
+                rawKey: "ITUNESADVISORY",
+                canonicalKey: "contentRating",
+                stringValue: "clean",
+                numberValue: 2
+            )
+        )
+
+        #expect(!TrackContentRating.isExplicit(sourceMetadata: metadata))
+    }
+
+    private func encodedSnapshot(_ item: SourceMetadataItem) throws -> Data {
+        try JSONEncoder().encode(SourceMetadataSnapshot(items: [item]))
+    }
+
+    private func item(
+        identifier: String?,
+        rawKey: String,
+        canonicalKey: String,
+        stringValue: String? = nil,
+        numberValue: Double? = nil
+    ) -> SourceMetadataItem {
+        SourceMetadataItem(
+            identifier: identifier,
+            rawKey: rawKey,
+            canonicalKey: canonicalKey,
+            keySpace: nil,
+            localeIdentifier: nil,
+            stringValue: stringValue,
+            numberValue: numberValue,
+            dateValue: nil,
+            binaryByteCount: nil,
+            binaryContentHash: nil,
+            dataType: nil
+        )
+    }
+}

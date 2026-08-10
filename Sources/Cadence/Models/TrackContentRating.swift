@@ -13,12 +13,14 @@ enum TrackContentRating {
         }
 
         return snapshot.items.contains { item in
-            let key = [item.identifier, item.rawKey, item.canonicalKey]
-                .compactMap(\.self)
-                .joined(separator: " ")
-                .lowercased()
-                .filter(\.isLetter)
-            guard explicitRatingKeys.contains(key) else {
+            let hasRatingKey = [
+                item.identifier,
+                item.rawKey,
+                item.canonicalKey,
+            ]
+            .compactMap(\.self)
+            .contains(where: isExplicitRatingKey)
+            guard hasRatingKey else {
                 return false
             }
             let value = item.stringValue?.lowercased() ?? ""
@@ -29,13 +31,23 @@ enum TrackContentRating {
         }
     }
 
+    private static func isExplicitRatingKey(_ key: String) -> Bool {
+        let normalizedKey = key.lowercased().filter(\.isLetter)
+        return explicitRatingKeys.contains(normalizedKey)
+            || explicitRatingKeys.contains {
+                normalizedKey.hasSuffix($0)
+            }
+    }
+
     private static let explicitRatingKeys: Set<String> = [
         "advisory",
+        "commonidentifiercontentrating",
         "contentrating",
         "explicit",
         "itunescontentrating",
         "itunesadvisory",
         "itunesextc",
         "rating",
+        "rtng",
     ]
 }
