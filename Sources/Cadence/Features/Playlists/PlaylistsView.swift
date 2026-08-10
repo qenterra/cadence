@@ -215,6 +215,13 @@ private extension PlaylistsView {
             )
         }
         .contentShape(Rectangle())
+        .onTapGesture(count: 2) {
+            Task {
+                await store.selectPlaylist(playlist.id)
+                playlistName = playlist.name
+                playlistNameOperation = .rename
+            }
+        }
         .contextMenu {
             playlistActions(playlist)
         }

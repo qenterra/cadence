@@ -110,6 +110,14 @@ private struct SmartCollectionListRow: View {
         .buttonStyle(CadenceRowButtonStyle())
         .focused($isFocused)
         .onHover { isHovered = $0 }
+        .simultaneousGesture(
+            TapGesture(count: 2).onEnded {
+                guard !item.isTransient else {
+                    return
+                }
+                model.requestRenameSmartCollection(item.id)
+            }
+        )
         .contextMenu {
             if !item.isTransient {
                 Button("Edit Rules", systemImage: "slider.horizontal.3") {
