@@ -1,3 +1,4 @@
+import AVFoundation
 @testable import Cadence
 import Foundation
 import Testing
@@ -16,6 +17,24 @@ struct AudioRouteMonitoringTests {
         name: "Living Room",
         transport: .airPlay
     )
+
+    @Test("AirPlay routing falls back to the system while Native is empty")
+    func emptyNativePlayerUsesSystemRouting() {
+        let player = AVPlayer()
+
+        #expect(AirPlayRoutePicker.routingPlayer(player) == nil)
+    }
+
+    @Test("AirPlay routing follows Native once it has playable content")
+    func loadedNativePlayerUsesPlayerRouting() {
+        let player = AVPlayer(
+            playerItem: AVPlayerItem(
+                url: URL(filePath: "/tmp/cadence-airplay-test.m4a")
+            )
+        )
+
+        #expect(AirPlayRoutePicker.routingPlayer(player) === player)
+    }
 
     @Test("Route monitoring lifecycle is idempotent")
     func monitoringLifecycle() {
