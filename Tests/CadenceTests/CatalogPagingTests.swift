@@ -4,7 +4,7 @@ import SwiftData
 import Testing
 
 struct CatalogPagingTests {
-    @Test("Repository sorting is global across 401 records in both directions")
+    @Test("Repository duration sorting is global across 401 records")
     func globalSortingAcrossPages() async throws {
         let fixture = try makeLargeRelationshipFixture()
         let repository = LibraryRepository(modelContainer: fixture.container)
@@ -13,7 +13,7 @@ struct CatalogPagingTests {
             repository: repository,
             query: LibraryTrackQuery(
                 sort: LibraryTrackSort(
-                    field: .playCount,
+                    field: .duration,
                     direction: .ascending
                 )
             )
@@ -22,7 +22,7 @@ struct CatalogPagingTests {
             repository: repository,
             query: LibraryTrackQuery(
                 sort: LibraryTrackSort(
-                    field: .playCount,
+                    field: .duration,
                     direction: .descending
                 )
             )
@@ -181,14 +181,14 @@ private extension CatalogPagingTests {
         _ tracks: [LibraryTrackProjection],
         direction: LibraryTrackSortDirection
     ) -> [UUID] {
-        tracks.sorted { lhs, rhs in
-            if lhs.playCount == rhs.playCount {
+        tracks.sorted(by: { lhs, rhs in
+            if lhs.duration == rhs.duration {
                 return lhs.id.uuidString < rhs.id.uuidString
             }
             return direction == .ascending
-                ? lhs.playCount < rhs.playCount
-                : lhs.playCount > rhs.playCount
-        }
+                ? lhs.duration < rhs.duration
+                : lhs.duration > rhs.duration
+        })
         .map(\.id)
     }
 
@@ -287,9 +287,7 @@ private extension CatalogPagingTests {
                     relativeMediaPath: "Media/\(id.uuidString).flac",
                     importSessionID: importID,
                     artist: artist,
-                    album: album,
-                    dateAdded: Date(timeIntervalSince1970: Double(index)),
-                    playCount: index % 7
+                    album: album
                 )
             )
         }

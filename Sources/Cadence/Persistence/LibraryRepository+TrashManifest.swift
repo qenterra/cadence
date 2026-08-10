@@ -105,7 +105,6 @@ private extension LibraryRepository {
             title: album.title,
             artistID: album.artist?.id,
             year: album.year,
-            dateAdded: album.dateAdded,
             isFavorite: album.isFavorite,
             favoriteDate: album.favoriteDate,
             customArtworkID: album.customArtworkID
@@ -121,9 +120,7 @@ private extension LibraryRepository {
             discNumber: track.discNumber,
             duration: track.duration,
             sourceFrameCount: track.sourceFrameCount,
-            dateAdded: track.dateAdded,
             lastPlayedAt: track.lastPlayedAt,
-            playCount: track.playCount,
             skipCount: track.skipCount,
             isFavorite: track.isFavorite,
             codec: track.codec,

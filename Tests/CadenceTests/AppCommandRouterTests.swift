@@ -70,15 +70,12 @@ struct AppCommandRouterTests {
         #expect(toggleCount == 0)
     }
 
-    @Test("Shortcut reference is searchable by action and keys")
-    func shortcutReferenceSearch() {
-        #expect(
-            ShortcutCatalog.search("volume").map(\.title)
-                == ["Volume Up", "Volume Down"]
+    @Test("Shortcut reference uses native macOS key glyphs")
+    func shortcutReferenceGlyphs() {
+        let nextTrack = try! #require(
+            ShortcutCatalog.entries.first { $0.id == "next" }
         )
-        #expect(
-            ShortcutCatalog.search("command right").map(\.title)
-                == ["Next Track"]
-        )
+
+        #expect(nextTrack.keys == [.command, .rightArrow])
     }
 }

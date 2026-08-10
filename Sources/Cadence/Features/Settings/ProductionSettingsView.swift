@@ -1,7 +1,41 @@
 import SwiftUI
 
+enum CadenceSettingsTab: String, CaseIterable, Identifiable {
+    case general
+    case library
+    case sidebar
+    case remote
+    case shortcuts
+    case about
+
+    var id: Self { self }
+
+    var title: String {
+        switch self {
+        case .general: "General"
+        case .library: "Library"
+        case .sidebar: "Sidebar"
+        case .remote: "Remote Media"
+        case .shortcuts: "Shortcuts"
+        case .about: "About"
+        }
+    }
+
+    var symbolName: String {
+        switch self {
+        case .general: "gearshape"
+        case .library: "externaldrive"
+        case .sidebar: "sidebar.left"
+        case .remote: "network"
+        case .shortcuts: "keyboard"
+        case .about: "info.circle"
+        }
+    }
+}
+
 struct ProductionSettingsView: View {
     @Bindable var model: CadenceAppModel
+    let tab: CadenceSettingsTab
     @AppStorage("appearance")
     private var appearanceRawValue = CadenceAppearance.system.rawValue
     @AppStorage("navigationRail.order")
@@ -9,122 +43,27 @@ struct ProductionSettingsView: View {
         NavigationRailConfiguration.defaultOrderRawValue
     @AppStorage("navigationRail.hidden")
     private var hiddenNavigationRawValue = ""
+    @State private var libraryStorageSize = "Calculating…"
 
     private var store: LibraryStore {
         model.librarySession.store
     }
 
+    init(
+        model: CadenceAppModel,
+        tab: CadenceSettingsTab = .general
+    ) {
+        self.model = model
+        self.tab = tab
+    }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
-                Text("Settings")
+                Text(tab.title)
                     .font(.largeTitle.bold())
-                    .guideAnchor(.settings)
 
-                SettingsCard(
-                    title: "Playback",
-                    symbol: "waveform"
-                ) {
-                    Picker("Quality Profile", selection: qualityBinding) {
-                        ForEach(AudioQualityProfile.allCases) { profile in
-                            Text(profile.title).tag(profile)
-                        }
-                    }
-                    .pickerStyle(.segmented)
-
-                    Toggle(
-                        "Spatialize Stereo in Immersive mode",
-                        isOn: $model.isStereoSpatializationEnabled
-                    )
-                    .disabled(model.qualityProfile != .immersive)
-
-                    Text(playbackDescription)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-
-                SettingsCard(
-                    title: "Managed Library",
-                    symbol: "externaldrive"
-                ) {
-                    LabeledContent("Location") {
-                        Text(libraryPath)
-                            .foregroundStyle(.secondary)
-                            .textSelection(.enabled)
-                    }
-                    LabeledContent("Available Tracks") {
-                        Text(store.catalogCounts.liveTrackCount.formatted())
-                    }
-                    LabeledContent("Tracks in Trash") {
-                        Text(store.catalogCounts.trashedTrackCount.formatted())
-                    }
-
-                    HStack {
-                        Button("Import Music…", systemImage: "folder.badge.plus") {
-                            model.requestNavigationDestination(.importMusic)
-                        }
-                        Button("Open Trash", systemImage: "trash") {
-                            model.requestNavigationDestination(.trash)
-                        }
-                        Button("Move Library…", systemImage: "externaldrive.badge.plus") {
-                            model.chooseLibraryLocation()
-                        }
-                        .disabled(model.isMovingLibrary)
-                    }
-
-                    if let progress = model.libraryRelocationProgress {
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text(progress.phase.title)
-                                .font(.callout.weight(.medium))
-                            if let fraction = progress.fractionCompleted {
-                                ProgressView(value: fraction)
-                                    .progressViewStyle(.linear)
-                            } else {
-                                ProgressView()
-                                    .controlSize(.small)
-                            }
-                            Text(progress.label)
-                                .font(.caption.monospacedDigit())
-                                .foregroundStyle(.secondary)
-                        }
-                        .accessibilityElement(children: .combine)
-                    }
-                }
-
-                SettingsCard(
-                    title: "Interface",
-                    symbol: "circle.lefthalf.filled"
-                ) {
-                    Picker("Appearance", selection: appearanceBinding) {
-                        ForEach(CadenceAppearance.allCases) { appearance in
-                            Text(appearance.title).tag(appearance)
-                        }
-                    }
-                    .pickerStyle(.segmented)
-
-                    Text(
-                        "Cadence keeps its monochrome accent and follows "
-                            + "reduced-motion and accessibility preferences "
-                            + "from macOS automatically."
-                    )
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                }
-
-                if let remoteLibraryController = model.remoteLibraryController {
-                    RemoteLibrarySettingsView(
-                        controller: remoteLibraryController
-                    )
-                }
-
-                SettingsSidebarCard(
-                    orderRawValue: $navigationOrderRawValue,
-                    hiddenRawValue: $hiddenNavigationRawValue
-                )
-
-                ShortcutsSettingsView()
-
-                SettingsAboutSection()
+                tabContent
             }
             .frame(maxWidth: 760, alignment: .leading)
             .padding(32)
@@ -171,6 +110,143 @@ struct ProductionSettingsView: View {
         }
     }
 
+    @ViewBuilder
+    private var tabContent: some View {
+        switch tab {
+        case .general:
+            playbackCard
+            appearanceCard
+        case .library:
+            libraryCard
+        case .sidebar:
+            SettingsSidebarCard(
+                orderRawValue: $navigationOrderRawValue,
+                hiddenRawValue: $hiddenNavigationRawValue
+            )
+        case .remote:
+            if let remoteLibraryController = model.remoteLibraryController {
+                RemoteLibrarySettingsView(controller: remoteLibraryController)
+            } else {
+                ContentUnavailableView(
+                    "Remote Media Unavailable",
+                    systemImage: "network.slash",
+                    description: Text(
+                        "Remote media is not configured for this library."
+                    )
+                )
+            }
+        case .shortcuts:
+            ShortcutsSettingsView()
+        case .about:
+            SettingsAboutSection()
+        }
+    }
+
+    private var playbackCard: some View {
+        SettingsCard(
+            title: "Playback",
+            symbol: "waveform"
+        ) {
+            Picker("Quality Profile", selection: qualityBinding) {
+                ForEach(AudioQualityProfile.allCases) { profile in
+                    Text(profile.title).tag(profile)
+                }
+            }
+            .pickerStyle(.segmented)
+
+            Toggle(
+                "Spatialize Stereo in Immersive mode",
+                isOn: $model.isStereoSpatializationEnabled
+            )
+            .disabled(model.qualityProfile != .immersive)
+
+            Text(playbackDescription)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private var libraryCard: some View {
+        SettingsCard(
+            title: "Managed Library",
+            symbol: "externaldrive"
+        ) {
+            LabeledContent("Location") {
+                Text(libraryPath)
+                    .foregroundStyle(.secondary)
+                    .textSelection(.enabled)
+            }
+            LabeledContent("Available Tracks") {
+                Text(store.catalogCounts.liveTrackCount.formatted())
+            }
+            LabeledContent("Tracks in Trash") {
+                Text(store.catalogCounts.trashedTrackCount.formatted())
+            }
+            LabeledContent("Library Size") {
+                Text(libraryStorageSize)
+                    .monospacedDigit()
+            }
+
+            HStack {
+                Button("Import Music…", systemImage: "folder.badge.plus") {
+                    model.requestNavigationDestination(.importMusic)
+                }
+                Button("Open Trash", systemImage: "trash") {
+                    model.requestNavigationDestination(.trash)
+                }
+                Button("Move Library…", systemImage: "externaldrive.badge.plus") {
+                    model.chooseLibraryLocation()
+                }
+                .disabled(model.isMovingLibrary)
+            }
+
+            if let progress = model.libraryRelocationProgress {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(progress.phase.title)
+                        .font(.callout.weight(.medium))
+                    if let fraction = progress.fractionCompleted {
+                        ProgressView(value: fraction)
+                            .progressViewStyle(.linear)
+                    } else {
+                        ProgressView()
+                            .controlSize(.small)
+                    }
+                    Text(progress.label)
+                        .font(.caption.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                }
+                .accessibilityElement(children: .combine)
+            }
+        }
+        .task(id: libraryPath) {
+            libraryStorageSize = await LibraryPackageSize.formatted(
+                at: model.librarySession.location?.packageURL
+            )
+        }
+    }
+
+    private var appearanceCard: some View {
+        SettingsCard(
+            title: "Interface",
+            symbol: "circle.lefthalf.filled"
+        ) {
+            Picker("Appearance", selection: appearanceBinding) {
+                ForEach(CadenceAppearance.allCases) { appearance in
+                    Text(appearance.title).tag(appearance)
+                }
+            }
+            .pickerStyle(.segmented)
+
+            Text(
+                "Cadence keeps its monochrome accent and follows "
+                    + "reduced-motion and accessibility preferences "
+                    + "from macOS automatically."
+            )
+            .font(.caption)
+            .foregroundStyle(.secondary)
+        }
+    }
+
     private var qualityBinding: Binding<AudioQualityProfile> {
         Binding(
             get: { model.qualityProfile },
@@ -209,14 +285,12 @@ struct ProductionSettingsView: View {
 struct SettingsCard<Content: View>: View {
     let title: String
     let symbol: String
-    var guideAnchor: GuideAnchor?
     @ViewBuilder let content: Content
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             Label(title, systemImage: symbol)
                 .font(.headline)
-                .guideAnchor(guideAnchor)
             content
         }
         .padding(20)

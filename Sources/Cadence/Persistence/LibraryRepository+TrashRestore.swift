@@ -178,7 +178,6 @@ private extension LibraryRepository {
                 title: snapshot.title,
                 artist: snapshot.artistID.flatMap { artists[$0] },
                 year: snapshot.year,
-                dateAdded: snapshot.dateAdded,
                 isFavorite: snapshot.isFavorite,
                 favoriteDate: snapshot.favoriteDate,
                 customArtworkID: snapshot.customArtworkID
@@ -220,9 +219,7 @@ private extension LibraryRepository {
                 trackNumber: snapshot.trackNumber,
                 discNumber: snapshot.discNumber,
                 sourceFrameCount: snapshot.sourceFrameCount,
-                dateAdded: snapshot.dateAdded,
                 lastPlayedAt: snapshot.lastPlayedAt,
-                playCount: snapshot.playCount,
                 skipCount: snapshot.skipCount,
                 isFavorite: snapshot.isFavorite,
                 spatialFormat: snapshot.spatialFormat,

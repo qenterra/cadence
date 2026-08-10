@@ -3,6 +3,8 @@ import SwiftUI
 struct ProductionAlbumsView: View {
     @Bindable var model: CadenceAppModel
     @Bindable var store: LibraryStore
+    @AppStorage("albums.sortField") private var sortFieldRaw = AlbumSortField.artist.rawValue
+    @AppStorage("albums.sortDescending") private var sortsDescending = false
 
     var body: some View {
         Group {
@@ -25,7 +27,7 @@ struct ProductionAlbumsView: View {
                                 alignment: .leading,
                                 spacing: 24
                             ) {
-                                ForEach(store.albums) { album in
+                                ForEach(sortedAlbums) { album in
                                     albumTile(album)
                                 }
                             }
@@ -58,7 +60,45 @@ struct ProductionAlbumsView: View {
         CadencePageHeader(
             "Albums",
             subtitle: "\(store.albums.count) albums"
-        )
+        ) {
+            Menu {
+                Picker("Sort Albums", selection: $sortFieldRaw) {
+                    ForEach(AlbumSortField.allCases) { field in
+                        Text(field.title).tag(field.rawValue)
+                    }
+                }
+                Toggle("Descending", isOn: $sortsDescending)
+            } label: {
+                Label("Sort Albums", systemImage: "arrow.up.arrow.down.circle")
+            }
+            .menuStyle(.borderlessButton)
+        }
+    }
+
+    private var sortedAlbums: [LibraryAlbumProjection] {
+        let field = AlbumSortField(rawValue: sortFieldRaw) ?? .artist
+        return store.albums.sorted(by: { lhs, rhs in
+            let comparison: ComparisonResult = switch field {
+            case .artist:
+                lhs.artist.localizedStandardCompare(rhs.artist)
+            case .title:
+                lhs.title.localizedStandardCompare(rhs.title)
+            case .releaseYear:
+                comparison(of: lhs.year ?? 0, and: rhs.year ?? 0)
+            case .favoriteDate:
+                (lhs.favoriteDate ?? .distantPast).compare(
+                    rhs.favoriteDate ?? .distantPast
+                )
+            }
+            return sortsDescending
+                ? comparison == .orderedDescending
+                : comparison == .orderedAscending
+        })
+    }
+
+    private func comparison(of lhs: Int, and rhs: Int) -> ComparisonResult {
+        if lhs == rhs { return .orderedSame }
+        return lhs < rhs ? .orderedAscending : .orderedDescending
     }
 
     private func albumTile(
@@ -142,6 +182,16 @@ private struct ProductionAlbumTile: View {
 
     @ViewBuilder
     private var albumActions: some View {
+        Button(
+            HomePinStore.contains(album.id, in: .album)
+                ? "Unpin from Home"
+                : "Pin to Home",
+            systemImage: HomePinStore.contains(album.id, in: .album)
+                ? "pin.slash"
+                : "pin"
+        ) {
+            HomePinStore.toggle(album.id, in: .album)
+        }
         QuickAlbumTagMenuItems(
             store: store,
             albumID: album.id

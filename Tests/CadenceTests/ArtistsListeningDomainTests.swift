@@ -124,21 +124,6 @@ struct ArtistsListeningDomainTests {
         #expect(overflow.hasOverflow)
     }
 
-    @Test("Most Played uses personal play count and stable ties")
-    func mostPlayed() {
-        let tracks = [
-            track(id: 1, playCount: 2, lastPlayed: date(100)),
-            track(id: 2, playCount: 8, lastPlayed: date(100)),
-            track(id: 3, playCount: 8, lastPlayed: date(300)),
-            track(id: 4, playCount: 0, lastPlayed: nil),
-        ]
-
-        #expect(
-            ArtistListeningProjection.mostPlayed(tracks, limit: 3).map(\.id)
-                == [3, 2, 1]
-        )
-    }
-
     @Test("Canonical artist tracks use year, album, disc, track, and ID")
     func canonicalTracks() {
         let tracks = [
@@ -218,7 +203,6 @@ private extension ArtistsListeningDomainTests {
             artistID: artistID,
             artist: "Artist",
             year: year,
-            dateAdded: .now,
             trackCount: 1,
             totalDuration: 180,
             isFavorite: false,
@@ -263,7 +247,6 @@ private extension ArtistsListeningDomainTests {
         year: Int = 2026,
         disc: Int = 1,
         number: Int = 1,
-        playCount: Int = 0,
         lastPlayed: Date? = nil,
         palette: ArtworkPalette = .silver
     ) -> TrackPreview {
@@ -280,8 +263,6 @@ private extension ArtistsListeningDomainTests {
             sampleRate: 96,
             duration: 240,
             fileSize: "80 MB",
-            dateAdded: date(0),
-            playCount: playCount,
             lastPlayed: lastPlayed,
             rating: 5,
             isFavorite: false,

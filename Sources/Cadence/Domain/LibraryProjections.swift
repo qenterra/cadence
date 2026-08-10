@@ -39,8 +39,6 @@ enum LibraryTrackSortField: String, Codable, CaseIterable, Sendable {
     case song
     case album
     case year
-    case dateAdded
-    case playCount
     case duration
 }
 
@@ -91,13 +89,56 @@ struct LibraryTrackProjection: Identifiable, Hashable, Sendable {
     let channelCount: Int
     let bitDepth: Int?
     let isFavorite: Bool
+    let isExplicit: Bool
     let customArtworkID: UUID?
     let artworkID: UUID?
     let relativeMediaPath: String
-    let dateAdded: Date
     let lastPlayedAt: Date?
-    let playCount: Int
     let hasSynchronizedLyrics: Bool
+
+    init(
+        id: UUID,
+        title: String,
+        artistID: UUID?,
+        artist: String,
+        albumID: UUID?,
+        album: String,
+        duration: TimeInterval,
+        year: Int?,
+        codec: String,
+        sampleRate: Double,
+        channelCount: Int,
+        bitDepth: Int?,
+        isFavorite: Bool,
+        isExplicit: Bool = false,
+        customArtworkID: UUID?,
+        artworkID: UUID?,
+        relativeMediaPath: String,
+        dateAdded _: Date? = nil,
+        lastPlayedAt: Date?,
+        playCount _: Int = 0,
+        hasSynchronizedLyrics: Bool
+    ) {
+        self.id = id
+        self.title = title
+        self.artistID = artistID
+        self.artist = artist
+        self.albumID = albumID
+        self.album = album
+        self.duration = duration
+        self.year = year
+        self.codec = codec
+        self.sampleRate = sampleRate
+        self.channelCount = channelCount
+        self.bitDepth = bitDepth
+        self.isFavorite = isFavorite
+        self.isExplicit = isExplicit
+        self.customArtworkID = customArtworkID
+        self.artworkID = artworkID
+        self.relativeMediaPath = relativeMediaPath
+        self.lastPlayedAt = lastPlayedAt
+        self.hasSynchronizedLyrics = hasSynchronizedLyrics
+    }
 }
 
 enum PlaybackQueueTrackState: Hashable, Sendable {
@@ -135,7 +176,6 @@ struct LibraryAlbumProjection: Identifiable, Hashable, Sendable {
     let artistID: UUID?
     let artist: String
     let year: Int?
-    let dateAdded: Date
     let trackCount: Int
     let totalDuration: TimeInterval
     let isFavorite: Bool

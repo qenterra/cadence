@@ -22,7 +22,6 @@ struct NavigationRail: View {
             Spacer(minLength: 12)
 
             railButton(.trash)
-            railButton(.settings)
         }
         .frame(
             width: NavigationRailMetrics.contentWidth(
@@ -50,7 +49,6 @@ struct NavigationRail: View {
                 railButton(destination)
             }
         }
-        .guideAnchor(.sidebar)
     }
 
     private var primaryDestinations: [NavigationDestination] {
@@ -147,6 +145,12 @@ struct NavigationRail: View {
         .help(destination.title)
         .accessibilityLabel(destination.title)
         .accessibilityValue(isSelected ? "Selected" : "")
+        .frame(
+            width: NavigationRailMetrics.contentWidth(
+                isExpanded: isExpanded
+            ),
+            alignment: .center
+        )
     }
 }
 
@@ -167,6 +171,6 @@ enum NavigationRailMetrics {
     }
 
     static func rowWidth(isExpanded: Bool) -> CGFloat {
-        contentWidth(isExpanded: isExpanded)
+        isExpanded ? contentWidth(isExpanded: true) : rowHeight
     }
 }

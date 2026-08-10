@@ -170,8 +170,6 @@ private extension SmartCollectionListeningDomainTests {
             sampleRate: 96,
             duration: duration,
             fileSize: "120 MB",
-            dateAdded: Date(timeIntervalSince1970: 0),
-            playCount: 0,
             lastPlayed: nil,
             rating: 4,
             isFavorite: false,

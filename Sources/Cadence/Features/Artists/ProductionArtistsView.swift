@@ -3,6 +3,8 @@ import SwiftUI
 struct ProductionArtistsView: View {
     @Bindable var model: CadenceAppModel
     @Bindable var store: LibraryStore
+    @AppStorage("artists.sortField") private var sortFieldRaw = ArtistSortField.name.rawValue
+    @AppStorage("artists.sortDescending") private var sortsDescending = false
 
     var body: some View {
         Group {
@@ -25,7 +27,7 @@ struct ProductionArtistsView: View {
                                 alignment: .leading,
                                 spacing: 28
                             ) {
-                                ForEach(store.artists) { artist in
+                                ForEach(sortedArtists) { artist in
                                     artistTile(artist)
                                 }
                             }
@@ -58,7 +60,51 @@ struct ProductionArtistsView: View {
         CadencePageHeader(
             "Artists",
             subtitle: "\(store.artists.count) artists"
-        )
+        ) {
+            Menu {
+                Picker("Sort Artists", selection: $sortFieldRaw) {
+                    ForEach(artistSortFields) { field in
+                        Text(field.title).tag(field.rawValue)
+                    }
+                }
+                Toggle("Descending", isOn: $sortsDescending)
+            } label: {
+                Label("Sort Artists", systemImage: "arrow.up.arrow.down.circle")
+            }
+            .menuStyle(.borderlessButton)
+        }
+    }
+
+    private var sortedArtists: [LibraryArtistProjection] {
+        let field = ArtistSortField(rawValue: sortFieldRaw) ?? .name
+        return store.artists.sorted(by: { lhs, rhs in
+            let comparison: ComparisonResult = switch field {
+            case .name:
+                lhs.name.localizedStandardCompare(rhs.name)
+            case .recentlyPlayed:
+                lhs.name.localizedStandardCompare(rhs.name)
+            case .albumCount:
+                comparison(of: lhs.albumCount, and: rhs.albumCount)
+            case .trackCount:
+                comparison(of: lhs.trackCount, and: rhs.trackCount)
+            case .favoriteDate:
+                (lhs.favoriteDate ?? .distantPast).compare(
+                    rhs.favoriteDate ?? .distantPast
+                )
+            }
+            return sortsDescending
+                ? comparison == .orderedDescending
+                : comparison == .orderedAscending
+        })
+    }
+
+    private var artistSortFields: [ArtistSortField] {
+        ArtistSortField.allCases.filter { $0 != .recentlyPlayed }
+    }
+
+    private func comparison(of lhs: Int, and rhs: Int) -> ComparisonResult {
+        if lhs == rhs { return .orderedSame }
+        return lhs < rhs ? .orderedAscending : .orderedDescending
     }
 
     private func artistTile(

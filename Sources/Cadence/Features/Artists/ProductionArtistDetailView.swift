@@ -18,6 +18,7 @@ struct ProductionArtistDetailView: View {
                         backButton
                         header(artist)
                         CadenceSeparator()
+                        favoriteTracksSection
                         releaseSection("Singles", releases.singles)
                         releaseSection("EPs", releases.eps)
                         releaseSection("Albums", releases.albums)
@@ -65,6 +66,31 @@ struct ProductionArtistDetailView: View {
 }
 
 private extension ProductionArtistDetailView {
+    @ViewBuilder
+    private var favoriteTracksSection: some View {
+        let favorites = tracks.filter(\.isFavorite)
+        if !favorites.isEmpty {
+            Text("Favorite Tracks")
+                .font(.title2.bold())
+            ProductionTrackList(
+                model: model,
+                tracks: favorites,
+                context: .artist(artistID),
+                defaultSortDescriptor: TrackTableSortDescriptor(
+                    field: .year,
+                    direction: .descending
+                )
+            )
+            .frame(
+                height: min(
+                    max(CGFloat(favorites.count * 58 + 38), 154),
+                    386
+                )
+            )
+            CadenceSeparator()
+        }
+    }
+
     private func albumGrid(
         _ albums: [LibraryAlbumProjection]
     ) -> some View {
@@ -232,6 +258,16 @@ private extension ProductionArtistDetailView {
     private func artistActions(
         _ artist: LibraryArtistProjection
     ) -> some View {
+        Button(
+            HomePinStore.contains(artist.id, in: .artist)
+                ? "Unpin from Home"
+                : "Pin to Home",
+            systemImage: HomePinStore.contains(artist.id, in: .artist)
+                ? "pin.slash"
+                : "pin"
+        ) {
+            HomePinStore.toggle(artist.id, in: .artist)
+        }
         AddArtistToPlaylistMenuItems(
             store: store,
             artistID: artist.id

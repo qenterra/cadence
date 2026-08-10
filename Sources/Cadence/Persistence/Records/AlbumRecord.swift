@@ -6,8 +6,7 @@ final class AlbumRecord {
     #Index<AlbumRecord>(
         [\.normalizedTitle],
         [\.normalizedTitle, \.sortIdentity],
-        [\.year],
-        [\.dateAdded]
+        [\.year]
     )
 
     @Attribute(.unique) var id: UUID
@@ -15,7 +14,6 @@ final class AlbumRecord {
     var title: String
     var normalizedTitle: String
     var year: Int?
-    var dateAdded: Date
     var isFavorite: Bool
     var favoriteDate: Date?
     var trackCount: Int
@@ -31,7 +29,6 @@ final class AlbumRecord {
         title: String,
         artist: ArtistRecord? = nil,
         year: Int? = nil,
-        dateAdded: Date = .now,
         isFavorite: Bool = false,
         favoriteDate: Date? = nil,
         trackCount: Int = 0,
@@ -44,7 +41,6 @@ final class AlbumRecord {
         normalizedTitle = SearchNormalizer.normalize(title)
         self.artist = artist
         self.year = year
-        self.dateAdded = dateAdded
         self.isFavorite = isFavorite
         self.favoriteDate = favoriteDate
         self.trackCount = trackCount

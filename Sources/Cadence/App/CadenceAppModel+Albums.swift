@@ -1,13 +1,6 @@
 import Foundation
 
 extension CadenceAppModel {
-    var recentlyAddedAlbums: [AlbumPreview] {
-        AlbumListeningProjection.sortedAlbums(
-            albums,
-            by: .recentlyAdded
-        )
-    }
-
     var favoriteAlbums: [AlbumPreview] {
         AlbumListeningProjection.sortedAlbums(
             albums.filter { favoriteAlbumDates[$0.id] != nil },
@@ -73,8 +66,6 @@ extension CadenceAppModel {
         capacity: Int
     ) -> AlbumShelfProjection {
         let source = switch kind {
-        case .recentlyAdded:
-            recentlyAddedAlbums
         case .favorites:
             favoriteAlbums
         }
@@ -144,8 +135,6 @@ extension CadenceAppModel {
 
     func requestShowAll(_ kind: AlbumShelfKind) {
         albumShelfSortDescriptors[kind] = switch kind {
-        case .recentlyAdded:
-            .recentlyAdded
         case .favorites:
             .recentlyFavorited
         }

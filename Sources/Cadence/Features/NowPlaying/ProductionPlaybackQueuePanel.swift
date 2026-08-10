@@ -72,7 +72,6 @@ struct ProductionPlaybackQueuePanel: View {
             }
             .disabled(queue?.upNextTrackIDs.isEmpty != false)
         }
-        .guideAnchor(.queue)
         .buttonStyle(.borderless)
         .padding(.horizontal, 24)
         .frame(height: 58)

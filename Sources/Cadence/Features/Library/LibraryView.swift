@@ -12,7 +12,6 @@ struct LibraryView: View {
         .overlay(alignment: .top) {
             Color.clear
                 .frame(height: 76)
-                .guideAnchor(.library)
                 .allowsHitTesting(false)
         }
     }

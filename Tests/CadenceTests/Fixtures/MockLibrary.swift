@@ -60,8 +60,6 @@ extension [TrackPreview] {
             sampleRate: id.isMultiple(of: 3) ? 48 : 96,
             duration: duration,
             fileSize: "\(58 + id * 3).\(id % 10) MB",
-            dateAdded: mockDate(daysAgo: id),
-            playCount: (id * 7) % 36,
             lastPlayed: id.isMultiple(of: 4) ? nil : mockDate(daysAgo: Swift.max(id - 2, 1)),
             rating: id.isMultiple(of: 4) ? 4 : 5,
             isFavorite: favoriteTrackIDs.contains(id),

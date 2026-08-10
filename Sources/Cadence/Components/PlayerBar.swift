@@ -13,7 +13,6 @@ struct PlayerBar: View {
             transport
                 .frame(maxWidth: .infinity)
                 .layoutPriority(1)
-                .guideAnchor(.playerBar)
 
             outputControls
                 .frame(width: 244, alignment: .trailing)
@@ -199,9 +198,16 @@ private extension PlayerBar {
         HStack(spacing: 12) {
             playbackFailureMenu
 
-            Image(systemName: volumeSymbol)
-                .foregroundStyle(.secondary)
-                .accessibilityHidden(true)
+            Button {
+                model.toggleMute()
+            } label: {
+                Image(systemName: volumeSymbol)
+                    .foregroundStyle(.secondary)
+                    .frame(width: 28, height: 28)
+            }
+            .buttonStyle(CadenceRowButtonStyle())
+            .help(model.volume > 0 ? "Mute" : "Unmute")
+            .accessibilityLabel(model.volume > 0 ? "Mute" : "Unmute")
 
             Slider(value: volumeBinding, in: 0 ... 1)
                 .frame(width: 86)
@@ -307,7 +313,7 @@ private extension PlayerBar {
         Button {
             isQualityProfilePresented.toggle()
         } label: {
-            Image(systemName: "waveform.badge.magnifyingglass")
+            Image(systemName: "slider.horizontal.3")
                 .foregroundStyle(
                     isQualityProfilePresented ? .primary : .secondary
                 )

@@ -40,7 +40,6 @@ struct AlbumsListeningAppModelTests {
             title: "Missing",
             artist: "Nobody",
             year: 2026,
-            dateAdded: .now,
             trackCount: 0,
             totalDuration: 0,
             artworkPalette: .silver,

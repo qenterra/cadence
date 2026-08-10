@@ -85,8 +85,7 @@ extension LibraryRepository {
 
     func reusableAlbums(
         for entries: [ManagedImportManifest.Entry],
-        artists: [String: ArtistRecord],
-        dateAdded: Date
+        artists: [String: ArtistRecord]
     ) throws -> [ManagedAlbumIdentity: AlbumRecord] {
         let titles = Array(
             Set(
@@ -132,8 +131,7 @@ extension LibraryRepository {
             let album = AlbumRecord(
                 title: entry.metadata.album,
                 artist: artists[artistName],
-                year: entry.metadata.year,
-                dateAdded: dateAdded
+                year: entry.metadata.year
             )
             modelContext.insert(album)
             albumsByIdentity[identity] = album

@@ -35,7 +35,6 @@ struct AllTracksView: View {
                     onReachEnd: {
                         await store.loadNextTracks()
                     },
-                    scrollAxes: [.horizontal, .vertical],
                     repositorySortAction: { sort in
                         await store.sortTracks(sort)
                     },
@@ -68,8 +67,7 @@ struct AllTracksView: View {
     private var header: some View {
         CadencePageHeader(
             "All Tracks",
-            subtitle: "\(store.catalogCounts.liveTrackCount) tracks",
-            guideAnchor: .allTracks
+            subtitle: "\(store.catalogCounts.liveTrackCount) tracks"
         ) {
             Button("Shuffle", systemImage: "shuffle") {
                 guard let first = store.tracks.randomElement() else {

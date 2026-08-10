@@ -16,7 +16,7 @@ extension LibraryRepository {
             )
         case .album, .year:
             relationshipSortDescriptors(query.sort)
-        case .dateAdded, .playCount, .duration:
+        case .duration:
             scalarSortDescriptors(query.sort)
         }
         var descriptor = trackDescriptor(
@@ -393,10 +393,6 @@ private extension LibraryRepository {
             : .reverse
         let identity = SortDescriptor(\TrackRecord.sortIdentity)
         switch sort.field {
-        case .dateAdded:
-            return [SortDescriptor(\TrackRecord.dateAdded, order: order), identity]
-        case .playCount:
-            return [SortDescriptor(\TrackRecord.playCount, order: order), identity]
         case .duration:
             return [SortDescriptor(\TrackRecord.duration, order: order), identity]
         case .song, .album, .year:
@@ -422,7 +418,7 @@ private extension LibraryRepository {
                 SortDescriptor(\TrackRecord.album?.year, order: order),
                 identity,
             ]
-        case .song, .dateAdded, .playCount, .duration:
+        case .song, .duration:
             return scalarSortDescriptors(sort)
         }
     }

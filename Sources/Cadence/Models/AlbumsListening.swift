@@ -15,7 +15,6 @@ enum AlbumsBrowseOrigin: Hashable, Sendable {
 }
 
 enum AlbumShelfKind: String, CaseIterable, Hashable, Identifiable, Sendable {
-    case recentlyAdded
     case favorites
 
     var id: Self {
@@ -24,8 +23,6 @@ enum AlbumShelfKind: String, CaseIterable, Hashable, Identifiable, Sendable {
 
     var title: String {
         switch self {
-        case .recentlyAdded:
-            "Recently Added"
         case .favorites:
             "Favorites"
         }
@@ -33,7 +30,6 @@ enum AlbumShelfKind: String, CaseIterable, Hashable, Identifiable, Sendable {
 }
 
 enum AlbumsOverviewSection: String, Hashable, Sendable {
-    case recentlyAdded
     case favorites
     case allAlbums
 }
@@ -46,7 +42,6 @@ enum AlbumBrowseAnchor: Hashable, Sendable {
 enum AlbumSortField: String, CaseIterable, Hashable, Identifiable, Sendable {
     case artist
     case title
-    case dateAdded
     case releaseYear
     case favoriteDate
 
@@ -60,8 +55,6 @@ enum AlbumSortField: String, CaseIterable, Hashable, Identifiable, Sendable {
             "Artist"
         case .title:
             "Album Title"
-        case .dateAdded:
-            "Recently Added"
         case .releaseYear:
             "Release Year"
         case .favoriteDate:
@@ -83,10 +76,6 @@ struct AlbumSortDescriptor: Hashable, Sendable {
         field: .artist,
         direction: .ascending
     )
-    static let recentlyAdded = AlbumSortDescriptor(
-        field: .dateAdded,
-        direction: .descending
-    )
     static let recentlyFavorited = AlbumSortDescriptor(
         field: .favoriteDate,
         direction: .descending
@@ -96,7 +85,7 @@ struct AlbumSortDescriptor: Hashable, Sendable {
         let direction: AlbumSortDirection = switch field {
         case .artist, .title:
             .ascending
-        case .dateAdded, .releaseYear, .favoriteDate:
+        case .releaseYear, .favoriteDate:
             .descending
         }
         return AlbumSortDescriptor(field: field, direction: direction)
@@ -279,8 +268,6 @@ enum AlbumListeningProjection {
                 : artistOrder
         case .title:
             return compare(lhs.title, rhs.title)
-        case .dateAdded:
-            return compare(lhs.dateAdded, rhs.dateAdded)
         case .releaseYear:
             return compare(lhs.year, rhs.year)
         case .favoriteDate:

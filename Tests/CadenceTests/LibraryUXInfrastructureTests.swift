@@ -100,7 +100,7 @@ struct LibraryUXInfrastructureTests {
         )
     }
 
-    @Test("Navigation rail rows stay inside collapsed and expanded bounds")
+    @Test("Collapsed navigation selection is a symmetric square")
     func navigationRailGeometry() {
         #expect(
             NavigationRailMetrics.contentWidth(isExpanded: false)
@@ -113,8 +113,10 @@ struct LibraryUXInfrastructureTests {
                 - NavigationRailMetrics.horizontalInset * 2
         )
         #expect(
-            NavigationRailMetrics.contentWidth(isExpanded: false) == 52
+            NavigationRailMetrics.rowWidth(isExpanded: false)
+                == NavigationRailMetrics.rowHeight
         )
+        #expect(NavigationRailMetrics.rowWidth(isExpanded: false) == 42)
     }
 
     @Test("Production Smart Collections match inherited tag descendants")

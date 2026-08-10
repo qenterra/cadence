@@ -285,15 +285,12 @@ enum ArtistListeningProjection {
         }
     }
 
-    static func mostPlayed(
+    static func recentlyPlayed(
         _ tracks: [TrackPreview],
         limit: Int = 5
     ) -> [TrackPreview] {
         Array(
             tracks.sorted { lhs, rhs in
-                if lhs.playCount != rhs.playCount {
-                    return lhs.playCount > rhs.playCount
-                }
                 let lhsDate = lhs.lastPlayed ?? .distantPast
                 let rhsDate = rhs.lastPlayed ?? .distantPast
                 if lhsDate != rhsDate {

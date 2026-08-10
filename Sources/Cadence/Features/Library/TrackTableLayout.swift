@@ -5,8 +5,6 @@ enum TrackTableSortField: String, CaseIterable, Codable, Sendable {
     case song
     case album
     case year
-    case dateAdded
-    case playCount
     case time
 
     var title: String {
@@ -14,8 +12,6 @@ enum TrackTableSortField: String, CaseIterable, Codable, Sendable {
         case .song: "Song"
         case .album: "Album"
         case .year: "Year"
-        case .dateAdded: "Date Added"
-        case .playCount: "Plays"
         case .time: "Time"
         }
     }
@@ -59,10 +55,6 @@ struct TrackTableSortDescriptor: Equatable, Hashable, Sendable {
             lhs.album.localizedStandardCompare(rhs.album)
         case .year:
             compare(lhs.year ?? 0, rhs.year ?? 0)
-        case .dateAdded:
-            lhs.dateAdded.compare(rhs.dateAdded)
-        case .playCount:
-            compare(lhs.playCount, rhs.playCount)
         case .time:
             compare(lhs.duration, rhs.duration)
         }
@@ -100,16 +92,6 @@ enum TrackTableWidth {
         minimum: 54.0,
         defaultValue: 72.0,
         maximum: 120.0
-    )
-    static let dateAdded = TrackTableWidthRange(
-        minimum: 90.0,
-        defaultValue: 120.0,
-        maximum: 220.0
-    )
-    static let playCount = TrackTableWidthRange(
-        minimum: 54.0,
-        defaultValue: 76.0,
-        maximum: 140.0
     )
     static let time = TrackTableWidthRange(
         minimum: 54.0,

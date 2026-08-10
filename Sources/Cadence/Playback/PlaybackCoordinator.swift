@@ -1,3 +1,4 @@
+import AVFoundation
 import Foundation
 import Observation
 
@@ -248,6 +249,10 @@ final class PlaybackCoordinator {
 
     var activeBackend: (any PlaybackBackend)? {
         state.activeBackend.flatMap { backends[$0] }
+    }
+
+    var airPlayPlayer: AVPlayer? {
+        (backends[.native] as? NativePlaybackBackend)?.airPlayPlayer
     }
 
     func presentationTime(

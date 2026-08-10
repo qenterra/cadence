@@ -45,12 +45,11 @@ struct LyricsSearchPresentationTests {
                 channelCount: 2,
                 bitDepth: 24,
                 isFavorite: false,
+                isExplicit: false,
                 customArtworkID: nil,
                 artworkID: nil,
                 relativeMediaPath: "Media/\(trackID.uuidString).flac",
-                dateAdded: .now,
                 lastPlayedAt: nil,
-                playCount: 0,
                 hasSynchronizedLyrics: true
             ),
             match: LyricsSearchMatch(

@@ -48,7 +48,6 @@ struct TrashAlbumSnapshot: Codable, Sendable {
     let title: String
     let artistID: UUID?
     let year: Int?
-    let dateAdded: Date
     let isFavorite: Bool
     let favoriteDate: Date?
     let customArtworkID: UUID?
@@ -62,9 +61,7 @@ struct TrashTrackSnapshot: Codable, Sendable {
     let discNumber: Int?
     let duration: TimeInterval
     let sourceFrameCount: Int64?
-    let dateAdded: Date
     let lastPlayedAt: Date?
-    let playCount: Int
     let skipCount: Int
     let isFavorite: Bool
     let codec: String

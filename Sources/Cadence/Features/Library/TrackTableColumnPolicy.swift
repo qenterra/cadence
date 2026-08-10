@@ -75,8 +75,6 @@ enum TrackTableColumnPolicy {
             song: values[.song] ?? 0,
             album: values[.album] ?? 0,
             year: values[.year] ?? 0,
-            dateAdded: values[.dateAdded] ?? 0,
-            playCount: values[.playCount] ?? 0,
             time: values[.time] ?? 0
         )
         let actual = resolved.song + columns.reduce(0) {
@@ -86,8 +84,6 @@ enum TrackTableColumnPolicy {
             song: resolved.song + available - actual,
             album: resolved.album,
             year: resolved.year,
-            dateAdded: resolved.dateAdded,
-            playCount: resolved.playCount,
             time: resolved.time
         )
     }
@@ -96,8 +92,6 @@ enum TrackTableColumnPolicy {
         song: TrackTableWidth.song.defaultValue,
         album: TrackTableWidth.album.defaultValue,
         year: TrackTableWidth.year.defaultValue,
-        dateAdded: TrackTableWidth.dateAdded.defaultValue,
-        playCount: TrackTableWidth.playCount.defaultValue,
         time: TrackTableWidth.time.defaultValue
     )
 }
@@ -107,16 +101,12 @@ private extension TrackTableColumnPolicy {
         case song
         case album
         case year
-        case dateAdded
-        case playCount
         case time
 
         init(_ column: TrackTableColumn) {
             self = switch column {
             case .album: .album
             case .year: .year
-            case .dateAdded: .dateAdded
-            case .playCount: .playCount
             case .time: .time
             }
         }
@@ -126,8 +116,6 @@ private extension TrackTableColumnPolicy {
             case .song: TrackTableWidth.song.minimum
             case .album: TrackTableWidth.album.minimum
             case .year: TrackTableWidth.year.minimum
-            case .dateAdded: TrackTableWidth.dateAdded.minimum
-            case .playCount: TrackTableWidth.playCount.minimum
             case .time: TrackTableWidth.time.minimum
             }
         }
@@ -136,7 +124,7 @@ private extension TrackTableColumnPolicy {
             switch self {
             case .song: 3
             case .album: 2
-            case .year, .dateAdded, .playCount, .time: 0.5
+            case .year, .time: 0.5
             }
         }
 
@@ -147,8 +135,6 @@ private extension TrackTableColumnPolicy {
             case .song: widths.song
             case .album: widths.album
             case .year: widths.year
-            case .dateAdded: widths.dateAdded
-            case .playCount: widths.playCount
             case .time: widths.time
             }
         }

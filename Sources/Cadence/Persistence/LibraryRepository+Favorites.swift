@@ -2,12 +2,15 @@ import Foundation
 import SwiftData
 
 enum LibraryFavoriteMutationError: LocalizedError {
+    case trackNotFound
     case albumNotFound
     case artistNotFound
     case unavailableLibrary
 
     var errorDescription: String? {
         switch self {
+        case .trackNotFound:
+            "The track is no longer in the library."
         case .albumNotFound:
             "The album is no longer in the library."
         case .artistNotFound:
@@ -19,6 +22,21 @@ enum LibraryFavoriteMutationError: LocalizedError {
 }
 
 extension LibraryRepository {
+    func setTrackFavorite(
+        id: UUID,
+        isFavorite: Bool
+    ) throws -> LibraryTrackProjection {
+        let predicate = #Predicate<TrackRecord> { $0.id == id }
+        var descriptor = FetchDescriptor(predicate: predicate)
+        descriptor.fetchLimit = 1
+        guard let record = try modelContext.fetch(descriptor).first else {
+            throw LibraryFavoriteMutationError.trackNotFound
+        }
+        record.isFavorite = isFavorite
+        try modelContext.save()
+        return LibraryProjectionFactory.track(record)
+    }
+
     func setAlbumFavorite(
         id: UUID,
         isFavorite: Bool,

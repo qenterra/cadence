@@ -13,8 +13,6 @@ struct TrackPreview: Identifiable, Hashable, Sendable {
     let sampleRate: Double
     let duration: TimeInterval
     let fileSize: String
-    let dateAdded: Date
-    let playCount: Int
     let lastPlayed: Date?
     let rating: Int
     let isFavorite: Bool
@@ -42,10 +40,6 @@ struct TrackPreview: Identifiable, Hashable, Sendable {
 
     var sampleRateText: String {
         sampleRate.formatted(.number.precision(.fractionLength(1))) + " kHz"
-    }
-
-    var dateAddedText: String {
-        Self.dateText(dateAdded)
     }
 
     var lastPlayedText: String {

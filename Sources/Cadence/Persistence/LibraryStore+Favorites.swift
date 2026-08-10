@@ -1,6 +1,23 @@
 import Foundation
 
 extension LibraryStore {
+    func setTrackFavorite(
+        id: UUID,
+        isFavorite: Bool
+    ) async throws -> LibraryTrackProjection {
+        guard let repository else {
+            throw LibraryFavoriteMutationError.unavailableLibrary
+        }
+        let projection = try await repository.setTrackFavorite(
+            id: id,
+            isFavorite: isFavorite
+        )
+        tracks.replaceElement(id: id, with: projection)
+        browserTracks.replaceElement(id: id, with: projection)
+        selectedPlaylistTracks.replaceElement(id: id, with: projection)
+        return projection
+    }
+
     func setAlbumFavorite(
         id: UUID,
         isFavorite: Bool

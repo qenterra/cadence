@@ -39,7 +39,6 @@ struct SmartCollectionListColumn: View {
             .help("New Smart Collection")
             .accessibilityLabel("New Smart Collection")
         }
-        .guideAnchor(.smartCollections)
     }
 
     private var emptyState: some View {
@@ -119,6 +118,18 @@ private struct SmartCollectionListRow: View {
 
                 Button("Rename", systemImage: "pencil") {
                     model.requestRenameSmartCollection(item.id)
+                }
+
+                Button(
+                    HomePinStore.contains(item.id, in: .smartCollection)
+                        ? "Unpin from Home"
+                        : "Pin to Home",
+                    systemImage: HomePinStore.contains(
+                        item.id,
+                        in: .smartCollection
+                    ) ? "pin.slash" : "pin"
+                ) {
+                    HomePinStore.toggle(item.id, in: .smartCollection)
                 }
 
                 ArtworkMenuItems(

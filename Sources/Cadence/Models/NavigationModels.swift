@@ -1,4 +1,5 @@
 enum NavigationDestination: String, CaseIterable, Hashable, Identifiable, Sendable {
+    case home
     case library
     case allTracks
     case albums
@@ -8,7 +9,6 @@ enum NavigationDestination: String, CaseIterable, Hashable, Identifiable, Sendab
     case playlists
     case importMusic
     case trash
-    case settings
 
     var id: Self {
         self
@@ -16,6 +16,7 @@ enum NavigationDestination: String, CaseIterable, Hashable, Identifiable, Sendab
 
     var title: String {
         switch self {
+        case .home: "Home"
         case .library: "Library"
         case .allTracks: "All Tracks"
         case .albums: "Albums"
@@ -25,12 +26,12 @@ enum NavigationDestination: String, CaseIterable, Hashable, Identifiable, Sendab
         case .playlists: "Playlists"
         case .importMusic: "Import Music"
         case .trash: "Trash"
-        case .settings: "Settings"
         }
     }
 
     var symbolName: String {
         switch self {
+        case .home: "house"
         case .library: "music.note.house"
         case .allTracks: "list.bullet.rectangle"
         case .albums: "square.stack"
@@ -40,7 +41,6 @@ enum NavigationDestination: String, CaseIterable, Hashable, Identifiable, Sendab
         case .playlists: "music.note.list"
         case .importMusic: "folder.badge.plus"
         case .trash: "trash"
-        case .settings: "gearshape"
         }
     }
 }
