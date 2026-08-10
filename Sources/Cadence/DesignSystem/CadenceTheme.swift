@@ -49,6 +49,7 @@ enum CadenceTheme {
         QDS.Color.fillSelectedStrong
     )
     static let hoverFill = adaptive(QDS.Color.fillHover)
+    static let informativeAccent = adaptive(QDS.Color.stateInformative)
 
     static let radiusNone = QDS.Radius.none
     static let radiusControl = QDS.Radius.control

@@ -8,7 +8,7 @@ struct AirPlayRoutePicker: NSViewRepresentable {
     func makeNSView(context _: Context) -> AVRoutePickerView {
         let picker = AVRoutePickerView()
         picker.isRoutePickerButtonBordered = false
-        picker.player = player
+        picker.player = Self.routingPlayer(player)
         return picker
     }
 
@@ -16,6 +16,15 @@ struct AirPlayRoutePicker: NSViewRepresentable {
         _ picker: AVRoutePickerView,
         context _: Context
     ) {
-        picker.player = player
+        picker.player = Self.routingPlayer(player)
+    }
+
+    static func routingPlayer(
+        _ player: AVPlayer?
+    ) -> AVPlayer? {
+        guard player?.currentItem != nil else {
+            return nil
+        }
+        return player
     }
 }

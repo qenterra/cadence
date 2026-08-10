@@ -39,4 +39,37 @@ struct NowPlayingLayoutTests {
 
         #expect(layout.contextWidth + layout.panelWidth + 1 == 500)
     }
+
+    @Test("Lyric motion spans the exact synchronized line interval")
+    func synchronizedLyricDuration() {
+        #expect(
+            ProductionLyricMotion.duration(
+                startTime: 5,
+                nextStartTime: 11,
+                trackDuration: 60
+            ) == 6
+        )
+    }
+
+    @Test("The final lyric line uses the remaining track duration")
+    func finalLyricDuration() {
+        #expect(
+            ProductionLyricMotion.duration(
+                startTime: 30,
+                nextStartTime: nil,
+                trackDuration: 42
+            ) == 12
+        )
+    }
+
+    @Test("Untimed lyrics never receive progress motion")
+    func untimedLyricDuration() {
+        #expect(
+            ProductionLyricMotion.duration(
+                startTime: nil,
+                nextStartTime: nil,
+                trackDuration: 42
+            ) == 0
+        )
+    }
 }
