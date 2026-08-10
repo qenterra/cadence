@@ -38,10 +38,7 @@ struct ProductionHomeView: View {
             title: "Recently Played",
             subtitle: "Pick up where you left off"
         ) {
-            let tracks = store.tracks
-                .filter { $0.lastPlayedAt != nil }
-                .sorted { ($0.lastPlayedAt ?? .distantPast) > ($1.lastPlayedAt ?? .distantPast) }
-                .prefix(8)
+            let tracks = store.recentlyPlayedTracks
             if tracks.isEmpty {
                 Text("Play a track and it will appear here.")
                     .font(.callout)
@@ -49,7 +46,7 @@ struct ProductionHomeView: View {
             } else {
                 HomeTrackGrid(
                     model: model,
-                    tracks: Array(tracks)
+                    tracks: tracks
                 )
             }
         }
@@ -57,7 +54,7 @@ struct ProductionHomeView: View {
 
     @ViewBuilder
     private var pinnedItems: some View {
-        let _ = pinRevision
+        _ = pinRevision
         let albums = pinnedAlbums
         let artists = pinnedArtists
         let playlists = pinnedPlaylists
@@ -155,12 +152,10 @@ struct ProductionHomeView: View {
         kind: HomePinKind,
         source: [Item]
     ) -> [Item] where Item.ID == UUID {
-        let itemsByID = Dictionary(
-            uniqueKeysWithValues: source.map { ($0.id, $0) }
+        HomePinStore.orderedItems(
+            ids: HomePinStore.orderedIDs(for: kind),
+            source: source
         )
-        return HomePinStore.orderedIDs(for: kind).compactMap {
-            itemsByID[$0]
-        }
     }
 
     private var libraryShortcuts: some View {
@@ -177,17 +172,17 @@ struct ProductionHomeView: View {
             ) {
                 HomeDestinationTile(
                     destination: .albums,
-                    subtitle: "(store.albums.count) albums",
+                    subtitle: "\(store.albums.count) albums",
                     selection: $model.selectedDestination
                 )
                 HomeDestinationTile(
                     destination: .artists,
-                    subtitle: "(store.artists.count) artists",
+                    subtitle: "\(store.artists.count) artists",
                     selection: $model.selectedDestination
                 )
                 HomeDestinationTile(
                     destination: .playlists,
-                    subtitle: "(store.playlists.count) playlists",
+                    subtitle: "\(store.playlists.count) playlists",
                     selection: $model.selectedDestination
                 )
                 HomeDestinationTile(

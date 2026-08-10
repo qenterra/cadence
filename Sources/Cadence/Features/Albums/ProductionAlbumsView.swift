@@ -17,24 +17,35 @@ struct ProductionAlbumsView: View {
             } else if store.albums.isEmpty {
                 emptyContent
             } else {
-                GeometryReader { geometry in
-                    ScrollView {
-                        LazyVStack(alignment: .leading, spacing: 22) {
-                            header
+                ScrollView {
+                    LazyVStack(alignment: .leading, spacing: 22) {
+                        header
 
-                            LazyVGrid(
-                                columns: columns(for: geometry.size.width),
-                                alignment: .leading,
-                                spacing: 24
-                            ) {
-                                ForEach(sortedAlbums) { album in
-                                    albumTile(album)
-                                }
+                        LazyVGrid(
+                            columns: [
+                                GridItem(
+                                    .adaptive(minimum: 160, maximum: 220),
+                                    spacing: 18
+                                ),
+                            ],
+                            alignment: .leading,
+                            spacing: 24
+                        ) {
+                            ForEach(sortedAlbums) { album in
+                                albumTile(album)
                             }
                         }
-                        .padding(.horizontal, 28)
-                        .padding(.vertical, 24)
+
+                        if store.canLoadMoreAlbums {
+                            ProgressView("Loading More Albums")
+                                .frame(maxWidth: .infinity)
+                                .task(id: store.albums.last?.id) {
+                                    await store.loadNextAlbums()
+                                }
+                        }
                     }
+                    .padding(.horizontal, 28)
+                    .padding(.vertical, 24)
                 }
             }
         }
@@ -112,17 +123,6 @@ struct ProductionAlbumsView: View {
             album: album
         )
     }
-
-    private func columns(
-        for width: CGFloat
-    ) -> [GridItem] {
-        let contentWidth = max(width - 56, 600)
-        let count = max(Int(contentWidth / 190), 3)
-        return Array(
-            repeating: GridItem(.flexible(), spacing: 18),
-            count: count
-        )
-    }
 }
 
 private struct ProductionAlbumTile: View {
@@ -174,11 +174,6 @@ private struct ProductionAlbumTile: View {
         .onHover { isHovered = $0 }
         .contextMenu {
             albumActions
-        }
-        .task {
-            if album.id == store.albums.last?.id {
-                await store.loadNextAlbums()
-            }
         }
     }
 

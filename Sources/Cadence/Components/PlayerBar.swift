@@ -4,6 +4,7 @@ struct PlayerBar: View {
     @Bindable var model: CadenceAppModel
     @State private var pendingSeekProgress: Double?
     @State private var isQualityProfilePresented = false
+    @State private var isArtworkHovered = false
 
     var body: some View {
         HStack(spacing: 24) {
@@ -104,10 +105,10 @@ private extension PlayerBar {
     @ViewBuilder
     private var nowPlaying: some View {
         if let track = model.currentPlaybackTrack {
-            Button {
-                model.presentNowPlaying()
-            } label: {
-                HStack(spacing: 11) {
+            HStack(spacing: 11) {
+                Button {
+                    model.presentNowPlaying()
+                } label: {
                     ProductionArtworkView(
                         model: model,
                         artworkID: track.artworkID,
@@ -116,21 +117,35 @@ private extension PlayerBar {
                         cornerRadius: CadenceTheme.radiusControl
                     )
                     .frame(width: 56, height: 56)
+                    .overlay {
+                        if isArtworkHovered {
+                            RoundedRectangle(
+                                cornerRadius: CadenceTheme.radiusControl,
+                                style: .continuous
+                            )
+                            .fill(.black.opacity(0.36))
 
-                    playbackLabels(
-                        title: track.title,
-                        artist: track.artist
-                    )
-
-                    Spacer(minLength: 0)
+                            Image(systemName: "arrow.up.left.and.arrow.down.right")
+                                .font(.body.weight(.semibold))
+                                .foregroundStyle(.white)
+                                .symbolEffect(.bounce, value: isArtworkHovered)
+                        }
+                    }
                 }
-                .contentShape(Rectangle())
+                .buttonStyle(.plain)
+                .onHover { isArtworkHovered = $0 }
+                .help("Show Now Playing")
+                .accessibilityLabel(
+                    "Show Now Playing for \(track.title) by \(track.artist)"
+                )
+
+                playbackLabels(
+                    title: track.title,
+                    artist: track.artist
+                )
+
+                Spacer(minLength: 0)
             }
-            .buttonStyle(CadenceRowButtonStyle())
-            .help("Show Now Playing")
-            .accessibilityLabel(
-                "Show Now Playing for \(track.title) by \(track.artist)"
-            )
         } else {
             emptyPlaybackGuidance
         }

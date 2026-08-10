@@ -155,6 +155,41 @@ struct LibraryStoreTests {
         #expect(store.catalogSearchResults == .empty)
     }
 
+    @Test("Recently played is persisted and projected independently of catalog paging")
+    func recentlyPlayedProjection() async throws {
+        let container = try makeContainer(
+            titles: ["First", "Second", "Third"]
+        )
+        let context = ModelContext(container)
+        let records = try context.fetch(
+            FetchDescriptor<TrackRecord>(
+                sortBy: [SortDescriptor(\.normalizedTitle)]
+            )
+        )
+        let firstDate = Date(timeIntervalSince1970: 100)
+        let secondDate = Date(timeIntervalSince1970: 200)
+        records[0].lastPlayedAt = firstDate
+        records[1].lastPlayedAt = secondDate
+        try context.save()
+
+        let store = LibraryStore(container: container)
+        await store.loadInitialLibrary()
+
+        #expect(store.recentlyPlayedTracks.map(\.title) == ["Second", "First"])
+
+        let thirdID = records[2].id
+        let newestDate = Date(timeIntervalSince1970: 300)
+        #expect(
+            await store.recordRecentlyPlayed(
+                trackID: thirdID,
+                at: newestDate
+            )
+        )
+
+        #expect(store.recentlyPlayedTracks.first?.id == thirdID)
+        #expect(store.recentlyPlayedTracks.first?.lastPlayedAt == newestDate)
+    }
+
     private func makeContainer(
         trackCount: Int
     ) throws -> ModelContainer {

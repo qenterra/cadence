@@ -31,11 +31,18 @@ struct ProductionLyricsPanel: View {
 
             Group {
                 if let document {
-                    TimelineView(.periodic(from: .now, by: 0.1)) { _ in
+                    if document.timingStatus == .unsynchronized {
                         lyrics(
                             document,
-                            presentationTime: model.playbackPresentationTime()
+                            presentationTime: 0
                         )
+                    } else {
+                        TimelineView(.periodic(from: .now, by: 0.1)) { _ in
+                            lyrics(
+                                document,
+                                presentationTime: model.playbackPresentationTime()
+                            )
+                        }
                     }
                 } else {
                     ContentUnavailableView {
@@ -204,7 +211,7 @@ private struct ProductionLyricLineLabel: View {
             .lineLimit(nil)
             .fixedSize(horizontal: false, vertical: true)
             .foregroundStyle(foregroundStyle)
-            .opacity(isActive ? 1 : 0.58)
+            .opacity(!isSynchronized || isActive ? 1 : 0.58)
             .shadow(
                 color: isActive
                     ? Color.primary.opacity(0.28)
@@ -220,6 +227,13 @@ private struct ProductionLyricLineLabel: View {
     }
 
     private var foregroundStyle: LinearGradient {
+        guard isSynchronized else {
+            return LinearGradient(
+                colors: [Color.primary, Color.primary],
+                startPoint: .leading,
+                endPoint: .trailing
+            )
+        }
         guard isActive, isSynchronized, !reduceMotion else {
             return LinearGradient(
                 colors: [

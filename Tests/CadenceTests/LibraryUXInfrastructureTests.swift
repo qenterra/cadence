@@ -41,7 +41,7 @@ struct LibraryUXInfrastructureTests {
             hiddenRawValue: hidden
         )
 
-        #expect(visible.first == .tags)
+        #expect(visible.prefix(2) == [.home, .tags])
         #expect(!visible.contains(.albums))
         #expect(!visible.contains(.trash))
         #expect(Set(visible).count == visible.count)
@@ -52,6 +52,36 @@ struct LibraryUXInfrastructureTests {
                 )
             )
         )
+    }
+
+    @Test("Home stays first when an older saved rail order is restored")
+    func homeLeadsPersistedNavigationOrder() {
+        let restored = NavigationRailConfiguration.orderedDestinations(
+            from: "albums,artists,home,library"
+        )
+
+        #expect(restored.prefix(4) == [.home, .albums, .artists, .library])
+    }
+
+    @Test("Home pin projection tolerates duplicate library and saved identifiers")
+    func homePinsDeduplicateIdentifiers() {
+        struct Item: Identifiable, Equatable {
+            let id: UUID
+            let title: String
+        }
+
+        let firstID = UUID()
+        let secondID = UUID()
+        let first = Item(id: firstID, title: "First")
+        let duplicate = Item(id: firstID, title: "Duplicate")
+        let second = Item(id: secondID, title: "Second")
+
+        let ordered = HomePinStore.orderedItems(
+            ids: [firstID, firstID, secondID],
+            source: [first, duplicate, second]
+        )
+
+        #expect(ordered == [first, second])
     }
 
     @Test("New navigation profiles start expanded and every destination symbol is unique")

@@ -141,6 +141,14 @@ struct CadenceRootView: View {
             await model.loadPersistedSmartCollections()
             await model.librarySession.store.loadPlaylists()
         }
+        .task(id: model.currentPlaybackTrack?.id) {
+            guard let trackID = model.currentPlaybackTrack?.id else {
+                return
+            }
+            await model.librarySession.store.recordRecentlyPlayed(
+                trackID: trackID
+            )
+        }
         .onDisappear {
             model.shutdownPlayback()
         }

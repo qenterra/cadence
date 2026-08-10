@@ -7,24 +7,11 @@
     " · " : {
 
     },
-    "—" : {
-
-    },
-    "·" : {
-
-    },
     "#" : {
 
     },
-    "%@ · %@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$@ · %2$@"
-          }
-        }
-      }
+    "%@ Unavailable" : {
+
     },
     "%@ added to Cadence.library" : {
 
@@ -42,8 +29,15 @@
     "%@ selected for Cadence.library" : {
 
     },
-    "%@ Unavailable" : {
-
+    "%@ · %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ · %2$@"
+          }
+        }
+      }
     },
     "%@, %@" : {
       "localizations" : {
@@ -68,10 +62,13 @@
     "%lld tracks" : {
 
     },
-    "© 2026 %@" : {
+    "+%lld" : {
 
     },
-    "+%lld" : {
+    "ALBUM" : {
+
+    },
+    "ARTIST" : {
 
     },
     "About" : {
@@ -84,12 +81,6 @@
 
     },
     "Add %@ to Favorites" : {
-
-    },
-    "Add a rule to narrow the collection." : {
-
-    },
-    "Add a tag" : {
 
     },
     "Add Album to Playlist" : {
@@ -113,6 +104,15 @@
     "Add Tag" : {
 
     },
+    "Add Tracks" : {
+
+    },
+    "Add a rule to narrow the collection." : {
+
+    },
+    "Add a tag" : {
+
+    },
     "Add to Favorites" : {
 
     },
@@ -125,9 +125,6 @@
     "Add to Queue" : {
 
     },
-    "Add Tracks" : {
-
-    },
     "Add tracks, albums, or artists from their ••• menu." : {
 
     },
@@ -135,9 +132,6 @@
 
     },
     "Album" : {
-
-    },
-    "ALBUM" : {
 
     },
     "Album Actions" : {
@@ -149,10 +143,10 @@
     "All Results" : {
 
     },
-    "All tracks" : {
+    "All Tracks" : {
 
     },
-    "All Tracks" : {
+    "All tracks" : {
 
     },
     "All tracks · Add a rule to narrow the collection" : {
@@ -165,9 +159,6 @@
 
     },
     "Artist" : {
-
-    },
-    "ARTIST" : {
 
     },
     "Artist / Album" : {
@@ -242,21 +233,6 @@
     "Choose %@" : {
 
     },
-    "Choose a collection to see matching tracks." : {
-
-    },
-    "Choose a collection, or create one from the sidebar." : {
-
-    },
-    "Choose a Playlist" : {
-
-    },
-    "Choose a Tag" : {
-
-    },
-    "Choose a track from the library to start playback" : {
-
-    },
     "Choose Another Folder" : {
 
     },
@@ -266,10 +242,25 @@
     "Choose Folder" : {
 
     },
-    "Choose or create a Smart Collection." : {
+    "Choose Tag" : {
 
     },
-    "Choose Tag" : {
+    "Choose a Playlist" : {
+
+    },
+    "Choose a Tag" : {
+
+    },
+    "Choose a collection to see matching tracks." : {
+
+    },
+    "Choose a collection, or create one from the sidebar." : {
+
+    },
+    "Choose a track from the library to start playback" : {
+
+    },
+    "Choose or create a Smart Collection." : {
 
     },
     "Clear" : {
@@ -392,22 +383,22 @@
     "Draft" : {
 
     },
+    "Drag to Reorder" : {
+
+    },
     "Drag to change the sidebar position." : {
 
     },
     "Drag to reorder" : {
 
     },
-    "Drag to Reorder" : {
-
-    },
     "Drive Folder ID" : {
 
     },
-    "Drop files or a folder anywhere in the workspace." : {
+    "Drop Music Here" : {
 
     },
-    "Drop Music Here" : {
+    "Drop files or a folder anywhere in the workspace." : {
 
     },
     "Drop music to review. No files will be imported immediately." : {
@@ -513,16 +504,19 @@
     "Import Complete" : {
 
     },
-    "Import from Clipboard" : {
-
-    },
-    "Import in progress" : {
-
-    },
     "Import More" : {
 
     },
     "Import Music" : {
+
+    },
+    "Import Music…" : {
+
+    },
+    "Import from Clipboard" : {
+
+    },
+    "Import in progress" : {
 
     },
     "Import music before assigning this tag." : {
@@ -532,12 +526,6 @@
 
     },
     "Import music to start listening" : {
-
-    },
-    "Import Music…" : {
-
-    },
-    "in this group" : {
 
     },
     "Indexing Lyrics…" : {
@@ -553,6 +541,15 @@
 
     },
     "Keyboard capture active" : {
+
+    },
+    "LRC" : {
+
+    },
+    "LRC Could Not Be Imported" : {
+
+    },
+    "LRC Export Preview" : {
 
     },
     "Library" : {
@@ -594,10 +591,13 @@
     "Loading Lyrics…" : {
 
     },
-    "Loading track" : {
+    "Loading More Albums" : {
 
     },
     "Loading Tracks" : {
+
+    },
+    "Loading track" : {
 
     },
     "Local Cache" : {
@@ -607,15 +607,6 @@
 
     },
     "Location" : {
-
-    },
-    "LRC" : {
-
-    },
-    "LRC Could Not Be Imported" : {
-
-    },
-    "LRC Export Preview" : {
 
     },
     "Lyric" : {
@@ -636,6 +627,15 @@
     "Lyrics Editor" : {
 
     },
+    "Lyrics Matches" : {
+
+    },
+    "Lyrics Search Unavailable" : {
+
+    },
+    "Lyrics Unavailable" : {
+
+    },
     "Lyrics match in %@ by %@" : {
       "localizations" : {
         "en" : {
@@ -646,15 +646,6 @@
         }
       }
     },
-    "Lyrics Matches" : {
-
-    },
-    "Lyrics Search Unavailable" : {
-
-    },
-    "Lyrics Unavailable" : {
-
-    },
     "Managed audio, artwork, and lyrics in Trash cannot be recovered." : {
 
     },
@@ -662,9 +653,6 @@
 
     },
     "Match" : {
-
-    },
-    "mood/sad or childhood" : {
 
     },
     "More" : {
@@ -688,6 +676,9 @@
     "Move Library…" : {
 
     },
+    "Move Up" : {
+
+    },
     "Move to Trash" : {
 
     },
@@ -697,16 +688,13 @@
     "Move to Trash…" : {
 
     },
-    "Move Up" : {
-
-    },
     "Mute" : {
 
     },
-    "New Collection" : {
+    "NOT" : {
 
     },
-    "New draft" : {
+    "New Collection" : {
 
     },
     "New Playlist" : {
@@ -721,6 +709,9 @@
     "New Tag" : {
 
     },
+    "New draft" : {
+
+    },
     "Next Line" : {
 
     },
@@ -733,13 +724,7 @@
     "No Collection Selected" : {
 
     },
-    "No files were copied in this design build." : {
-
-    },
     "No Lyrics" : {
-
-    },
-    "No managed line-level LRC file is available." : {
 
     },
     "No Matching Tracks" : {
@@ -757,34 +742,34 @@
     "No Tags Yet" : {
 
     },
-    "No tracks match the current rules." : {
-
-    },
     "No Tracks Yet" : {
 
     },
-    "NOT" : {
+    "No files were copied in this design build." : {
+
+    },
+    "No managed line-level LRC file is available." : {
+
+    },
+    "No tracks match the current rules." : {
 
     },
     "Not sorted" : {
 
     },
-    "Nothing currently matches %@." : {
-
-    },
     "Nothing Playing" : {
 
     },
-    "Now Playing content" : {
+    "Nothing currently matches %@." : {
 
     },
     "Now Playing Panel" : {
 
     },
-    "OAuth Client ID" : {
+    "Now Playing content" : {
 
     },
-    "of the following" : {
+    "OAuth Client ID" : {
 
     },
     "OK" : {
@@ -805,9 +790,6 @@
     "Opens in your default browser" : {
 
     },
-    "Opens Now Playing in full screen" : {
-
-    },
     "Operator" : {
 
     },
@@ -815,6 +797,9 @@
 
     },
     "Original files stay untouched" : {
+
+    },
+    "PLAYLIST" : {
 
     },
     "Password" : {
@@ -848,6 +833,12 @@
         }
       }
     },
+    "Play Next" : {
+
+    },
+    "Play Now" : {
+
+    },
     "Play a track and it will appear here." : {
 
     },
@@ -860,16 +851,13 @@
     "Play from This Line" : {
 
     },
-    "Play Next" : {
-
-    },
-    "Play Now" : {
-
-    },
     "Play or Pause" : {
 
     },
     "Playback" : {
+
+    },
+    "Playback Queue" : {
 
     },
     "Playback error: %@" : {
@@ -878,19 +866,16 @@
     "Playback progress" : {
 
     },
-    "Playback Queue" : {
-
-    },
     "Playing" : {
-
-    },
-    "PLAYLIST" : {
 
     },
     "Playlist Name" : {
 
     },
     "Preview Import Complete" : {
+
+    },
+    "Preview State" : {
 
     },
     "Preview import in progress" : {
@@ -900,9 +885,6 @@
 
     },
     "Preview paused at the last valid rule" : {
-
-    },
-    "Preview State" : {
 
     },
     "Previous Line" : {
@@ -938,10 +920,10 @@
     "Redirect URL" : {
 
     },
-    "Remote media is not configured for this library." : {
+    "Remote Media Unavailable" : {
 
     },
-    "Remote Media Unavailable" : {
+    "Remote media is not configured for this library." : {
 
     },
     "Remove" : {
@@ -953,15 +935,6 @@
     "Remove %@ from Favorites" : {
 
     },
-    "Remove from Favorites" : {
-
-    },
-    "Remove from Playlist" : {
-
-    },
-    "Remove from Queue" : {
-
-    },
     "Remove Group" : {
 
     },
@@ -969,6 +942,15 @@
 
     },
     "Remove Unavailable Item" : {
+
+    },
+    "Remove from Favorites" : {
+
+    },
+    "Remove from Playlist" : {
+
+    },
+    "Remove from Queue" : {
 
     },
     "Rename" : {
@@ -1001,6 +983,9 @@
     "Root rule logic" : {
 
     },
+    "SMART COLLECTION" : {
+
+    },
     "Save" : {
 
     },
@@ -1031,9 +1016,6 @@
     "See All" : {
 
     },
-    "Select a Track" : {
-
-    },
     "Select All" : {
 
     },
@@ -1043,6 +1025,9 @@
     "Select All in Review" : {
 
     },
+    "Select a Track" : {
+
+    },
     "Select rows with ⌘ or ⇧ · Space toggles inclusion" : {
 
     },
@@ -1050,9 +1035,6 @@
 
     },
     "Server URL" : {
-
-    },
-    "Show collection rules" : {
 
     },
     "Show Now Playing" : {
@@ -1068,6 +1050,9 @@
         }
       }
     },
+    "Show collection rules" : {
+
+    },
     "Shuffle" : {
 
     },
@@ -1075,9 +1060,6 @@
 
     },
     "Skip" : {
-
-    },
-    "SMART COLLECTION" : {
 
     },
     "Smart Collection name" : {
@@ -1116,10 +1098,10 @@
     "Tag" : {
 
     },
-    "Tag or group/subtag" : {
+    "Tag Scope" : {
 
     },
-    "Tag Scope" : {
+    "Tag or group/subtag" : {
 
     },
     "Tags" : {
@@ -1140,6 +1122,9 @@
     "The matching lyric file could not be opened." : {
 
     },
+    "This Smart Collection has unsaved changes." : {
+
+    },
     "This album is no longer in the library." : {
 
     },
@@ -1152,16 +1137,10 @@
     "This permanently removes the collection definition from Cadence.library." : {
 
     },
-    "This Smart Collection has unsaved changes." : {
-
-    },
     "Time" : {
 
     },
     "Title" : {
-
-    },
-    "to" : {
 
     },
     "To" : {
@@ -1231,6 +1210,27 @@
 
     },
     "Your unsaved line text and timing changes will be lost." : {
+
+    },
+    "in this group" : {
+
+    },
+    "mood/sad or childhood" : {
+
+    },
+    "of the following" : {
+
+    },
+    "to" : {
+
+    },
+    "© 2026 %@" : {
+
+    },
+    "·" : {
+
+    },
+    "—" : {
 
     }
   },

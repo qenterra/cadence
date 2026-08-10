@@ -15,6 +15,7 @@ struct LibraryStoreFailure: Equatable, Sendable {
 
 private struct InitialLibrarySnapshot: Sendable {
     let tracks: LibraryPage<LibraryTrackProjection>
+    let recentlyPlayedTracks: [LibraryTrackProjection]
     let artists: LibraryPage<LibraryArtistProjection>
     let albums: LibraryPage<LibraryAlbumProjection>
     let tags: LibraryPage<LibraryTagProjection>
@@ -75,9 +76,11 @@ final class LibraryStore {
     @ObservationIgnored var artworkDataLoads: [ArtworkAssetCache.Key: Task<Data?, Never>] = [:]
     var artistCursor: LibraryPageCursor?
     var albumCursor: LibraryPageCursor?
+    var isLoadingNextAlbums = false
 
     var availability: LibraryAvailability
     var tracks: [LibraryTrackProjection] = []
+    var recentlyPlayedTracks: [LibraryTrackProjection] = []
     var playbackQueueTracks: [PlaybackQueueTrackProjection] = []
     var isLoadingPlaybackQueueTracks = false
     var playbackQueueProjectionError: LibraryStoreFailure?
@@ -339,6 +342,7 @@ private extension LibraryStore {
         from repository: LibraryRepository
     ) async throws -> InitialLibrarySnapshot {
         async let tracks = repository.tracksPage()
+        async let recentlyPlayedTracks = repository.recentlyPlayedTracks()
         async let artists = repository.artistsPage()
         async let albums = repository.albumsPage()
         async let tags = repository.tagsPage()
@@ -346,6 +350,7 @@ private extension LibraryStore {
         async let trash = repository.trashOperations()
         return try await InitialLibrarySnapshot(
             tracks: tracks,
+            recentlyPlayedTracks: recentlyPlayedTracks,
             artists: artists,
             albums: albums,
             tags: tags,
@@ -357,6 +362,7 @@ private extension LibraryStore {
     func apply(_ snapshot: InitialLibrarySnapshot) {
         trackRequestGeneration += 1
         tracks = snapshot.tracks.items
+        recentlyPlayedTracks = snapshot.recentlyPlayedTracks
         trackCursor = snapshot.tracks.nextCursor
         trackQuery = .allTracks
         searchQuery = ""
@@ -376,6 +382,7 @@ private extension LibraryStore {
     func resetLibrary(availability: LibraryAvailability) {
         trackRequestGeneration += 1
         tracks = []
+        recentlyPlayedTracks = []
         artists = []
         albums = []
         tags = []
@@ -388,6 +395,7 @@ private extension LibraryStore {
         isLoadingNextTracks = false
         artistCursor = nil
         albumCursor = nil
+        isLoadingNextAlbums = false
         tagCursor = nil
         tagGeneration &+= 1
         self.availability = availability

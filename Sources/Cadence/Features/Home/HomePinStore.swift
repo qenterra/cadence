@@ -38,6 +38,24 @@ enum HomePinStore {
             .compactMap(UUID.init(uuidString:)) ?? []
     }
 
+    static func orderedItems<Item: Identifiable>(
+        ids: [UUID],
+        source: [Item]
+    ) -> [Item] where Item.ID == UUID {
+        var itemsByID: [UUID: Item] = [:]
+        for item in source where itemsByID[item.id] == nil {
+            itemsByID[item.id] = item
+        }
+
+        var seen = Set<UUID>()
+        return ids.compactMap { id in
+            guard seen.insert(id).inserted else {
+                return nil
+            }
+            return itemsByID[id]
+        }
+    }
+
     private static func identifiers(for kind: HomePinKind) -> Set<UUID> {
         Set(orderedIDs(for: kind))
     }

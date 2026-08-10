@@ -28,8 +28,11 @@ enum NavigationRailConfiguration {
             .compactMap { NavigationDestination(rawValue: String($0)) }
             .filter(allowed.contains)
         var seen = Set<NavigationDestination>()
-        let unique = decoded.filter { seen.insert($0).inserted }
-        return unique + configurableDestinations.filter {
+        let unique = decoded.filter {
+            $0 != .home && seen.insert($0).inserted
+        }
+        seen.insert(.home)
+        return [.home] + unique + configurableDestinations.filter {
             !seen.contains($0)
         }
     }

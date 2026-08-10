@@ -2,6 +2,35 @@ import Foundation
 import SwiftData
 
 extension LibraryRepository {
+    func recentlyPlayedTracks(
+        limit: Int = 8
+    ) throws -> [LibraryTrackProjection] {
+        let boundedLimit = min(max(limit, 1), Self.maximumPageSize)
+        let predicate = #Predicate<TrackRecord> { track in
+            track.lastPlayedAt != nil
+        }
+        var descriptor = FetchDescriptor(
+            predicate: predicate,
+            sortBy: [
+                SortDescriptor(\.lastPlayedAt, order: .reverse),
+                SortDescriptor(\.sortIdentity),
+            ]
+        )
+        descriptor.fetchLimit = boundedLimit
+        return try trackProjections(modelContext.fetch(descriptor))
+    }
+
+    func recordRecentlyPlayed(
+        trackID: UUID,
+        at date: Date = .now
+    ) throws {
+        guard let track = try trackRecord(id: trackID) else {
+            return
+        }
+        track.lastPlayedAt = date
+        try modelContext.save()
+    }
+
     func catalogCounts() throws -> LibraryCatalogCounts {
         let trashRecords = try modelContext.fetch(
             FetchDescriptor<TrashOperationRecord>()

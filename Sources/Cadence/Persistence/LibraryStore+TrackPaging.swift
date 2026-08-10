@@ -132,6 +132,30 @@ extension LibraryStore {
             recordOperationFailure(.trackPage, error: error)
         }
     }
+
+    @discardableResult
+    func recordRecentlyPlayed(
+        trackID: UUID,
+        at date: Date = .now
+    ) async -> Bool {
+        guard let repository else {
+            return false
+        }
+        do {
+            try await repository.recordRecentlyPlayed(
+                trackID: trackID,
+                at: date
+            )
+            recentlyPlayedTracks = try await repository.recentlyPlayedTracks()
+            let recentByID = Dictionary(
+                uniqueKeysWithValues: recentlyPlayedTracks.map { ($0.id, $0) }
+            )
+            tracks = tracks.map { recentByID[$0.id] ?? $0 }
+            return true
+        } catch {
+            return false
+        }
+    }
 }
 
 extension LibraryStore {
