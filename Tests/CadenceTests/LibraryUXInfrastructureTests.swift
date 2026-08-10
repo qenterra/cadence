@@ -35,14 +35,14 @@ struct LibraryUXInfrastructureTests {
     @Test("Navigation rail order is sanitized and hidden pages stay hidden")
     func navigationConfiguration() {
         let order = "tags,albums,tags,settings,unknown"
-        let hidden = "albums,trash"
+        let hidden = "library,trash"
         let visible = NavigationRailConfiguration.visibleDestinations(
             orderRawValue: order,
             hiddenRawValue: hidden
         )
 
-        #expect(visible.prefix(2) == [.home, .tags])
-        #expect(!visible.contains(.albums))
+        #expect(visible == [.home, .collections])
+        #expect(!visible.contains(.library))
         #expect(!visible.contains(.trash))
         #expect(Set(visible).count == visible.count)
         #expect(
@@ -60,7 +60,54 @@ struct LibraryUXInfrastructureTests {
             from: "albums,artists,home,library"
         )
 
-        #expect(restored.prefix(4) == [.home, .albums, .artists, .library])
+        #expect(restored == [.home, .library, .collections])
+    }
+
+    @Test("Deep routes retain context while selecting one primary rail section")
+    func primaryNavigationMapping() {
+        #expect(NavigationDestination.home.primaryDestination == .home)
+        #expect(NavigationDestination.library.primaryDestination == .library)
+        #expect(NavigationDestination.allTracks.primaryDestination == .library)
+        #expect(NavigationDestination.albums.primaryDestination == .library)
+        #expect(NavigationDestination.artists.primaryDestination == .library)
+        #expect(NavigationDestination.importMusic.primaryDestination == .library)
+        #expect(NavigationDestination.trash.primaryDestination == .library)
+        #expect(NavigationDestination.collections.primaryDestination == .collections)
+        #expect(NavigationDestination.playlists.primaryDestination == .collections)
+        #expect(NavigationDestination.smartCollections.primaryDestination == .collections)
+        #expect(NavigationDestination.tags.primaryDestination == .collections)
+    }
+
+    @Test("Library and Collections expose stable user-facing sections")
+    func consolidatedSections() {
+        #expect(LibraryContentSection.allCases.map(\.rawValue) == [
+            "tracks",
+            "albums",
+            "artists",
+            "favorites",
+        ])
+        #expect(LibraryContentSection.allCases.map(\.title) == [
+            "Tracks",
+            "Albums",
+            "Artists",
+            "Favorites",
+        ])
+        #expect(LibraryViewMode.columnBrowser.title == "Column Browser")
+        #expect(CollectionContentSection.allCases.map(\.rawValue) == [
+            "playlists",
+            "smartCollections",
+            "tags",
+        ])
+        #expect(CollectionContentSection.allCases.map(\.title) == [
+            "Playlists",
+            "Smart Collections",
+            "Tags",
+        ])
+        #expect(FavoriteCatalogSection.allCases.map(\.title) == [
+            "Songs",
+            "Albums",
+            "Artists",
+        ])
     }
 
     @Test("Home pin projection tolerates duplicate library and saved identifiers")
@@ -84,6 +131,15 @@ struct LibraryUXInfrastructureTests {
         #expect(ordered == [first, second])
     }
 
+    @Test("Home listening shelves stay bounded and continue from the latest item")
+    func homeListeningSelection() {
+        let items = Array(1 ... 10)
+
+        #expect(HomeListeningSelection.continueTrack(from: items) == 1)
+        #expect(HomeListeningSelection.items(items, limit: 6) == Array(1 ... 6))
+        #expect(HomeListeningSelection.items(items, limit: 0).isEmpty)
+    }
+
     @Test("New navigation profiles start expanded and every destination symbol is unique")
     func navigationDefaults() {
         #expect(NavigationRailConfiguration.defaultIsExpanded)
@@ -101,30 +157,29 @@ struct LibraryUXInfrastructureTests {
     @Test("Navigation rail destinations move to the dropped row")
     func navigationReordering() {
         let destinations = [
-            NavigationDestination.library,
-            .albums,
-            .artists,
-            .tags,
+            NavigationDestination.home,
+            .library,
+            .collections,
         ]
 
         #expect(
             NavigationRailConfiguration.moving(
                 .library,
-                to: .artists,
+                to: .collections,
                 in: destinations
-            ) == [.albums, .artists, .library, .tags]
+            ) == [.home, .collections, .library]
         )
         #expect(
             NavigationRailConfiguration.moving(
-                .tags,
-                to: .albums,
+                .collections,
+                to: .home,
                 in: destinations
-            ) == [.library, .tags, .albums, .artists]
+            ) == [.collections, .home, .library]
         )
         #expect(
             NavigationRailConfiguration.moving(
-                .albums,
-                to: .albums,
+                .home,
+                to: .home,
                 in: destinations
             ) == destinations
         )
@@ -147,6 +202,41 @@ struct LibraryUXInfrastructureTests {
                 == NavigationRailMetrics.rowHeight
         )
         #expect(NavigationRailMetrics.rowWidth(isExpanded: false) == 42)
+    }
+
+    @Test("Navigation rail keeps icons on one axis in both widths")
+    func navigationRailIconAxis() {
+        #expect(
+            NavigationRailMetrics.iconCenterX(isExpanded: false)
+                == NavigationRailMetrics.iconCenterX(isExpanded: true)
+        )
+        #expect(
+            NavigationRailMetrics.iconCenterX(isExpanded: false)
+                == NavigationRailMetrics.collapsedWidth / 2
+        )
+    }
+
+    @Test("Track artwork waveform represents only the active playing track")
+    @MainActor
+    func trackArtworkPlaybackSymbol() {
+        #expect(
+            ProductionTrackTableRow.artworkOverlaySymbolName(
+                isCurrentTrack: true,
+                isPlaying: true
+            ) == "waveform"
+        )
+        #expect(
+            ProductionTrackTableRow.artworkOverlaySymbolName(
+                isCurrentTrack: false,
+                isPlaying: true
+            ) == "play.fill"
+        )
+        #expect(
+            ProductionTrackTableRow.artworkOverlaySymbolName(
+                isCurrentTrack: true,
+                isPlaying: false
+            ) == "play.fill"
+        )
     }
 
     @Test("Production Smart Collections match inherited tag descendants")

@@ -42,7 +42,6 @@ extension PlaybackCoordinator {
         _ route: AudioRouteSnapshot,
         generation: Int
     ) async {
-        await waitForAudioConfigurationTransitions()
         guard generation == routeGeneration else {
             return
         }

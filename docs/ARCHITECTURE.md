@@ -80,8 +80,8 @@ Original source files remain untouched.
   lossless files.
 - `NativePlaybackBackend` preserves system handling for other compatible files,
   multichannel content, and system routes.
-- `PlaybackRoutingPolicy` selects a backend from file capabilities, output
-  route, and the Adaptive, Pure, or Immersive profile.
+- `PlaybackRoutingPolicy` selects a backend from file capabilities and output
+  route, using direct PCM whenever it is compatible.
 - `SystemMediaSession` connects media keys and Control Center to the same state.
 
 UI controls, lyrics timing, Now Playing, and the queue observe the coordinator

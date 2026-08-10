@@ -61,32 +61,28 @@ struct PlaybackRoutingPolicyTests {
         let backend = PlaybackRoutingPolicy.backend(
             for: PlaybackRoutingRequest(
                 track: resolved.track,
-                profile: .adaptive,
                 route: AudioRouteSnapshot(
                     name: "Output",
                     transport: testCase.transport
-                ),
-                stereoSpatializationEnabled: false
+                )
             )
         )
 
         #expect(backend == testCase.expected)
     }
 
-    @Test("Spatialized stereo is routed natively but never relabelled Atmos")
-    func immersiveStereo() {
+    @Test("Stereo lossless stays on the direct PCM path")
+    func stereoLossless() {
         let resolved = playbackTestTrack(
             id: UUID(),
             title: "Stereo"
         )
         let request = PlaybackRoutingRequest(
             track: resolved.track,
-            profile: .immersive,
-            route: .unknown,
-            stereoSpatializationEnabled: true
+            route: .unknown
         )
 
-        #expect(PlaybackRoutingPolicy.backend(for: request) == .native)
+        #expect(PlaybackRoutingPolicy.backend(for: request) == .pcm)
         #expect(resolved.track.spatialFormat == .stereo)
     }
 }

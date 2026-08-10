@@ -124,30 +124,6 @@ struct PlaybackRegressionTests {
         )
     }
 
-    @Test("Changing Adaptive to Pure updates PCM ReplayGain without changing tracks")
-    func sameBackendProfileReload() async {
-        let track = playbackTestTrack(
-            id: UUID(),
-            title: "Gain",
-            replayGainTrackGain: -7
-        )
-        let pcm = PlaybackTestBackend(kind: .pcm)
-        let coordinator = PlaybackCoordinator(
-            resolver: PlaybackTestResolver(tracks: [track]),
-            backends: [pcm]
-        )
-        await coordinator.startQueue(source: .adHoc, trackIDs: [track.track.id])
-
-        await coordinator.setQualityProfile(.pure)
-
-        #expect(pcm.loadRequests.count == 1)
-        #expect(pcm.loadRequests[0].replayGainDecibels == -7)
-        #expect(pcm.replayGains.count == 1)
-        #expect(pcm.replayGains[0] == nil)
-        #expect(coordinator.state.activeBackend == .pcm)
-        #expect(coordinator.qualityProfile == .pure)
-    }
-
     @Test("Progress callbacks do not mutate the lightweight row indicator")
     func stablePlaybackIndicator() async {
         let track = playbackTestTrack(id: UUID(), title: "Indicator")
@@ -162,77 +138,5 @@ struct PlaybackRegressionTests {
         pcm.emit(.time(12))
 
         #expect(coordinator.playbackIndicator == indicator)
-    }
-
-    @Test("A newer quality choice supersedes an unfinished backend switch")
-    func rapidQualityChanges() async {
-        let track = playbackTestTrack(id: UUID(), title: "Rapid")
-        let pcm = PlaybackTestBackend(kind: .pcm)
-        let native = PlaybackTestBackend(kind: .native)
-        native.shouldSuspendNextLoad = true
-        let coordinator = PlaybackCoordinator(
-            resolver: PlaybackTestResolver(tracks: [track]),
-            backends: [pcm, native]
-        )
-        await coordinator.startQueue(source: .adHoc, trackIDs: [track.track.id])
-        coordinator.stereoSpatializationEnabled = true
-
-        let immersive = Task {
-            await coordinator.setQualityProfile(.immersive)
-        }
-        while native.suspendedLoadCount == 0 {
-            await Task.yield()
-        }
-        let pure = Task {
-            await coordinator.setQualityProfile(.pure)
-        }
-        await Task.yield()
-        native.resumeNextLoad()
-        await immersive.value
-        await pure.value
-
-        #expect(coordinator.qualityProfile == .pure)
-        #expect(coordinator.state.activeBackend == .pcm)
-        #expect(coordinator.state.isPlaying)
-        #expect(pcm.playCount == 0)
-        #expect(native.stopCount >= 1)
-    }
-
-    @Test("Leaving Immersive cancels an unfinished native backend switch")
-    func cancelUnfinishedImmersiveSwitch() async {
-        let track = playbackTestTrack(id: UUID(), title: "Responsive")
-        let pcm = PlaybackTestBackend(kind: .pcm)
-        let native = PlaybackTestBackend(kind: .native)
-        native.loadDelay = .seconds(30)
-        let coordinator = PlaybackCoordinator(
-            resolver: PlaybackTestResolver(tracks: [track]),
-            backends: [pcm, native]
-        )
-        await coordinator.startQueue(source: .adHoc, trackIDs: [track.track.id])
-        coordinator.stereoSpatializationEnabled = true
-
-        let immersive = Task {
-            await coordinator.setQualityProfile(.immersive)
-        }
-        while native.loadRequests.isEmpty {
-            await Task.yield()
-        }
-        #expect(pcm.pauseCount == 0)
-        var pureCompleted = false
-        let pure = Task {
-            await coordinator.setQualityProfile(.pure)
-            pureCompleted = true
-        }
-
-        try? await Task.sleep(for: .milliseconds(100))
-
-        #expect(pureCompleted)
-        #expect(coordinator.qualityProfile == .pure)
-        #expect(coordinator.state.activeBackend == .pcm)
-        #expect(coordinator.state.isPlaying)
-
-        coordinator.stop()
-        await immersive.value
-        await pure.value
     }
 }

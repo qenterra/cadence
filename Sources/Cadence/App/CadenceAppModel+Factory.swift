@@ -16,8 +16,7 @@ extension CadenceAppModel {
                 NativePlaybackBackend(),
             ],
             systemMediaSession: SystemMediaSession(),
-            audioRouteProvider: SystemAudioRouteProvider(),
-            qualityProfileStore: UserDefaultsAudioQualityProfileStore()
+            audioRouteProvider: SystemAudioRouteProvider()
         )
         let model = CadenceAppModel(
             librarySession: librarySession,

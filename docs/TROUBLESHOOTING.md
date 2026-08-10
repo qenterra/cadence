@@ -57,7 +57,7 @@ Inspection does not copy files. Cadence writes only after confirmation.
 ## Playback is silent or chooses another backend
 
 - Open Now Playing and inspect **Audio Path**.
-- Check the selected quality profile and current output route.
+- Check the current output route.
 - Verify that the managed file still exists.
 - Try the built-in Mac output before testing Bluetooth, AirPlay, multichannel,
   or spatial routes.

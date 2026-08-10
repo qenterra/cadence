@@ -43,8 +43,7 @@ struct PCMPlaybackBackendTests {
                 next: second,
                 startTime: 0,
                 autoplay: false,
-                volume: 0.8,
-                replayGainDecibels: nil
+                volume: 0.8
             )
         )
 
@@ -96,8 +95,7 @@ struct PCMPlaybackBackendTests {
                 next: second,
                 startTime: 0,
                 autoplay: false,
-                volume: 1,
-                replayGainDecibels: nil
+                volume: 1
             )
         )
 
@@ -136,8 +134,7 @@ struct PCMPlaybackBackendTests {
                 next: nil,
                 startTime: 0,
                 autoplay: false,
-                volume: 0.8,
-                replayGainDecibels: nil
+                volume: 0.8
             )
         )
         let staleGeneration = backend.scheduleGeneration

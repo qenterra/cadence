@@ -125,7 +125,7 @@ struct ProductionAlbumsView: View {
     }
 }
 
-private struct ProductionAlbumTile: View {
+struct ProductionAlbumTile: View {
     @Bindable var model: CadenceAppModel
     @Bindable var store: LibraryStore
     let album: LibraryAlbumProjection
@@ -134,48 +134,63 @@ private struct ProductionAlbumTile: View {
     @State private var renameDraft = ""
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 9) {
-            ProductionArtworkView(
-                model: model,
-                artworkID: album.customArtworkID,
-                title: album.title,
-                placeholder: .album,
-                cornerRadius: CadenceTheme.radiusGroup
-            )
-            .aspectRatio(1, contentMode: .fit)
+        ZStack(alignment: .topTrailing) {
+            Button(action: openAlbum) {
+                VStack(alignment: .leading, spacing: 9) {
+                    ProductionArtworkView(
+                        model: model,
+                        artworkID: album.customArtworkID,
+                        title: album.title,
+                        placeholder: .album,
+                        cornerRadius: CadenceTheme.radiusGroup
+                    )
+                    .aspectRatio(1, contentMode: .fit)
 
-            Text(album.title)
-                .font(.headline)
-                .foregroundStyle(.primary)
-                .lineLimit(1)
+                    Text(album.title)
+                        .font(.headline)
+                        .foregroundStyle(.primary)
+                        .lineLimit(1)
 
-            Text(album.artist)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
+                    Text(album.artist)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
 
-            Text(albumDetail(album))
-                .font(.caption)
-                .foregroundStyle(.tertiary)
-                .lineLimit(1)
+                    Text(albumDetail(album))
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                        .lineLimit(1)
+                }
+                .padding(10)
+                .background {
+                    BrowserRowSurface(
+                        isSelected: false,
+                        isHovered: isHovered,
+                        isFocused: false
+                    )
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+
+            if isHovered || album.isFavorite {
+                FavoriteButton(
+                    isFavorite: album.isFavorite,
+                    itemName: album.title
+                ) {
+                    Task {
+                        await model.setProductionAlbumFavorite(
+                            album,
+                            isFavorite: !album.isFavorite
+                        )
+                    }
+                }
+                .padding(14)
+            }
         }
-        .padding(10)
-        .background {
-            BrowserRowSurface(
-                isSelected: false,
-                isHovered: isHovered,
-                isFocused: false
-            )
-        }
-        .contentShape(Rectangle())
-        .gesture(openOrRenameGesture)
         .onHover { isHovered = $0 }
         .contextMenu {
             albumActions
-        }
-        .accessibilityAddTraits(.isButton)
-        .accessibilityAction {
-            openAlbum()
         }
         .catalogRenameAlert(
             "Rename Album",
@@ -194,6 +209,17 @@ private struct ProductionAlbumTile: View {
 
     @ViewBuilder
     private var albumActions: some View {
+        Button(
+            album.isFavorite ? "Remove from Favorites" : "Add to Favorites",
+            systemImage: album.isFavorite ? "heart.slash" : "heart"
+        ) {
+            Task {
+                await model.setProductionAlbumFavorite(
+                    album,
+                    isFavorite: !album.isFavorite
+                )
+            }
+        }
         Button("Rename", systemImage: "pencil") {
             beginRename()
         }
@@ -236,19 +262,6 @@ private struct ProductionAlbumTile: View {
     private func beginRename() {
         renameDraft = album.title
         isRenamePresented = true
-    }
-
-    private var openOrRenameGesture: some Gesture {
-        TapGesture(count: 2)
-            .exclusively(before: TapGesture(count: 1))
-            .onEnded { gesture in
-                switch gesture {
-                case .first:
-                    beginRename()
-                case .second:
-                    openAlbum()
-                }
-            }
     }
 
     private func openAlbum() {

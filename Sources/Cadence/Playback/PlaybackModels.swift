@@ -1,19 +1,5 @@
 import Foundation
 
-enum AudioQualityProfile: String, CaseIterable, Identifiable, Sendable {
-    case adaptive
-    case pure
-    case immersive
-
-    var id: Self {
-        self
-    }
-
-    var title: String {
-        rawValue.capitalized
-    }
-}
-
 enum PlaybackBackendKind: String, Sendable {
     case native
     case pcm
@@ -32,6 +18,7 @@ enum PlaybackQueueSource: Hashable, Sendable {
     case artist(UUID)
     case smartCollection(UUID)
     case playlist(UUID)
+    case favorites
     case allTracks
     case adHoc
 }
@@ -62,7 +49,6 @@ struct AudioPathSnapshot: Equatable, Sendable {
     let sourceChannelCount: Int
     let sourceSpatialFormat: StoredSpatialFormat
     let backend: PlaybackBackendKind
-    let replayGainIsActive: Bool
     let rendererSampleRate: Double?
     let rendererChannelCount: Int?
     let outputRoute: AudioRouteSnapshot

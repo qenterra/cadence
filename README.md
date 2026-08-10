@@ -87,7 +87,8 @@ synthetic; the capture process cannot open the developer's music library.
   Playing.
 - Inspect the source format, sample rate, channel count, selected backend, and
   output route.
-- Choose Adaptive, Pure, or Immersive audio routing profiles.
+- Use a direct PCM path whenever the format and output support it, with
+  automatic native fallback for compatible system routes and formats.
 
 ### Browse and organize
 

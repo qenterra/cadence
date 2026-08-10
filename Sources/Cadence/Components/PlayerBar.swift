@@ -3,13 +3,12 @@ import SwiftUI
 struct PlayerBar: View {
     @Bindable var model: CadenceAppModel
     @State private var pendingSeekProgress: Double?
-    @State var isQualityProfilePresented = false
     @State private var isArtworkHovered = false
 
     var body: some View {
         HStack(spacing: 24) {
             nowPlaying
-                .frame(width: 224, alignment: .leading)
+                .frame(width: 244, alignment: .leading)
 
             transport
                 .frame(maxWidth: .infinity)
@@ -144,6 +143,13 @@ private extension PlayerBar {
                     artist: track.artist
                 )
 
+                FavoriteButton(
+                    isFavorite: model.currentProductionTrackIsFavorite,
+                    itemName: track.title
+                ) {
+                    model.toggleCurrentProductionTrackFavorite()
+                }
+
                 Spacer(minLength: 0)
             }
         } else {
@@ -231,7 +237,6 @@ private extension PlayerBar {
                 .accessibilityLabel("Volume")
 
             audioOutputMenu
-            qualityProfileMenu
             controlButton(
                 symbol: "list.bullet",
                 label: "Queue",

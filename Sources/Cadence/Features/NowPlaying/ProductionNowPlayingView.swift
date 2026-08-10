@@ -87,10 +87,24 @@ private extension ProductionNowPlayingView {
             }
 
             VStack(alignment: .leading, spacing: 7) {
-                Text(displayedTrackTitle)
-                    .font(.largeTitle.weight(.bold))
-                    .lineLimit(2)
-                    .onTapGesture(count: 2, perform: beginRename)
+                HStack(alignment: .top, spacing: 10) {
+                    Text(displayedTrackTitle)
+                        .font(.largeTitle.weight(.bold))
+                        .lineLimit(2)
+                        .contextMenu {
+                            Button("Rename", systemImage: "pencil") {
+                                beginRename()
+                            }
+                        }
+
+                    FavoriteButton(
+                        isFavorite: model.currentProductionTrackIsFavorite,
+                        itemName: displayedTrackTitle
+                    ) {
+                        model.toggleCurrentProductionTrackFavorite()
+                    }
+                    .padding(.top, 2)
+                }
                 MediaMetadataLink(
                     track.artist,
                     accessibilityLabel: "Open artist \(track.artist)"

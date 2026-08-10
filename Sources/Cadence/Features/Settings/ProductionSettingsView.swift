@@ -144,22 +144,13 @@ struct ProductionSettingsView: View {
             title: "Playback",
             symbol: "waveform"
         ) {
-            Picker("Quality Profile", selection: qualityBinding) {
-                ForEach(AudioQualityProfile.allCases) { profile in
-                    Text(profile.title).tag(profile)
-                }
-            }
-            .pickerStyle(.segmented)
-
-            Toggle(
-                "Spatialize Stereo in Immersive mode",
-                isOn: $model.isStereoSpatializationEnabled
+            Text(
+                "Cadence uses its direct PCM path whenever the format and "
+                    + "output allow it, with system playback for formats and "
+                    + "routes that require native handling."
             )
-            .disabled(model.qualityProfile != .immersive)
-
-            Text(playbackDescription)
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            .font(.caption)
+            .foregroundStyle(.secondary)
         }
     }
 
@@ -185,13 +176,6 @@ struct ProductionSettingsView: View {
         }
     }
 
-    private var qualityBinding: Binding<AudioQualityProfile> {
-        Binding(
-            get: { model.qualityProfile },
-            set: model.selectQualityProfile
-        )
-    }
-
     private var appearanceBinding: Binding<CadenceAppearance> {
         Binding(
             get: {
@@ -201,17 +185,6 @@ struct ProductionSettingsView: View {
                 appearanceRawValue = $0.rawValue
             }
         )
-    }
-
-    private var playbackDescription: String {
-        switch model.qualityProfile {
-        case .adaptive:
-            "Chooses the safest high-quality path for the current file and output."
-        case .pure:
-            "Keeps stereo PCM playback direct whenever the format allows it."
-        case .immersive:
-            "Uses the system playback path for spatial and multichannel content."
-        }
     }
 }
 

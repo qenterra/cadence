@@ -207,6 +207,8 @@ extension ProductionPlaybackQueuePanel {
             "Smart Collection snapshot"
         case .playlist:
             "Playlist snapshot"
+        case .favorites:
+            "Favorites snapshot"
         case .allTracks:
             "Library snapshot"
         case .adHoc:

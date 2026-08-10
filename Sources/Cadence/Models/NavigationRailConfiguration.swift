@@ -6,13 +6,7 @@ enum NavigationRailConfiguration {
     static let configurableDestinations: [NavigationDestination] = [
         .home,
         .library,
-        .allTracks,
-        .albums,
-        .artists,
-        .tags,
-        .smartCollections,
-        .playlists,
-        .importMusic,
+        .collections,
     ]
 
     static var defaultOrderRawValue: String {

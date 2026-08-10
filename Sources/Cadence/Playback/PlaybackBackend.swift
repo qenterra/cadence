@@ -6,7 +6,6 @@ struct PlaybackBackendLoadRequest: Sendable {
     let startTime: TimeInterval
     let autoplay: Bool
     let volume: Float
-    let replayGainDecibels: Double?
 }
 
 enum PlaybackBackendEvent: Sendable {
@@ -42,7 +41,6 @@ protocol PlaybackBackend: AnyObject {
     func pause()
     func seek(to time: TimeInterval) async throws
     func setVolume(_ volume: Float)
-    func setReplayGain(_ decibels: Double?)
     func setPresentationGain(
         _ gain: Float,
         duration: Duration
@@ -51,8 +49,6 @@ protocol PlaybackBackend: AnyObject {
 }
 
 extension PlaybackBackend {
-    func setReplayGain(_: Double?) {}
-
     func setPresentationGain(
         _: Float,
         duration _: Duration

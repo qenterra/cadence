@@ -1,4 +1,5 @@
 @testable import Cadence
+import Foundation
 import Testing
 
 @MainActor
@@ -99,6 +100,49 @@ struct CadenceAppModelTests {
         model.toggleFavorite(track)
 
         #expect(model.isFavorite(track) != originalState)
+    }
+
+    @Test("Production favorite failures are published instead of discarded")
+    func productionFavoriteFailure() async {
+        let model = CadenceAppModel.testFixture()
+        let track = LibraryTrackProjection(
+            id: UUID(),
+            title: "Missing",
+            artistID: nil,
+            artist: "Unknown Artist",
+            albumID: nil,
+            album: "Unknown Album",
+            duration: 180,
+            year: nil,
+            codec: "FLAC",
+            sampleRate: 48000,
+            channelCount: 2,
+            bitDepth: 24,
+            isFavorite: false,
+            customArtworkID: nil,
+            artworkID: nil,
+            relativeMediaPath: "Media/missing.flac",
+            lastPlayedAt: nil,
+            hasSynchronizedLyrics: false
+        )
+
+        let updated = await model.setProductionTrackFavorite(
+            track,
+            isFavorite: true
+        )
+
+        #expect(updated == nil)
+        #expect(model.libraryOperationError == "The managed library is unavailable.")
+    }
+
+    @Test("Current production favorite action requires an active production track")
+    func currentProductionFavoriteRequiresTrack() async {
+        let model = CadenceAppModel.testFixture()
+
+        let didUpdate = await model.setCurrentProductionTrackFavorite(true)
+
+        #expect(!didUpdate)
+        #expect(!model.currentProductionTrackIsFavorite)
     }
 
     @Test("Album years never use thousands separators")

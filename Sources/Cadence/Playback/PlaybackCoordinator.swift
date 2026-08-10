@@ -9,17 +9,11 @@ final class PlaybackCoordinator {
     let backends: [PlaybackBackendKind: any PlaybackBackend]
     let systemMediaSession: any SystemMediaSessionControlling
     let audioRouteProvider: any AudioRouteProviding
-    let qualityProfileStore: any AudioQualityProfileStoring
     var resolvedTracks: [UUID: ResolvedPlaybackTrack] = [:]
     var failedTrackIDs: Set<UUID> = []
     var canonicalOrder: [UUID] = []
     var loadGeneration = 0
     var routeGeneration = 0
-    var audioConfigurationGeneration = 0
-    var configurationTransitionWasPlaying: Bool?
-    @ObservationIgnored
-    var audioConfigurationTransitionTask: Task<Bool, Never>?
-    var audioConfigurationTransitionGeneration: Int?
     var pendingOutputRoute: AudioRouteSnapshot?
     var routeFailureIsActive = false
     @ObservationIgnored
@@ -31,22 +25,17 @@ final class PlaybackCoordinator {
     var presentationClock = PlaybackPresentationClock()
     @ObservationIgnored
     var lastTimelinePublication: PlaybackTimelineSample?
-    var qualityProfile: AudioQualityProfile = .adaptive
     var repeatMode: RepeatMode = .off
     private(set) var volume: Float = 0.72
 
     var outputRoute: AudioRouteSnapshot = .unknown
-    var stereoSpatializationEnabled = false
-
     init(
         resolver: any PlaybackTrackResolving,
         backends: [any PlaybackBackend],
         systemMediaSession: any SystemMediaSessionControlling =
             NoOpSystemMediaSession(),
         audioRouteProvider: any AudioRouteProviding =
-            StaticAudioRouteProvider(),
-        qualityProfileStore: any AudioQualityProfileStoring =
-            VolatileAudioQualityProfileStore()
+            StaticAudioRouteProvider()
     ) {
         self.resolver = resolver
         self.backends = Dictionary(
@@ -54,10 +43,6 @@ final class PlaybackCoordinator {
         )
         self.systemMediaSession = systemMediaSession
         self.audioRouteProvider = audioRouteProvider
-        self.qualityProfileStore = qualityProfileStore
-        qualityProfile = qualityProfileStore.load()
-        stereoSpatializationEnabled =
-            qualityProfileStore.loadStereoSpatializationEnabled()
 
         for backend in backends {
             backend.onEvent = { [weak self] event in
@@ -211,11 +196,6 @@ final class PlaybackCoordinator {
         backends.values.forEach { $0.stop() }
         loadGeneration += 1
         routeGeneration += 1
-        audioConfigurationGeneration &+= 1
-        audioConfigurationTransitionTask?.cancel()
-        audioConfigurationTransitionTask = nil
-        audioConfigurationTransitionGeneration = nil
-        configurationTransitionWasPlaying = nil
         pendingOutputRoute = nil
         routeFailureIsActive = false
         state.transport = .idle
@@ -239,10 +219,6 @@ final class PlaybackCoordinator {
         routeGeneration += 1
         pendingOutputRoute = nil
         routeTransitionTask?.cancel()
-        audioConfigurationTransitionTask?.cancel()
-        audioConfigurationTransitionTask = nil
-        audioConfigurationTransitionGeneration = nil
-        configurationTransitionWasPlaying = nil
         backends.values.forEach { $0.stop() }
         systemMediaSession.shutdown()
     }

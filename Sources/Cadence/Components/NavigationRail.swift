@@ -20,8 +20,6 @@ struct NavigationRail: View {
             primaryNavigation
 
             Spacer(minLength: 12)
-
-            railButton(.trash)
         }
         .frame(
             width: NavigationRailMetrics.contentWidth(
@@ -68,33 +66,12 @@ struct NavigationRail: View {
                 }
             }
         } label: {
-            HStack(spacing: 12) {
-                Image(
-                    systemName: isExpanded
-                        ? "sidebar.left"
-                        : "sidebar.right"
-                )
-                .contentTransition(.symbolEffect(.replace))
-                .font(.system(size: 15, weight: .medium))
-                .frame(width: 28)
-
-                Text("Collapse")
-                    .font(.callout.weight(.medium))
-                    .lineLimit(1)
-                    .opacity(isExpanded ? 1 : 0)
-                    .accessibilityHidden(!isExpanded)
-                Spacer(minLength: 0)
-            }
-            .foregroundStyle(.secondary)
-            .padding(.horizontal, NavigationRailMetrics.rowInset)
-            .frame(
-                width: NavigationRailMetrics.rowWidth(
-                    isExpanded: isExpanded
-                ),
-                height: NavigationRailMetrics.rowHeight,
-                alignment: .leading
+            railLabel(
+                systemName: isExpanded ? "sidebar.left" : "sidebar.right",
+                title: "Collapse",
+                animatesSymbolReplacement: true
             )
-            .clipped()
+            .foregroundStyle(.secondary)
             .contentShape(Rectangle())
         }
         .buttonStyle(CadenceRowButtonStyle())
@@ -102,34 +79,17 @@ struct NavigationRail: View {
     }
 
     private func railButton(_ destination: NavigationDestination) -> some View {
-        let isSelected = !suppressesSelection && selection == destination
+        let isSelected = !suppressesSelection
+            && selection.primaryDestination == destination
 
         return Button {
             selection = destination
         } label: {
-            HStack(spacing: 12) {
-                Image(systemName: destination.symbolName)
-                    .font(.system(size: 15, weight: .medium))
-                    .symbolRenderingMode(.hierarchical)
-                    .frame(width: 28)
-
-                Text(destination.title)
-                    .font(.callout.weight(.medium))
-                    .lineLimit(1)
-                    .opacity(isExpanded ? 1 : 0)
-                    .accessibilityHidden(!isExpanded)
-                Spacer(minLength: 0)
-            }
-            .foregroundStyle(isSelected ? .primary : .secondary)
-            .padding(.horizontal, NavigationRailMetrics.rowInset)
-            .frame(
-                width: NavigationRailMetrics.rowWidth(
-                    isExpanded: isExpanded
-                ),
-                height: NavigationRailMetrics.rowHeight,
-                alignment: .leading
+            railLabel(
+                systemName: destination.symbolName,
+                title: destination.title
             )
-            .clipped()
+            .foregroundStyle(isSelected ? .primary : .secondary)
             .background {
                 BrowserRowSurface(
                     isSelected: isSelected,
@@ -153,6 +113,60 @@ struct NavigationRail: View {
             alignment: .center
         )
     }
+
+    private func railLabel(
+        systemName: String,
+        title: String,
+        animatesSymbolReplacement: Bool = false
+    ) -> some View {
+        Group {
+            if isExpanded {
+                HStack(spacing: 12) {
+                    railIcon(
+                        systemName,
+                        animatesSymbolReplacement: animatesSymbolReplacement
+                    )
+                    Text(title)
+                        .font(.callout.weight(.medium))
+                        .lineLimit(1)
+                    Spacer(minLength: 0)
+                }
+                .padding(.horizontal, NavigationRailMetrics.rowInset)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            } else {
+                railIcon(
+                    systemName,
+                    animatesSymbolReplacement: animatesSymbolReplacement
+                )
+                .frame(maxWidth: .infinity)
+            }
+        }
+        .frame(
+            width: NavigationRailMetrics.rowWidth(isExpanded: isExpanded),
+            height: NavigationRailMetrics.rowHeight
+        )
+        .clipped()
+    }
+
+    private func railIcon(
+        _ systemName: String,
+        animatesSymbolReplacement: Bool
+    ) -> some View {
+        Group {
+            if animatesSymbolReplacement {
+                Image(systemName: systemName)
+                    .contentTransition(.symbolEffect(.replace))
+            } else {
+                Image(systemName: systemName)
+            }
+        }
+        .font(.system(size: 15, weight: .medium))
+        .symbolRenderingMode(.hierarchical)
+        .frame(
+            width: NavigationRailMetrics.iconSlotWidth,
+            height: NavigationRailMetrics.rowHeight
+        )
+    }
 }
 
 enum NavigationRailMetrics {
@@ -162,6 +176,7 @@ enum NavigationRailMetrics {
     static let verticalInset: CGFloat = 14
     static let rowInset: CGFloat = 10
     static let rowHeight: CGFloat = 42
+    static let iconSlotWidth: CGFloat = 32
 
     static func totalWidth(isExpanded: Bool) -> CGFloat {
         isExpanded ? expandedWidth : collapsedWidth
@@ -173,5 +188,15 @@ enum NavigationRailMetrics {
 
     static func rowWidth(isExpanded: Bool) -> CGFloat {
         isExpanded ? contentWidth(isExpanded: true) : rowHeight
+    }
+
+    static func iconCenterX(isExpanded: Bool) -> CGFloat {
+        if isExpanded {
+            return horizontalInset + rowInset + iconSlotWidth / 2
+        }
+        let centeredRowInset = (
+            contentWidth(isExpanded: false) - rowWidth(isExpanded: false)
+        ) / 2
+        return horizontalInset + centeredRowInset + rowHeight / 2
     }
 }

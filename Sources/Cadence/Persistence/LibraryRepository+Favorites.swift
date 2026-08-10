@@ -22,6 +22,109 @@ enum LibraryFavoriteMutationError: LocalizedError {
 }
 
 extension LibraryRepository {
+    func favoriteTracksPage(
+        after cursor: LibraryPageCursor? = nil,
+        limit: Int = maximumPageSize
+    ) throws -> LibraryPage<LibraryTrackProjection> {
+        try tracksPage(
+            query: LibraryTrackQuery(scope: .favorites),
+            after: cursor,
+            limit: limit
+        )
+    }
+
+    func favoriteAlbumsPage(
+        after cursor: LibraryPageCursor? = nil,
+        limit: Int = maximumPageSize
+    ) throws -> LibraryPage<LibraryAlbumProjection> {
+        let boundedLimit = min(max(limit, 1), Self.maximumPageSize)
+        let sortBy = [
+            SortDescriptor(\AlbumRecord.normalizedTitle),
+            SortDescriptor(\AlbumRecord.sortIdentity),
+        ]
+        let descriptor: FetchDescriptor<AlbumRecord>
+        if let cursor {
+            let cursorValue = cursor.sortValue
+            let cursorIdentity = cursor.identity
+            let predicate = #Predicate<AlbumRecord> { record in
+                record.isFavorite
+                    && (
+                        record.normalizedTitle > cursorValue
+                            || record.normalizedTitle == cursorValue
+                            && record.sortIdentity > cursorIdentity
+                    )
+            }
+            descriptor = FetchDescriptor(predicate: predicate, sortBy: sortBy)
+        } else {
+            let predicate = #Predicate<AlbumRecord> { $0.isFavorite }
+            descriptor = FetchDescriptor(predicate: predicate, sortBy: sortBy)
+        }
+        var boundedDescriptor = descriptor
+        boundedDescriptor.fetchLimit = boundedLimit + 1
+        return try albumPage(
+            records: modelContext.fetch(boundedDescriptor),
+            limit: boundedLimit,
+            sortValue: \.normalizedTitle,
+            identity: \.sortIdentity
+        )
+    }
+
+    func favoriteArtistsPage(
+        after cursor: LibraryPageCursor? = nil,
+        limit: Int = maximumPageSize
+    ) throws -> LibraryPage<LibraryArtistProjection> {
+        let boundedLimit = min(max(limit, 1), Self.maximumPageSize)
+        let sortBy = [
+            SortDescriptor(\ArtistRecord.normalizedName),
+            SortDescriptor(\ArtistRecord.sortIdentity),
+        ]
+        let descriptor: FetchDescriptor<ArtistRecord>
+        if let cursor {
+            let cursorValue = cursor.sortValue
+            let cursorIdentity = cursor.identity
+            let predicate = #Predicate<ArtistRecord> { record in
+                record.isFavorite
+                    && (
+                        record.normalizedName > cursorValue
+                            || record.normalizedName == cursorValue
+                            && record.sortIdentity > cursorIdentity
+                    )
+            }
+            descriptor = FetchDescriptor(predicate: predicate, sortBy: sortBy)
+        } else {
+            let predicate = #Predicate<ArtistRecord> { $0.isFavorite }
+            descriptor = FetchDescriptor(predicate: predicate, sortBy: sortBy)
+        }
+        var boundedDescriptor = descriptor
+        boundedDescriptor.fetchLimit = boundedLimit + 1
+        let records = try modelContext.fetch(boundedDescriptor)
+        let pageRecords = Array(records.prefix(boundedLimit))
+        return try LibraryPage(
+            items: artistProjections(pageRecords),
+            nextCursor: records.count > boundedLimit
+                ? pageRecords.last.map {
+                    LibraryPageCursor(
+                        sortValue: $0.normalizedName,
+                        identity: $0.sortIdentity
+                    )
+                }
+                : nil
+        )
+    }
+
+    func favoriteTrackIDs() throws -> [UUID] {
+        let predicate = #Predicate<TrackRecord> { $0.isFavorite }
+        return try modelContext.fetch(
+            FetchDescriptor(
+                predicate: predicate,
+                sortBy: [
+                    SortDescriptor(\TrackRecord.normalizedTitle),
+                    SortDescriptor(\TrackRecord.sortIdentity),
+                ]
+            )
+        ).map(\.id)
+    }
+
     func setTrackFavorite(
         id: UUID,
         isFavorite: Bool

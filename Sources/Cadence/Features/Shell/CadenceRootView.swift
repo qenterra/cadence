@@ -71,6 +71,9 @@ struct CadenceRootView: View {
                     Button("Import Music", systemImage: "folder.badge.plus") {
                         model.requestNavigationDestination(.importMusic)
                     }
+                    Button("Trash", systemImage: "trash") {
+                        model.requestNavigationDestination(.trash)
+                    }
                 } label: {
                     Label("More", systemImage: "ellipsis")
                 }
@@ -267,6 +270,8 @@ private extension CadenceRootView {
                 )
             case .library:
                 LibraryView(model: model)
+            case .collections:
+                CollectionsView(model: model)
             case .allTracks:
                 AllTracksView(
                     model: model,
@@ -295,7 +300,7 @@ private extension CadenceRootView {
 
     private var supportsSearch: Bool {
         switch model.selectedDestination {
-        case .home, .library, .allTracks, .albums, .artists, .tags,
+        case .home, .library, .collections, .allTracks, .albums, .artists, .tags,
              .smartCollections, .playlists:
             true
         case .importMusic, .trash:

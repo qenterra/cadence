@@ -101,34 +101,17 @@ struct ProductionTrackTableRow: View {
             Spacer(minLength: 0)
 
             if isHovered || track.isFavorite {
-                Button {
+                FavoriteButton(
+                    isFavorite: track.isFavorite,
+                    itemName: track.title
+                ) {
                     Task {
-                        try? await model.librarySession.store.setTrackFavorite(
-                            id: track.id,
+                        await model.setProductionTrackFavorite(
+                            track,
                             isFavorite: !track.isFavorite
                         )
                     }
-                } label: {
-                    Image(systemName: track.isFavorite ? "heart.fill" : "heart")
-                        .contentTransition(.symbolEffect(.replace))
-                        .foregroundStyle(
-                            track.isFavorite
-                                ? CadenceTheme.primaryAccent
-                                : CadenceTheme.primaryAccent.opacity(0.7)
-                        )
-                        .frame(width: 28, height: 28)
                 }
-                .buttonStyle(CadenceRowButtonStyle())
-                .help(
-                    track.isFavorite
-                        ? "Remove from Favorites"
-                        : "Add to Favorites"
-                )
-                .accessibilityLabel(
-                    track.isFavorite
-                        ? "Remove \(track.title) from Favorites"
-                        : "Add \(track.title) to Favorites"
-                )
             }
         }
     }
@@ -145,15 +128,18 @@ struct ProductionTrackTableRow: View {
         .frame(width: 40, height: 40)
         .overlay {
             if isHovered || model.isCurrentProductionTrack(track.id) {
+                let isPlayingCurrentTrack = model.isCurrentProductionTrack(track.id)
+                    && model.isCurrentProductionTrackPlaying
                 RoundedRectangle(
                     cornerRadius: CadenceTheme.radiusControl,
                     style: .continuous
                 )
                 .fill(.black.opacity(0.34))
                 Image(
-                    systemName: model.isCurrentProductionTrackPlaying
-                        ? "waveform"
-                        : "play.fill"
+                    systemName: Self.artworkOverlaySymbolName(
+                        isCurrentTrack: model.isCurrentProductionTrack(track.id),
+                        isPlaying: model.isCurrentProductionTrackPlaying
+                    )
                 )
                 .contentTransition(.symbolEffect(.replace))
                 .font(.caption.weight(.semibold))
@@ -161,7 +147,7 @@ struct ProductionTrackTableRow: View {
                 .symbolEffect(
                     .variableColor.iterative,
                     options: .repeating,
-                    isActive: model.isCurrentProductionTrackPlaying
+                    isActive: isPlayingCurrentTrack
                 )
             }
         }
@@ -267,6 +253,15 @@ struct ProductionTrackTableRow: View {
     }
 }
 
+extension ProductionTrackTableRow {
+    static func artworkOverlaySymbolName(
+        isCurrentTrack: Bool,
+        isPlaying: Bool
+    ) -> String {
+        isCurrentTrack && isPlaying ? "waveform" : "play.fill"
+    }
+}
+
 private extension ProductionTrackTableRow {
     @ViewBuilder
     var actions: some View {
@@ -291,6 +286,17 @@ private extension ProductionTrackTableRow {
             model.addToProductionQueue(actionTrackIDs)
         }
         if actionTrackIDs.count == 1 {
+            Button(
+                track.isFavorite ? "Remove from Favorites" : "Add to Favorites",
+                systemImage: track.isFavorite ? "heart.slash" : "heart"
+            ) {
+                Task {
+                    await model.setProductionTrackFavorite(
+                        track,
+                        isFavorite: !track.isFavorite
+                    )
+                }
+            }
             Button("Edit Tags…", systemImage: "tag.badge.plus") {
                 model.openProductionTagEditor(trackID: track.id)
             }

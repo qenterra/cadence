@@ -2,9 +2,7 @@ import Foundation
 
 struct PlaybackRoutingRequest: Sendable {
     let track: PlaybackTrack
-    let profile: AudioQualityProfile
     let route: AudioRouteSnapshot
-    let stereoSpatializationEnabled: Bool
 }
 
 enum PlaybackRoutingPolicy {
@@ -20,11 +18,6 @@ enum PlaybackRoutingPolicy {
             return .native
         case .unknown, .stereo:
             break
-        }
-
-        if request.profile == .immersive,
-           request.stereoSpatializationEnabled {
-            return .native
         }
 
         return supportsPCM(request.track) ? .pcm : .native

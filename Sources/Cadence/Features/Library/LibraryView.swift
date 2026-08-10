@@ -2,18 +2,102 @@ import SwiftUI
 
 struct LibraryView: View {
     @Bindable var model: CadenceAppModel
+    @AppStorage("library.contentSection")
+    private var sectionRawValue = LibraryContentSection.tracks.rawValue
+    @AppStorage("library.viewMode")
+    private var viewModeRawValue = LibraryViewMode.content.rawValue
 
     var body: some View {
-        ProductionLibraryView(
-            model: model,
-            store: model.librarySession.store
-        )
-        .background(CadenceTheme.contentBackground)
-        .overlay(alignment: .top) {
-            Color.clear
-                .frame(height: 76)
-                .allowsHitTesting(false)
+        VStack(spacing: 0) {
+            libraryNavigation
+
+            content
         }
+        .background(CadenceTheme.contentBackground)
+    }
+
+    private var libraryNavigation: some View {
+        HStack(spacing: 12) {
+            Picker("Library", selection: sectionBinding) {
+                ForEach(LibraryContentSection.allCases) { section in
+                    Label(section.title, systemImage: section.symbolName)
+                        .tag(section)
+                }
+            }
+            .pickerStyle(.segmented)
+            .frame(maxWidth: 560)
+
+            Spacer(minLength: 12)
+
+            Button {
+                viewModeRawValue = (
+                    viewMode == .content
+                        ? LibraryViewMode.columnBrowser
+                        : .content
+                ).rawValue
+            } label: {
+                Image(systemName: viewMode.symbolName)
+                    .frame(width: 30, height: 30)
+            }
+            .buttonStyle(CadenceRowButtonStyle())
+            .help(
+                viewMode == .content
+                    ? "Show Column Browser"
+                    : "Show Library Sections"
+            )
+            .accessibilityLabel(viewMode.title)
+        }
+        .padding(.horizontal, 28)
+        .padding(.vertical, 12)
+        .background(CadenceTheme.secondarySurface)
+        .overlay(alignment: .bottom) {
+            CadenceSeparator()
+        }
+    }
+
+    @ViewBuilder
+    private var content: some View {
+        if viewMode == .columnBrowser {
+            ProductionLibraryView(
+                model: model,
+                store: model.librarySession.store
+            )
+        } else {
+            switch section {
+            case .tracks:
+                AllTracksView(
+                    model: model,
+                    store: model.librarySession.store
+                )
+            case .albums:
+                AlbumsView(model: model)
+            case .artists:
+                ArtistsView(model: model)
+            case .favorites:
+                LibraryFavoritesView(
+                    model: model,
+                    store: model.librarySession.store
+                )
+            }
+        }
+    }
+
+    private var section: LibraryContentSection {
+        LibraryContentSection(rawValue: sectionRawValue) ?? .tracks
+    }
+
+    private var viewMode: LibraryViewMode {
+        LibraryViewMode(rawValue: viewModeRawValue) ?? .content
+    }
+
+    private var sectionBinding: Binding<LibraryContentSection> {
+        Binding(
+            get: { section },
+            set: { newSection in
+                sectionRawValue = newSection.rawValue
+                viewModeRawValue = LibraryViewMode.content.rawValue
+            }
+        )
     }
 }
 

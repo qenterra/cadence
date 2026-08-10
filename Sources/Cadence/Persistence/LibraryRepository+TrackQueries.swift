@@ -235,6 +235,12 @@ private extension LibraryRepository {
                 after: cursor,
                 sortBy: sortBy
             )
+        case .favorites:
+            return favoriteTracksTitleDescriptor(
+                query: query,
+                after: cursor,
+                sortBy: sortBy
+            )
         case let .artist(artistID):
             return artistTracksTitleDescriptor(
                 artistID: artistID,
@@ -314,6 +320,37 @@ private extension LibraryRepository {
         return FetchDescriptor(predicate: predicate, sortBy: sortBy)
     }
 
+    func favoriteTracksTitleDescriptor(
+        query: LibraryTrackQuery,
+        after cursor: LibraryPageCursor?,
+        sortBy: [SortDescriptor<TrackRecord>]
+    ) -> FetchDescriptor<TrackRecord> {
+        let hasSearch = !query.search.isEmpty
+        let search = query.search
+        let hasCursor = cursor != nil
+        let cursorValue = cursor?.sortValue ?? ""
+        let cursorIdentity = cursor?.identity ?? ""
+        let isAscending = query.sort.direction == .ascending
+        let predicate = #Predicate<TrackRecord> { record in
+            record.isFavorite
+                && (!hasSearch || record.normalizedTitle.contains(search))
+                && (
+                    !hasCursor
+                        || isAscending && (
+                            record.normalizedTitle > cursorValue
+                                || record.normalizedTitle == cursorValue
+                                && record.sortIdentity > cursorIdentity
+                        )
+                        || !isAscending && (
+                            record.normalizedTitle < cursorValue
+                                || record.normalizedTitle == cursorValue
+                                && record.sortIdentity > cursorIdentity
+                        )
+                )
+        }
+        return FetchDescriptor(predicate: predicate, sortBy: sortBy)
+    }
+
     func albumTracksTitleDescriptor(
         albumID: UUID,
         query: LibraryTrackQuery,
@@ -368,6 +405,12 @@ private extension LibraryRepository {
         case .all:
             let predicate = #Predicate<TrackRecord> { record in
                 !hasSearch || record.normalizedTitle.contains(search)
+            }
+            return FetchDescriptor(predicate: predicate, sortBy: sortBy)
+        case .favorites:
+            let predicate = #Predicate<TrackRecord> { record in
+                record.isFavorite
+                    && (!hasSearch || record.normalizedTitle.contains(search))
             }
             return FetchDescriptor(predicate: predicate, sortBy: sortBy)
         case let .artist(artistID):

@@ -231,10 +231,7 @@ extension PCMPlaybackBackend {
     func applyGain(
         duration _: Duration
     ) {
-        let scalar = replayGainDecibels.map {
-            pow(10, $0 / 20)
-        } ?? 1
-        playerNode.volume = min(max(Float(scalar), 0), 1)
+        playerNode.volume = 1
         let targetScalar = min(
             max(userVolume * presentationGain, 0),
             1

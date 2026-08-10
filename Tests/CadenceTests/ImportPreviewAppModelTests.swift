@@ -143,6 +143,7 @@ struct ImportPreviewAppModelTests {
             NavigationDestination.allCases == [
                 .home,
                 .library,
+                .collections,
                 .allTracks,
                 .albums,
                 .artists,

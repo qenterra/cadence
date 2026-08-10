@@ -42,7 +42,6 @@ final class PlaybackTestBackend: PlaybackBackend {
     private(set) var pauseCount = 0
     private(set) var stopCount = 0
     private(set) var volumes: [Float] = []
-    private(set) var replayGains: [Double?] = []
     private(set) var suspendedLoadCount = 0
     private var loadContinuations: [CheckedContinuation<Void, Never>] = []
 
@@ -98,10 +97,6 @@ final class PlaybackTestBackend: PlaybackBackend {
 
     func setVolume(_ volume: Float) {
         volumes.append(volume)
-    }
-
-    func setReplayGain(_ decibels: Double?) {
-        replayGains.append(decibels)
     }
 
     func stop() {

@@ -132,34 +132,4 @@ extension CadenceAppModel {
         }
         await playbackCoordinator.seek(toProgress: progress)
     }
-
-    var qualityProfile: AudioQualityProfile {
-        playbackCoordinator?.qualityProfile ?? .adaptive
-    }
-
-    var isStereoSpatializationEnabled: Bool {
-        get {
-            playbackCoordinator?.stereoSpatializationEnabled ?? false
-        }
-        set {
-            guard let playbackCoordinator else {
-                return
-            }
-            Task {
-                await playbackCoordinator
-                    .setStereoSpatializationEnabled(newValue)
-            }
-        }
-    }
-
-    func selectQualityProfile(
-        _ profile: AudioQualityProfile
-    ) {
-        guard let playbackCoordinator else {
-            return
-        }
-        Task {
-            await playbackCoordinator.setQualityProfile(profile)
-        }
-    }
 }

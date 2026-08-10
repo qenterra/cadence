@@ -131,7 +131,7 @@ struct ProductionArtistsView: View {
     }
 }
 
-private struct ProductionArtistTile: View {
+struct ProductionArtistTile: View {
     @Bindable var model: CadenceAppModel
     @Bindable var store: LibraryStore
     let artist: LibraryArtistProjection
@@ -140,52 +140,70 @@ private struct ProductionArtistTile: View {
     @State private var renameDraft = ""
 
     var body: some View {
-        VStack(alignment: .center, spacing: 10) {
-            ProductionArtworkView(
-                model: model,
-                artworkID: artist.customArtworkID,
-                title: artist.name,
-                placeholder: .artist,
-                cornerRadius: CadenceTheme.radiusNone,
-                showsBorder: false
-            )
-            .aspectRatio(1, contentMode: .fit)
-            .clipShape(Circle())
-            .overlay {
-                Circle()
-                    .strokeBorder(CadenceTheme.separator, lineWidth: 0.5)
+        ZStack(alignment: .topTrailing) {
+            Button(action: openArtist) {
+                VStack(alignment: .center, spacing: 10) {
+                    ProductionArtworkView(
+                        model: model,
+                        artworkID: artist.customArtworkID,
+                        title: artist.name,
+                        placeholder: .artist,
+                        cornerRadius: CadenceTheme.radiusNone,
+                        showsBorder: false
+                    )
+                    .aspectRatio(1, contentMode: .fit)
+                    .clipShape(Circle())
+                    .overlay {
+                        Circle()
+                            .strokeBorder(
+                                CadenceTheme.separator,
+                                lineWidth: 0.5
+                            )
+                    }
+
+                    Text(artist.name)
+                        .font(.headline)
+                        .foregroundStyle(.primary)
+                        .lineLimit(1)
+
+                    Text(
+                        "\(artist.albumCount) albums · "
+                            + "\(artist.trackCount) tracks"
+                    )
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                }
+                .padding(10)
+                .background {
+                    BrowserRowSurface(
+                        isSelected: false,
+                        isHovered: isHovered,
+                        isFocused: false
+                    )
+                }
+                .contentShape(Rectangle())
             }
+            .buttonStyle(.plain)
 
-            Text(artist.name)
-                .font(.headline)
-                .foregroundStyle(.primary)
-                .lineLimit(1)
-
-            Text(
-                "\(artist.albumCount) albums · "
-                    + "\(artist.trackCount) tracks"
-            )
-            .font(.caption)
-            .foregroundStyle(.secondary)
-            .lineLimit(1)
+            if isHovered || artist.isFavorite {
+                FavoriteButton(
+                    isFavorite: artist.isFavorite,
+                    itemName: artist.name
+                ) {
+                    Task {
+                        await model.setProductionArtistFavorite(
+                            artist,
+                            isFavorite: !artist.isFavorite
+                        )
+                    }
+                }
+                .padding(14)
+            }
         }
-        .padding(10)
-        .background {
-            BrowserRowSurface(
-                isSelected: false,
-                isHovered: isHovered,
-                isFocused: false
-            )
-        }
-        .contentShape(Rectangle())
-        .gesture(openOrRenameGesture)
         .onHover { isHovered = $0 }
         .contextMenu {
             artistActions
-        }
-        .accessibilityAddTraits(.isButton)
-        .accessibilityAction {
-            openArtist()
         }
         .catalogRenameAlert(
             "Rename Artist",
@@ -204,6 +222,17 @@ private struct ProductionArtistTile: View {
 
     @ViewBuilder
     private var artistActions: some View {
+        Button(
+            artist.isFavorite ? "Remove from Favorites" : "Add to Favorites",
+            systemImage: artist.isFavorite ? "heart.slash" : "heart"
+        ) {
+            Task {
+                await model.setProductionArtistFavorite(
+                    artist,
+                    isFavorite: !artist.isFavorite
+                )
+            }
+        }
         Button("Rename", systemImage: "pencil") {
             beginRename()
         }
@@ -232,19 +261,6 @@ private struct ProductionArtistTile: View {
     private func beginRename() {
         renameDraft = artist.name
         isRenamePresented = true
-    }
-
-    private var openOrRenameGesture: some Gesture {
-        TapGesture(count: 2)
-            .exclusively(before: TapGesture(count: 1))
-            .onEnded { gesture in
-                switch gesture {
-                case .first:
-                    beginRename()
-                case .second:
-                    openArtist()
-                }
-            }
     }
 
     private func openArtist() {

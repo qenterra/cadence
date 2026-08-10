@@ -213,6 +213,59 @@ struct LibraryStoreTests {
         #expect(store.recentlyPlayedTracks.first?.lastPlayedAt == newestDate)
     }
 
+    @Test("Favorite catalog stays coherent when tracks, albums, and artists change")
+    func favoriteCatalogMutations() async throws {
+        let container = try makeContainer(titles: ["First", "Second"])
+        let context = ModelContext(container)
+        let records = try context.fetch(
+            FetchDescriptor<TrackRecord>(
+                sortBy: [SortDescriptor(\.normalizedTitle)]
+            )
+        )
+        let artist = try #require(records.first?.artist)
+        let album = try #require(records.first?.album)
+        records[0].isFavorite = true
+        album.isFavorite = true
+        album.favoriteDate = .now
+        artist.isFavorite = true
+        artist.favoriteDate = .now
+        try context.save()
+
+        let store = LibraryStore(container: container)
+        await store.loadInitialLibrary()
+
+        #expect(store.favoriteTracks.map(\.title) == ["First"])
+        #expect(store.favoriteAlbums.map(\.title) == ["Store Album"])
+        #expect(store.favoriteArtists.map(\.name) == ["Store Artist"])
+        #expect(store.isTrackFavorite(records[0].id))
+        #expect(!store.isTrackFavorite(records[1].id))
+
+        _ = try await store.setTrackFavorite(
+            id: records[1].id,
+            isFavorite: true
+        )
+        #expect(store.favoriteTracks.map(\.title) == ["First", "Second"])
+        #expect(store.isTrackFavorite(records[1].id))
+
+        _ = try await store.setTrackFavorite(
+            id: records[0].id,
+            isFavorite: false
+        )
+        _ = try await store.setAlbumFavorite(
+            id: album.id,
+            isFavorite: false
+        )
+        _ = try await store.setArtistFavorite(
+            id: artist.id,
+            isFavorite: false
+        )
+
+        #expect(store.favoriteTracks.map(\.title) == ["Second"])
+        #expect(store.favoriteAlbums.isEmpty)
+        #expect(store.favoriteArtists.isEmpty)
+        #expect(!store.isTrackFavorite(records[0].id))
+    }
+
     private func makeContainer(
         trackCount: Int
     ) throws -> ModelContainer {

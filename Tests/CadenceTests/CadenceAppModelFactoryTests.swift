@@ -200,8 +200,7 @@ struct CadenceAppModelFactoryTests {
                 next: nil,
                 startTime: 0,
                 autoplay: false,
-                volume: 1,
-                replayGainDecibels: nil
+                volume: 1
             )
         )
         #expect(backend.currentItem?.resolved.track.id == importedTrackID)

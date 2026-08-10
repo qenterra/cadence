@@ -4,7 +4,6 @@ private struct PreparedPlaybackLoad {
     let current: ResolvedPlaybackTrack
     let backend: any PlaybackBackend
     let next: ResolvedPlaybackTrack?
-    let replayGain: Double?
 }
 
 extension PlaybackCoordinator {
@@ -38,8 +37,7 @@ extension PlaybackCoordinator {
                 next: repeatMode == .one ? nil : prepared.next,
                 startTime: startTime,
                 autoplay: autoplay,
-                volume: volume,
-                replayGainDecibels: prepared.replayGain
+                volume: volume
             )
             try await loadVerified(
                 prepared.backend,
@@ -134,17 +132,14 @@ extension PlaybackCoordinator {
                 message: "No compatible playback backend is available."
             )
         }
-        let gain = replayGain(for: current.track)
         let next = nextResolvedTrack(
             for: backend.kind,
-            after: currentID,
-            matchingReplayGain: gain
+            after: currentID
         )
         return PreparedPlaybackLoad(
             current: current,
             backend: backend,
-            next: next,
-            replayGain: gain
+            next: next
         )
     }
 
@@ -200,11 +195,7 @@ extension PlaybackCoordinator {
             let hasMatchingBackend = next.map {
                 routeBackend(for: $0.track) == activeBackend.kind
             } ?? false
-            let hasMatchingGain = next.map {
-                replayGain(for: $0.track)
-                    == state.currentTrack.flatMap(replayGain)
-            } ?? false
-            guard hasMatchingBackend, hasMatchingGain else {
+            guard hasMatchingBackend else {
                 try await activeBackend.prepareNext(nil)
                 refreshAudioPath(next: nil)
                 return
@@ -234,9 +225,7 @@ extension PlaybackCoordinator {
         PlaybackRoutingPolicy.backend(
             for: PlaybackRoutingRequest(
                 track: track,
-                profile: qualityProfile,
-                route: route ?? outputRoute,
-                stereoSpatializationEnabled: stereoSpatializationEnabled
+                route: route ?? outputRoute
             )
         )
     }
@@ -247,30 +236,15 @@ extension PlaybackCoordinator {
 
     private func nextResolvedTrack(
         for backend: PlaybackBackendKind,
-        after _: UUID,
-        matchingReplayGain: Double?
+        after _: UUID
     ) -> ResolvedPlaybackTrack? {
         guard
             let followingTrackID,
             let next = resolvedTracks[followingTrackID],
-            routeBackend(for: next.track) == backend,
-            replayGain(for: next.track) == matchingReplayGain
+            routeBackend(for: next.track) == backend
         else {
             return nil
         }
         return next
-    }
-
-    func replayGain(for track: PlaybackTrack) -> Double? {
-        guard qualityProfile == .adaptive,
-              let gain = track.replayGainTrackGain
-        else {
-            return nil
-        }
-        if let peak = track.replayGainTrackPeak, peak > 0 {
-            let maximumGain = -20 * log10(peak)
-            return min(gain, maximumGain)
-        }
-        return gain
     }
 }

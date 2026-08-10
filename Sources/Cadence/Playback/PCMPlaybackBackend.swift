@@ -17,7 +17,6 @@ final class PCMPlaybackBackend: PlaybackBackend {
     var lastKnownPlaybackTime: TimeInterval = 0
     var isPlaying = false
     var userVolume: Float = 0.72
-    var replayGainDecibels: Double?
     var scheduleGeneration = 0
     var presentationGain: Float = 1
     var gainRampGeneration = 0
@@ -43,7 +42,6 @@ final class PCMPlaybackBackend: PlaybackBackend {
     ) async throws {
         gainRampGeneration &+= 1
         userVolume = request.volume
-        replayGainDecibels = request.replayGainDecibels
         presentationGain = request.autoplay ? 0 : 1
         try configureSchedule(
             current: request.current,
@@ -185,11 +183,6 @@ final class PCMPlaybackBackend: PlaybackBackend {
 
     func setVolume(_ volume: Float) {
         userVolume = min(max(volume, 0), 1)
-        applyGain()
-    }
-
-    func setReplayGain(_ decibels: Double?) {
-        replayGainDecibels = decibels
         applyGain()
     }
 

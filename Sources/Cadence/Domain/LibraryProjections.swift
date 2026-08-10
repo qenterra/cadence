@@ -31,6 +31,7 @@ struct LibraryPage<Element: Sendable>: Sendable {
 
 enum LibraryTrackScope: Hashable, Sendable {
     case all
+    case favorites
     case artist(UUID)
     case album(UUID)
 }

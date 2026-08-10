@@ -121,6 +121,38 @@ struct ProductionCatalogTests {
         #expect(!restored.isFavorite)
     }
 
+    @Test("Favorite catalog pages exclude non-favorites and keep stable order")
+    func favoriteCatalogPages() async throws {
+        let fixture = try makeCatalogFixture()
+        let repository = LibraryRepository(modelContainer: fixture.container)
+
+        _ = try await repository.setTrackFavorite(
+            id: fixture.trackID,
+            isFavorite: true
+        )
+        _ = try await repository.setAlbumFavorite(
+            id: fixture.albumID,
+            isFavorite: true
+        )
+        _ = try await repository.setArtistFavorite(
+            id: fixture.artistID,
+            isFavorite: true
+        )
+
+        let tracks = try await repository.favoriteTracksPage()
+        let albums = try await repository.favoriteAlbumsPage()
+        let artists = try await repository.favoriteArtistsPage()
+        let trackIDs = try await repository.favoriteTrackIDs()
+
+        #expect(tracks.items.map(\.id) == [fixture.trackID])
+        #expect(albums.items.map(\.id) == [fixture.albumID])
+        #expect(artists.items.map(\.id) == [fixture.artistID])
+        #expect(trackIDs == [fixture.trackID])
+        #expect(tracks.nextCursor == nil)
+        #expect(albums.nextCursor == nil)
+        #expect(artists.nextCursor == nil)
+    }
+
     @Test("Catalog names can be renamed without breaking relationships or search")
     func catalogRenameMutations() async throws {
         let fixture = try makeCatalogFixture()

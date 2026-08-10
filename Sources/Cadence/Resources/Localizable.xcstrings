@@ -281,9 +281,6 @@
     "Close Tag Editor" : {
 
     },
-    "Collapse" : {
-
-    },
     "Collapse Sidebar" : {
 
     },
@@ -291,6 +288,9 @@
 
     },
     "Collection Rules" : {
+
+    },
+    "Collections" : {
 
     },
     "Columns" : {
@@ -304,6 +304,16 @@
     },
     "Connect…" : {
 
+    },
+    "Continue %@ by %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Continue %1$@ by %2$@"
+          }
+        }
+      }
     },
     "Copy LRC" : {
 
@@ -486,6 +496,9 @@
 
     },
     "Favorite Tracks" : {
+
+    },
+    "Favorite Type" : {
 
     },
     "Field" : {
@@ -923,15 +936,6 @@
     "Provider" : {
 
     },
-    "Quality Profile" : {
-
-    },
-    "Quality Profile, %@" : {
-
-    },
-    "Quality Profile: %@" : {
-
-    },
     "Queue Is Empty" : {
 
     },
@@ -1073,6 +1077,12 @@
     "Server URL" : {
 
     },
+    "Show Column Browser" : {
+
+    },
+    "Show Library Sections" : {
+
+    },
     "Show Now Playing" : {
 
     },
@@ -1108,12 +1118,6 @@
 
     },
     "Sort Artists" : {
-
-    },
-    "Spatialize Stereo" : {
-
-    },
-    "Spatialize Stereo in Immersive mode" : {
 
     },
     "Stamp Current Line" : {

@@ -183,61 +183,6 @@ struct PlaybackCoordinatorTests {
         #expect(media.activationCount == 1)
     }
 
-    @Test("A failed backend switch keeps the previous valid path playing")
-    func failedBackendTransition() async {
-        let track = playbackTestTrack(id: UUID(), title: "Stereo")
-        let pcm = PlaybackTestBackend(kind: .pcm)
-        let native = PlaybackTestBackend(kind: .native)
-        native.loadError = PlaybackFailure(
-            trackID: track.track.id,
-            message: "Native path failed"
-        )
-        let coordinator = PlaybackCoordinator(
-            resolver: PlaybackTestResolver(tracks: [track]),
-            backends: [pcm, native]
-        )
-        await coordinator.startQueue(
-            source: .adHoc,
-            trackIDs: [track.track.id]
-        )
-        coordinator.stereoSpatializationEnabled = true
-
-        await coordinator.setQualityProfile(.immersive)
-
-        #expect(coordinator.state.activeBackend == .pcm)
-        #expect(coordinator.state.isPlaying)
-        #expect(coordinator.qualityProfile == .adaptive)
-        #expect(pcm.pauseCount == 0)
-        #expect(pcm.playCount == 0)
-        #expect(coordinator.state.failure != nil)
-    }
-
-    @Test("Explicit stereo spatialization persists and changes backend")
-    func stereoSpatialization() async {
-        let track = playbackTestTrack(id: UUID(), title: "Stereo")
-        let profileStore = VolatileAudioQualityProfileStore(
-            profile: .immersive
-        )
-        let pcm = PlaybackTestBackend(kind: .pcm)
-        let native = PlaybackTestBackend(kind: .native)
-        let coordinator = PlaybackCoordinator(
-            resolver: PlaybackTestResolver(tracks: [track]),
-            backends: [pcm, native],
-            qualityProfileStore: profileStore
-        )
-        await coordinator.startQueue(
-            source: .adHoc,
-            trackIDs: [track.track.id]
-        )
-
-        await coordinator.setStereoSpatializationEnabled(true)
-
-        #expect(coordinator.state.activeBackend == .native)
-        #expect(coordinator.stereoSpatializationEnabled)
-        #expect(profileStore.loadStereoSpatializationEnabled())
-        #expect(native.loadRequests.count == 1)
-    }
-
     @Test("Final playback failure remains visible")
     func terminalFailure() async {
         let track = playbackTestTrack(id: UUID(), title: "Missing")

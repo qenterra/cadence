@@ -7,6 +7,7 @@ struct LibraryOperationFailure: Identifiable, Equatable, Sendable {
         case browserAlbums
         case browserTracks
         case catalogSearch
+        case favoriteCatalog
         case smartCollections
         case tagPage
         case trackPage
@@ -31,6 +32,8 @@ struct LibraryOperationFailure: Identifiable, Equatable, Sendable {
             "Couldn’t Load Album Tracks"
         case .catalogSearch:
             "Search Failed"
+        case .favoriteCatalog:
+            "Couldn’t Load Favorites"
         case .smartCollections:
             "Smart Collection Failed"
         case .tagPage:
@@ -74,6 +77,8 @@ extension LibraryStore {
             )
         case .catalogSearch:
             await searchCatalog(catalogSearchQuery)
+        case .favoriteCatalog:
+            await loadFavoriteCatalog()
         case .smartCollections:
             await loadSmartCollectionRuleData()
         case .trackPage:

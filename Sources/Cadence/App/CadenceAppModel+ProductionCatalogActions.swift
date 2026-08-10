@@ -93,6 +93,21 @@ extension CadenceAppModel {
         }
     }
 
+    func setProductionTrackFavorite(
+        _ track: LibraryTrackProjection,
+        isFavorite: Bool
+    ) async -> LibraryTrackProjection? {
+        do {
+            return try await librarySession.store.setTrackFavorite(
+                id: track.id,
+                isFavorite: isFavorite
+            )
+        } catch {
+            libraryOperationError = error.localizedDescription
+            return nil
+        }
+    }
+
     func setProductionArtistFavorite(
         _ artist: LibraryArtistProjection,
         isFavorite: Bool

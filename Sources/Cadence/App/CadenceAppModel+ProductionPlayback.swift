@@ -42,6 +42,39 @@ extension CadenceAppModel {
         playbackCoordinator?.playbackIndicator.isPlaying ?? previewIsPlaying
     }
 
+    var currentProductionTrackIsFavorite: Bool {
+        guard let trackID = currentPlaybackTrack?.id else {
+            return false
+        }
+        return librarySession.store.isTrackFavorite(trackID)
+    }
+
+    @discardableResult
+    func setCurrentProductionTrackFavorite(
+        _ isFavorite: Bool
+    ) async -> Bool {
+        guard let trackID = currentPlaybackTrack?.id else {
+            return false
+        }
+        do {
+            _ = try await librarySession.store.setTrackFavorite(
+                id: trackID,
+                isFavorite: isFavorite
+            )
+            return true
+        } catch {
+            libraryOperationError = error.localizedDescription
+            return false
+        }
+    }
+
+    func toggleCurrentProductionTrackFavorite() {
+        let nextState = !currentProductionTrackIsFavorite
+        Task {
+            await setCurrentProductionTrackFavorite(nextState)
+        }
+    }
+
     var productionPlaybackQueueTracks: [PlaybackQueueTrackProjection] {
         librarySession.store.playbackQueueTracks
     }
