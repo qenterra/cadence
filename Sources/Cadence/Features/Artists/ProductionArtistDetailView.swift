@@ -19,7 +19,6 @@ struct ProductionArtistDetailView: View {
                     LazyVStack(alignment: .leading, spacing: 24) {
                         backButton
                         header(artist)
-                        CadenceSeparator()
                         favoriteTracksSection
                         releaseSection("Singles", releases.singles)
                         releaseSection("EPs", releases.eps)
@@ -104,7 +103,6 @@ private extension ProductionArtistDetailView {
                     386
                 )
             )
-            CadenceSeparator()
         }
     }
 
@@ -133,7 +131,6 @@ private extension ProductionArtistDetailView {
             Text(title)
                 .font(.title2.bold())
             albumGrid(albums)
-            CadenceSeparator()
         }
     }
 

@@ -204,14 +204,15 @@ struct ProductionLyricsPanel: View {
         at index: Int,
         in document: LyricDocument
     ) -> TimeInterval {
-        guard let startTime = document.lines[index].startTime else {
-            return 0
-        }
         let nextStartTime = document.lines.dropFirst(index + 1)
             .lazy
             .compactMap(\.startTime)
             .first
-        return max((nextStartTime ?? startTime + 4) - startTime, 1.2)
+        return ProductionLyricMotion.duration(
+            startTime: document.lines[index].startTime,
+            nextStartTime: nextStartTime,
+            trackDuration: track.duration
+        )
     }
 
     private func activeLine(
@@ -229,6 +230,26 @@ struct ProductionLyricsPanel: View {
             in: document,
             presentationTime: presentationTime
         )?.id
+    }
+}
+
+enum ProductionLyricMotion {
+    static func duration(
+        startTime: TimeInterval?,
+        nextStartTime: TimeInterval?,
+        trackDuration: TimeInterval
+    ) -> TimeInterval {
+        guard let startTime else {
+            return 0
+        }
+        let endTime: TimeInterval = if let nextStartTime, nextStartTime > startTime {
+            nextStartTime
+        } else if trackDuration > startTime {
+            trackDuration
+        } else {
+            startTime + 4
+        }
+        return max(endTime - startTime, 1.2)
     }
 }
 
@@ -267,10 +288,14 @@ private struct ProductionLyricLineLabel: View {
             .foregroundStyle(foregroundStyle)
             .opacity(!isSynchronized || isActive ? 1 : 0.58)
             .shadow(
-                color: isActive
-                    ? Color.primary.opacity(0.28)
+                color: isActive && isSynchronized
+                    ? CadenceTheme.informativeAccent.opacity(
+                        colorScheme == .dark ? 0.30 : 0.14
+                    )
                     : .clear,
-                radius: isActive ? 12 : 0
+                radius: isActive && isSynchronized
+                    ? (colorScheme == .dark ? 10 : 6)
+                    : 0
             )
             .onAppear {
                 updateShimmer(isActive)
@@ -299,14 +324,11 @@ private struct ProductionLyricLineLabel: View {
             )
         }
 
-        let highlight = colorScheme == .dark
-            ? Color.white
-            : CadenceTheme.primaryAccent
         return LinearGradient(
             colors: [
-                Color.primary.opacity(0.88),
-                highlight,
-                Color.primary.opacity(0.88),
+                Color.primary.opacity(0.82),
+                CadenceTheme.informativeAccent,
+                Color.primary.opacity(0.82),
             ],
             startPoint: UnitPoint(x: shimmerPhase - 0.55, y: 0.5),
             endPoint: UnitPoint(x: shimmerPhase + 0.55, y: 0.5)
@@ -315,13 +337,15 @@ private struct ProductionLyricLineLabel: View {
 
     private func updateShimmer(_ active: Bool) {
         shimmerPhase = -0.25
-        guard active, isSynchronized, !reduceMotion else {
+        guard
+            active,
+            isSynchronized,
+            !reduceMotion,
+            animationDuration > 0
+        else {
             return
         }
-        withAnimation(
-            .linear(duration: animationDuration)
-                .repeatForever(autoreverses: false)
-        ) {
+        withAnimation(.linear(duration: animationDuration)) {
             shimmerPhase = 1.25
         }
     }

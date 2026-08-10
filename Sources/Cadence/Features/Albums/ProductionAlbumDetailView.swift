@@ -19,7 +19,6 @@ struct ProductionAlbumDetailView: View {
                     LazyVStack(alignment: .leading, spacing: 24) {
                         backButton
                         header(album)
-                        CadenceSeparator()
                         ProductionTrackList(
                             model: model,
                             tracks: tracks,
