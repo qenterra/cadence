@@ -129,6 +129,20 @@ struct LyricDocument: Hashable, Sendable {
         }
     }
 
+    func replacingText(
+        for lineID: LyricLine.ID,
+        with text: String
+    ) -> LyricDocument? {
+        guard let index = lines.firstIndex(where: { $0.id == lineID }) else {
+            return nil
+        }
+        var updated = self
+        updated.lines[index].text = text.trimmingCharacters(
+            in: .whitespacesAndNewlines
+        )
+        return updated
+    }
+
     func validationIssues(
         trackDuration: TimeInterval
     ) -> [LyricValidationIssue] {

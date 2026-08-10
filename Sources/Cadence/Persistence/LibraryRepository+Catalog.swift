@@ -1,6 +1,20 @@
 import Foundation
 import SwiftData
 
+enum CatalogRenameError: Error, Equatable, LocalizedError, Sendable {
+    case emptyName
+    case itemUnavailable
+
+    var errorDescription: String? {
+        switch self {
+        case .emptyName:
+            "A name cannot be empty."
+        case .itemUnavailable:
+            "The item is no longer in the library."
+        }
+    }
+}
+
 extension LibraryRepository {
     func recentlyPlayedTracks(
         limit: Int = 8
@@ -29,6 +43,45 @@ extension LibraryRepository {
         }
         track.lastPlayedAt = date
         try modelContext.save()
+    }
+
+    func renameTrack(
+        id: UUID,
+        title: String
+    ) throws -> LibraryTrackProjection {
+        let title = try validatedCatalogName(title)
+        guard let track = try trackRecord(id: id) else {
+            throw CatalogRenameError.itemUnavailable
+        }
+        track.rename(to: title)
+        try saveCatalogRename()
+        return try trackProjection(track)
+    }
+
+    func renameAlbum(
+        id: UUID,
+        title: String
+    ) throws -> LibraryAlbumProjection {
+        let title = try validatedCatalogName(title)
+        guard let album = try albumRecord(id: id) else {
+            throw CatalogRenameError.itemUnavailable
+        }
+        album.rename(to: title)
+        try saveCatalogRename()
+        return try albumProjection(album)
+    }
+
+    func renameArtist(
+        id: UUID,
+        name: String
+    ) throws -> LibraryArtistProjection {
+        let name = try validatedCatalogName(name)
+        guard let artist = try artistRecord(id: id) else {
+            throw CatalogRenameError.itemUnavailable
+        }
+        artist.rename(to: name)
+        try saveCatalogRename()
+        return try artistProjection(artist)
     }
 
     func catalogCounts() throws -> LibraryCatalogCounts {
@@ -272,6 +325,30 @@ private extension LibraryRepository {
         var descriptor = FetchDescriptor(predicate: predicate)
         descriptor.fetchLimit = 1
         return try modelContext.fetch(descriptor).first
+    }
+
+    func artistRecord(id: UUID) throws -> ArtistRecord? {
+        let predicate = #Predicate<ArtistRecord> { $0.id == id }
+        var descriptor = FetchDescriptor(predicate: predicate)
+        descriptor.fetchLimit = 1
+        return try modelContext.fetch(descriptor).first
+    }
+
+    func validatedCatalogName(_ value: String) throws -> String {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            throw CatalogRenameError.emptyName
+        }
+        return trimmed
+    }
+
+    func saveCatalogRename() throws {
+        do {
+            try modelContext.save()
+        } catch {
+            modelContext.rollback()
+            throw error
+        }
     }
 
     func relationshipPage(

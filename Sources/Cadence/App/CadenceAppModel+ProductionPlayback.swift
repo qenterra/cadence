@@ -198,6 +198,24 @@ extension CadenceAppModel {
         try? await librarySession.store.lyricsDocument(trackID: track.id)
     }
 
+    func updateProductionLyricLine(
+        in document: LyricDocument,
+        lineID: LyricLine.ID,
+        text: String
+    ) async -> LyricDocument? {
+        guard let updated = document.replacingText(for: lineID, with: text) else {
+            return nil
+        }
+        do {
+            try await librarySession.store.saveLyrics(updated)
+            lyricsRevision += 1
+            return updated
+        } catch {
+            libraryOperationError = error.localizedDescription
+            return nil
+        }
+    }
+
     private func updateProductionQueue(
         actionName: String,
         undoManager: UndoManager?,

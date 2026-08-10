@@ -76,6 +76,7 @@ final class LibraryStore {
     @ObservationIgnored var artworkDataLoads: [ArtworkAssetCache.Key: Task<Data?, Never>] = [:]
     var artistCursor: LibraryPageCursor?
     var albumCursor: LibraryPageCursor?
+    var isLoadingNextArtists = false
     var isLoadingNextAlbums = false
 
     var availability: LibraryAvailability
@@ -395,6 +396,7 @@ private extension LibraryStore {
         isLoadingNextTracks = false
         artistCursor = nil
         albumCursor = nil
+        isLoadingNextArtists = false
         isLoadingNextAlbums = false
         tagCursor = nil
         tagGeneration &+= 1

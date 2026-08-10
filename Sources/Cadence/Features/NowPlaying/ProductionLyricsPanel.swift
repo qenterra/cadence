@@ -6,6 +6,9 @@ struct ProductionLyricsPanel: View {
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var document: LyricDocument?
+    @State private var editingLineID: LyricLine.ID?
+    @State private var editingText = ""
+    @FocusState private var focusedEditingLineID: LyricLine.ID?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -60,6 +63,8 @@ struct ProductionLyricsPanel: View {
         }
         .task(id: "\(track.id)-\(model.lyricsRevision)") {
             document = await model.loadProductionLyrics(for: track)
+            editingLineID = nil
+            focusedEditingLineID = nil
         }
     }
 
@@ -116,34 +121,83 @@ struct ProductionLyricsPanel: View {
         }
     }
 
+    @ViewBuilder
     private func lyricLine(
         _ line: LyricLine,
         isActive: Bool,
         animationDuration: TimeInterval
     ) -> some View {
-        Button {
-            if let startTime = line.startTime {
-                model.seekProductionPlayback(to: startTime)
+        if editingLineID == line.id {
+            TextField("Lyric Line", text: $editingText, axis: .vertical)
+                .font(.system(size: 24, weight: .semibold))
+                .textFieldStyle(.plain)
+                .lineLimit(1 ... 4)
+                .focused($focusedEditingLineID, equals: line.id)
+                .onSubmit {
+                    commitLineEdit(lineID: line.id)
+                }
+                .onExitCommand(perform: cancelLineEdit)
+        } else {
+            Button {
+                if let startTime = line.startTime {
+                    model.seekProductionPlayback(to: startTime)
+                }
+            } label: {
+                HStack(alignment: .top, spacing: 0) {
+                    ProductionLyricLineLabel(
+                        text: line.text,
+                        isActive: isActive,
+                        animationDuration: animationDuration,
+                        isSynchronized: line.startTime != nil
+                    )
+                    Spacer(minLength: 0)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(Rectangle())
             }
-        } label: {
-            HStack(alignment: .top, spacing: 0) {
-                ProductionLyricLineLabel(
-                    text: line.text,
-                    isActive: isActive,
-                    animationDuration: animationDuration,
-                    isSynchronized: line.startTime != nil
-                )
-                Spacer(minLength: 0)
+            .buttonStyle(.plain)
+            .animation(
+                reduceMotion ? nil : .smooth(duration: 0.24),
+                value: isActive
+            )
+            .contextMenu {
+                Button("Edit Lyric Line", systemImage: "pencil") {
+                    beginLineEdit(line)
+                }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
-        .disabled(line.startTime == nil)
-        .animation(
-            reduceMotion ? nil : .smooth(duration: 0.24),
-            value: isActive
-        )
+    }
+
+    private func beginLineEdit(_ line: LyricLine) {
+        editingLineID = line.id
+        editingText = line.text
+        Task { @MainActor in
+            focusedEditingLineID = line.id
+        }
+    }
+
+    private func commitLineEdit(lineID: LyricLine.ID) {
+        guard let document else {
+            return
+        }
+        let text = editingText
+        Task { @MainActor in
+            guard let updated = await model.updateProductionLyricLine(
+                in: document,
+                lineID: lineID,
+                text: text
+            ) else {
+                return
+            }
+            self.document = updated
+            cancelLineEdit()
+        }
+    }
+
+    private func cancelLineEdit() {
+        editingLineID = nil
+        focusedEditingLineID = nil
+        editingText = ""
     }
 
     private func lineDuration(

@@ -9,6 +9,8 @@ struct ProductionAlbumDetailView: View {
     @State private var tracks: [LibraryTrackProjection] = []
     @State private var albumTags: [LibraryTagProjection] = []
     @State private var isLoading = true
+    @State private var isRenamePresented = false
+    @State private var renameDraft = ""
 
     var body: some View {
         Group {
@@ -50,6 +52,21 @@ struct ProductionAlbumDetailView: View {
             alignment: .topLeading
         )
         .background(CadenceTheme.contentBackground)
+        .catalogRenameAlert(
+            "Rename Album",
+            prompt: "Album Name",
+            isPresented: $isRenamePresented,
+            draft: $renameDraft
+        ) { title in
+            Task {
+                if let renamed = await model.renameProductionAlbum(
+                    id: albumID,
+                    title: title
+                ) {
+                    album = renamed
+                }
+            }
+        }
         .task(id: "\(albumID.uuidString)-\(store.tagRevision)") {
             isLoading = true
             async let loadedAlbum = store.album(id: albumID)
@@ -97,8 +114,7 @@ struct ProductionAlbumDetailView: View {
                 Text("ALBUM")
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(.secondary)
-                Text(album.title)
-                    .font(.largeTitle.bold())
+                albumTitle(album)
                 Button {
                     guard let artistID = album.artistID else {
                         return
@@ -196,6 +212,9 @@ struct ProductionAlbumDetailView: View {
     private func albumActions(
         _ album: LibraryAlbumProjection
     ) -> some View {
+        Button("Rename", systemImage: "pencil") {
+            beginRename(album)
+        }
         QuickAlbumTagMenuItems(
             store: store,
             albumID: album.id
@@ -223,9 +242,22 @@ struct ProductionAlbumDetailView: View {
         }
     }
 
-    private func albumMetadata(
-        _ album: LibraryAlbumProjection
-    ) -> String {
+    private func beginRename(_ album: LibraryAlbumProjection) {
+        renameDraft = album.title
+        isRenamePresented = true
+    }
+}
+
+private extension ProductionAlbumDetailView {
+    func albumTitle(_ album: LibraryAlbumProjection) -> some View {
+        Text(album.title)
+            .font(.largeTitle.bold())
+            .onTapGesture(count: 2) {
+                beginRename(album)
+            }
+    }
+
+    func albumMetadata(_ album: LibraryAlbumProjection) -> String {
         var parts = ["\(album.trackCount) tracks"]
         if let year = album.year {
             parts.append(year.formatted(.number.grouping(.never)))

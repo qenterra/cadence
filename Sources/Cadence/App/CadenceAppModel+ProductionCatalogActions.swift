@@ -1,6 +1,51 @@
 import Foundation
 
 extension CadenceAppModel {
+    func renameProductionTrack(
+        id: UUID,
+        title: String
+    ) async -> LibraryTrackProjection? {
+        do {
+            return try await librarySession.store.renameTrack(
+                id: id,
+                title: title
+            )
+        } catch {
+            libraryOperationError = error.localizedDescription
+            return nil
+        }
+    }
+
+    func renameProductionAlbum(
+        id: UUID,
+        title: String
+    ) async -> LibraryAlbumProjection? {
+        do {
+            return try await librarySession.store.renameAlbum(
+                id: id,
+                title: title
+            )
+        } catch {
+            libraryOperationError = error.localizedDescription
+            return nil
+        }
+    }
+
+    func renameProductionArtist(
+        id: UUID,
+        name: String
+    ) async -> LibraryArtistProjection? {
+        do {
+            return try await librarySession.store.renameArtist(
+                id: id,
+                name: name
+            )
+        } catch {
+            libraryOperationError = error.localizedDescription
+            return nil
+        }
+    }
+
     func playProductionAlbum(
         _ album: LibraryAlbumProjection,
         tracks: [LibraryTrackProjection],

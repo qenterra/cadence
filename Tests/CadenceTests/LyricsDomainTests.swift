@@ -3,6 +3,25 @@ import Foundation
 import Testing
 
 struct LyricsDomainTests {
+    @Test("A lyric line can be replaced without changing timing or identity")
+    func replacingLineText() throws {
+        let line = LyricLine(text: "Before", startTime: 12.5)
+        let document = LyricDocument(trackID: UUID(), lines: [line])
+
+        let updated = try #require(
+            document.replacingText(
+                for: line.id,
+                with: "  After  "
+            )
+        )
+
+        #expect(updated.lines[0].id == line.id)
+        #expect(updated.lines[0].startTime == 12.5)
+        #expect(updated.lines[0].text == "After")
+        #expect(document.lines[0].text == "Before")
+        #expect(document.replacingText(for: UUID(), with: "Missing") == nil)
+    }
+
     @Test("Timing status distinguishes every supported lyric state")
     func timingStatus() {
         #expect(LyricDocument(trackID: 1, lines: []).timingStatus == .missing)

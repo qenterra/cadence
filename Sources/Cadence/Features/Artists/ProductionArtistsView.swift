@@ -17,24 +17,35 @@ struct ProductionArtistsView: View {
             } else if store.artists.isEmpty {
                 emptyContent
             } else {
-                GeometryReader { geometry in
-                    ScrollView {
-                        LazyVStack(alignment: .leading, spacing: 22) {
-                            header
+                ScrollView {
+                    LazyVStack(alignment: .leading, spacing: 22) {
+                        header
 
-                            LazyVGrid(
-                                columns: columns(for: geometry.size.width),
-                                alignment: .leading,
-                                spacing: 28
-                            ) {
-                                ForEach(sortedArtists) { artist in
-                                    artistTile(artist)
-                                }
+                        LazyVGrid(
+                            columns: [
+                                GridItem(
+                                    .adaptive(minimum: 160, maximum: 220),
+                                    spacing: 18
+                                ),
+                            ],
+                            alignment: .leading,
+                            spacing: 24
+                        ) {
+                            ForEach(sortedArtists) { artist in
+                                artistTile(artist)
                             }
                         }
-                        .padding(.horizontal, 28)
-                        .padding(.vertical, 24)
+
+                        if store.canLoadMoreArtists {
+                            ProgressView("Loading More Artists")
+                                .frame(maxWidth: .infinity)
+                                .task(id: store.artists.last?.id) {
+                                    await store.loadNextArtists()
+                                }
+                        }
                     }
+                    .padding(.horizontal, 28)
+                    .padding(.vertical, 24)
                 }
             }
         }
@@ -118,17 +129,6 @@ struct ProductionArtistsView: View {
             artist: artist
         )
     }
-
-    private func columns(
-        for width: CGFloat
-    ) -> [GridItem] {
-        let contentWidth = max(width - 56, 600)
-        let count = max(Int(contentWidth / 190), 3)
-        return Array(
-            repeating: GridItem(.flexible(), spacing: 18),
-            count: count
-        )
-    }
 }
 
 private struct ProductionArtistTile: View {
@@ -136,64 +136,77 @@ private struct ProductionArtistTile: View {
     @Bindable var store: LibraryStore
     let artist: LibraryArtistProjection
     @State private var isHovered = false
+    @State private var isRenamePresented = false
+    @State private var renameDraft = ""
 
     var body: some View {
-        Button {
-            model.requestOpenProductionArtistContextually(id: artist.id)
-        } label: {
-            VStack(alignment: .center, spacing: 10) {
-                ProductionArtworkView(
-                    model: model,
-                    artworkID: artist.customArtworkID,
-                    title: artist.name,
-                    placeholder: .artist,
-                    cornerRadius: CadenceTheme.radiusNone,
-                    showsBorder: false
-                )
-                .aspectRatio(1, contentMode: .fit)
-                .clipShape(Circle())
-                .overlay {
-                    Circle()
-                        .strokeBorder(CadenceTheme.separator, lineWidth: 0.5)
-                }
+        VStack(alignment: .center, spacing: 10) {
+            ProductionArtworkView(
+                model: model,
+                artworkID: artist.customArtworkID,
+                title: artist.name,
+                placeholder: .artist,
+                cornerRadius: CadenceTheme.radiusNone,
+                showsBorder: false
+            )
+            .aspectRatio(1, contentMode: .fit)
+            .clipShape(Circle())
+            .overlay {
+                Circle()
+                    .strokeBorder(CadenceTheme.separator, lineWidth: 0.5)
+            }
 
-                Text(artist.name)
-                    .font(.headline)
-                    .foregroundStyle(.primary)
-                    .lineLimit(1)
-
-                Text(
-                    "\(artist.albumCount) albums · "
-                        + "\(artist.trackCount) tracks"
-                )
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            Text(artist.name)
+                .font(.headline)
+                .foregroundStyle(.primary)
                 .lineLimit(1)
-            }
-            .padding(10)
-            .background {
-                BrowserRowSurface(
-                    isSelected: false,
-                    isHovered: isHovered,
-                    isFocused: false
-                )
-            }
-            .contentShape(Rectangle())
+
+            Text(
+                "\(artist.albumCount) albums · "
+                    + "\(artist.trackCount) tracks"
+            )
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .lineLimit(1)
         }
-        .buttonStyle(CadenceRowButtonStyle())
+        .padding(10)
+        .background {
+            BrowserRowSurface(
+                isSelected: false,
+                isHovered: isHovered,
+                isFocused: false
+            )
+        }
+        .contentShape(Rectangle())
+        .gesture(openOrRenameGesture)
         .onHover { isHovered = $0 }
         .contextMenu {
             artistActions
         }
-        .task {
-            if artist.id == store.artists.last?.id {
-                await store.loadNextArtists()
+        .accessibilityAddTraits(.isButton)
+        .accessibilityAction {
+            openArtist()
+        }
+        .catalogRenameAlert(
+            "Rename Artist",
+            prompt: "Artist Name",
+            isPresented: $isRenamePresented,
+            draft: $renameDraft
+        ) { name in
+            Task {
+                _ = await model.renameProductionArtist(
+                    id: artist.id,
+                    name: name
+                )
             }
         }
     }
 
     @ViewBuilder
     private var artistActions: some View {
+        Button("Rename", systemImage: "pencil") {
+            beginRename()
+        }
         AddArtistToPlaylistMenuItems(
             store: store,
             artistID: artist.id
@@ -214,5 +227,27 @@ private struct ProductionArtistTile: View {
                 title: artist.name
             )
         }
+    }
+
+    private func beginRename() {
+        renameDraft = artist.name
+        isRenamePresented = true
+    }
+
+    private var openOrRenameGesture: some Gesture {
+        TapGesture(count: 2)
+            .exclusively(before: TapGesture(count: 1))
+            .onEnded { gesture in
+                switch gesture {
+                case .first:
+                    beginRename()
+                case .second:
+                    openArtist()
+                }
+            }
+    }
+
+    private func openArtist() {
+        model.requestOpenProductionArtistContextually(id: artist.id)
     }
 }

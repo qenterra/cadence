@@ -10,6 +10,9 @@ struct ProductionNowPlayingView: View {
     @State private var newTagPath = ""
     @State private var tagError: String?
     @State private var isAddingTag = false
+    @State private var renamedTrackTitle: String?
+    @State private var isRenamePresented = false
+    @State private var renameDraft = ""
 
     var body: some View {
         GeometryReader { geometry in
@@ -44,6 +47,21 @@ struct ProductionNowPlayingView: View {
                 )
             ) ?? []
         }
+        .catalogRenameAlert(
+            "Rename Track",
+            prompt: "Track Name",
+            isPresented: $isRenamePresented,
+            draft: $renameDraft
+        ) { title in
+            Task {
+                if let renamed = await model.renameProductionTrack(
+                    id: track.id,
+                    title: title
+                ) {
+                    renamedTrackTitle = renamed.title
+                }
+            }
+        }
     }
 }
 
@@ -53,7 +71,7 @@ private extension ProductionNowPlayingView {
             ProductionArtworkView(
                 model: model,
                 artworkID: displayedArtworkID,
-                title: track.title,
+                title: displayedTrackTitle,
                 placeholder: .track,
                 variant: .original,
                 cornerRadius: CadenceTheme.radiusHero
@@ -69,9 +87,10 @@ private extension ProductionNowPlayingView {
             }
 
             VStack(alignment: .leading, spacing: 7) {
-                Text(track.title)
+                Text(displayedTrackTitle)
                     .font(.largeTitle.weight(.bold))
                     .lineLimit(2)
+                    .onTapGesture(count: 2, perform: beginRename)
                 MediaMetadataLink(
                     track.artist,
                     accessibilityLabel: "Open artist \(track.artist)"
@@ -216,7 +235,7 @@ private extension ProductionNowPlayingView {
                 }
                 .buttonStyle(.plain)
                 .help("Edit Tags")
-                .accessibilityLabel("Edit Tags for \(track.title)")
+                .accessibilityLabel("Edit Tags for \(displayedTrackTitle)")
             }
 
             if let tagError {
@@ -261,6 +280,15 @@ private extension ProductionNowPlayingView {
         model.librarySession.store.tracks.first {
             $0.id == track.id
         }?.artworkID ?? track.artworkID
+    }
+
+    private var displayedTrackTitle: String {
+        renamedTrackTitle ?? track.title
+    }
+
+    private func beginRename() {
+        renameDraft = displayedTrackTitle
+        isRenamePresented = true
     }
 
     @ViewBuilder

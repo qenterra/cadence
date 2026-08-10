@@ -52,9 +52,13 @@ struct ProductionHomeView: View {
         }
     }
 
-    @ViewBuilder
     private var pinnedItems: some View {
-        _ = pinRevision
+        pinnedItemsContent
+            .id(pinRevision)
+    }
+
+    @ViewBuilder
+    private var pinnedItemsContent: some View {
         let albums = pinnedAlbums
         let artists = pinnedArtists
         let playlists = pinnedPlaylists

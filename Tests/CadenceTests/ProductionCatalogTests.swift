@@ -121,6 +121,42 @@ struct ProductionCatalogTests {
         #expect(!restored.isFavorite)
     }
 
+    @Test("Catalog names can be renamed without breaking relationships or search")
+    func catalogRenameMutations() async throws {
+        let fixture = try makeCatalogFixture()
+        let repository = LibraryRepository(modelContainer: fixture.container)
+
+        let track = try await repository.renameTrack(
+            id: fixture.trackID,
+            title: "  Neon Static  "
+        )
+        let album = try await repository.renameAlbum(
+            id: fixture.albumID,
+            title: "  Signals at Dawn  "
+        )
+        let artist = try await repository.renameArtist(
+            id: fixture.artistID,
+            name: "  Northern Assembly  "
+        )
+
+        #expect(track.title == "Neon Static")
+        #expect(album.title == "Signals at Dawn")
+        #expect(artist.name == "Northern Assembly")
+
+        let relatedTrack = try #require(
+            try await repository.track(id: fixture.trackID)
+        )
+        #expect(relatedTrack.album == "Signals at Dawn")
+        #expect(relatedTrack.artist == "Northern Assembly")
+
+        let search = try await repository.catalogSearch(query: "northern")
+        #expect(search.artists.map(\.id) == [fixture.artistID])
+        #expect(
+            try await repository.catalogSearch(query: "north assembly")
+                .artists.isEmpty
+        )
+    }
+
     private func makeCatalogFixture() throws -> CatalogFixture {
         let container = try LibraryContainerFactory.inMemory()
         let context = ModelContext(container)
@@ -236,8 +272,10 @@ struct ProductionCatalogTests {
             discNumber: 1
         )
     }
+}
 
-    private func insertFixtureRecords(
+private extension ProductionCatalogTests {
+    func insertFixtureRecords(
         context: ModelContext,
         records: CatalogRecords
     ) {

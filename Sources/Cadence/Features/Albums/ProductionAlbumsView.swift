@@ -130,55 +130,73 @@ private struct ProductionAlbumTile: View {
     @Bindable var store: LibraryStore
     let album: LibraryAlbumProjection
     @State private var isHovered = false
+    @State private var isRenamePresented = false
+    @State private var renameDraft = ""
 
     var body: some View {
-        Button {
-            model.requestOpenProductionAlbumContextually(id: album.id)
-        } label: {
-            VStack(alignment: .leading, spacing: 9) {
-                ProductionArtworkView(
-                    model: model,
-                    artworkID: album.customArtworkID,
-                    title: album.title,
-                    placeholder: .album,
-                    cornerRadius: CadenceTheme.radiusGroup
-                )
-                .aspectRatio(1, contentMode: .fit)
+        VStack(alignment: .leading, spacing: 9) {
+            ProductionArtworkView(
+                model: model,
+                artworkID: album.customArtworkID,
+                title: album.title,
+                placeholder: .album,
+                cornerRadius: CadenceTheme.radiusGroup
+            )
+            .aspectRatio(1, contentMode: .fit)
 
-                Text(album.title)
-                    .font(.headline)
-                    .foregroundStyle(.primary)
-                    .lineLimit(1)
+            Text(album.title)
+                .font(.headline)
+                .foregroundStyle(.primary)
+                .lineLimit(1)
 
-                Text(album.artist)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
+            Text(album.artist)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
 
-                Text(albumDetail(album))
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
-                    .lineLimit(1)
-            }
-            .padding(10)
-            .background {
-                BrowserRowSurface(
-                    isSelected: false,
-                    isHovered: isHovered,
-                    isFocused: false
-                )
-            }
-            .contentShape(Rectangle())
+            Text(albumDetail(album))
+                .font(.caption)
+                .foregroundStyle(.tertiary)
+                .lineLimit(1)
         }
-        .buttonStyle(CadenceRowButtonStyle())
+        .padding(10)
+        .background {
+            BrowserRowSurface(
+                isSelected: false,
+                isHovered: isHovered,
+                isFocused: false
+            )
+        }
+        .contentShape(Rectangle())
+        .gesture(openOrRenameGesture)
         .onHover { isHovered = $0 }
         .contextMenu {
             albumActions
+        }
+        .accessibilityAddTraits(.isButton)
+        .accessibilityAction {
+            openAlbum()
+        }
+        .catalogRenameAlert(
+            "Rename Album",
+            prompt: "Album Name",
+            isPresented: $isRenamePresented,
+            draft: $renameDraft
+        ) { title in
+            Task {
+                _ = await model.renameProductionAlbum(
+                    id: album.id,
+                    title: title
+                )
+            }
         }
     }
 
     @ViewBuilder
     private var albumActions: some View {
+        Button("Rename", systemImage: "pencil") {
+            beginRename()
+        }
         Button(
             HomePinStore.contains(album.id, in: .album)
                 ? "Unpin from Home"
@@ -213,6 +231,28 @@ private struct ProductionAlbumTile: View {
                 title: album.title
             )
         }
+    }
+
+    private func beginRename() {
+        renameDraft = album.title
+        isRenamePresented = true
+    }
+
+    private var openOrRenameGesture: some Gesture {
+        TapGesture(count: 2)
+            .exclusively(before: TapGesture(count: 1))
+            .onEnded { gesture in
+                switch gesture {
+                case .first:
+                    beginRename()
+                case .second:
+                    openAlbum()
+                }
+            }
+    }
+
+    private func openAlbum() {
+        model.requestOpenProductionAlbumContextually(id: album.id)
     }
 
     private func albumDetail(

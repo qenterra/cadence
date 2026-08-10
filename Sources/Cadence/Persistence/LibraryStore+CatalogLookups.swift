@@ -1,6 +1,42 @@
 import Foundation
 
 extension LibraryStore {
+    func renameTrack(
+        id: UUID,
+        title: String
+    ) async throws -> LibraryTrackProjection {
+        guard let repository else {
+            throw CatalogRenameError.itemUnavailable
+        }
+        let renamed = try await repository.renameTrack(id: id, title: title)
+        await loadInitialLibrary()
+        return renamed
+    }
+
+    func renameAlbum(
+        id: UUID,
+        title: String
+    ) async throws -> LibraryAlbumProjection {
+        guard let repository else {
+            throw CatalogRenameError.itemUnavailable
+        }
+        let renamed = try await repository.renameAlbum(id: id, title: title)
+        await loadInitialLibrary()
+        return renamed
+    }
+
+    func renameArtist(
+        id: UUID,
+        name: String
+    ) async throws -> LibraryArtistProjection {
+        guard let repository else {
+            throw CatalogRenameError.itemUnavailable
+        }
+        let renamed = try await repository.renameArtist(id: id, name: name)
+        await loadInitialLibrary()
+        return renamed
+    }
+
     func artist(id: UUID) async -> LibraryArtistProjection? {
         try? await repository?.artist(id: id)
     }

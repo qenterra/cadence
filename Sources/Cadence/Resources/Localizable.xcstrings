@@ -137,6 +137,9 @@
     "Album Actions" : {
 
     },
+    "Album Name" : {
+
+    },
     "Album Unavailable" : {
 
     },
@@ -165,6 +168,9 @@
 
     },
     "Artist Actions" : {
+
+    },
+    "Artist Name" : {
 
     },
     "Artwork Could Not Be Opened" : {
@@ -410,6 +416,9 @@
     "E" : {
 
     },
+    "Edit Lyric Line" : {
+
+    },
     "Edit Lyrics" : {
 
     },
@@ -594,6 +603,9 @@
     "Loading More Albums" : {
 
     },
+    "Loading More Artists" : {
+
+    },
     "Loading Tracks" : {
 
     },
@@ -610,6 +622,9 @@
 
     },
     "Lyric" : {
+
+    },
+    "Lyric Line" : {
 
     },
     "Lyric line" : {
@@ -956,6 +971,15 @@
     "Rename" : {
 
     },
+    "Rename Album" : {
+
+    },
+    "Rename Artist" : {
+
+    },
+    "Rename Track" : {
+
+    },
     "Rename…" : {
 
     },
@@ -1147,6 +1171,9 @@
 
     },
     "Track Actions" : {
+
+    },
+    "Track Name" : {
 
     },
     "Tracks in Trash" : {

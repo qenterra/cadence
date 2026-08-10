@@ -9,6 +9,8 @@ struct ProductionArtistDetailView: View {
     @State private var releases = ArtistReleaseSections.empty
     @State private var tracks: [LibraryTrackProjection] = []
     @State private var isLoading = true
+    @State private var isRenamePresented = false
+    @State private var renameDraft = ""
 
     var body: some View {
         Group {
@@ -61,6 +63,21 @@ struct ProductionArtistDetailView: View {
             releases = await loadedReleases
             tracks = await loadedTracks
             isLoading = false
+        }
+        .catalogRenameAlert(
+            "Rename Artist",
+            prompt: "Artist Name",
+            isPresented: $isRenamePresented,
+            draft: $renameDraft
+        ) { name in
+            Task {
+                if let renamed = await model.renameProductionArtist(
+                    id: artistID,
+                    name: name
+                ) {
+                    artist = renamed
+                }
+            }
         }
     }
 }
@@ -199,6 +216,9 @@ private extension ProductionArtistDetailView {
                     .foregroundStyle(.secondary)
                 Text(artist.name)
                     .font(.largeTitle.bold())
+                    .onTapGesture(count: 2) {
+                        beginRename(artist)
+                    }
                 Text(
                     "\(artist.albumCount) albums · \(artist.trackCount) tracks"
                 )
@@ -258,6 +278,9 @@ private extension ProductionArtistDetailView {
     private func artistActions(
         _ artist: LibraryArtistProjection
     ) -> some View {
+        Button("Rename", systemImage: "pencil") {
+            beginRename(artist)
+        }
         Button(
             HomePinStore.contains(artist.id, in: .artist)
                 ? "Unpin from Home"
@@ -289,6 +312,11 @@ private extension ProductionArtistDetailView {
                 title: artist.name
             )
         }
+    }
+
+    private func beginRename(_ artist: LibraryArtistProjection) {
+        renameDraft = artist.name
+        isRenamePresented = true
     }
 
     private func unavailableContent(
