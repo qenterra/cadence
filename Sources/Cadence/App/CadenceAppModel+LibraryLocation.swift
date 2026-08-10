@@ -184,6 +184,16 @@ extension CadenceAppModel {
             libraryRelocationState.progress = nil
         }
     }
+
+    func configureImportPipeline(
+        location: ManagedLibraryLocation,
+        repository: LibraryRepository
+    ) {
+        reconfigureImportPipeline(
+            location: location,
+            repository: repository
+        )
+    }
 }
 
 private extension CadenceAppModel {

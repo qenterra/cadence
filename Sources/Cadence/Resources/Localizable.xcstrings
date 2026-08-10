@@ -338,6 +338,15 @@
     "Delete" : {
 
     },
+    "Delete Entire Library?" : {
+
+    },
+    "Delete Entire Library…" : {
+
+    },
+    "Delete Library" : {
+
+    },
     "Delete Permanently" : {
 
     },
@@ -574,6 +583,9 @@
 
     },
     "Library Operation Failed" : {
+
+    },
+    "Library Reset" : {
 
     },
     "Library Size" : {
@@ -1144,6 +1156,9 @@
 
     },
     "The matching lyric file could not be opened." : {
+
+    },
+    "The original package is moved to the system Trash and can be recovered there." : {
 
     },
     "This Smart Collection has unsaved changes." : {

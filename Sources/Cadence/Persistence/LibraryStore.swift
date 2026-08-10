@@ -229,6 +229,19 @@ final class LibraryStore {
         availability = .ready
     }
 
+    func detach() {
+        repository = nil
+        trackPageLoader = nil
+        allTracksWindow = nil
+        lyricsService = nil
+        artworkService = nil
+        lyricsSearchIndexer = nil
+        artworkDataLoads.values.forEach { $0.cancel() }
+        artworkDataLoads.removeAll()
+        lyricsSearchIndexState = .unavailable
+        resetLibrary(availability: .empty)
+    }
+
     func loadInitialLibrary() async {
         guard let repository else {
             resetLibrary(availability: .empty)
@@ -384,9 +397,24 @@ private extension LibraryStore {
         trackRequestGeneration += 1
         tracks = []
         recentlyPlayedTracks = []
+        playbackQueueProjectionGeneration &+= 1
+        playbackQueueTracks = []
+        isLoadingPlaybackQueueTracks = false
+        playbackQueueProjectionError = nil
         artists = []
         albums = []
         tags = []
+        playlists = []
+        selectedPlaylistID = nil
+        selectedPlaylistTracks = []
+        smartCollectionRuleData = .empty
+        smartCollectionSummaries = [:]
+        smartCollectionResults = [:]
+        smartCollectionRuleDataGeneration &+= 1
+        smartCollectionSummaryGeneration &+= 1
+        smartCollectionResultGeneration &+= 1
+        isLoadingNextSmartCollectionResult = false
+        isLoadingSmartCollectionData = false
         trashOperations = []
         catalogCounts = .empty
         catalogSearchResults = .empty
@@ -400,6 +428,16 @@ private extension LibraryStore {
         isLoadingNextAlbums = false
         tagCursor = nil
         tagGeneration &+= 1
+        browserArtistID = nil
+        browserAlbums = []
+        browserAlbumID = nil
+        browserTracks = []
+        browserAlbumCursor = nil
+        browserTrackCursor = nil
+        browserAlbumGeneration &+= 1
+        browserTrackGeneration &+= 1
+        isLoadingNextBrowserAlbums = false
+        isLoadingNextBrowserTracks = false
         self.availability = availability
     }
 }

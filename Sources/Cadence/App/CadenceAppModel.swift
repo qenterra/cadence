@@ -140,6 +140,9 @@ final class CadenceAppModel {
     var pendingLibraryDeletion: PendingLibraryDeletion?
     var libraryOperationError: String?
     var libraryRelocationState = LibraryRelocationWorkspaceState()
+    var isResettingLibrary = false
+    var libraryResetNotice: String?
+    var libraryResetRevision = 0
 
     private(set) var favoriteTrackIDs: Set<TrackPreview.ID>
     var importCoordinator: ImportCoordinator?
@@ -147,6 +150,7 @@ final class CadenceAppModel {
     var importRecovery: ManagedLibraryImportRecovery?
     let playbackCoordinator: PlaybackCoordinator?
     let libraryRelocator: LibraryRelocator
+    let libraryResetter: ManagedLibraryResetter
     let remoteLibraryController: RemoteLibraryController?
 
     init(
@@ -166,6 +170,7 @@ final class CadenceAppModel {
         playbackCoordinator: PlaybackCoordinator? = nil,
         remoteLibraryController: RemoteLibraryController? = nil,
         libraryRelocator: LibraryRelocator = LibraryRelocator(),
+        libraryResetter: ManagedLibraryResetter = ManagedLibraryResetter(),
         artworkRepository: any ArtworkRepository = InMemoryArtworkRepository()
     ) {
         self.librarySession = librarySession
@@ -187,6 +192,7 @@ final class CadenceAppModel {
         self.playbackCoordinator = playbackCoordinator
         self.remoteLibraryController = remoteLibraryController
         self.libraryRelocator = libraryRelocator
+        self.libraryResetter = libraryResetter
         self.artworkRepository = artworkRepository
         selectedArtistID = tracks.first?.artistID
         selectedAlbumID = tracks.first?.albumID

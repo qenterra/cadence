@@ -176,6 +176,11 @@ final class LibrarySession {
         availability = .recovering
     }
 
+    func prepareForLibraryReplacement() {
+        availability = .recovering
+        store.detach()
+    }
+
     func activate(
         repository: LibraryRepository
     ) async {

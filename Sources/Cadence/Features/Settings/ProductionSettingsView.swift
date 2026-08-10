@@ -45,11 +45,6 @@ struct ProductionSettingsView: View {
         NavigationRailConfiguration.defaultOrderRawValue
     @AppStorage("navigationRail.hidden")
     private var hiddenNavigationRawValue = ""
-    @State private var libraryStorageSize = "Calculating…"
-
-    private var store: LibraryStore {
-        model.librarySession.store
-    }
 
     init(
         model: CadenceAppModel,
@@ -119,7 +114,7 @@ struct ProductionSettingsView: View {
             playbackCard
             appearanceCard
         case .library:
-            libraryCard
+            ManagedLibrarySettingsCard(model: model)
         case .sidebar:
             SettingsSidebarCard(
                 orderRawValue: $navigationOrderRawValue,
@@ -168,65 +163,6 @@ struct ProductionSettingsView: View {
         }
     }
 
-    private var libraryCard: some View {
-        SettingsCard(
-            title: "Managed Library",
-            symbol: "externaldrive"
-        ) {
-            LabeledContent("Location") {
-                Text(libraryPath)
-                    .foregroundStyle(.secondary)
-                    .textSelection(.enabled)
-            }
-            LabeledContent("Available Tracks") {
-                Text(store.catalogCounts.liveTrackCount.formatted())
-            }
-            LabeledContent("Tracks in Trash") {
-                Text(store.catalogCounts.trashedTrackCount.formatted())
-            }
-            LabeledContent("Library Size") {
-                Text(libraryStorageSize)
-                    .monospacedDigit()
-            }
-
-            HStack {
-                Button("Import Music…", systemImage: "folder.badge.plus") {
-                    model.requestNavigationDestination(.importMusic)
-                }
-                Button("Open Trash", systemImage: "trash") {
-                    model.requestNavigationDestination(.trash)
-                }
-                Button("Move Library…", systemImage: "externaldrive.badge.plus") {
-                    model.chooseLibraryLocation()
-                }
-                .disabled(model.isMovingLibrary)
-            }
-
-            if let progress = model.libraryRelocationProgress {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(progress.phase.title)
-                        .font(.callout.weight(.medium))
-                    if let fraction = progress.fractionCompleted {
-                        ProgressView(value: fraction)
-                            .progressViewStyle(.linear)
-                    } else {
-                        ProgressView()
-                            .controlSize(.small)
-                    }
-                    Text(progress.label)
-                        .font(.caption.monospacedDigit())
-                        .foregroundStyle(.secondary)
-                }
-                .accessibilityElement(children: .combine)
-            }
-        }
-        .task(id: libraryPath) {
-            libraryStorageSize = await LibraryPackageSize.formatted(
-                at: model.librarySession.location?.packageURL
-            )
-        }
-    }
-
     private var appearanceCard: some View {
         SettingsCard(
             title: "Interface",
@@ -265,11 +201,6 @@ struct ProductionSettingsView: View {
                 appearanceRawValue = $0.rawValue
             }
         )
-    }
-
-    private var libraryPath: String {
-        model.librarySession.location?.packageURL.path
-            ?? "~/Music/Cadence.library"
     }
 
     private var playbackDescription: String {

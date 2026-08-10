@@ -14,6 +14,29 @@ struct LibraryStoreTests {
         #expect(!store.canLoadMoreTracks)
     }
 
+    @Test("Detaching releases the repository and clears every published catalog")
+    func detachStore() async throws {
+        let container = try makeContainer(titles: ["Existing Track"])
+        let store = LibraryStore(container: container)
+        await store.loadInitialLibrary()
+
+        #expect(store.repository != nil)
+        #expect(!store.tracks.isEmpty)
+        #expect(!store.artists.isEmpty)
+        #expect(!store.albums.isEmpty)
+
+        store.detach()
+
+        #expect(store.repository == nil)
+        #expect(store.availability == .empty)
+        #expect(store.tracks.isEmpty)
+        #expect(store.recentlyPlayedTracks.isEmpty)
+        #expect(store.artists.isEmpty)
+        #expect(store.albums.isEmpty)
+        #expect(store.playlists.isEmpty)
+        #expect(store.playbackQueueTracks.isEmpty)
+    }
+
     @Test("Initial and next loads append bounded repository pages")
     func pagedLoading() async throws {
         let container = try makeContainer(trackCount: 205)
