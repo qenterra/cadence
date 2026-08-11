@@ -4,11 +4,9 @@ struct ProductionHomeView: View {
     @Bindable var model: CadenceAppModel
     @Bindable var store: LibraryStore
     @AppStorage("home.pins.revision") var pinRevision = 0
-    @AppStorage("library.contentSection")
-    var librarySectionRawValue = LibraryContentSection.tracks.rawValue
 
     var body: some View {
-        ScrollView {
+        ScrollView(.vertical) {
             LazyVStack(alignment: .leading, spacing: 30) {
                 CadencePageHeader(
                     "Home",

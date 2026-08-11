@@ -19,7 +19,7 @@ struct LyricLineTable: View {
             tableHeader
 
             ScrollViewReader { proxy in
-                ScrollView {
+                ScrollView(.vertical) {
                     LazyVStack(spacing: 2) {
                         if let draft = model.lyricDraft {
                             ForEach(

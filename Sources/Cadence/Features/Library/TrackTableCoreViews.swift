@@ -51,7 +51,9 @@ final class TrackTableHostingCell: NSTableCellView {
 
 struct TrackTablePlaceholderRow: View {
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: TrackTableColumnPolicy.songContentSpacing) {
+            Color.clear
+                .frame(width: TrackTableColumnPolicy.favoriteControlWidth)
             RoundedRectangle(
                 cornerRadius: CadenceTheme.radiusControl,
                 style: .continuous
@@ -67,7 +69,7 @@ struct TrackTablePlaceholderRow: View {
             .frame(height: 12)
             Spacer(minLength: 0)
         }
-        .padding(.horizontal, 12)
+        .padding(.horizontal, TrackTableColumnPolicy.horizontalInset)
         .frame(height: 58)
         .redacted(reason: .placeholder)
     }

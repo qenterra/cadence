@@ -103,7 +103,7 @@ private extension LyricsSearchPreviewView {
             ? document.lines[target.match.lineIndex].id
             : nil
         return ScrollViewReader { proxy in
-            ScrollView {
+            ScrollView(.vertical) {
                 LazyVStack(alignment: .leading, spacing: 16) {
                     ForEach(document.lines) { line in
                         if line.isBlank {

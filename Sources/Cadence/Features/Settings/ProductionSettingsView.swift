@@ -55,11 +55,8 @@ struct ProductionSettingsView: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
-                Text(tab.title)
-                    .font(.largeTitle.bold())
-
+        ScrollView(.vertical) {
+            VStack(alignment: .leading, spacing: 20) {
                 tabContent
             }
             .frame(maxWidth: 760, alignment: .leading)

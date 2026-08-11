@@ -7,7 +7,7 @@ struct RemoteLibrarySettingsView: View {
 
     var body: some View {
         SettingsCard(
-            title: "Remote Media",
+            title: "Connections",
             symbol: "network"
         ) {
             LabeledContent("Status") {

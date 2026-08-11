@@ -65,23 +65,6 @@ struct CadenceRootView: View {
                 prompt: searchHelp
             )
         )
-        .toolbar {
-            ToolbarItemGroup(placement: .primaryAction) {
-                Menu {
-                    Button("Import Music", systemImage: "folder.badge.plus") {
-                        model.requestNavigationDestination(.importMusic)
-                    }
-                    Button("Trash", systemImage: "trash") {
-                        model.requestNavigationDestination(.trash)
-                    }
-                } label: {
-                    Label("More", systemImage: "ellipsis")
-                }
-                .labelStyle(.iconOnly)
-                .menuIndicator(.hidden)
-                .help("More")
-            }
-        }
         .lyricsDraftTransitionAlert(model: model)
         .artworkManagement(model: model)
         .confirmationDialog(
@@ -270,8 +253,6 @@ private extension CadenceRootView {
                 )
             case .library:
                 LibraryView(model: model)
-            case .collections:
-                CollectionsView(model: model)
             case .allTracks:
                 AllTracksView(
                     model: model,
@@ -281,6 +262,11 @@ private extension CadenceRootView {
                 AlbumsView(model: model)
             case .artists:
                 ArtistsView(model: model)
+            case .favorites:
+                LibraryFavoritesView(
+                    model: model,
+                    store: model.librarySession.store
+                )
             case .tags:
                 TagsView(model: model)
             case .smartCollections:
@@ -300,7 +286,7 @@ private extension CadenceRootView {
 
     private var supportsSearch: Bool {
         switch model.selectedDestination {
-        case .home, .library, .collections, .allTracks, .albums, .artists, .tags,
+        case .home, .library, .allTracks, .albums, .artists, .favorites, .tags,
              .smartCollections, .playlists:
             true
         case .importMusic, .trash:

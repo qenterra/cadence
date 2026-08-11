@@ -92,7 +92,7 @@ private extension PlaylistsView {
                     )
                 )
             } else {
-                ScrollView {
+                ScrollView(.vertical) {
                     LazyVStack(spacing: 2) {
                         ForEach(store.playlists) { playlist in
                             playlistRow(playlist)

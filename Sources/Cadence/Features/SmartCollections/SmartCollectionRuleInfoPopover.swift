@@ -27,7 +27,7 @@ struct SmartCollectionRuleInfoPopover: View {
 
             Divider()
 
-            ScrollView {
+            ScrollView(.vertical) {
                 LazyVStack(alignment: .leading, spacing: 10) {
                     ForEach(rows) { row in
                         HStack(alignment: .firstTextBaseline, spacing: 8) {

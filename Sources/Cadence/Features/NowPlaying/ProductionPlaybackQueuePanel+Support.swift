@@ -1,7 +1,6 @@
 import SwiftUI
 
 enum ProductionQueueSectionKind {
-    case history
     case current
     case upNext
 }

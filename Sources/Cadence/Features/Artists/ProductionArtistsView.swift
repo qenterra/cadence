@@ -17,7 +17,7 @@ struct ProductionArtistsView: View {
             } else if store.artists.isEmpty {
                 emptyContent
             } else {
-                ScrollView {
+                ScrollView(.vertical) {
                     LazyVStack(alignment: .leading, spacing: 22) {
                         header
 
@@ -140,67 +140,80 @@ struct ProductionArtistTile: View {
     @State private var renameDraft = ""
 
     var body: some View {
-        ZStack(alignment: .topTrailing) {
+        VStack(alignment: .center, spacing: 10) {
             Button(action: openArtist) {
-                VStack(alignment: .center, spacing: 10) {
-                    ProductionArtworkView(
-                        model: model,
-                        artworkID: artist.customArtworkID,
-                        title: artist.name,
-                        placeholder: .artist,
-                        cornerRadius: CadenceTheme.radiusNone,
-                        showsBorder: false
-                    )
-                    .aspectRatio(1, contentMode: .fit)
-                    .clipShape(Circle())
-                    .overlay {
-                        Circle()
-                            .strokeBorder(
-                                CadenceTheme.separator,
-                                lineWidth: 0.5
-                            )
-                    }
+                ProductionArtworkView(
+                    model: model,
+                    artworkID: artist.customArtworkID,
+                    title: artist.name,
+                    placeholder: .artist,
+                    cornerRadius: CadenceTheme.radiusNone,
+                    showsBorder: false
+                )
+                .aspectRatio(1, contentMode: .fit)
+                .clipShape(Circle())
+                .overlay {
+                    Circle()
+                        .strokeBorder(
+                            CadenceTheme.separator,
+                            lineWidth: 0.5
+                        )
+                }
+            }
+            .buttonStyle(.plain)
 
+            ZStack {
+                Button(action: openArtist) {
                     Text(artist.name)
                         .font(.headline)
                         .foregroundStyle(.primary)
                         .lineLimit(1)
-
-                    Text(
-                        "\(artist.albumCount) albums · "
-                            + "\(artist.trackCount) tracks"
-                    )
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
+                        .frame(maxWidth: .infinity)
                 }
-                .padding(10)
-                .background {
-                    BrowserRowSurface(
-                        isSelected: false,
-                        isHovered: isHovered,
-                        isFocused: false
-                    )
-                }
-                .contentShape(Rectangle())
+                .buttonStyle(.plain)
             }
-            .buttonStyle(.plain)
-
-            if isHovered || artist.isFavorite {
+            .padding(
+                .horizontal,
+                CatalogTileFavoriteLayout.titleHorizontalInset
+            )
+            .frame(maxWidth: .infinity)
+            .overlay(alignment: .leading) {
                 FavoriteButton(
                     isFavorite: artist.isFavorite,
-                    itemName: artist.name
-                ) {
-                    Task {
-                        await model.setProductionArtistFavorite(
-                            artist,
-                            isFavorite: !artist.isFavorite
-                        )
-                    }
+                    itemName: artist.name,
+                    controlSize: CatalogTileFavoriteLayout.controlSize
+                ) { requestedValue in
+                    await model.setProductionArtistFavorite(
+                        artist,
+                        isFavorite: requestedValue
+                    ) != nil
                 }
-                .padding(14)
+                .opacity(isHovered ? 1 : 0)
+                .allowsHitTesting(isHovered)
+                .accessibilityHidden(!isHovered)
+                .animation(
+                    .easeOut(duration: CadenceTheme.motionHover),
+                    value: isHovered
+                )
             }
+
+            Text(
+                "\(artist.albumCount) albums · "
+                    + "\(artist.trackCount) tracks"
+            )
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .lineLimit(1)
         }
+        .padding(10)
+        .background {
+            BrowserRowSurface(
+                isSelected: false,
+                isHovered: isHovered,
+                isFocused: false
+            )
+        }
+        .contentShape(Rectangle())
         .onHover { isHovered = $0 }
         .contextMenu {
             artistActions

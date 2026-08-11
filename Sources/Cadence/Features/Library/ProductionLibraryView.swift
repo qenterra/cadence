@@ -140,7 +140,7 @@ struct ProductionLibraryView: View {
                 detail: count.formatted()
             )
 
-            ScrollView {
+            ScrollView(.vertical) {
                 LazyVStack(spacing: 4) {
                     content()
                 }

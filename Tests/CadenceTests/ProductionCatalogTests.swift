@@ -106,6 +106,35 @@ struct ProductionCatalogTests {
     @Test("Track favorite state is persisted by the production repository")
     func trackFavoriteMutation() async throws {
         let fixture = try makeCatalogFixture()
+        let context = ModelContext(fixture.container)
+        let trackID = fixture.trackID
+        let track = try #require(
+            context.fetch(
+                FetchDescriptor<TrackRecord>(
+                    predicate: #Predicate { $0.id == trackID }
+                )
+            ).first
+        )
+        let primaryArtist = try #require(track.artist)
+        let featuredArtist = ArtistRecord(name: "Satellite Guest")
+        context.insert(featuredArtist)
+        context.insert(
+            TrackArtistCreditRecord(
+                track: track,
+                artist: primaryArtist,
+                position: 0,
+                displayArtistName: primaryArtist.name
+            )
+        )
+        context.insert(
+            TrackArtistCreditRecord(
+                track: track,
+                artist: featuredArtist,
+                position: 1,
+                displayArtistName: featuredArtist.name
+            )
+        )
+        try context.save()
         let repository = LibraryRepository(modelContainer: fixture.container)
 
         let favorite = try await repository.setTrackFavorite(
@@ -113,12 +142,14 @@ struct ProductionCatalogTests {
             isFavorite: true
         )
         #expect(favorite.isFavorite)
+        #expect(favorite.artist == "North Assembly, Satellite Guest")
 
         let restored = try await repository.setTrackFavorite(
             id: fixture.trackID,
             isFavorite: false
         )
         #expect(!restored.isFavorite)
+        #expect(restored.artist == "North Assembly, Satellite Guest")
     }
 
     @Test("Favorite catalog pages exclude non-favorites and keep stable order")

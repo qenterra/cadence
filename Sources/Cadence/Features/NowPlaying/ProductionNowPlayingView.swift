@@ -6,6 +6,8 @@ struct ProductionNowPlayingView: View {
     let track: PlaybackTrack
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.rhythmPulseVisualQAState)
+    private var rhythmPulseVisualQAState
     @State private var tagStates: [ProductionTrackTagState] = []
     @State private var newTagPath = ""
     @State private var tagError: String?
@@ -13,24 +15,68 @@ struct ProductionNowPlayingView: View {
     @State private var renamedTrackTitle: String?
     @State private var isRenamePresented = false
     @State private var renameDraft = ""
+    @State private var rhythmPulseStore = RhythmPulseStore()
+    @State private var rhythmFocusState = RhythmFocusState()
+    @Namespace private var rhythmFocusNamespace
 
     var body: some View {
         GeometryReader { geometry in
             let layout = NowPlayingLayoutMetrics(
                 totalWidth: geometry.size.width
             )
+            let rhythmLayout = RhythmFocusLayout(
+                canvasSize: geometry.size,
+                contextWidth: layout.contextWidth
+            )
+            let isRhythmFocused = rhythmPulseVisualQAState?.isFocusActive
+                ?? rhythmFocusState.isActive
 
-            HStack(spacing: 0) {
-                trackContext
-                    .frame(width: layout.contextWidth)
+            ZStack {
+                RhythmPulseCanvas(
+                    store: rhythmPulseStore,
+                    panelStartX: layout.contextWidth + 1
+                )
 
-                Rectangle()
-                    .fill(CadenceTheme.separator)
-                    .frame(width: 1)
-
-                panel
-                    .frame(width: layout.panelWidth)
-                    .frame(maxHeight: .infinity, alignment: .top)
+                if isRhythmFocused {
+                    RhythmFocusView(
+                        model: model,
+                        track: track,
+                        artworkID: displayedArtworkID,
+                        trackTitle: displayedTrackTitle,
+                        artist: track.artist,
+                        layout: rhythmLayout,
+                        artworkNamespace: rhythmFocusNamespace,
+                        visualQADocument: rhythmPulseVisualQAState?
+                            .focusLyricDocument,
+                        visualQAPresentationTime: rhythmPulseVisualQAState?
+                            .focusPresentationTime
+                    )
+                    .transition(reduceMotion ? .opacity : .rhythmFocusLayer)
+                } else {
+                    standardNowPlaying(
+                        layout: layout,
+                        rhythmLayout: rhythmLayout
+                    )
+                    .transition(reduceMotion ? .opacity : .rhythmFocusLayer)
+                }
+            }
+            .overlay(alignment: .topLeading) {
+                RhythmKeyboardCapture(
+                    isFocusActive: isRhythmFocused
+                ) { lane in
+                    handleRhythmHit(
+                        lane,
+                        layout: rhythmLayout,
+                        isRhythmFocused: isRhythmFocused
+                    )
+                } onExitFocus: {
+                    deactivateRhythmFocus()
+                }
+                .frame(width: 0, height: 0)
+            }
+            .clipped()
+            .task(id: rhythmFocusState.deadline) {
+                await waitForRhythmFocusDeadline()
             }
         }
         .background(CadenceTheme.contentBackground)
@@ -46,6 +92,32 @@ struct ProductionNowPlayingView: View {
                     trackID: track.id
                 )
             ) ?? []
+        }
+        .task(id: rhythmArtworkTaskID) {
+            if let rhythmPulseVisualQAState {
+                rhythmPulseStore.prepare(
+                    visualQAState: rhythmPulseVisualQAState
+                )
+                return
+            }
+            guard let displayedArtworkID else {
+                await rhythmPulseStore.prepare(asset: nil)
+                return
+            }
+            let asset = await model.librarySession.store.artworkAsset(
+                id: displayedArtworkID,
+                location: model.librarySession.location,
+                variant: .thumbnail
+            )
+            await rhythmPulseStore.prepare(asset: asset)
+        }
+        .onDisappear {
+            rhythmPulseStore.reset()
+            rhythmFocusState.reset()
+        }
+        .onChange(of: track.id) { _, _ in
+            rhythmPulseStore.reset()
+            rhythmFocusState.reset()
         }
         .catalogRenameAlert(
             "Rename Track",
@@ -66,7 +138,102 @@ struct ProductionNowPlayingView: View {
 }
 
 private extension ProductionNowPlayingView {
-    private var trackContext: some View {
+    private func handleRhythmHit(
+        _ lane: RhythmLane,
+        layout: RhythmFocusLayout,
+        isRhythmFocused: Bool
+    ) {
+        let now = ProcessInfo.processInfo.systemUptime
+        rhythmPulseStore.registerHit(
+            lane: lane,
+            emitterOrigin: layout.normalizedEmitterOrigin(
+                lane: lane,
+                isFocused: isRhythmFocused
+            )
+        )
+
+        var nextState = rhythmFocusState
+        let action = nextState.registerHit(lane: lane, at: now)
+        if action == .activated {
+            withAnimation(rhythmFocusEntryAnimation) {
+                rhythmFocusState = nextState
+            }
+        } else {
+            rhythmFocusState = nextState
+        }
+    }
+
+    private func deactivateRhythmFocus() {
+        var nextState = rhythmFocusState
+        guard nextState.deactivate() == .deactivated else {
+            return
+        }
+        withAnimation(rhythmFocusExitAnimation) {
+            rhythmFocusState = nextState
+        }
+    }
+
+    private func waitForRhythmFocusDeadline() async {
+        guard let deadline = rhythmFocusState.deadline else {
+            return
+        }
+        let delay = max(
+            deadline - ProcessInfo.processInfo.systemUptime,
+            0
+        )
+        do {
+            try await Task.sleep(for: .seconds(delay))
+        } catch {
+            return
+        }
+        guard !Task.isCancelled else {
+            return
+        }
+
+        var nextState = rhythmFocusState
+        guard nextState.update(
+            at: ProcessInfo.processInfo.systemUptime
+        ) == .deactivated else {
+            return
+        }
+        withAnimation(rhythmFocusExitAnimation) {
+            rhythmFocusState = nextState
+        }
+    }
+
+    private var rhythmFocusEntryAnimation: Animation {
+        reduceMotion
+            ? .easeOut(duration: CadenceTheme.motionDismiss)
+            : .smooth(duration: 0.5)
+    }
+
+    private var rhythmFocusExitAnimation: Animation {
+        reduceMotion
+            ? .easeOut(duration: CadenceTheme.motionDismiss)
+            : .smooth(duration: 0.55)
+    }
+
+    private func standardNowPlaying(
+        layout: NowPlayingLayoutMetrics,
+        rhythmLayout: RhythmFocusLayout
+    ) -> some View {
+        HStack(spacing: 0) {
+            trackContext(
+                artworkSize: rhythmLayout.standardArtworkFrame.width
+            )
+            .frame(width: layout.contextWidth)
+
+            Rectangle()
+                .fill(CadenceTheme.separator)
+                .frame(width: 1)
+
+            panel
+                .frame(width: layout.panelWidth)
+                .frame(maxHeight: .infinity, alignment: .top)
+        }
+    }
+
+    private func trackContext(artworkSize: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: 22) {
             ProductionArtworkView(
                 model: model,
@@ -76,8 +243,11 @@ private extension ProductionNowPlayingView {
                 variant: .original,
                 cornerRadius: CadenceTheme.radiusHero
             )
-            .aspectRatio(1, contentMode: .fit)
-            .frame(maxWidth: 420)
+            .matchedGeometryEffect(
+                id: RhythmFocusTransition.artworkID,
+                in: rhythmFocusNamespace
+            )
+            .frame(width: artworkSize, height: artworkSize)
             .contextMenu {
                 ArtworkMenuItems(
                     model: model,
@@ -100,8 +270,10 @@ private extension ProductionNowPlayingView {
                     FavoriteButton(
                         isFavorite: model.currentProductionTrackIsFavorite,
                         itemName: displayedTrackTitle
-                    ) {
-                        model.toggleCurrentProductionTrackFavorite()
+                    ) { requestedValue in
+                        await model.setCurrentProductionTrackFavorite(
+                            requestedValue
+                        )
                     }
                     .padding(.top, 2)
                 }
@@ -298,6 +470,15 @@ private extension ProductionNowPlayingView {
 
     private var displayedTrackTitle: String {
         renamedTrackTitle ?? track.title
+    }
+
+    private var rhythmArtworkTaskID: String {
+        let artworkKey = "\(displayedArtworkID?.uuidString ?? "none")"
+            + "-\(model.artworkRevision)"
+        guard let rhythmPulseVisualQAState else {
+            return artworkKey
+        }
+        return artworkKey + "-qa-\(rhythmPulseVisualQAState.seed)"
     }
 
     private func beginRename() {

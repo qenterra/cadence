@@ -58,6 +58,7 @@ struct TrackTableCore: NSViewRepresentable {
         scrollView.drawsBackground = false
         scrollView.hasVerticalScroller = true
         scrollView.hasHorizontalScroller = false
+        scrollView.horizontalScrollElasticity = .none
         scrollView.autohidesScrollers = true
         scrollView.documentView = tableView
         scrollView.contentView.postsBoundsChangedNotifications = true

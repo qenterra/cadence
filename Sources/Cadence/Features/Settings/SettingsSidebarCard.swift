@@ -9,7 +9,7 @@ struct SettingsSidebarCard: View {
 
     var body: some View {
         SettingsCard(
-            title: "Sidebar",
+            title: "Navigation",
             symbol: "sidebar.left"
         ) {
             Text(

@@ -146,8 +146,10 @@ private extension PlayerBar {
                 FavoriteButton(
                     isFavorite: model.currentProductionTrackIsFavorite,
                     itemName: track.title
-                ) {
-                    model.toggleCurrentProductionTrackFavorite()
+                ) { requestedValue in
+                    await model.setCurrentProductionTrackFavorite(
+                        requestedValue
+                    )
                 }
 
                 Spacer(minLength: 0)

@@ -62,6 +62,7 @@ enum CadenceTheme {
     static let motionPresent = QDS.MotionSeconds.present
     static let motionReplace = QDS.MotionSeconds.replace
     static let motionDismiss = QDS.MotionSeconds.dismiss
+    static let motionSpatialLong = QDS.MotionSeconds.spatialLong
 
     private static func adaptive(_ token: QDSColorValue) -> Color {
         let light = NSColor(Color(qds: token, appearance: .light))

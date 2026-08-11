@@ -47,7 +47,7 @@ struct ImportMusicReview: View {
             tableHeader(layoutMode: layoutMode)
             Divider()
 
-            ScrollView {
+            ScrollView(.vertical) {
                 LazyVStack(spacing: 2) {
                     ForEach(model.visibleImportCandidates) { candidate in
                         ImportMusicCandidateRow(

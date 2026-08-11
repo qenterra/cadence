@@ -27,7 +27,7 @@ struct ProductionPlaybackQueuePanel: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-        .task(id: orderedTrackIDs) {
+        .task(id: visibleTrackIDs) {
             await model.loadProductionPlaybackQueueTracks()
         }
         .onDeleteCommand(perform: removeSelection)
@@ -70,7 +70,7 @@ struct ProductionPlaybackQueuePanel: View {
                     selectionAnchor = nil
                 }
             }
-            .disabled(queue?.upNextTrackIDs.isEmpty != false)
+            .disabled(queue?.hasUpNext != true)
         }
         .buttonStyle(.borderless)
         .padding(.horizontal, 24)

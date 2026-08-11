@@ -78,7 +78,7 @@ struct ProductionLyricsPanel: View {
         )
 
         return ScrollViewReader { proxy in
-            ScrollView {
+            ScrollView(.vertical) {
                 LazyVStack(alignment: .leading, spacing: 18) {
                     ForEach(
                         Array(document.lines.enumerated()),
@@ -204,14 +204,10 @@ struct ProductionLyricsPanel: View {
         at index: Int,
         in document: LyricDocument
     ) -> TimeInterval {
-        guard let startTime = document.lines[index].startTime else {
-            return 0
-        }
-        let nextStartTime = document.lines.dropFirst(index + 1)
-            .lazy
-            .compactMap(\.startTime)
-            .first
-        return max((nextStartTime ?? startTime + 4) - startTime, 1.2)
+        ProductionLyricTiming.animationDuration(
+            for: document.lines[index].id,
+            in: document
+        )
     }
 
     private func activeLine(
@@ -247,25 +243,83 @@ private extension LyricTimingStatus {
     }
 }
 
-private struct ProductionLyricLineLabel: View {
+enum ProductionLyricLineAppearance {
+    static func blurRadius(
+        isActive: Bool,
+        isSynchronized: Bool,
+        isIncreasedContrast: Bool
+    ) -> CGFloat {
+        guard isSynchronized, !isActive, !isIncreasedContrast else {
+            return 0
+        }
+        return 0.7
+    }
+}
+
+enum ProductionLyricTiming {
+    static func animationDuration(
+        for lineID: LyricLine.ID,
+        in document: LyricDocument
+    ) -> TimeInterval {
+        guard
+            let index = document.lines.firstIndex(where: { $0.id == lineID }),
+            let startTime = document.lines[index].startTime
+        else {
+            return 0
+        }
+        let nextStartTime = document.lines.dropFirst(index + 1)
+            .lazy
+            .compactMap(\.startTime)
+            .first
+        return max((nextStartTime ?? startTime + 4) - startTime, 1.2)
+    }
+}
+
+struct ProductionLyricLineLabel: View {
     let text: String
     let isActive: Bool
     let animationDuration: TimeInterval
     let isSynchronized: Bool
+    let alignment: TextAlignment
+    let lineLimit: Int?
+
+    init(
+        text: String,
+        isActive: Bool,
+        animationDuration: TimeInterval,
+        isSynchronized: Bool,
+        alignment: TextAlignment = .leading,
+        lineLimit: Int? = nil
+    ) {
+        self.text = text
+        self.isActive = isActive
+        self.animationDuration = animationDuration
+        self.isSynchronized = isSynchronized
+        self.alignment = alignment
+        self.lineLimit = lineLimit
+    }
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorSchemeContrast) private var contrast
     @Environment(\.colorScheme) private var colorScheme
     @State private var shimmerPhase = -1.0
 
     var body: some View {
         Text(text)
             .font(.system(size: 24, weight: .semibold))
-            .multilineTextAlignment(.leading)
+            .multilineTextAlignment(alignment)
             .lineSpacing(3)
-            .lineLimit(nil)
+            .lineLimit(lineLimit)
             .fixedSize(horizontal: false, vertical: true)
             .foregroundStyle(foregroundStyle)
             .opacity(!isSynchronized || isActive ? 1 : 0.58)
+            .blur(
+                radius: ProductionLyricLineAppearance.blurRadius(
+                    isActive: isActive,
+                    isSynchronized: isSynchronized,
+                    isIncreasedContrast: contrast == .increased
+                )
+            )
             .shadow(
                 color: isActive
                     ? Color.primary.opacity(0.28)

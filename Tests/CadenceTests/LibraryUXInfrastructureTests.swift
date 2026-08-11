@@ -33,7 +33,10 @@ struct LibraryUXInfrastructureTests {
     }
 
     @Test("Navigation rail order is sanitized and hidden pages stay hidden")
-    func navigationConfiguration() {
+    func navigationConfiguration() throws {
+        let favorites = try #require(
+            NavigationDestination(rawValue: "favorites")
+        )
         let order = "tags,albums,tags,settings,unknown"
         let hidden = "library,trash"
         let visible = NavigationRailConfiguration.visibleDestinations(
@@ -41,7 +44,17 @@ struct LibraryUXInfrastructureTests {
             hiddenRawValue: hidden
         )
 
-        #expect(visible == [.home, .collections])
+        #expect(visible == [
+            .home,
+            .tags,
+            .albums,
+            .allTracks,
+            .artists,
+            favorites,
+            .smartCollections,
+            .playlists,
+            .importMusic,
+        ])
         #expect(!visible.contains(.library))
         #expect(!visible.contains(.trash))
         #expect(Set(visible).count == visible.count)
@@ -55,53 +68,44 @@ struct LibraryUXInfrastructureTests {
     }
 
     @Test("Home stays first when an older saved rail order is restored")
-    func homeLeadsPersistedNavigationOrder() {
+    func homeLeadsPersistedNavigationOrder() throws {
+        let favorites = try #require(
+            NavigationDestination(rawValue: "favorites")
+        )
         let restored = NavigationRailConfiguration.orderedDestinations(
             from: "albums,artists,home,library"
         )
 
-        #expect(restored == [.home, .library, .collections])
+        #expect(restored == [
+            .home,
+            .albums,
+            .artists,
+            .library,
+            .allTracks,
+            favorites,
+            .tags,
+            .smartCollections,
+            .playlists,
+            .importMusic,
+        ])
     }
 
-    @Test("Deep routes retain context while selecting one primary rail section")
-    func primaryNavigationMapping() {
-        #expect(NavigationDestination.home.primaryDestination == .home)
-        #expect(NavigationDestination.library.primaryDestination == .library)
-        #expect(NavigationDestination.allTracks.primaryDestination == .library)
-        #expect(NavigationDestination.albums.primaryDestination == .library)
-        #expect(NavigationDestination.artists.primaryDestination == .library)
-        #expect(NavigationDestination.importMusic.primaryDestination == .library)
-        #expect(NavigationDestination.trash.primaryDestination == .library)
-        #expect(NavigationDestination.collections.primaryDestination == .collections)
-        #expect(NavigationDestination.playlists.primaryDestination == .collections)
-        #expect(NavigationDestination.smartCollections.primaryDestination == .collections)
-        #expect(NavigationDestination.tags.primaryDestination == .collections)
-    }
-
-    @Test("Library and Collections expose stable user-facing sections")
-    func consolidatedSections() {
-        #expect(LibraryContentSection.allCases.map(\.rawValue) == [
-            "tracks",
-            "albums",
-            "artists",
-            "favorites",
-        ])
-        #expect(LibraryContentSection.allCases.map(\.title) == [
-            "Tracks",
-            "Albums",
-            "Artists",
-            "Favorites",
-        ])
-        #expect(LibraryViewMode.columnBrowser.title == "Column Browser")
-        #expect(CollectionContentSection.allCases.map(\.rawValue) == [
-            "playlists",
-            "smartCollections",
-            "tags",
-        ])
-        #expect(CollectionContentSection.allCases.map(\.title) == [
-            "Playlists",
-            "Smart Collections",
-            "Tags",
+    @Test("Original destinations stay separate and Favorites has its own route")
+    func standaloneNavigationDestinations() throws {
+        let favorites = try #require(
+            NavigationDestination(rawValue: "favorites")
+        )
+        #expect(NavigationRailConfiguration.configurableDestinations == [
+            .home,
+            .library,
+            .allTracks,
+            .albums,
+            .artists,
+            favorites,
+            .tags,
+            .smartCollections,
+            .playlists,
+            .importMusic,
         ])
         #expect(FavoriteCatalogSection.allCases.map(\.title) == [
             "Songs",
@@ -155,26 +159,29 @@ struct LibraryUXInfrastructureTests {
     }
 
     @Test("Navigation rail destinations move to the dropped row")
-    func navigationReordering() {
+    func navigationReordering() throws {
+        let favorites = try #require(
+            NavigationDestination(rawValue: "favorites")
+        )
         let destinations = [
             NavigationDestination.home,
             .library,
-            .collections,
+            favorites,
         ]
 
         #expect(
             NavigationRailConfiguration.moving(
                 .library,
-                to: .collections,
+                to: favorites,
                 in: destinations
-            ) == [.home, .collections, .library]
+            ) == [.home, favorites, .library]
         )
         #expect(
             NavigationRailConfiguration.moving(
-                .collections,
+                favorites,
                 to: .home,
                 in: destinations
-            ) == [.collections, .home, .library]
+            ) == [favorites, .home, .library]
         )
         #expect(
             NavigationRailConfiguration.moving(
@@ -236,6 +243,20 @@ struct LibraryUXInfrastructureTests {
                 isCurrentTrack: true,
                 isPlaying: false
             ) == "play.fill"
+        )
+    }
+
+    @Test("Track format pills omit leading file-extension separators")
+    @MainActor
+    func trackFormatPillTitle() {
+        #expect(
+            ProductionTrackTableRow.formatPillTitle(".mp3") == "MP3"
+        )
+        #expect(
+            ProductionTrackTableRow.formatPillTitle("flac") == "FLAC"
+        )
+        #expect(
+            ProductionTrackTableRow.formatPillTitle(" ..aac") == "AAC"
         )
     }
 

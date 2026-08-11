@@ -12,7 +12,7 @@ struct SmartCollectionRuleBuilder: View {
 
                 CadenceSeparator()
 
-                ScrollView {
+                ScrollView(.vertical) {
                     VStack(alignment: .leading, spacing: 12) {
                         rootLogic(draft: draft)
 

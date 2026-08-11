@@ -17,7 +17,7 @@ struct ProductionAlbumsView: View {
             } else if store.albums.isEmpty {
                 emptyContent
             } else {
-                ScrollView {
+                ScrollView(.vertical) {
                     LazyVStack(alignment: .leading, spacing: 22) {
                         header
 
@@ -134,60 +134,75 @@ struct ProductionAlbumTile: View {
     @State private var renameDraft = ""
 
     var body: some View {
-        ZStack(alignment: .topTrailing) {
+        VStack(alignment: .center, spacing: 9) {
             Button(action: openAlbum) {
-                VStack(alignment: .leading, spacing: 9) {
-                    ProductionArtworkView(
-                        model: model,
-                        artworkID: album.customArtworkID,
-                        title: album.title,
-                        placeholder: .album,
-                        cornerRadius: CadenceTheme.radiusGroup
-                    )
-                    .aspectRatio(1, contentMode: .fit)
+                ProductionArtworkView(
+                    model: model,
+                    artworkID: album.customArtworkID,
+                    title: album.title,
+                    placeholder: .album,
+                    cornerRadius: CadenceTheme.radiusGroup
+                )
+                .aspectRatio(1, contentMode: .fit)
+            }
+            .buttonStyle(.plain)
 
+            ZStack {
+                Button(action: openAlbum) {
                     Text(album.title)
                         .font(.headline)
                         .foregroundStyle(.primary)
                         .lineLimit(1)
-
-                    Text(album.artist)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-
-                    Text(albumDetail(album))
-                        .font(.caption)
-                        .foregroundStyle(.tertiary)
-                        .lineLimit(1)
+                        .frame(maxWidth: .infinity)
                 }
-                .padding(10)
-                .background {
-                    BrowserRowSurface(
-                        isSelected: false,
-                        isHovered: isHovered,
-                        isFocused: false
-                    )
-                }
-                .contentShape(Rectangle())
+                .buttonStyle(.plain)
             }
-            .buttonStyle(.plain)
-
-            if isHovered || album.isFavorite {
+            .padding(
+                .horizontal,
+                CatalogTileFavoriteLayout.titleHorizontalInset
+            )
+            .frame(maxWidth: .infinity)
+            .overlay(alignment: .leading) {
                 FavoriteButton(
                     isFavorite: album.isFavorite,
-                    itemName: album.title
-                ) {
-                    Task {
-                        await model.setProductionAlbumFavorite(
-                            album,
-                            isFavorite: !album.isFavorite
-                        )
-                    }
+                    itemName: album.title,
+                    controlSize: CatalogTileFavoriteLayout.controlSize
+                ) { requestedValue in
+                    await model.setProductionAlbumFavorite(
+                        album,
+                        isFavorite: requestedValue
+                    ) != nil
                 }
-                .padding(14)
+                .opacity(isHovered ? 1 : 0)
+                .allowsHitTesting(isHovered)
+                .accessibilityHidden(!isHovered)
+                .animation(
+                    .easeOut(duration: CadenceTheme.motionHover),
+                    value: isHovered
+                )
             }
+
+            Text(album.artist)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .frame(maxWidth: .infinity)
+
+            Text(albumDetail(album))
+                .font(.caption)
+                .foregroundStyle(.tertiary)
+                .lineLimit(1)
+                .frame(maxWidth: .infinity)
         }
+        .padding(10)
+        .background {
+            BrowserRowSurface(
+                isSelected: false,
+                isHovered: isHovered,
+                isFocused: false
+            )
+        }
+        .contentShape(Rectangle())
         .onHover { isHovered = $0 }
         .contextMenu {
             albumActions

@@ -8,12 +8,6 @@ struct SettingsAboutSection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("About")
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(.secondary)
-                .textCase(.uppercase)
-                .tracking(0.7)
-
             creatorCard
 
             LazyVGrid(columns: columns, spacing: 10) {

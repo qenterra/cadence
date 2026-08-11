@@ -1,0 +1,226 @@
+@testable import Cadence
+import CoreGraphics
+import Testing
+
+struct RhythmPulseModelsTests {
+    @Test("A hit creates three compact artwork-colored fields")
+    func hitCreatesThreeCompactArtworkColoredFields() {
+        var simulation = RhythmPulseSimulation()
+        var random = SplitMix64(seed: 23)
+        let artworkOrigin = CGPoint(x: 0.34, y: 0.38)
+
+        simulation.registerHit(
+            lane: .left,
+            origin: artworkOrigin,
+            palette: .fixture,
+            time: 10,
+            generator: &random
+        )
+
+        let washes = simulation.washes(at: 10.1)
+        #expect(washes.count == 3)
+        #expect(washes.allSatisfy { $0.center(at: 10) == artworkOrigin })
+        #expect(Set(washes.map { $0.center(at: 10.1) }).count == 3)
+        #expect(Set(washes.map(\.radius)).count == 3)
+        #expect(washes.allSatisfy { $0.lifetime == 1.1 })
+        #expect(
+            washes.allSatisfy {
+                RhythmAccentPalette.fixture.colors.contains($0.color)
+            }
+        )
+    }
+
+    @Test("Every field flashes from the artwork and travels outward")
+    func everyLaneBurstsOutwardFromArtwork() {
+        var leftSimulation = RhythmPulseSimulation()
+        var rightSimulation = RhythmPulseSimulation()
+        var leftRandom = SplitMix64(seed: 29)
+        var rightRandom = SplitMix64(seed: 31)
+        let leftOrigin = CGPoint(x: 0.34, y: 0.38)
+        let rightOrigin = CGPoint(x: 0.66, y: 0.38)
+
+        leftSimulation.registerHit(
+            lane: .left,
+            origin: leftOrigin,
+            palette: .fixture,
+            time: 0,
+            generator: &leftRandom
+        )
+        rightSimulation.registerHit(
+            lane: .right,
+            origin: rightOrigin,
+            palette: .fixture,
+            time: 0,
+            generator: &rightRandom
+        )
+
+        let leftWashes = leftSimulation.washes(at: 0.1)
+        let rightWashes = rightSimulation.washes(at: 0.1)
+        #expect(leftWashes.allSatisfy { $0.center(at: 0) == leftOrigin })
+        #expect(rightWashes.allSatisfy { $0.center(at: 0) == rightOrigin })
+        #expect(leftWashes.allSatisfy { $0.center(at: 0.1).x < leftOrigin.x })
+        #expect(rightWashes.allSatisfy { $0.center(at: 0.1).x > rightOrigin.x })
+        #expect(
+            (leftWashes + rightWashes).allSatisfy {
+                (0.06 ... 0.94).contains($0.destination.y)
+                    && (0.12 ... 0.28).contains($0.radius)
+                    && (0.82 ... 1.34).contains($0.horizontalScale)
+                    && (0.7 ... 1.18).contains($0.verticalScale)
+            }
+        )
+    }
+
+    @Test("Repeated presses crossfade one lane without a visual cut")
+    func repeatedLaneHitCrossfadesItsColorFields() {
+        var simulation = RhythmPulseSimulation()
+        var random = SplitMix64(seed: 13)
+
+        simulation.registerHit(
+            lane: .left,
+            origin: CGPoint(x: 0.34, y: 0.38),
+            palette: .fixture,
+            time: 0,
+            generator: &random
+        )
+        let firstIDs = Set(simulation.washes(at: 0.1).map(\.id))
+        simulation.registerHit(
+            lane: .left,
+            origin: CGPoint(x: 0.34, y: 0.38),
+            palette: .fixture,
+            time: 0.2,
+            generator: &random
+        )
+
+        let crossfadingWashes = simulation.washes(at: 0.21)
+        let crossfadingIDs = Set(crossfadingWashes.map(\.id))
+        #expect(crossfadingWashes.count == 6)
+        #expect(!crossfadingIDs.isDisjoint(with: firstIDs))
+        #expect(crossfadingIDs.subtracting(firstIDs).count == 3)
+        #expect(simulation.washes(at: 0.43).count == 3)
+    }
+
+    @Test("Opposite lanes can overlap with a fixed six-field ceiling")
+    func oppositeLanesOverlap() {
+        var simulation = RhythmPulseSimulation()
+        var random = SplitMix64(seed: 17)
+
+        simulation.registerHit(
+            lane: .left,
+            origin: CGPoint(x: 0.34, y: 0.38),
+            palette: .fixture,
+            time: 0,
+            generator: &random
+        )
+        simulation.registerHit(
+            lane: .right,
+            origin: CGPoint(x: 0.66, y: 0.38),
+            palette: .fixture,
+            time: 0.08,
+            generator: &random
+        )
+
+        #expect(simulation.washes(at: 0.1).count == 6)
+    }
+
+    @Test("A thousand rapid hits keep the render workload bounded")
+    func rapidHitStressKeepsTwelveFieldCeiling() {
+        var simulation = RhythmPulseSimulation()
+        var random = SplitMix64(seed: 41)
+
+        for index in 0 ..< 1000 {
+            simulation.registerHit(
+                lane: index.isMultiple(of: 2) ? .left : .right,
+                origin: CGPoint(
+                    x: index.isMultiple(of: 2) ? 0.34 : 0.66,
+                    y: 0.38
+                ),
+                palette: .fixture,
+                time: Double(index) / 1000,
+                generator: &random
+            )
+            #expect(simulation.allWashes.count <= 12)
+        }
+    }
+
+    @Test("Color fields use the HTML impact timing and expansion")
+    func washUsesHTMLImpactKinetics() throws {
+        var simulation = RhythmPulseSimulation()
+        var random = SplitMix64(seed: 37)
+        simulation.registerHit(
+            lane: .right,
+            origin: CGPoint(x: 0.66, y: 0.38),
+            palette: .fixture,
+            time: 0,
+            generator: &random
+        )
+
+        let wash = try #require(simulation.washes(at: 0.05).first)
+        #expect(wash.opacity(at: 0) == 0)
+        #expect(wash.opacity(at: 0.02) > wash.peakOpacity * 0.85)
+        #expect(wash.opacity(at: 0.11) < wash.peakOpacity * 0.55)
+        #expect(wash.opacity(at: 0.55) < wash.peakOpacity * 0.08)
+        #expect(wash.scale(at: 0) == 0.2)
+        #expect((0.88 ... 0.95).contains(wash.scale(at: 0.11)))
+        #expect((1.4 ... 1.45).contains(wash.scale(at: 0.55)))
+        #expect(wash.isAlive(at: 1.09))
+        #expect(!wash.isAlive(at: 1.1))
+    }
+
+    @Test("HTML impact scale expands monotonically at render cadence")
+    func washScaleExpandsMonotonically() throws {
+        var simulation = RhythmPulseSimulation()
+        var random = SplitMix64(seed: 43)
+        simulation.registerHit(
+            lane: .left,
+            origin: CGPoint(x: 0.34, y: 0.38),
+            palette: .fixture,
+            time: 0,
+            generator: &random
+        )
+
+        let wash = try #require(simulation.allWashes.first)
+        let samples = (0 ... 66).map {
+            wash.scale(at: Double($0) / 60)
+        }
+        #expect(zip(samples, samples.dropFirst()).allSatisfy { $0 <= $1 })
+    }
+
+    @Test("The pulse crosses the Lyrics divider without leaving Now Playing")
+    func pulseFieldUsesWorkspaceBounds() {
+        let layout = RhythmPulseLayout(
+            workspaceWidth: 1439,
+            panelStartX: 560
+        )
+
+        #expect(layout.clipRect.width == 1439)
+        #expect(layout.intensity(atX: 559) > 0)
+        #expect(layout.intensity(atX: 561) > 0)
+        #expect(layout.intensity(atX: 1200) > 0)
+        #expect(
+            abs(layout.intensity(atX: 559) - layout.intensity(atX: 561))
+                < 0.05
+        )
+    }
+
+    @Test("Light appearance preserves artwork colors")
+    func lightAppearanceUsesArtworkSafeCompositing() {
+        let appearance = RhythmPulseAppearance.resolve(
+            mode: .light,
+            palette: .fixture
+        )
+
+        #expect(appearance.colors == RhythmAccentPalette.fixture.colors)
+        #expect(appearance.washBlendStrategy == .multiply)
+        #expect(!appearance.usesDarkBackdrop)
+    }
+}
+
+private extension RhythmAccentPalette {
+    static let fixture = RhythmAccentPalette(
+        colors: [
+            RhythmPulseColor(red: 0.86, green: 0.37, blue: 0.66),
+            RhythmPulseColor(red: 0.49, green: 0.38, blue: 1),
+            RhythmPulseColor(red: 0, green: 0.8, blue: 0.89),
+        ]
+    )
+}

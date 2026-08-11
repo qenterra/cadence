@@ -199,10 +199,20 @@ extension TrackTableCore {
                 return
             }
             let width = max(scrollView.contentSize.width, 1)
+            var frame = tableView.frame
+            frame.size.width = width
+            tableView.frame = frame
             if abs(column.width - width) > 0.5 {
                 column.minWidth = 1
                 column.maxWidth = .greatestFiniteMagnitude
                 column.width = width
+            }
+            let origin = scrollView.contentView.bounds.origin
+            if abs(origin.x) > 0.5 {
+                scrollView.contentView.scroll(
+                    to: NSPoint(x: 0, y: origin.y)
+                )
+                scrollView.reflectScrolledClipView(scrollView.contentView)
             }
         }
     }

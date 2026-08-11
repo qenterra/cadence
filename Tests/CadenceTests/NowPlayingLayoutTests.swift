@@ -39,4 +39,36 @@ struct NowPlayingLayoutTests {
 
         #expect(layout.contextWidth + layout.panelWidth + 1 == 500)
     }
+
+    @Test("Only inactive synchronized lyrics use a soft blur")
+    func inactiveLyricBlur() {
+        #expect(
+            ProductionLyricLineAppearance.blurRadius(
+                isActive: false,
+                isSynchronized: true,
+                isIncreasedContrast: false
+            ) == 0.7
+        )
+        #expect(
+            ProductionLyricLineAppearance.blurRadius(
+                isActive: true,
+                isSynchronized: true,
+                isIncreasedContrast: false
+            ) == 0
+        )
+        #expect(
+            ProductionLyricLineAppearance.blurRadius(
+                isActive: false,
+                isSynchronized: false,
+                isIncreasedContrast: false
+            ) == 0
+        )
+        #expect(
+            ProductionLyricLineAppearance.blurRadius(
+                isActive: false,
+                isSynchronized: true,
+                isIncreasedContrast: true
+            ) == 0
+        )
+    }
 }

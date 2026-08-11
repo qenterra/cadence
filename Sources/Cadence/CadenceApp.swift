@@ -186,17 +186,23 @@ struct CadenceApp: App {
 
 private struct CadenceSettingsWindow: View {
     @Bindable var model: CadenceAppModel
+    @State private var selection = CadenceSettingsTab.general
 
     var body: some View {
-        TabView {
+        TabView(selection: $selection) {
             ForEach(CadenceSettingsTab.allCases) { tab in
                 ProductionSettingsView(model: model, tab: tab)
                     .tabItem {
                         Label(tab.title, systemImage: tab.symbolName)
                     }
+                    .tag(tab)
             }
         }
         .frame(width: 760, height: 640, alignment: .topLeading)
+        .task(id: selection) {
+            await Task.yield()
+            NSApp.keyWindow?.title = "Settings"
+        }
     }
 }
 

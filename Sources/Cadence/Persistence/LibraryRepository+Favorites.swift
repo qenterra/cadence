@@ -137,7 +137,7 @@ extension LibraryRepository {
         }
         record.isFavorite = isFavorite
         try modelContext.save()
-        return LibraryProjectionFactory.track(record)
+        return try trackProjection(record)
     }
 
     func setAlbumFavorite(

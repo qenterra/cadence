@@ -7,14 +7,19 @@ enum TrackTableLayoutMode: Equatable, Sendable {
 
 enum TrackTableColumnPolicy {
     static let compactThreshold = 720.0
+    static let horizontalInset: CGFloat = 28
+    static let columnSpacing: CGFloat = 14
+    static let actionWidth: CGFloat = 28
+    static let favoriteControlWidth = CatalogTileFavoriteLayout.controlSize
+    static let songContentSpacing: CGFloat = 8
 
     static func rowChromeWidth(
         columnCount: Int
     ) -> Double {
-        let horizontalPadding = 24.0
-        let actionWidth = 28.0
-        let spacing = Double(max(columnCount, 0) + 2) * 14.0
-        return horizontalPadding + actionWidth + spacing
+        let horizontalPadding = Double(horizontalInset * 2)
+        let spacing = Double(max(columnCount, 0) + 2)
+            * Double(columnSpacing)
+        return horizontalPadding + Double(actionWidth) + spacing
     }
 
     static func contentWidth(
