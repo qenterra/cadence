@@ -3,6 +3,18 @@ import AppKit
 import Testing
 
 struct RhythmArtworkPaletteTests {
+    @MainActor
+    @Test("A fresh pulse store can render before artwork extraction finishes")
+    func pulseStoreStartsWithProductFallback() {
+        let store = RhythmPulseStore()
+
+        store.registerHit(lane: .left)
+
+        #expect(store.palette == .cadenceFallback)
+        #expect(!store.renderWashes.isEmpty)
+        #expect(!store.renderParticles.isEmpty)
+    }
+
     @Test("Palette extraction returns saturated artwork accents")
     func extractsArtworkAccents() async throws {
         let pink = NSColor(
@@ -65,12 +77,16 @@ struct RhythmArtworkPaletteTests {
 
         let palette = await RhythmArtworkPaletteCache().palette(for: asset)
 
-        #expect(palette.colors.count == 2)
+        #expect(palette.colors.count >= 3)
         #expect(palette.colors.allSatisfy { $0.saturation == 0 })
         #expect(
             palette.colors.allSatisfy {
                 (0.32 ... 0.82).contains($0.relativeLuminance)
             }
+        )
+        let luminances = palette.colors.map(\.relativeLuminance)
+        #expect(
+            (luminances.max() ?? 0) - (luminances.min() ?? 0) >= 0.34
         )
     }
 

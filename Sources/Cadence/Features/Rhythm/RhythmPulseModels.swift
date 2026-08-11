@@ -29,6 +29,27 @@ struct RhythmPulseColor: Hashable, Sendable {
         red * 0.2126 + green * 0.7152 + blue * 0.0722
     }
 
+    func intensifiedForCadenceEffect() -> RhythmPulseColor {
+        let brightestChannel = max(red, green, blue)
+        let targetPeak = saturation < 0.12 ? 0.62 : 0.88
+        guard brightestChannel > 0 else {
+            return RhythmPulseColor(
+                red: targetPeak,
+                green: targetPeak,
+                blue: targetPeak
+            )
+        }
+        guard brightestChannel < targetPeak else {
+            return self
+        }
+        let channelScale = targetPeak / brightestChannel
+        return RhythmPulseColor(
+            red: red * channelScale,
+            green: green * channelScale,
+            blue: blue * channelScale
+        )
+    }
+
     func isNear(
         red targetRed: Double,
         green targetGreen: Double,
@@ -46,6 +67,12 @@ struct RhythmAccentPalette: Hashable, Sendable {
 
     init(colors: [RhythmPulseColor]) {
         self.colors = Array(colors.prefix(5))
+    }
+
+    var effectPalette: RhythmAccentPalette {
+        RhythmAccentPalette(
+            colors: colors.map { $0.intensifiedForCadenceEffect() }
+        )
     }
 
     static let cadenceFallback = RhythmAccentPalette(
@@ -275,6 +302,7 @@ enum RhythmPulseBlendStrategy: Sendable {
 struct RhythmPulseAppearance: Sendable {
     let colors: [RhythmPulseColor]
     let washBlendStrategy: RhythmPulseBlendStrategy
+    let maximumWashAnimationFramesPerSecond: Int
     let usesDarkBackdrop: Bool
     let usesLiveBlur: Bool
 
@@ -285,15 +313,17 @@ struct RhythmPulseAppearance: Sendable {
         switch mode {
         case .light:
             RhythmPulseAppearance(
-                colors: palette.colors,
+                colors: palette.effectPalette.colors,
                 washBlendStrategy: .multiply,
+                maximumWashAnimationFramesPerSecond: 60,
                 usesDarkBackdrop: false,
                 usesLiveBlur: false
             )
         case .dark:
             RhythmPulseAppearance(
-                colors: palette.colors,
+                colors: palette.effectPalette.colors,
                 washBlendStrategy: .screen,
+                maximumWashAnimationFramesPerSecond: 60,
                 usesDarkBackdrop: false,
                 usesLiveBlur: false
             )

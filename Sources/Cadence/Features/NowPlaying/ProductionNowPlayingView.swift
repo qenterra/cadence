@@ -1,9 +1,9 @@
-import AppKit
 import SwiftUI
 
 struct ProductionNowPlayingView: View {
     @Bindable var model: CadenceAppModel
     let track: PlaybackTrack
+    @Bindable var cadenceModeSession: CadenceModeSession
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.rhythmPulseVisualQAState)
@@ -15,10 +15,6 @@ struct ProductionNowPlayingView: View {
     @State private var renamedTrackTitle: String?
     @State private var isRenamePresented = false
     @State private var renameDraft = ""
-    @State private var rhythmPulseStore = RhythmPulseStore()
-    @State private var cadenceModeState = CadenceModeState()
-    @State private var cadenceModeDeadlineController =
-        CadenceModeDeadlineController()
     @Namespace private var cadenceModeNamespace
 
     var body: some View {
@@ -31,20 +27,20 @@ struct ProductionNowPlayingView: View {
                 contextWidth: layout.contextWidth
             )
             let isCadenceModeActive = rhythmPulseVisualQAState?.isCadenceModeActive
-                ?? cadenceModeState.isActive
+                ?? cadenceModeSession.isActive
 
             ZStack {
                 if isCadenceModeActive {
                     ZStack {
                         CadenceModeBackground(
-                            palette: rhythmPulseStore.palette
+                            palette: cadenceModeSession.pulseStore.palette
                                 ?? .cadenceFallback
                         )
                         .allowsHitTesting(false)
                         .accessibilityHidden(true)
 
                         RhythmPulseCanvas(
-                            store: rhythmPulseStore,
+                            store: cadenceModeSession.pulseStore,
                             panelStartX: layout.contextWidth + 1
                         )
 
@@ -72,29 +68,20 @@ struct ProductionNowPlayingView: View {
                     .transition(reduceMotion ? .opacity : .cadenceModeLayer)
                 }
             }
-            .overlay(alignment: .topLeading) {
-                RhythmKeyboardCapture(
-                    isCadenceModeActive: isCadenceModeActive
-                ) { lane in
-                    handleCadenceModeHit(
-                        lane,
-                        layout: cadenceModeLayout,
-                        isCadenceModeActive: isCadenceModeActive
-                    )
-                } onExitCadenceMode: {
-                    deactivateCadenceMode()
-                }
-                .frame(width: 0, height: 0)
+            .task(id: cadenceModeLayout) {
+                cadenceModeSession.updateLayout(cadenceModeLayout)
             }
             .clipped()
+            .animation(
+                reduceMotion
+                    ? nil
+                    : .smooth(
+                        duration: CadenceTheme.motionCadenceModeEnter
+                    ),
+                value: isCadenceModeActive
+            )
         }
         .background(CadenceTheme.contentBackground)
-        .id(track.id)
-        .transition(.opacity)
-        .animation(
-            reduceMotion ? nil : .smooth(duration: CadenceTheme.motionPresent),
-            value: track.id
-        )
         .task(id: "\(track.id)-\(model.librarySession.store.tagRevision)") {
             tagStates = await (
                 try? model.librarySession.store.tagStates(
@@ -104,13 +91,13 @@ struct ProductionNowPlayingView: View {
         }
         .task(id: rhythmArtworkTaskID) {
             if let rhythmPulseVisualQAState {
-                rhythmPulseStore.prepare(
+                cadenceModeSession.pulseStore.prepare(
                     visualQAState: rhythmPulseVisualQAState
                 )
                 return
             }
             guard let displayedArtworkID else {
-                await rhythmPulseStore.prepare(asset: nil)
+                await cadenceModeSession.pulseStore.prepare(asset: nil)
                 return
             }
             let asset = await model.librarySession.store.artworkAsset(
@@ -118,17 +105,7 @@ struct ProductionNowPlayingView: View {
                 location: model.librarySession.location,
                 variant: .thumbnail
             )
-            await rhythmPulseStore.prepare(asset: asset)
-        }
-        .onDisappear {
-            cadenceModeDeadlineController.cancel()
-            rhythmPulseStore.reset()
-            cadenceModeState.reset()
-        }
-        .onChange(of: track.id) { _, _ in
-            cadenceModeDeadlineController.cancel()
-            rhythmPulseStore.reset()
-            cadenceModeState.reset()
+            await cadenceModeSession.pulseStore.prepare(asset: asset)
         }
         .catalogRenameAlert(
             "Rename Track",
@@ -149,71 +126,6 @@ struct ProductionNowPlayingView: View {
 }
 
 private extension ProductionNowPlayingView {
-    private func handleCadenceModeHit(
-        _ lane: RhythmLane,
-        layout: CadenceModeLayout,
-        isCadenceModeActive: Bool
-    ) {
-        let now = ProcessInfo.processInfo.systemUptime
-        var nextState = cadenceModeState
-        let action = nextState.registerHit(lane: lane, at: now)
-        let response = CadenceModeHitResponse.resolve(
-            wasActive: isCadenceModeActive,
-            stateAction: action
-        )
-
-        switch response {
-        case .activate:
-            withAnimation(cadenceModeEntryAnimation) {
-                cadenceModeState = nextState
-            }
-            scheduleCadenceModeExit(deadline: nextState.deadline)
-        case .emitPulse:
-            scheduleCadenceModeExit(deadline: nextState.deadline)
-            rhythmPulseStore.registerHit(
-                lane: lane,
-                emitterOrigin: layout.normalizedEmitterOrigin(
-                    lane: lane,
-                    isCadenceModeActive: true
-                )
-            )
-        case .none:
-            cadenceModeState = nextState
-        }
-    }
-
-    private func deactivateCadenceMode() {
-        cadenceModeDeadlineController.cancel()
-        var nextState = cadenceModeState
-        guard nextState.deactivate() == .deactivated else {
-            return
-        }
-        withAnimation(cadenceModeExitAnimation) {
-            cadenceModeState = nextState
-        }
-    }
-
-    private func scheduleCadenceModeExit(deadline: TimeInterval?) {
-        guard let deadline else {
-            return
-        }
-        cadenceModeDeadlineController.schedule(deadline: deadline) {
-            deactivateCadenceMode()
-        }
-    }
-
-    private var cadenceModeEntryAnimation: Animation {
-        reduceMotion
-            ? .easeOut(duration: CadenceTheme.motionDismiss)
-            : .smooth(duration: CadenceTheme.motionCadenceModeEnter)
-    }
-
-    private var cadenceModeExitAnimation: Animation {
-        reduceMotion
-            ? .easeOut(duration: CadenceTheme.motionDismiss)
-            : .smooth(duration: CadenceTheme.motionCadenceModeExit)
-    }
-
     private func standardNowPlaying(
         layout: NowPlayingLayoutMetrics,
         cadenceModeLayout: CadenceModeLayout

@@ -74,7 +74,7 @@ private enum RhythmArtworkPaletteExtractor {
             buckets[key, default: 0] += 1
         }
 
-        let luminances = buckets
+        var luminances = buckets
             .sorted {
                 if $0.value == $1.value {
                     return $0.key < $1.key
@@ -88,7 +88,11 @@ private enum RhythmArtworkPaletteExtractor {
                 }
                 selected.append(luminance)
             }
-            .prefix(5)
+        for anchor in [0.38, 0.82, 0.6]
+            where luminances.count < 5
+            && luminances.allSatisfy({ abs($0 - anchor) >= 0.1 }) {
+            luminances.append(anchor)
+        }
 
         guard !luminances.isEmpty else {
             return nil

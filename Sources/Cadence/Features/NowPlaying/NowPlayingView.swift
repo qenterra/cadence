@@ -2,13 +2,15 @@ import SwiftUI
 
 struct NowPlayingView: View {
     @Bindable var model: CadenceAppModel
+    let cadenceModeSession: CadenceModeSession
 
     var body: some View {
         Group {
             if let track = model.currentPlaybackTrack {
                 ProductionNowPlayingView(
                     model: model,
-                    track: track
+                    track: track,
+                    cadenceModeSession: cadenceModeSession
                 )
             } else {
                 ContentUnavailableView {

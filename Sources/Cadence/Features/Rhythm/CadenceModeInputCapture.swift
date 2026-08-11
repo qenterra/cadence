@@ -1,0 +1,65 @@
+import SwiftUI
+
+struct CadenceModeInputCapture: View {
+    @Bindable var model: CadenceAppModel
+    @Bindable var session: CadenceModeSession
+
+    var body: some View {
+        RhythmKeyboardCapture(
+            canActivateCadenceMode: model.hasCurrentPlaybackItem
+                && model.isPlaying,
+            isCadenceModeActive: session.isActive
+        ) { lane in
+            handleKeyDown(lane)
+        } onKeyUp: { lane in
+            session.keyUp(lane: lane)
+        } onExitCadenceMode: {
+            session.deactivate()
+        } onReleaseAllKeys: {
+            session.releaseAllKeys()
+        }
+        .onChange(of: model.playbackWorkspace) { _, workspace in
+            synchronizePresentation(with: workspace)
+        }
+        .onChange(of: model.currentPlaybackTrack?.id) { oldID, newID in
+            handleTrackChange(from: oldID, to: newID)
+        }
+    }
+
+    private func handleKeyDown(_ lane: RhythmLane) {
+        let action = session.keyDown(
+            lane: lane,
+            canActivate: model.hasCurrentPlaybackItem && model.isPlaying
+        )
+        guard action == .requestPresentation else {
+            return
+        }
+        guard model.presentNowPlaying() else {
+            session.deactivate()
+            return
+        }
+        session.setPresentationAvailable(
+            model.playbackWorkspace == .nowPlaying
+        )
+    }
+
+    private func synchronizePresentation(with workspace: PlaybackWorkspace) {
+        if workspace == .nowPlaying, session.activationIsPending {
+            session.setPresentationAvailable(true)
+            return
+        }
+        if workspace != .nowPlaying, session.isActive {
+            session.deactivate()
+        }
+    }
+
+    private func handleTrackChange(from oldID: UUID?, to newID: UUID?) {
+        guard oldID != nil, newID != nil, oldID != newID else {
+            if newID == nil {
+                session.deactivate()
+            }
+            return
+        }
+        session.currentTrackDidChange()
+    }
+}

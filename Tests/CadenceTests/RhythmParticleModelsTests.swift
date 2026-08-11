@@ -49,8 +49,8 @@ struct RhythmParticleModelsTests {
             (-0.02 ... 0.02).contains($0.emissionOffset.dx)
                 && (-0.025 ... 0.025).contains($0.emissionOffset.dy)
         })
-        #expect(Set(particles.map(\.size)).count > 4)
-        #expect(Set(particles.map(\.lifetime)).count > 4)
+        #expect(Set(particles.map(\.size)).count == particles.count)
+        #expect(Set(particles.map(\.lifetime)).count == particles.count)
         #expect(particles.allSatisfy {
             (0.7 ... 1.55).contains($0.lifetime)
         })
@@ -134,8 +134,12 @@ struct RhythmParticleModelsTests {
             generator: &random
         )
         let particle = try #require(simulation.allParticles.first)
-        let early = try #require(particle.sample(at: 2.08))
-        let late = try #require(particle.sample(at: 2.48))
+        let early = try #require(
+            particle.sample(at: particle.startedAt + 0.08)
+        )
+        let late = try #require(
+            particle.sample(at: particle.startedAt + 0.48)
+        )
 
         #expect(early.position.x > particle.origin.x)
         #expect(late.position.x > early.position.x)

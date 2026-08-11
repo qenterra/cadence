@@ -56,7 +56,7 @@ final class RhythmPulseWashTextureCache {
             return nil
         }
 
-        let opacity = key.reduceTransparency ? 0.4 : 0.72
+        let opacity = key.reduceTransparency ? 0.46 : 0.8
         let colors = [
             makeCGColor(key.color, alpha: opacity),
             makeCGColor(key.color, alpha: opacity * 0.34),

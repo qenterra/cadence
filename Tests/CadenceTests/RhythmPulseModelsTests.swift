@@ -1,5 +1,6 @@
 @testable import Cadence
 import CoreGraphics
+import QuartzCore
 import Testing
 
 struct RhythmPulseModelsTests {
@@ -70,8 +71,8 @@ struct RhythmPulseModelsTests {
         )
     }
 
-    @Test("Repeated presses crossfade one lane without a visual cut")
-    func repeatedLaneHitCrossfadesItsColorFields() {
+    @Test("Repeated presses replace one lane within its fixed layer budget")
+    func repeatedLaneHitReplacesItsColorFields() {
         var simulation = RhythmPulseSimulation()
         var random = SplitMix64(seed: 13)
 
@@ -91,15 +92,14 @@ struct RhythmPulseModelsTests {
             generator: &random
         )
 
-        let crossfadingWashes = simulation.washes(at: 0.21)
-        let crossfadingIDs = Set(crossfadingWashes.map(\.id))
-        #expect(crossfadingWashes.count == 6)
-        #expect(!crossfadingIDs.isDisjoint(with: firstIDs))
-        #expect(crossfadingIDs.subtracting(firstIDs).count == 3)
-        #expect(simulation.washes(at: 0.43).count == 3)
+        let replacementWashes = simulation.washes(at: 0.21)
+        let replacementIDs = Set(replacementWashes.map(\.id))
+        #expect(replacementWashes.count == 6)
+        #expect(firstIDs.isSubset(of: replacementIDs))
+        #expect(simulation.washes(at: 0.29).count == 3)
     }
 
-    @Test("Opposite lanes can overlap with a fixed six-field ceiling")
+    @Test("Opposite lanes can overlap with six color fields")
     func oppositeLanesOverlap() {
         var simulation = RhythmPulseSimulation()
         var random = SplitMix64(seed: 17)
@@ -166,6 +166,78 @@ struct RhythmPulseModelsTests {
         #expect(!wash.isAlive(at: 1.1))
     }
 
+    @Test("Compositor samples the visible impact peak near twenty milliseconds")
+    func compositorKeepsTheWashImpactPeak() throws {
+        var simulation = RhythmPulseSimulation()
+        var random = SplitMix64(seed: 39)
+        simulation.registerHit(
+            lane: .left,
+            origin: CGPoint(x: 0.34, y: 0.38),
+            palette: .fixture,
+            time: 0,
+            generator: &random
+        )
+        let wash = try #require(simulation.allWashes.first)
+
+        let samples = RhythmPulseCompositorSampling.opacitySamples(for: wash)
+
+        #expect(samples.count <= 7)
+        #expect(samples.contains { (0.015 ... 0.025).contains($0.time) })
+        #expect(
+            samples.map(\.opacity).max() ?? 0
+                > wash.peakOpacity * 0.85
+        )
+    }
+
+    @MainActor
+    @Test("Recycled compositor layers are hidden with neutral model state")
+    func recycledLayersCannotFlashAtTheWindowOrigin() {
+        let container = CALayer()
+        let layer = CALayer()
+        container.addSublayer(layer)
+        layer.bounds = CGRect(x: 0, y: 0, width: 400, height: 220)
+        layer.position = CGPoint(x: 17, y: 23)
+        layer.opacity = 1
+        layer.backgroundColor = CGColor(gray: 1, alpha: 1)
+        layer.cornerRadius = 18
+        layer.setAffineTransform(
+            CGAffineTransform(rotationAngle: 0.7).scaledBy(x: 4, y: 3)
+        )
+        layer.add(CABasicAnimation(keyPath: "opacity"), forKey: "test")
+
+        RhythmReusableLayer.prepareForReuse(layer)
+
+        #expect(layer.superlayer == nil)
+        #expect(layer.animationKeys() == nil)
+        #expect(layer.isHidden)
+        #expect(layer.opacity == 0)
+        #expect(layer.bounds == .zero)
+        #expect(layer.position == .zero)
+        #expect(layer.backgroundColor == nil)
+        #expect(layer.cornerRadius == 0)
+        #expect(CATransform3DIsIdentity(layer.transform))
+    }
+
+    @MainActor
+    @Test("Pooled compositor layers reset without rebuilding the layer tree")
+    func pooledLayersStayAttachedWhileHidden() {
+        let container = CALayer()
+        let layer = CALayer()
+        container.addSublayer(layer)
+        layer.bounds = CGRect(x: 0, y: 0, width: 300, height: 180)
+        layer.opacity = 1
+
+        RhythmReusableLayer.prepareForReuse(
+            layer,
+            removeFromSuperlayer: false
+        )
+
+        #expect(layer.superlayer === container)
+        #expect(layer.isHidden)
+        #expect(layer.opacity == 0)
+        #expect(layer.bounds == .zero)
+    }
+
     @Test("HTML impact scale expands monotonically at render cadence")
     func washScaleExpandsMonotonically() throws {
         var simulation = RhythmPulseSimulation()
@@ -202,15 +274,34 @@ struct RhythmPulseModelsTests {
         )
     }
 
-    @Test("Light appearance preserves artwork colors")
-    func lightAppearanceUsesArtworkSafeCompositing() {
+    @Test("Effect colors brighten without washing out artwork saturation")
+    func effectColorsPreserveArtworkSaturation() {
+        let darkPalette = RhythmAccentPalette(
+            colors: [
+                RhythmPulseColor(red: 0.08, green: 0.12, blue: 0.32),
+                RhythmPulseColor(red: 0.16, green: 0.16, blue: 0.16),
+            ]
+        )
         let appearance = RhythmPulseAppearance.resolve(
             mode: .light,
-            palette: .fixture
+            palette: darkPalette
         )
 
-        #expect(appearance.colors == RhythmAccentPalette.fixture.colors)
+        let colorfulSource = darkPalette.colors[0]
+        let colorfulEffect = appearance.colors[0]
+        let neutralEffect = appearance.colors[1]
+
+        #expect(colorfulEffect.saturation >= colorfulSource.saturation - 0.001)
+        #expect(colorfulEffect.blue > colorfulEffect.green)
+        #expect(colorfulEffect.green > colorfulEffect.red)
+        #expect(
+            max(colorfulEffect.red, colorfulEffect.green, colorfulEffect.blue)
+                >= 0.82
+        )
+        #expect(neutralEffect.relativeLuminance >= 0.58)
+        #expect(appearance.colors[1].saturation == 0)
         #expect(appearance.washBlendStrategy == .multiply)
+        #expect(appearance.maximumWashAnimationFramesPerSecond == 60)
         #expect(!appearance.usesDarkBackdrop)
         #expect(!appearance.usesLiveBlur)
     }
@@ -225,14 +316,33 @@ struct RhythmPulseModelsTests {
 
         #expect(appearance.isAnimated)
         #expect(appearance.blurRadius == 0)
-        #expect(appearance.animationDuration >= 18)
+        #expect((12 ... 18).contains(appearance.animationDuration))
+        #expect(appearance.maximumAnimationFramesPerSecond == 30)
+        #expect(appearance.gradientRasterizationScale == 0.33)
         #expect(appearance.animatedLayerCount == 2)
         #expect(appearance.baseOpacity >= 0.78)
+        #expect(appearance.fieldOpacity >= 0.7)
         #expect(appearance.scrimOpacity >= 0.35)
         #expect(
             RhythmAccentPalette.fixture.backgroundColors
                 .allSatisfy { $0.relativeLuminance < 0.5 }
         )
+    }
+
+    @Test("A flat artwork accent expands into distinct dark gradient zones")
+    func flatArtworkStillProducesDynamicBackgroundZones() {
+        let palette = RhythmAccentPalette(
+            colors: [
+                RhythmPulseColor(red: 0.72, green: 0.18, blue: 0.38),
+            ]
+        )
+
+        let backgroundColors = palette.backgroundColors
+        let luminances = backgroundColors.map(\.relativeLuminance)
+
+        #expect(backgroundColors.count >= 3)
+        #expect((luminances.max() ?? 0) - (luminances.min() ?? 0) >= 0.08)
+        #expect(backgroundColors.allSatisfy { $0.relativeLuminance < 0.5 })
     }
 
     @Test("Cadence Mode background honors accessibility display settings")

@@ -52,29 +52,27 @@ struct CadenceModeFramePacingTests {
         )
         probe.reset()
 
-        sendKey(keyCode: 6, characters: "z", to: window)
+        sendKey(type: .keyDown, keyCode: 6, characters: "z", to: window)
         try await Task.sleep(for: .milliseconds(80))
-        sendKey(keyCode: 7, characters: "x", to: window)
-        try await Task.sleep(for: .milliseconds(700))
+        sendKey(type: .keyDown, keyCode: 7, characters: "x", to: window)
+        try await Task.sleep(for: .milliseconds(260))
+        sendKey(type: .keyUp, keyCode: 6, characters: "z", to: window)
+        sendKey(type: .keyUp, keyCode: 7, characters: "x", to: window)
+        try await Task.sleep(for: .milliseconds(440))
         probe.reset()
 
-        let inputTask = Task { @MainActor in
-            for index in 0 ..< 40 {
-                guard !Task.isCancelled else {
-                    return
-                }
-                let usesLeftLane = index.isMultiple(of: 2)
-                sendKey(
-                    keyCode: usesLeftLane ? 6 : 7,
-                    characters: usesLeftLane ? "z" : "x",
-                    to: window
-                )
-                try? await Task.sleep(for: .milliseconds(100))
-            }
-        }
+        try await Task.sleep(for: .seconds(2))
+        let idleCadenceReport = try #require(
+            probe.report(
+                expectedFramesPerSecond: expectedFramesPerSecond
+            )
+        )
+        probe.reset()
 
-        try await Task.sleep(for: .seconds(4))
-        inputTask.cancel()
+        let tapLatencySummary = try await stressWithDiscreteTaps(
+            window: window,
+            duration: 4
+        )
         displayLink.invalidate()
 
         let report = try #require(
@@ -82,8 +80,10 @@ struct CadenceModeFramePacingTests {
                 expectedFramesPerSecond: expectedFramesPerSecond
             )
         )
+        let cadenceSummary = report.summary + "; " + tapLatencySummary
         print(baselineReport.summary)
-        print(report.summary)
+        print("Idle " + idleCadenceReport.summary)
+        print(cadenceSummary)
 
         #expect(
             baselineReport.deliveredFrameRatio
@@ -91,23 +91,28 @@ struct CadenceModeFramePacingTests {
             Comment(rawValue: baselineReport.summary)
         )
         #expect(
+            idleCadenceReport.deliveredFrameRatio
+                >= Self.minimumDeliveredFrameRatio,
+            Comment(rawValue: "Idle " + idleCadenceReport.summary)
+        )
+        #expect(
             report.deliveredFrameRatio
                 >= Self.minimumDeliveredFrameRatio,
-            Comment(rawValue: report.summary)
+            Comment(rawValue: cadenceSummary)
         )
         #expect(
             report.deliveredFramesPerSecond
                 >= baselineReport.deliveredFramesPerSecond
                 * Self.minimumDeliveredFrameRatio,
             Comment(
-                rawValue: baselineReport.summary + "; " + report.summary
+                rawValue: baselineReport.summary + "; " + cadenceSummary
             )
         )
         #expect(
             report.longestFrameDuration
                 <= report.frameBudget * Self.maximumFrameIntervalMultiplier
                 + Self.clockPrecisionTolerance,
-            Comment(rawValue: report.summary)
+            Comment(rawValue: cadenceSummary)
         )
     }
 
@@ -164,12 +169,13 @@ struct CadenceModeFramePacingTests {
     }
 
     private func sendKey(
+        type: NSEvent.EventType,
         keyCode: UInt16,
         characters: String,
         to window: NSWindow
     ) {
         guard let event = NSEvent.keyEvent(
-            with: .keyDown,
+            with: type,
             location: .zero,
             modifierFlags: [],
             timestamp: ProcessInfo.processInfo.systemUptime,
@@ -183,6 +189,42 @@ struct CadenceModeFramePacingTests {
             return
         }
         NSApp.sendEvent(event)
+    }
+
+    private func stressWithDiscreteTaps(
+        window: NSWindow,
+        duration: TimeInterval
+    ) async throws -> String {
+        let deadline = ProcessInfo.processInfo.systemUptime + duration
+        var usesLeftLane = true
+        var tapDurations: [TimeInterval] = []
+        while ProcessInfo.processInfo.systemUptime < deadline {
+            let keyCode: UInt16 = usesLeftLane ? 6 : 7
+            let characters = usesLeftLane ? "z" : "x"
+            let tapStartedAt = ProcessInfo.processInfo.systemUptime
+            sendKey(
+                type: .keyDown,
+                keyCode: keyCode,
+                characters: characters,
+                to: window
+            )
+            sendKey(
+                type: .keyUp,
+                keyCode: keyCode,
+                characters: characters,
+                to: window
+            )
+            tapDurations.append(
+                ProcessInfo.processInfo.systemUptime - tapStartedAt
+            )
+            usesLeftLane.toggle()
+            try await Task.sleep(for: .milliseconds(180))
+        }
+        return String(
+            format: "tap latency max %.2f ms, average %.2f ms",
+            (tapDurations.max() ?? 0) * 1000,
+            (tapDurations.reduce(0, +) / Double(tapDurations.count)) * 1000
+        )
     }
 }
 
@@ -210,16 +252,20 @@ private final class CadenceDisplayLinkProbe: NSObject {
             return nil
         }
 
-        let durations = zip(timestamps, timestamps.dropFirst()).map {
-            $1 - $0
+        let intervals = zip(timestamps, timestamps.dropFirst()).map {
+            (duration: $1 - $0, offset: $0 - firstTimestamp)
         }
         let elapsed = lastTimestamp - firstTimestamp
-        let deliveredFramesPerSecond = Double(durations.count) / elapsed
+        let deliveredFramesPerSecond = Double(intervals.count) / elapsed
         let expectedFramesPerSecond = Double(expectedFramesPerSecond)
+        let longestInterval = intervals.max {
+            $0.duration < $1.duration
+        }
         return CadenceFramePacingReport(
             expectedFramesPerSecond: expectedFramesPerSecond,
             deliveredFramesPerSecond: deliveredFramesPerSecond,
-            longestFrameDuration: durations.max() ?? .infinity
+            longestFrameDuration: longestInterval?.duration ?? .infinity,
+            longestFrameOffset: longestInterval?.offset ?? .infinity
         )
     }
 }
@@ -228,6 +274,7 @@ private struct CadenceFramePacingReport {
     let expectedFramesPerSecond: Double
     let deliveredFramesPerSecond: Double
     let longestFrameDuration: TimeInterval
+    let longestFrameOffset: TimeInterval
 
     var deliveredFrameRatio: Double {
         deliveredFramesPerSecond / expectedFramesPerSecond
@@ -239,10 +286,11 @@ private struct CadenceFramePacingReport {
 
     var summary: String {
         String(
-            format: "Cadence frame pacing: %.2f/%.0f FPS, longest %.2f ms",
+            format: "Cadence frame pacing: %.2f/%.0f FPS, longest %.2f ms at %.2f s",
             deliveredFramesPerSecond,
             expectedFramesPerSecond,
-            longestFrameDuration * 1000
+            longestFrameDuration * 1000,
+            longestFrameOffset
         )
     }
 }

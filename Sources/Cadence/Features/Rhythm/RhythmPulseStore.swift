@@ -4,7 +4,7 @@ import SwiftUI
 @MainActor
 @Observable
 final class RhythmPulseStore {
-    private(set) var palette: RhythmAccentPalette?
+    private(set) var palette: RhythmAccentPalette? = .cadenceFallback
     private(set) var hasLiveEffects = false
     private(set) var visualQATime: TimeInterval?
     @ObservationIgnored private var simulation = RhythmPulseSimulation()
@@ -50,19 +50,20 @@ final class RhythmPulseStore {
         guard let palette else {
             return
         }
+        let effectPalette = palette.effectPalette
 
         let now = ProcessInfo.processInfo.systemUptime
         simulation.registerHit(
             lane: lane,
             origin: emitterOrigin,
-            palette: palette,
+            palette: effectPalette,
             time: now,
             generator: &generator
         )
         particleSimulation.registerHit(
             lane: lane,
             origin: emitterOrigin,
-            palette: palette,
+            palette: effectPalette,
             time: now,
             generator: &generator
         )
@@ -88,6 +89,7 @@ final class RhythmPulseStore {
         reset()
         preparedAssetKey = stateKey
         palette = visualQAState.palette
+        let effectPalette = visualQAState.palette.effectPalette
         var random = SplitMix64(seed: visualQAState.seed)
         let snapshotTime = ProcessInfo.processInfo.systemUptime
         for lane in visualQAState.lanes {
@@ -105,14 +107,14 @@ final class RhythmPulseStore {
             simulation.registerHit(
                 lane: lane,
                 origin: emitterOrigin,
-                palette: visualQAState.palette,
+                palette: effectPalette,
                 time: snapshotTime - 0.14,
                 generator: &random
             )
             particleSimulation.registerHit(
                 lane: lane,
                 origin: emitterOrigin,
-                palette: visualQAState.palette,
+                palette: effectPalette,
                 time: snapshotTime - 0.14,
                 generator: &random
             )

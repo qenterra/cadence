@@ -3,6 +3,15 @@ import SwiftUI
 struct CadenceRootView: View {
     @Bindable var model: CadenceAppModel
     @State private var isSearchPresented = false
+    @State private var cadenceModeSession: CadenceModeSession
+
+    init(
+        model: CadenceAppModel,
+        cadenceModeSession: CadenceModeSession = CadenceModeSession()
+    ) {
+        self.model = model
+        _cadenceModeSession = State(initialValue: cadenceModeSession)
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -51,6 +60,13 @@ struct CadenceRootView: View {
             PlayerBar(model: model)
         }
         .background(CadenceTheme.contentBackground)
+        .overlay(alignment: .topLeading) {
+            CadenceModeInputCapture(
+                model: model,
+                session: cadenceModeSession
+            )
+            .frame(width: 0, height: 0)
+        }
         .toolbarBackground(
             CadenceTheme.opaqueSurface,
             for: .windowToolbar
@@ -136,6 +152,7 @@ struct CadenceRootView: View {
             )
         }
         .onDisappear {
+            cadenceModeSession.deactivate()
             model.shutdownPlayback()
         }
         .onChange(of: model.selectedDestination) {
@@ -209,7 +226,10 @@ private extension CadenceRootView {
     private var workspaceContent: some View {
         switch model.playbackWorkspace {
         case .nowPlaying:
-            NowPlayingView(model: model)
+            NowPlayingView(
+                model: model,
+                cadenceModeSession: cadenceModeSession
+            )
         case .lyricsEditor:
             LyricsEditorView(model: model)
         case .lyricsSearch:

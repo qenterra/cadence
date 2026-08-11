@@ -11,6 +11,56 @@ struct RhythmPulseCompositorState {
     let reduceTransparency: Bool
 }
 
+struct RhythmPulseOpacitySample: Equatable, Sendable {
+    let time: TimeInterval
+    let normalizedTime: Double
+    let opacity: Double
+}
+
+enum RhythmPulseCompositorSampling {
+    static func opacitySamples(
+        for wash: RhythmPulseWash
+    ) -> [RhythmPulseOpacitySample] {
+        let sampleTimes = [
+            0,
+            min(0.02, wash.lifetime),
+            min(0.11, wash.lifetime),
+            wash.lifetime * 0.3,
+            wash.lifetime * 0.6,
+            wash.lifetime,
+        ]
+        return sampleTimes.map { elapsed in
+            RhythmPulseOpacitySample(
+                time: wash.startedAt + elapsed,
+                normalizedTime: elapsed / wash.lifetime,
+                opacity: wash.opacity(at: wash.startedAt + elapsed)
+            )
+        }
+    }
+}
+
+@MainActor
+enum RhythmReusableLayer {
+    static func prepareForReuse(
+        _ layer: CALayer,
+        removeFromSuperlayer: Bool = true
+    ) {
+        layer.isHidden = true
+        layer.removeAllAnimations()
+        if removeFromSuperlayer {
+            layer.removeFromSuperlayer()
+        }
+        layer.contents = nil
+        layer.backgroundColor = nil
+        layer.bounds = .zero
+        layer.position = .zero
+        layer.anchorPoint = CGPoint(x: 0.5, y: 0.5)
+        layer.opacity = 0
+        layer.cornerRadius = 0
+        layer.transform = CATransform3DIdentity
+    }
+}
+
 @MainActor
 final class RhythmPulseCompositorView: NSView {
     private let effectLayer = CALayer()
@@ -79,8 +129,20 @@ final class RhythmPulseCompositorView: NSView {
         layer?.masksToBounds = true
         layer?.addSublayer(effectLayer)
         layerContentsRedrawPolicy = .never
-        washLayerPool = (0 ..< 12).map { _ in CALayer() }
-        particleLayerPool = (0 ..< 16).map { _ in CALayer() }
+        washLayerPool = makeAttachedLayerPool(count: 12)
+        particleLayerPool = makeAttachedLayerPool(count: 16)
+    }
+
+    private func makeAttachedLayerPool(count: Int) -> [CALayer] {
+        (0 ..< count).map { _ in
+            let layer = CALayer()
+            RhythmReusableLayer.prepareForReuse(
+                layer,
+                removeFromSuperlayer: false
+            )
+            effectLayer.addSublayer(layer)
+            return layer
+        }
     }
 
     private func rebuildLayers() {
@@ -96,6 +158,12 @@ final class RhythmPulseCompositorView: NSView {
         guard !bounds.isEmpty, state.appearance != nil else {
             return
         }
+        CATransaction.performWithoutAnimation {
+            reconcileLayersWithoutImplicitAnimations()
+        }
+    }
+
+    private func reconcileLayersWithoutImplicitAnimations() {
         removeMissingLayers(
             keepingWashIDs: Set(state.washes.map(\.id)),
             keepingParticleIDs: Set(state.particles.map(\.id))
@@ -107,7 +175,7 @@ final class RhythmPulseCompositorView: NSView {
             } else {
                 let washLayer = makeWashLayer(wash)
                 washLayers[wash.id] = washLayer
-                effectLayer.addSublayer(washLayer)
+                reveal(washLayer)
                 updateReplacementFade(wash, layer: washLayer)
             }
         }
@@ -120,7 +188,7 @@ final class RhythmPulseCompositorView: NSView {
                 particle
             )
             particleLayers[particle.id] = particleLayer
-            effectLayer.addSublayer(particleLayer)
+            reveal(particleLayer)
         }
     }
 
@@ -167,7 +235,10 @@ final class RhythmPulseCompositorView: NSView {
 private extension RhythmPulseCompositorView {
     private func makeWashLayer(_ wash: RhythmPulseWash) -> CALayer {
         let washLayer = washLayerPool.popLast() ?? CALayer()
-        washLayer.removeAllAnimations()
+        RhythmReusableLayer.prepareForReuse(
+            washLayer,
+            removeFromSuperlayer: false
+        )
         washLayer.contents = washTextureCache.image(
             color: wash.color,
             reduceTransparency: state.reduceTransparency
@@ -183,7 +254,6 @@ private extension RhythmPulseCompositorView {
             width: radius * 2 * wash.horizontalScale,
             height: radius * 2 * wash.verticalScale
         )
-        washLayer.anchorPoint = CGPoint(x: 0.5, y: 0.5)
 
         if let visualQATime = state.visualQATime {
             applyStaticWash(
@@ -223,12 +293,18 @@ private extension RhythmPulseCompositorView {
     ) {
         let sampleCount = 5
         let times = normalizedTimes(count: sampleCount)
+        let opacitySamples = RhythmPulseCompositorSampling.opacitySamples(
+            for: wash
+        )
         let group = CAAnimationGroup()
         group.animations = [
             keyframe("position", times: times) { progress in
                 NSValue(point: point(wash.center(at: washTime(wash, progress))))
             },
-            keyframe("opacity", times: times) { progress in
+            keyframe(
+                "opacity",
+                times: opacitySamples.map(\.normalizedTime)
+            ) { progress in
                 wash.opacity(at: washTime(wash, progress))
             },
             keyframe("transform", times: times) { progress in
@@ -246,13 +322,17 @@ private extension RhythmPulseCompositorView {
             on: layer,
             duration: wash.lifetime,
             startedAt: wash.startedAt,
-            key: "wash"
+            key: "wash",
+            frameRateRange: washFrameRateRange
         )
     }
 
     private func makeParticleLayer(_ particle: RhythmParticle) -> CALayer {
         let particleLayer = particleLayerPool.popLast() ?? CALayer()
-        particleLayer.removeAllAnimations()
+        RhythmReusableLayer.prepareForReuse(
+            particleLayer,
+            removeFromSuperlayer: false
+        )
         particleLayer.bounds = CGRect(
             x: 0,
             y: 0,
@@ -275,9 +355,10 @@ private extension RhythmPulseCompositorView {
     }
 
     private func recycleWashLayer(_ layer: CALayer) {
-        layer.removeAllAnimations()
-        layer.removeFromSuperlayer()
-        layer.contents = nil
+        RhythmReusableLayer.prepareForReuse(
+            layer,
+            removeFromSuperlayer: false
+        )
         washLayerPool.append(layer)
     }
 
@@ -307,14 +388,23 @@ private extension RhythmPulseCompositorView {
         fade.duration = duration
         fade.fillMode = .forwards
         fade.isRemovedOnCompletion = false
-        fade.preferredFrameRateRange = preferredFrameRateRange
+        fade.preferredFrameRateRange = washFrameRateRange
         layer.add(fade, forKey: "replacement")
     }
 
     private func recycleParticleLayer(_ layer: CALayer) {
-        layer.removeAllAnimations()
-        layer.removeFromSuperlayer()
+        RhythmReusableLayer.prepareForReuse(
+            layer,
+            removeFromSuperlayer: false
+        )
         particleLayerPool.append(layer)
+    }
+
+    private func reveal(_ layer: CALayer) {
+        if layer.superlayer !== effectLayer {
+            effectLayer.addSublayer(layer)
+        }
+        layer.isHidden = false
     }
 
     private func applyStaticParticle(
@@ -364,7 +454,8 @@ private extension RhythmPulseCompositorView {
             on: layer,
             duration: particle.lifetime,
             startedAt: particle.startedAt,
-            key: "particle"
+            key: "particle",
+            frameRateRange: displayFrameRateRange
         )
     }
 
@@ -402,7 +493,8 @@ private extension RhythmPulseCompositorView {
         on layer: CALayer,
         duration: TimeInterval,
         startedAt: TimeInterval,
-        key: String
+        key: String,
+        frameRateRange: CAFrameRateRange
     ) {
         let elapsed = ProcessInfo.processInfo.systemUptime - startedAt
         animation.duration = duration
@@ -410,7 +502,7 @@ private extension RhythmPulseCompositorView {
             - elapsed
         animation.fillMode = .both
         animation.isRemovedOnCompletion = false
-        animation.preferredFrameRateRange = preferredFrameRateRange
+        animation.preferredFrameRateRange = frameRateRange
         layer.add(animation, forKey: key)
     }
 
@@ -451,12 +543,27 @@ private extension RhythmPulseCompositorView {
         ).intensity(atX: horizontalPosition)
     }
 
-    private var preferredFrameRateRange: CAFrameRateRange {
+    private var displayFrameRateRange: CAFrameRateRange {
         let maximumFramesPerSecond = Float(
             window?.screen?.maximumFramesPerSecond ?? 60
         )
         return CAFrameRateRange(
             minimum: min(60, maximumFramesPerSecond),
+            maximum: maximumFramesPerSecond,
+            preferred: maximumFramesPerSecond
+        )
+    }
+
+    private var washFrameRateRange: CAFrameRateRange {
+        let displayMaximum = Float(
+            window?.screen?.maximumFramesPerSecond ?? 60
+        )
+        let washMaximum = Float(
+            state.appearance?.maximumWashAnimationFramesPerSecond ?? 60
+        )
+        let maximumFramesPerSecond = min(displayMaximum, washMaximum)
+        return CAFrameRateRange(
+            minimum: min(30, maximumFramesPerSecond),
             maximum: maximumFramesPerSecond,
             preferred: maximumFramesPerSecond
         )

@@ -102,10 +102,14 @@ final class CadenceModeBackgroundView: NSView {
         primaryGradientLayer.type = .conic
         primaryGradientLayer.startPoint = CGPoint(x: 0.5, y: 0.5)
         primaryGradientLayer.endPoint = CGPoint(x: 0.5, y: 0)
+        primaryGradientLayer.shouldRasterize = true
+        primaryGradientLayer.drawsAsynchronously = true
 
         bloomGradientLayer.type = .radial
         bloomGradientLayer.startPoint = CGPoint(x: 0.5, y: 0.5)
         bloomGradientLayer.endPoint = CGPoint(x: 1, y: 1)
+        bloomGradientLayer.shouldRasterize = true
+        bloomGradientLayer.drawsAsynchronously = true
 
         scrimLayer.type = .radial
         scrimLayer.startPoint = CGPoint(x: 0.5, y: 0.46)
@@ -172,6 +176,11 @@ final class CadenceModeBackgroundView: NSView {
             blue: 0,
             alpha: appearance.baseOpacity
         )
+        let rasterizationScale = CGFloat(
+            appearance.gradientRasterizationScale
+        )
+        primaryGradientLayer.rasterizationScale = rasterizationScale
+        bloomGradientLayer.rasterizationScale = rasterizationScale
         primaryGradientLayer.colors = expandedColors
         primaryGradientLayer.locations = evenlySpacedLocations(
             count: expandedColors.count
@@ -217,8 +226,23 @@ final class CadenceModeBackgroundView: NSView {
         primaryScale.keyTimes = [0, 0.36, 0.72, 1]
         primaryScale.calculationMode = .cubic
 
+        let primaryPosition = CAKeyframeAnimation(keyPath: "position")
+        primaryPosition.values = [
+            CGPoint(x: bounds.width * 0.46, y: bounds.height * 0.48),
+            CGPoint(x: bounds.width * 0.56, y: bounds.height * 0.43),
+            CGPoint(x: bounds.width * 0.54, y: bounds.height * 0.56),
+            CGPoint(x: bounds.width * 0.44, y: bounds.height * 0.55),
+            CGPoint(x: bounds.width * 0.46, y: bounds.height * 0.48),
+        ]
+        primaryPosition.keyTimes = [0, 0.24, 0.52, 0.78, 1]
+        primaryPosition.calculationMode = .cubicPaced
+
         let primaryAnimation = CAAnimationGroup()
-        primaryAnimation.animations = [primaryRotation, primaryScale]
+        primaryAnimation.animations = [
+            primaryRotation,
+            primaryScale,
+            primaryPosition,
+        ]
         primaryAnimation.duration = appearance.animationDuration
         primaryAnimation.repeatCount = .infinity
         primaryAnimation.isRemovedOnCompletion = false
@@ -257,11 +281,15 @@ final class CadenceModeBackgroundView: NSView {
     }
 
     private var preferredFrameRateRange: CAFrameRateRange {
-        let maximumFramesPerSecond = Float(
+        let displayFramesPerSecond = Float(
             window?.screen?.maximumFramesPerSecond ?? 60
         )
+        let maximumFramesPerSecond = min(
+            displayFramesPerSecond,
+            Float(backgroundAppearance?.maximumAnimationFramesPerSecond ?? 60)
+        )
         return CAFrameRateRange(
-            minimum: min(60, maximumFramesPerSecond),
+            minimum: min(30, maximumFramesPerSecond),
             maximum: maximumFramesPerSecond,
             preferred: maximumFramesPerSecond
         )

@@ -156,32 +156,35 @@ struct CadenceModeScreenshotTests {
 
         try await Task.sleep(for: .milliseconds(500))
         window.makeFirstResponder(hostingView)
-        sendKey(keyCode: 6, characters: "z", to: window)
+        sendKey(type: .keyDown, keyCode: 6, characters: "z", to: window)
         try await Task.sleep(for: .milliseconds(80))
-        sendKey(keyCode: 7, characters: "x", to: window)
+        sendKey(type: .keyDown, keyCode: 7, characters: "x", to: window)
 
-        try await Task.sleep(for: .milliseconds(220))
+        try await Task.sleep(for: .milliseconds(260))
         try capture(
             window: window,
             hostingView: hostingView,
             filename: "qa-cadence-mode-wide-transition-mid-dark.png"
         )
 
-        try await Task.sleep(for: .milliseconds(380))
+        try await Task.sleep(for: .milliseconds(340))
         try capture(
             window: window,
             hostingView: hostingView,
             filename: "qa-cadence-mode-wide-transition-settled-dark.png"
         )
+        sendKey(type: .keyUp, keyCode: 6, characters: "z", to: window)
+        sendKey(type: .keyUp, keyCode: 7, characters: "x", to: window)
     }
 
     private func sendKey(
+        type: NSEvent.EventType,
         keyCode: UInt16,
         characters: String,
         to window: NSWindow
     ) {
         guard let event = NSEvent.keyEvent(
-            with: .keyDown,
+            with: type,
             location: .zero,
             modifierFlags: [],
             timestamp: ProcessInfo.processInfo.systemUptime,

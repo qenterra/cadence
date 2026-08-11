@@ -1,6 +1,6 @@
 import CoreGraphics
 
-struct CadenceModeLayout: Sendable {
+struct CadenceModeLayout: Hashable, Sendable {
     private static let outerMargin: CGFloat = 24
     private static let standardInset: CGFloat = 42
     private static let lyricsGap: CGFloat = 20
