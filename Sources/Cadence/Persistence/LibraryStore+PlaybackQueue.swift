@@ -4,6 +4,9 @@ extension LibraryStore {
     func loadPlaybackQueueTracks(
         ids: [UUID]
     ) async {
+        let ids = Array(ids.prefix(
+            PlaybackQueuePresentation.maximumUpNextCount + 1
+        ))
         playbackQueueProjectionGeneration += 1
         let generation = playbackQueueProjectionGeneration
 

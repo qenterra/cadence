@@ -14,8 +14,12 @@ extension ProductionPlaybackQueuePanel {
             .onKeyPress(.return, phases: .down) { _ in
                 playSelectedQueueItem(queue)
             }
-            .onChange(of: queue.upNextTrackIDs) {
-                reconcileSelection(with: queue.upNextTrackIDs)
+            .onChange(
+                of: PlaybackQueuePresentation.upNextTrackIDs(for: queue)
+            ) {
+                reconcileSelection(
+                    with: PlaybackQueuePresentation.upNextTrackIDs(for: queue)
+                )
             }
     }
 
@@ -98,13 +102,8 @@ private extension ProductionPlaybackQueuePanel {
     func queueScrollContent(
         _ queue: PlaybackQueueState
     ) -> some View {
-        ScrollView {
+        ScrollView(.vertical) {
             LazyVStack(alignment: .leading, spacing: 0) {
-                queueSection(
-                    title: "History",
-                    ids: queue.previouslyPlayedTrackIDs,
-                    kind: .history
-                )
                 queueSection(
                     title: "Now Playing",
                     ids: [queue.currentTrackID].compactMap(\.self),
@@ -112,7 +111,7 @@ private extension ProductionPlaybackQueuePanel {
                 )
                 queueSection(
                     title: "Up Next",
-                    ids: queue.upNextTrackIDs,
+                    ids: PlaybackQueuePresentation.upNextTrackIDs(for: queue),
                     kind: .upNext
                 )
             }
@@ -144,16 +143,18 @@ private extension ProductionPlaybackQueuePanel {
         guard keyPress.modifiers == .command else {
             return .ignored
         }
-        selection = Set(queue.upNextTrackIDs)
-        selectionAnchor = queue.upNextTrackIDs.first
+        let visibleIDs = PlaybackQueuePresentation.upNextTrackIDs(for: queue)
+        selection = Set(visibleIDs)
+        selectionAnchor = visibleIDs.first
         return .handled
     }
 
     func playSelectedQueueItem(
         _ queue: PlaybackQueueState
     ) -> KeyPress.Result {
+        let visibleIDs = PlaybackQueuePresentation.upNextTrackIDs(for: queue)
         guard
-            let trackID = queue.upNextTrackIDs.first(where: selection.contains),
+            let trackID = visibleIDs.first(where: selection.contains),
             projection(for: trackID).track != nil
         else {
             return .ignored

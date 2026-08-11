@@ -92,7 +92,7 @@ struct LibraryStoreTests {
         #expect(store.searchQuery == "echo")
     }
 
-    @Test("Queue projections do not depend on the loaded catalog page")
+    @Test("Queue projections load only the current track and 25 upcoming tracks")
     func independentQueueProjection() async throws {
         let container = try makeContainer(trackCount: 401)
         let context = ModelContext(container)
@@ -107,8 +107,11 @@ struct LibraryStoreTests {
         await store.loadPlaybackQueueTracks(ids: requestedIDs)
 
         #expect(store.tracks.isEmpty)
-        #expect(store.playbackQueueTracks.map(\.id) == requestedIDs)
-        #expect(store.playbackQueueTracks.count == 401)
+        #expect(
+            store.playbackQueueTracks.map(\.id)
+                == Array(requestedIDs.prefix(26))
+        )
+        #expect(store.playbackQueueTracks.count == 26)
         #expect(store.playbackQueueTracks.allSatisfy { $0.track != nil })
         #expect(!store.isLoadingPlaybackQueueTracks)
         #expect(store.playbackQueueProjectionError == nil)

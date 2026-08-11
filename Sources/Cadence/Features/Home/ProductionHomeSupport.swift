@@ -150,7 +150,7 @@ struct HomeContinueListeningRow: View {
                     .font(.headline)
                     .frame(width: 34, height: 34)
                     .background(CadenceTheme.primaryAccent, in: Circle())
-                    .foregroundStyle(.white)
+                    .foregroundStyle(.black)
             }
             .padding(12)
             .background(

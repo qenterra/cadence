@@ -24,7 +24,7 @@ struct ProductionTrashView: View {
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
-                ScrollView {
+                ScrollView(.vertical) {
                     LazyVStack(spacing: 4) {
                         ForEach(store.trashOperations) { operation in
                             trashRow(operation)

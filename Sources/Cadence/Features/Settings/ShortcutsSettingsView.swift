@@ -105,7 +105,7 @@ enum ShortcutCatalog {
 struct ShortcutsSettingsView: View {
     var body: some View {
         SettingsCard(
-            title: "Shortcuts",
+            title: "Keyboard Reference",
             symbol: "keyboard"
         ) {
             VStack(spacing: 0) {

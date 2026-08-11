@@ -26,7 +26,7 @@ struct ProductionSearchResultsView: View {
             } else if expandedGroup == .tracks {
                 expandedTracks
             } else {
-                ScrollView {
+                ScrollView(.vertical) {
                     LazyVStack(alignment: .leading, spacing: 28) {
                         header
                         searchSections

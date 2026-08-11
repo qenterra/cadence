@@ -112,7 +112,7 @@ struct LibraryFavoritesView: View {
                 description: "Albums you favorite will appear here."
             )
         } else {
-            ScrollView {
+            ScrollView(.vertical) {
                 LazyVGrid(columns: catalogGrid, alignment: .leading, spacing: 24) {
                     ForEach(store.favoriteAlbums) { album in
                         ProductionAlbumTile(
@@ -144,7 +144,7 @@ struct LibraryFavoritesView: View {
                 description: "Artists you favorite will appear here."
             )
         } else {
-            ScrollView {
+            ScrollView(.vertical) {
                 LazyVGrid(columns: catalogGrid, alignment: .leading, spacing: 24) {
                     ForEach(store.favoriteArtists) { artist in
                         ProductionArtistTile(

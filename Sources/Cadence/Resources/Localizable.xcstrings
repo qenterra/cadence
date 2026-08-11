@@ -71,9 +71,6 @@
     "ARTIST" : {
 
     },
-    "About" : {
-
-    },
     "Active line" : {
 
     },
@@ -288,9 +285,6 @@
 
     },
     "Collection Rules" : {
-
-    },
-    "Collections" : {
 
     },
     "Columns" : {
@@ -695,9 +689,6 @@
     "Match" : {
 
     },
-    "More" : {
-
-    },
     "More Actions" : {
 
     },
@@ -792,6 +783,9 @@
 
     },
     "No tracks match the current rules." : {
+
+    },
+    "Not Favorite" : {
 
     },
     "Not sorted" : {
@@ -1075,12 +1069,6 @@
 
     },
     "Server URL" : {
-
-    },
-    "Show Column Browser" : {
-
-    },
-    "Show Library Sections" : {
 
     },
     "Show Now Playing" : {

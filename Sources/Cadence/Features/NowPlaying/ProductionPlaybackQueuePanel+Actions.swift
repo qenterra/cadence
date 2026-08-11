@@ -6,8 +6,8 @@ extension ProductionPlaybackQueuePanel {
         model.playbackCoordinator?.state.queue
     }
 
-    var orderedTrackIDs: [UUID] {
-        queue?.orderedTrackIDs ?? []
+    var visibleTrackIDs: [UUID] {
+        queue.map(PlaybackQueuePresentation.trackIDs) ?? []
     }
 
     func projection(
@@ -186,8 +186,6 @@ extension ProductionPlaybackQueuePanel {
         for kind: ProductionQueueSectionKind
     ) -> String {
         switch kind {
-        case .history:
-            "Nothing played before the current track."
         case .current:
             "No current track."
         case .upNext:

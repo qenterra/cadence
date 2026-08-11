@@ -44,6 +44,19 @@ struct PlaybackQueueState: Equatable, Sendable {
         return Array(orderedTrackIDs.dropFirst(currentIndex + 1))
     }
 
+    var hasUpNext: Bool {
+        orderedTrackIDs.indices.contains(currentIndex + 1)
+    }
+
+    func upcomingTrackIDs(limit: Int) -> [UUID] {
+        guard limit > 0, hasUpNext else {
+            return []
+        }
+        let startIndex = currentIndex + 1
+        let endIndex = min(startIndex + limit, orderedTrackIDs.endIndex)
+        return Array(orderedTrackIDs[startIndex ..< endIndex])
+    }
+
     mutating func move(
         by offset: Int,
         wrapping: Bool,
@@ -189,5 +202,22 @@ struct PlaybackQueueState: Equatable, Sendable {
         orderedTrackIDs = history + [currentTrackID] + replacement
         currentIndex = history.count
         return true
+    }
+}
+
+enum PlaybackQueuePresentation {
+    static let maximumUpNextCount = 25
+
+    static func upNextTrackIDs(
+        for queue: PlaybackQueueState
+    ) -> [UUID] {
+        queue.upcomingTrackIDs(limit: maximumUpNextCount)
+    }
+
+    static func trackIDs(
+        for queue: PlaybackQueueState
+    ) -> [UUID] {
+        [queue.currentTrackID].compactMap(\.self)
+            + upNextTrackIDs(for: queue)
     }
 }

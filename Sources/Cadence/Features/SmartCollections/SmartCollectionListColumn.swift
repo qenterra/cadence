@@ -10,7 +10,7 @@ struct SmartCollectionListColumn: View {
             if model.smartCollectionListItems.isEmpty {
                 emptyState
             } else {
-                ScrollView {
+                ScrollView(.vertical) {
                     LazyVStack(spacing: 2) {
                         ForEach(model.smartCollectionListItems) { item in
                             SmartCollectionListRow(

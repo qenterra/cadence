@@ -80,8 +80,11 @@ extension CadenceAppModel {
     }
 
     func loadProductionPlaybackQueueTracks() async {
+        let ids = playbackCoordinator?.state.queue.map(
+            PlaybackQueuePresentation.trackIDs
+        ) ?? []
         await librarySession.store.loadPlaybackQueueTracks(
-            ids: playbackCoordinator?.state.queue?.orderedTrackIDs ?? []
+            ids: ids
         )
     }
 

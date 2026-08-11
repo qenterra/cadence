@@ -20,6 +20,8 @@ struct NavigationRail: View {
             primaryNavigation
 
             Spacer(minLength: 12)
+
+            railButton(.trash)
         }
         .frame(
             width: NavigationRailMetrics.contentWidth(
@@ -79,8 +81,7 @@ struct NavigationRail: View {
     }
 
     private func railButton(_ destination: NavigationDestination) -> some View {
-        let isSelected = !suppressesSelection
-            && selection.primaryDestination == destination
+        let isSelected = !suppressesSelection && selection == destination
 
         return Button {
             selection = destination

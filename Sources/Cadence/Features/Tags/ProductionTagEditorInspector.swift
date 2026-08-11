@@ -16,7 +16,7 @@ struct ProductionTagEditorInspector: View {
 
             CadenceSeparator()
 
-            ScrollView {
+            ScrollView(.vertical) {
                 LazyVStack(spacing: 4) {
                     ForEach(store.tags) { tag in
                         tagToggle(tag)

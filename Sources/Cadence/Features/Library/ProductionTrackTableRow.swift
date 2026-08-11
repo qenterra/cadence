@@ -32,7 +32,7 @@ struct ProductionTrackTableRow: View {
     @State private var isHovered = false
 
     var body: some View {
-        HStack(spacing: 14) {
+        HStack(spacing: TrackTableColumnPolicy.columnSpacing) {
             song
                 .frame(width: CGFloat(widths.song), alignment: .leading)
 
@@ -51,14 +51,17 @@ struct ProductionTrackTableRow: View {
             } label: {
                 Image(systemName: "ellipsis")
                     .foregroundStyle(isHovered ? .primary : .tertiary)
-                    .frame(width: 28, height: 28)
+                    .frame(
+                        width: TrackTableColumnPolicy.actionWidth,
+                        height: TrackTableColumnPolicy.actionWidth
+                    )
                     .contentShape(Rectangle())
             }
             .menuIndicator(.hidden)
             .menuStyle(.borderlessButton)
             .help("Track Actions")
         }
-        .padding(.horizontal, 12)
+        .padding(.horizontal, TrackTableColumnPolicy.horizontalInset)
         .frame(height: 58)
         .background {
             BrowserRowSurface(
@@ -87,7 +90,25 @@ struct ProductionTrackTableRow: View {
     }
 
     private var song: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: TrackTableColumnPolicy.songContentSpacing) {
+            FavoriteButton(
+                isFavorite: track.isFavorite,
+                itemName: track.title,
+                controlSize: TrackTableColumnPolicy.favoriteControlWidth
+            ) { requestedValue in
+                await model.setProductionTrackFavorite(
+                    track,
+                    isFavorite: requestedValue
+                ) != nil
+            }
+            .opacity(isHovered ? 1 : 0)
+            .allowsHitTesting(isHovered)
+            .accessibilityHidden(!isHovered)
+            .animation(
+                .easeOut(duration: CadenceTheme.motionHover),
+                value: isHovered
+            )
+
             Button {
                 play()
             } label: {
@@ -99,20 +120,6 @@ struct ProductionTrackTableRow: View {
             songMetadata
 
             Spacer(minLength: 0)
-
-            if isHovered || track.isFavorite {
-                FavoriteButton(
-                    isFavorite: track.isFavorite,
-                    itemName: track.title
-                ) {
-                    Task {
-                        await model.setProductionTrackFavorite(
-                            track,
-                            isFavorite: !track.isFavorite
-                        )
-                    }
-                }
-            }
         }
     }
 
@@ -167,7 +174,7 @@ struct ProductionTrackTableRow: View {
                     .foregroundStyle(.primary)
                     .lineLimit(1)
 
-                Text(track.codec.uppercased())
+                Text(Self.formatPillTitle(track.codec))
                     .font(.system(size: 9, weight: .semibold))
                     .foregroundStyle(.secondary)
                     .padding(.horizontal, 5)
@@ -254,6 +261,13 @@ struct ProductionTrackTableRow: View {
 }
 
 extension ProductionTrackTableRow {
+    static func formatPillTitle(_ codec: String) -> String {
+        codec
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .drop(while: { $0 == "." })
+            .uppercased()
+    }
+
     static func artworkOverlaySymbolName(
         isCurrentTrack: Bool,
         isPlaying: Bool

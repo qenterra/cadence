@@ -15,7 +15,7 @@ struct ProductionAlbumDetailView: View {
     var body: some View {
         Group {
             if let album {
-                ScrollView {
+                ScrollView(.vertical) {
                     LazyVStack(alignment: .leading, spacing: 24) {
                         backButton
                         header(album)

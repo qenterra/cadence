@@ -180,7 +180,6 @@ extension ProductionHomeView {
     }
 
     private func openFavorites() {
-        librarySectionRawValue = LibraryContentSection.favorites.rawValue
-        model.requestNavigationDestination(.library)
+        model.requestNavigationDestination(.favorites)
     }
 }

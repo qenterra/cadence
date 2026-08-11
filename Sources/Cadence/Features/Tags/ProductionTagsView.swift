@@ -125,7 +125,7 @@ private extension ProductionTagsView {
                 .help("New Tag")
             }
 
-            ScrollView {
+            ScrollView(.vertical) {
                 LazyVStack(spacing: 4) {
                     ForEach(store.tags) { tag in
                         tagButton(tag)

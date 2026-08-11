@@ -172,7 +172,7 @@ private extension ProductionTrackTable {
         columns: [TrackTableColumn],
         widths: TrackTableResolvedWidths
     ) -> some View {
-        HStack(spacing: 14) {
+        HStack(spacing: TrackTableColumnPolicy.columnSpacing) {
             headerCell(
                 field: .song,
                 resolvedWidth: widths.song,
@@ -201,7 +201,10 @@ private extension ProductionTrackTable {
                 }
             } label: {
                 Image(systemName: "ellipsis")
-                    .frame(width: 28, height: 28)
+                    .frame(
+                        width: TrackTableColumnPolicy.actionWidth,
+                        height: TrackTableColumnPolicy.actionWidth
+                    )
             }
             .menuIndicator(.hidden)
             .menuStyle(.borderlessButton)
@@ -209,7 +212,7 @@ private extension ProductionTrackTable {
         }
         .font(.caption.weight(.semibold))
         .foregroundStyle(.secondary)
-        .padding(.horizontal, 12)
+        .padding(.horizontal, TrackTableColumnPolicy.horizontalInset)
         .frame(height: 38)
         .overlay(alignment: .bottom) {
             Rectangle()

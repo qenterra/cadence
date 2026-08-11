@@ -43,21 +43,49 @@ struct TrackTableColumnPolicyTests {
 
     @Test("Row chrome and columns fit without horizontal scrolling")
     func rowFitsViewport() {
-        let available = 840.0
-        let columns: [TrackTableColumn] = [.album, .year, .time]
-        let content = TrackTableColumnPolicy.contentWidth(
-            availableWidth: available,
-            columns: columns
-        )
-        let widths = TrackTableColumnPolicy.layout(
-            availableWidth: content,
-            columns: columns,
-            preferred: nil
-        )
-        let occupied = widths.song + columns.reduce(0) {
-            $0 + widths[$1]
-        } + TrackTableColumnPolicy.rowChromeWidth(columnCount: columns.count)
+        let viewports = [420.0, 720.0, 840.0, 1440.0]
+        let columnSets: [[TrackTableColumn]] = [
+            [],
+            [.album],
+            [.album, .year, .time],
+        ]
 
-        #expect(abs(occupied - available) < 0.5)
+        for available in viewports {
+            for columns in columnSets {
+                let content = TrackTableColumnPolicy.contentWidth(
+                    availableWidth: available,
+                    columns: columns
+                )
+                let widths = TrackTableColumnPolicy.layout(
+                    availableWidth: content,
+                    columns: columns,
+                    preferred: nil
+                )
+                let occupied = widths.song + columns.reduce(0) {
+                    $0 + widths[$1]
+                } + TrackTableColumnPolicy.rowChromeWidth(
+                    columnCount: columns.count
+                )
+
+                #expect(abs(occupied - available) < 0.5)
+            }
+        }
+    }
+
+    @Test("Track content shares the page inset and compact favorite slot")
+    func trackContentMetrics() {
+        #expect(
+            TrackTableColumnPolicy.horizontalInset
+                == WorkspaceLayout.pageInset
+        )
+        #expect(
+            TrackTableColumnPolicy.favoriteControlWidth
+                == CatalogTileFavoriteLayout.controlSize
+        )
+        #expect(
+            CatalogTileFavoriteLayout.titleHorizontalInset
+                == CatalogTileFavoriteLayout.controlSize + 4
+        )
+        #expect(TrackTableColumnPolicy.songContentSpacing == 8)
     }
 }

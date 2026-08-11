@@ -99,7 +99,7 @@ struct DocumentationScreenshotTests {
 }
 
 @MainActor
-private final class DocumentationScreenshotFixture {
+final class DocumentationScreenshotFixture {
     let model: CadenceAppModel
     let albumID: UUID
     let tagID: UUID
@@ -162,11 +162,16 @@ private final class DocumentationScreenshotFixture {
     func capture(
         _ filename: String,
         contentSize: NSSize = .minimum,
-        appearance: DocumentationScreenshotAppearance = .dark
+        appearance: DocumentationScreenshotAppearance = .dark,
+        rhythmPulseVisualQAState: RhythmPulseVisualQAState? = nil
     ) async throws {
         let rootView = CadenceRootView(model: model)
             .frame(width: contentSize.width, height: contentSize.height)
             .environment(\.colorScheme, appearance.colorScheme)
+            .environment(
+                \.rhythmPulseVisualQAState,
+                rhythmPulseVisualQAState
+            )
             .tint(CadenceTheme.primaryAccent)
 
         let hostingView = NSHostingView(rootView: rootView)
@@ -224,7 +229,7 @@ private final class DocumentationScreenshotFixture {
     }
 }
 
-private enum DocumentationScreenshotAppearance {
+enum DocumentationScreenshotAppearance {
     case dark
     case light
 
@@ -237,9 +242,9 @@ private enum DocumentationScreenshotAppearance {
     }
 }
 
-private extension NSSize {
-    static let minimum = NSSize(width: 1080, height: 836)
-    static let wide = NSSize(width: 1440, height: 860)
+extension NSSize {
+    static let minimum = NSSize(width: 1080, height: 844)
+    static let wide = NSSize(width: 1440, height: 868)
 }
 
 private extension DocumentationScreenshotFixture {
