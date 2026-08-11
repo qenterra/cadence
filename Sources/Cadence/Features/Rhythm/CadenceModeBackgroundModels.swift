@@ -15,6 +15,8 @@ extension RhythmAccentPalette {
 struct CadenceModeBackgroundAppearance: Equatable, Sendable {
     let isAnimated: Bool
     let blurRadius: Double
+    let animationDuration: TimeInterval
+    let animatedLayerCount: Int
     let baseOpacity: Double
     let fieldOpacity: Double
     let scrimOpacity: Double
@@ -26,7 +28,9 @@ struct CadenceModeBackgroundAppearance: Equatable, Sendable {
     ) -> CadenceModeBackgroundAppearance {
         CadenceModeBackgroundAppearance(
             isAnimated: !reduceMotion,
-            blurRadius: 110,
+            blurRadius: 0,
+            animationDuration: 24,
+            animatedLayerCount: 2,
             baseOpacity: reduceTransparency ? 1 : 0.84,
             fieldOpacity: reduceTransparency ? 0.72 : 0.62,
             scrimOpacity: increasedContrast ? 0.58 : 0.42

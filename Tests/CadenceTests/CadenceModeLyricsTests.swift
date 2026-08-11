@@ -121,36 +121,6 @@ struct CadenceModeLyricsTests {
         ])
     }
 
-    @Test("Cadence Mode shimmer uses the production lyric duration contract")
-    func cadenceModeUsesProductionLineDuration() throws {
-        let document = makeDocument(
-            ["one", "two", "three"],
-            startTimes: [0, 2, 2.4]
-        )
-        let first = try #require(document.lines.first)
-        let second = document.lines[1]
-        let last = try #require(document.lines.last)
-
-        #expect(
-            ProductionLyricTiming.animationDuration(
-                for: first.id,
-                in: document
-            ) == 2
-        )
-        #expect(
-            ProductionLyricTiming.animationDuration(
-                for: second.id,
-                in: document
-            ) == 1.2
-        )
-        #expect(
-            ProductionLyricTiming.animationDuration(
-                for: last.id,
-                in: document
-            ) == 4
-        )
-    }
-
     private func makeDocument(
         _ texts: [String],
         startTimes: [TimeInterval?]

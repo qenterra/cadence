@@ -82,3 +82,35 @@ struct CadenceModeState: Sendable {
         previousHit = nil
     }
 }
+
+@MainActor
+final class CadenceModeDeadlineController {
+    private var task: Task<Void, Never>?
+
+    func schedule(
+        deadline: TimeInterval,
+        action: @escaping @MainActor () -> Void
+    ) {
+        task?.cancel()
+        task = Task { @MainActor in
+            let delay = max(
+                deadline - ProcessInfo.processInfo.systemUptime,
+                0
+            )
+            do {
+                try await Task.sleep(for: .seconds(delay))
+            } catch {
+                return
+            }
+            guard !Task.isCancelled else {
+                return
+            }
+            action()
+        }
+    }
+
+    func cancel() {
+        task?.cancel()
+        task = nil
+    }
+}

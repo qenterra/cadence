@@ -143,18 +143,21 @@ The detailed behavior and lifecycle contract lives in
   ten-second inactivity deadline.
 - Cadence Mode presents a five-line viewport beneath the artwork and smoothly
   centers the active synchronized line. It reuses the production Now Playing
-  lyric treatment: 24 pt semibold typography, active shimmer and glow, and the
-  same inactive opacity and soft blur. Blank rows are omitted. Missing,
-  partial, and unsynchronized lyrics show an honest track/status fallback and
-  never invent an active line.
+  lyric treatment: 24 pt semibold typography, an opaque primary active line,
+  and the same inactive opacity and soft blur. Lyrics never use shimmer,
+  animated color, or accent glow. Blank rows are omitted. Missing, partial,
+  and unsynchronized lyrics show an honest track/status fallback and never
+  invent an active line.
 - Shared feedback uses QDS motion through `CadenceTheme`. The longer Cadence
   Mode entry and exit are named product motions because the artwork hero
   transition has no second QDS consumer; they remain interruptible and reduce
   to the QDS dismiss transition when Reduce Motion is enabled.
-- Behind the active composition, three to five oversized artwork-color fields
-  drift slowly, overlap into a gradient, receive a strong blur, and sit beneath
-  a dark scrim. Cadence Mode deliberately uses dark foreground semantics in
-  both system appearances so lyrics and effects keep reliable contrast.
+- Behind the active composition, one conic artwork-color field rotates while a
+  radial bloom travels across the workspace. Their soft native gradient
+  falloff provides the blurred appearance without a live blur filter. Both are
+  Core Animation layers driven by compositor transforms beneath a dark static
+  scrim. Cadence Mode deliberately uses dark foreground semantics in both
+  system appearances so lyrics and effects keep reliable contrast.
 - Each lane owns one active trio of color fields plus one bounded outgoing trio.
   Repeating the same key crossfades the outgoing wash instead of cutting it;
   `Z` and `X` overlap independently. Releasing a key never truncates the effect.
@@ -168,31 +171,38 @@ The detailed behavior and lifecycle contract lives in
   context, Lyrics or Queue, and structural dividers. Only the outer workspace
   bounds clip the expanding flash; the right panel attenuates it smoothly for
   text readability.
-- Active effects use screen compositing over the dark artwork gradient; there
-  is no white activation flash or generic gray backdrop.
+- Active effects use artwork-colored gradient textures over the dark artwork
+  background; there is no white activation flash or generic gray backdrop.
 - Color fields follow the approved HTML impact timing: a 1.1-second
   `cubic-bezier(.1, .76, .14, 1)` lifecycle, scale from 0.2 to 1.48, and an
-  opacity peak at the eased 10% point. Compact solid fields are composited
-  first and receive one dithered Gaussian blur, so the appearance stays fluid
-  without gradient rings or a white flash.
-- Every hit emits 20–24 artwork-colored hybrid particles from the corresponding
+  opacity peak at the eased 10% point. Washes use pre-rendered 160 px radial
+  textures with no live gradient or blur pass, so Core Animation only moves,
+  scales, and fades cached content without invalidating SwiftUI on every frame.
+- Every hit emits 4–5 artwork-colored hybrid particles from the corresponding
   side of the artwork. Z launches left and X launches right in broad outward
   fans with randomized angle, delay, velocity, drag, gravity, size, lifetime,
-  and opacity. Immutable spawn data is sampled analytically into a short shard
-  that loses velocity and settles into a smaller dust mote; releasing a key or
-  pressing the other lane never truncates pending particles.
+  and opacity. The effect budget is capped at 16 particle layers. Their paths
+  are sampled once when the key is accepted, then a reusable Core Animation
+  layer pool advances the shard-to-dust motion on the compositor. Releasing a
+  key or pressing the other lane never truncates pending particles.
 - Reduce Motion stops background drift, replaces expansion with a static color
   pulse, changes Cadence Mode through a short crossfade, and suppresses
   traveling particles. Reduce Transparency makes the background base opaque,
   removes pulse blur, and keeps solid particle geometry. Increased Contrast
   strengthens the background scrim.
-- Rendering is capped at twelve fields during the brief crossfade in one
-  asynchronous Canvas and 96 particles under any input rate. One fixed-radius
-  blur is applied to the composite field layer and one batched glow to all
-  particles rather than a filter per object; palette extraction is cached per
-  artwork revision, and the 60 Hz animation timeline pauses when no effects
-  remain. The background runs at 30 Hz only while motion is allowed; Cadence
-  Mode lyrics update independently at 10 Hz.
+- Background, washes, and particles are compositor-driven. No Cadence Mode
+  surface uses a live Gaussian blur or a per-frame SwiftUI timeline. Exactly
+  two persistent layers provide background motion; transient fields and
+  particles use fixed reusable layer pools. Active hits do not play synchronous
+  haptics because frame pacing takes priority. Cadence Mode lyrics update
+  independently at 10 Hz.
+- The minimum performance contract is stable 60 FPS on an Apple M1 and stable
+  120 FPS on an Apple M1 Pro connected to a 120 Hz display, without sustained
+  frame drops during background motion or rapid alternating `Z`/`X` input.
+  Hardware acceptance runs through `scripts/verify_cadence_frame_pacing.sh`;
+  it requires at least 99.5% of the display target, no active-mode regression
+  beyond 0.5% of baseline, and no interval longer than 1.5 frame budgets.
+  Builds, model tests, and screenshots do not satisfy this gate.
 
 ## Verification
 
@@ -209,3 +219,6 @@ The implementation is complete only after:
    Lyrics, including the grayscale palette.
 6. Keyboard selection, VoiceOver labels, Reduce Motion, System/Light/Dark, and
    tag-assignment error recovery are checked.
+7. Cadence Mode frame pacing is profiled on baseline M1 and M1 Pro hardware at
+   their 60 Hz and 120 Hz targets; a build or screenshot gate alone does not
+   satisfy this hardware acceptance.

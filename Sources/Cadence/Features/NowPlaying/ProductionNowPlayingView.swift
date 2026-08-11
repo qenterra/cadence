@@ -17,6 +17,8 @@ struct ProductionNowPlayingView: View {
     @State private var renameDraft = ""
     @State private var rhythmPulseStore = RhythmPulseStore()
     @State private var cadenceModeState = CadenceModeState()
+    @State private var cadenceModeDeadlineController =
+        CadenceModeDeadlineController()
     @Namespace private var cadenceModeNamespace
 
     var body: some View {
@@ -38,6 +40,8 @@ struct ProductionNowPlayingView: View {
                             palette: rhythmPulseStore.palette
                                 ?? .cadenceFallback
                         )
+                        .allowsHitTesting(false)
+                        .accessibilityHidden(true)
 
                         RhythmPulseCanvas(
                             store: rhythmPulseStore,
@@ -83,9 +87,6 @@ struct ProductionNowPlayingView: View {
                 .frame(width: 0, height: 0)
             }
             .clipped()
-            .task(id: cadenceModeState.deadline) {
-                await waitForCadenceModeDeadline()
-            }
         }
         .background(CadenceTheme.contentBackground)
         .id(track.id)
@@ -120,10 +121,12 @@ struct ProductionNowPlayingView: View {
             await rhythmPulseStore.prepare(asset: asset)
         }
         .onDisappear {
+            cadenceModeDeadlineController.cancel()
             rhythmPulseStore.reset()
             cadenceModeState.reset()
         }
         .onChange(of: track.id) { _, _ in
+            cadenceModeDeadlineController.cancel()
             rhythmPulseStore.reset()
             cadenceModeState.reset()
         }
@@ -164,8 +167,9 @@ private extension ProductionNowPlayingView {
             withAnimation(cadenceModeEntryAnimation) {
                 cadenceModeState = nextState
             }
+            scheduleCadenceModeExit(deadline: nextState.deadline)
         case .emitPulse:
-            cadenceModeState = nextState
+            scheduleCadenceModeExit(deadline: nextState.deadline)
             rhythmPulseStore.registerHit(
                 lane: lane,
                 emitterOrigin: layout.normalizedEmitterOrigin(
@@ -179,6 +183,7 @@ private extension ProductionNowPlayingView {
     }
 
     private func deactivateCadenceMode() {
+        cadenceModeDeadlineController.cancel()
         var nextState = cadenceModeState
         guard nextState.deactivate() == .deactivated else {
             return
@@ -188,31 +193,12 @@ private extension ProductionNowPlayingView {
         }
     }
 
-    private func waitForCadenceModeDeadline() async {
-        guard let deadline = cadenceModeState.deadline else {
+    private func scheduleCadenceModeExit(deadline: TimeInterval?) {
+        guard let deadline else {
             return
         }
-        let delay = max(
-            deadline - ProcessInfo.processInfo.systemUptime,
-            0
-        )
-        do {
-            try await Task.sleep(for: .seconds(delay))
-        } catch {
-            return
-        }
-        guard !Task.isCancelled else {
-            return
-        }
-
-        var nextState = cadenceModeState
-        guard nextState.update(
-            at: ProcessInfo.processInfo.systemUptime
-        ) == .deactivated else {
-            return
-        }
-        withAnimation(cadenceModeExitAnimation) {
-            cadenceModeState = nextState
+        cadenceModeDeadlineController.schedule(deadline: deadline) {
+            deactivateCadenceMode()
         }
     }
 

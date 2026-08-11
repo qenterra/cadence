@@ -168,11 +168,6 @@ private struct CadenceModeLyricStack: View {
                         ProductionLyricLineLabel(
                             text: line.text,
                             isActive: isActive,
-                            animationDuration: ProductionLyricTiming
-                                .animationDuration(
-                                    for: line.id,
-                                    in: document
-                                ),
                             isSynchronized: true,
                             alignment: .center,
                             lineLimit: 2

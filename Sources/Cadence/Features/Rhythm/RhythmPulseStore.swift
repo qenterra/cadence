@@ -1,4 +1,3 @@
-import AppKit
 import Observation
 import SwiftUI
 
@@ -8,14 +7,19 @@ final class RhythmPulseStore {
     private(set) var palette: RhythmAccentPalette?
     private(set) var hasLiveEffects = false
     private(set) var visualQATime: TimeInterval?
-    private var simulation = RhythmPulseSimulation()
-    private var particleSimulation = RhythmParticleSimulation()
+    @ObservationIgnored private var simulation = RhythmPulseSimulation()
+    @ObservationIgnored private var particleSimulation = RhythmParticleSimulation()
 
     @ObservationIgnored private let paletteCache = RhythmArtworkPaletteCache()
-    @ObservationIgnored private let haptics = RhythmHapticPerformer()
     @ObservationIgnored private var generator = SystemRandomNumberGenerator()
     @ObservationIgnored private var cleanupTask: Task<Void, Never>?
     @ObservationIgnored private var preparedAssetKey: String?
+    @ObservationIgnored private weak var compositorView:
+        RhythmPulseCompositorView?
+
+    func attachCompositor(_ view: RhythmPulseCompositorView) {
+        compositorView = view
+    }
 
     func prepare(asset: ArtworkAsset?) async {
         let assetKey = asset.map {
@@ -63,7 +67,7 @@ final class RhythmPulseStore {
             generator: &generator
         )
         hasLiveEffects = true
-        haptics.perform()
+        publishEffects()
         scheduleCleanup()
     }
 
@@ -115,6 +119,7 @@ final class RhythmPulseStore {
         }
         visualQATime = snapshotTime
         hasLiveEffects = false
+        publishEffects()
     }
 
     var renderWashes: [RhythmPulseWash] {
@@ -132,6 +137,7 @@ final class RhythmPulseStore {
         particleSimulation.removeAll()
         hasLiveEffects = false
         visualQATime = nil
+        publishEffects()
     }
 
     private func scheduleCleanup() {
@@ -155,7 +161,16 @@ final class RhythmPulseStore {
                 at: ProcessInfo.processInfo.systemUptime
             )
             hasLiveEffects = false
+            publishEffects()
         }
+    }
+
+    private func publishEffects() {
+        compositorView?.updateEffects(
+            washes: simulation.allWashes,
+            particles: particleSimulation.allParticles,
+            visualQATime: visualQATime
+        )
     }
 }
 
@@ -186,21 +201,4 @@ struct RhythmPulseVisualQAState: Sendable {
 
 extension EnvironmentValues {
     @Entry var rhythmPulseVisualQAState: RhythmPulseVisualQAState?
-}
-
-@MainActor
-private final class RhythmHapticPerformer {
-    private var lastPerformanceTime: TimeInterval = 0
-
-    func perform() {
-        let now = ProcessInfo.processInfo.systemUptime
-        guard now - lastPerformanceTime >= 0.12 else {
-            return
-        }
-        lastPerformanceTime = now
-        NSHapticFeedbackManager.defaultPerformer.perform(
-            .alignment,
-            performanceTime: .now
-        )
-    }
 }

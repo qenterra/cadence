@@ -80,20 +80,13 @@ struct ProductionLyricsPanel: View {
         return ScrollViewReader { proxy in
             ScrollView(.vertical) {
                 LazyVStack(alignment: .leading, spacing: 18) {
-                    ForEach(
-                        Array(document.lines.enumerated()),
-                        id: \.element.id
-                    ) { index, line in
+                    ForEach(document.lines) { line in
                         if line.isBlank {
                             Color.clear.frame(height: 10)
                         } else {
                             lyricLine(
                                 line,
-                                isActive: currentLineID == line.id,
-                                animationDuration: lineDuration(
-                                    at: index,
-                                    in: document
-                                )
+                                isActive: currentLineID == line.id
                             )
                             .id(line.id)
                         }
@@ -124,8 +117,7 @@ struct ProductionLyricsPanel: View {
     @ViewBuilder
     private func lyricLine(
         _ line: LyricLine,
-        isActive: Bool,
-        animationDuration: TimeInterval
+        isActive: Bool
     ) -> some View {
         if editingLineID == line.id {
             TextField("Lyric Line", text: $editingText, axis: .vertical)
@@ -147,7 +139,6 @@ struct ProductionLyricsPanel: View {
                     ProductionLyricLineLabel(
                         text: line.text,
                         isActive: isActive,
-                        animationDuration: animationDuration,
                         isSynchronized: line.startTime != nil
                     )
                     Spacer(minLength: 0)
@@ -200,21 +191,6 @@ struct ProductionLyricsPanel: View {
         editingText = ""
     }
 
-    private func lineDuration(
-        at index: Int,
-        in document: LyricDocument
-    ) -> TimeInterval {
-        let nextStartTime = document.lines.dropFirst(index + 1)
-            .lazy
-            .compactMap(\.startTime)
-            .first
-        return ProductionLyricMotion.duration(
-            startTime: document.lines[index].startTime,
-            nextStartTime: nextStartTime,
-            trackDuration: track.duration
-        )
-    }
-
     private func activeLine(
         in document: LyricDocument,
         presentationTime: TimeInterval
@@ -230,45 +206,6 @@ struct ProductionLyricsPanel: View {
             in: document,
             presentationTime: presentationTime
         )?.id
-    }
-}
-
-enum ProductionLyricMotion {
-    static func duration(
-        startTime: TimeInterval?,
-        nextStartTime: TimeInterval?,
-        trackDuration: TimeInterval
-    ) -> TimeInterval {
-        guard let startTime else {
-            return 0
-        }
-        let endTime: TimeInterval = if let nextStartTime, nextStartTime > startTime {
-            nextStartTime
-        } else if trackDuration > startTime {
-            trackDuration
-        } else {
-            startTime + 4
-        }
-        return max(endTime - startTime, 1.2)
-    }
-}
-
-enum ProductionLyricTiming {
-    static func animationDuration(
-        for lineID: LyricLine.ID,
-        in document: LyricDocument
-    ) -> TimeInterval {
-        guard
-            let index = document.lines.firstIndex(where: { $0.id == lineID }),
-            let startTime = document.lines[index].startTime
-        else {
-            return 0
-        }
-        let nextStartTime = document.lines.dropFirst(index + 1)
-            .lazy
-            .compactMap(\.startTime)
-            .first
-        return max((nextStartTime ?? startTime + 4) - startTime, 1.2)
     }
 }
 
@@ -288,6 +225,28 @@ private extension LyricTimingStatus {
 }
 
 enum ProductionLyricLineAppearance {
+    enum Tone: Equatable, Sendable {
+        case primary
+        case secondary
+    }
+
+    struct Style: Equatable, Sendable {
+        let tone: Tone
+        let opacity: Double
+        let usesShimmer: Bool
+    }
+
+    static func resolve(
+        isActive: Bool,
+        isSynchronized: Bool
+    ) -> Style {
+        Style(
+            tone: isActive || !isSynchronized ? .primary : .secondary,
+            opacity: !isSynchronized || isActive ? 1 : 0.58,
+            usesShimmer: false
+        )
+    }
+
     static func blurRadius(
         isActive: Bool,
         isSynchronized: Bool,
@@ -303,7 +262,6 @@ enum ProductionLyricLineAppearance {
 struct ProductionLyricLineLabel: View {
     let text: String
     let isActive: Bool
-    let animationDuration: TimeInterval
     let isSynchronized: Bool
     let alignment: TextAlignment
     let lineLimit: Int?
@@ -311,33 +269,36 @@ struct ProductionLyricLineLabel: View {
     init(
         text: String,
         isActive: Bool,
-        animationDuration: TimeInterval,
         isSynchronized: Bool,
         alignment: TextAlignment = .leading,
         lineLimit: Int? = nil
     ) {
         self.text = text
         self.isActive = isActive
-        self.animationDuration = animationDuration
         self.isSynchronized = isSynchronized
         self.alignment = alignment
         self.lineLimit = lineLimit
     }
 
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.colorSchemeContrast) private var contrast
-    @Environment(\.colorScheme) private var colorScheme
-    @State private var shimmerPhase = -1.0
 
     var body: some View {
+        let appearance = ProductionLyricLineAppearance.resolve(
+            isActive: isActive,
+            isSynchronized: isSynchronized
+        )
         Text(text)
             .font(.system(size: 24, weight: .semibold))
             .multilineTextAlignment(alignment)
             .lineSpacing(3)
             .lineLimit(lineLimit)
             .fixedSize(horizontal: false, vertical: true)
-            .foregroundStyle(foregroundStyle)
-            .opacity(!isSynchronized || isActive ? 1 : 0.58)
+            .foregroundStyle(
+                appearance.tone == .primary
+                    ? Color.primary
+                    : Color.secondary
+            )
+            .opacity(appearance.opacity)
             .blur(
                 radius: ProductionLyricLineAppearance.blurRadius(
                     isActive: isActive,
@@ -345,66 +306,5 @@ struct ProductionLyricLineLabel: View {
                     isIncreasedContrast: contrast == .increased
                 )
             )
-            .shadow(
-                color: isActive && isSynchronized
-                    ? CadenceTheme.informativeAccent.opacity(
-                        colorScheme == .dark ? 0.30 : 0.14
-                    )
-                    : .clear,
-                radius: isActive && isSynchronized
-                    ? (colorScheme == .dark ? 10 : 6)
-                    : 0
-            )
-            .onAppear {
-                updateShimmer(isActive)
-            }
-            .onChange(of: isActive) { _, active in
-                updateShimmer(active)
-            }
-    }
-
-    private var foregroundStyle: LinearGradient {
-        guard isSynchronized else {
-            return LinearGradient(
-                colors: [Color.primary, Color.primary],
-                startPoint: .leading,
-                endPoint: .trailing
-            )
-        }
-        guard isActive, isSynchronized, !reduceMotion else {
-            return LinearGradient(
-                colors: [
-                    isActive ? Color.primary : Color.secondary,
-                    isActive ? Color.primary : Color.secondary,
-                ],
-                startPoint: .leading,
-                endPoint: .trailing
-            )
-        }
-
-        return LinearGradient(
-            colors: [
-                Color.primary.opacity(0.82),
-                CadenceTheme.informativeAccent,
-                Color.primary.opacity(0.82),
-            ],
-            startPoint: UnitPoint(x: shimmerPhase - 0.55, y: 0.5),
-            endPoint: UnitPoint(x: shimmerPhase + 0.55, y: 0.5)
-        )
-    }
-
-    private func updateShimmer(_ active: Bool) {
-        shimmerPhase = -0.25
-        guard
-            active,
-            isSynchronized,
-            !reduceMotion,
-            animationDuration > 0
-        else {
-            return
-        }
-        withAnimation(.linear(duration: animationDuration)) {
-            shimmerPhase = 1.25
-        }
     }
 }

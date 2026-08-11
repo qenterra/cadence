@@ -276,6 +276,7 @@ struct RhythmPulseAppearance: Sendable {
     let colors: [RhythmPulseColor]
     let washBlendStrategy: RhythmPulseBlendStrategy
     let usesDarkBackdrop: Bool
+    let usesLiveBlur: Bool
 
     static func resolve(
         mode: RhythmPulseAppearanceMode,
@@ -286,13 +287,15 @@ struct RhythmPulseAppearance: Sendable {
             RhythmPulseAppearance(
                 colors: palette.colors,
                 washBlendStrategy: .multiply,
-                usesDarkBackdrop: false
+                usesDarkBackdrop: false,
+                usesLiveBlur: false
             )
         case .dark:
             RhythmPulseAppearance(
                 colors: palette.colors,
                 washBlendStrategy: .screen,
-                usesDarkBackdrop: false
+                usesDarkBackdrop: false,
+                usesLiveBlur: false
             )
         }
     }

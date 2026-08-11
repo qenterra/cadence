@@ -212,10 +212,11 @@ struct RhythmPulseModelsTests {
         #expect(appearance.colors == RhythmAccentPalette.fixture.colors)
         #expect(appearance.washBlendStrategy == .multiply)
         #expect(!appearance.usesDarkBackdrop)
+        #expect(!appearance.usesLiveBlur)
     }
 
-    @Test("Cadence Mode background stays dark and softly animated")
-    func cadenceModeBackgroundUsesDarkBlurredFields() {
+    @Test("Cadence Mode background uses bounded compositor motion")
+    func cadenceModeBackgroundUsesBoundedCompositorMotion() {
         let appearance = CadenceModeBackgroundAppearance.resolve(
             reduceMotion: false,
             reduceTransparency: false,
@@ -223,7 +224,9 @@ struct RhythmPulseModelsTests {
         )
 
         #expect(appearance.isAnimated)
-        #expect(appearance.blurRadius >= 80)
+        #expect(appearance.blurRadius == 0)
+        #expect(appearance.animationDuration >= 18)
+        #expect(appearance.animatedLayerCount == 2)
         #expect(appearance.baseOpacity >= 0.78)
         #expect(appearance.scrimOpacity >= 0.35)
         #expect(

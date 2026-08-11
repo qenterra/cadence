@@ -20,7 +20,7 @@ struct RhythmParticleModelsTests {
             emitterOrigin: CGPoint(x: 0.3, y: 0.6)
         )
 
-        #expect((20 ... 24).contains(store.renderParticles.count))
+        #expect((4 ... 5).contains(store.renderParticles.count))
         #expect(store.renderParticles.allSatisfy {
             $0.origin == CGPoint(x: 0.3, y: 0.6)
         })
@@ -43,7 +43,7 @@ struct RhythmParticleModelsTests {
         )
 
         let particles = simulation.allParticles
-        #expect((20 ... 24).contains(particles.count))
+        #expect((4 ... 5).contains(particles.count))
         #expect(particles.allSatisfy { $0.origin == origin })
         #expect(particles.allSatisfy {
             (-0.02 ... 0.02).contains($0.emissionOffset.dx)
@@ -190,8 +190,12 @@ struct RhythmParticleModelsTests {
                 time: Double(index) / 2000,
                 generator: &random
             )
-            #expect(simulation.allParticles.count <= 96)
+            #expect(
+                simulation.allParticles.count
+                    <= RhythmParticleSimulation.maximumParticleCount
+            )
         }
+        #expect(RhythmParticleSimulation.maximumParticleCount == 16)
     }
 
     @MainActor

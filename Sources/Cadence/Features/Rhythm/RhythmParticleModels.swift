@@ -74,7 +74,7 @@ struct RhythmParticle: Identifiable, Sendable {
 }
 
 struct RhythmParticleSimulation: Sendable {
-    static let maximumParticleCount = 96
+    static let maximumParticleCount = 16
     static let maximumLifecycleDuration: TimeInterval = 1.67
 
     private(set) var allParticles: [RhythmParticle] = []
@@ -91,7 +91,7 @@ struct RhythmParticleSimulation: Sendable {
         }
 
         removeExpired(at: time)
-        let count = 20 + Int(generator.next() % 5)
+        let count = 4 + Int(generator.next() % 2)
         allParticles.append(contentsOf: (0 ..< count).map { _ in
             makeParticle(
                 lane: lane,
