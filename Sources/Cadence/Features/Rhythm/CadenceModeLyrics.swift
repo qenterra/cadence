@@ -1,6 +1,6 @@
 import Foundation
 
-struct RhythmFocusLyricProjection: Sendable {
+struct CadenceModeLyricProjection: Sendable {
     static let slotCount = 5
     static let activeSlotIndex = 2
 
@@ -11,7 +11,7 @@ struct RhythmFocusLyricProjection: Sendable {
     static func make(
         document: LyricDocument?,
         presentationTime: TimeInterval
-    ) -> RhythmFocusLyricProjection {
+    ) -> CadenceModeLyricProjection {
         guard let document else {
             return unavailable(status: .missing)
         }
@@ -35,7 +35,7 @@ struct RhythmFocusLyricProjection: Sendable {
             return contentLines[index]
         }
 
-        return RhythmFocusLyricProjection(
+        return CadenceModeLyricProjection(
             slots: slots,
             activeLineID: activeLine?.id,
             status: .synchronized
@@ -44,8 +44,8 @@ struct RhythmFocusLyricProjection: Sendable {
 
     private static func unavailable(
         status: LyricTimingStatus
-    ) -> RhythmFocusLyricProjection {
-        RhythmFocusLyricProjection(
+    ) -> CadenceModeLyricProjection {
+        CadenceModeLyricProjection(
             slots: Array(repeating: nil, count: slotCount),
             activeLineID: nil,
             status: status

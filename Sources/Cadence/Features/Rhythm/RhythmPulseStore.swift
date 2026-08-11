@@ -20,7 +20,7 @@ final class RhythmPulseStore {
     func prepare(asset: ArtworkAsset?) async {
         let assetKey = asset.map {
             "\($0.id.uuidString)-\($0.revision)-\($0.variant)"
-        }
+        } ?? "missing-artwork"
         guard assetKey != preparedAssetKey else {
             return
         }
@@ -28,7 +28,7 @@ final class RhythmPulseStore {
         reset()
         preparedAssetKey = assetKey
         guard let asset else {
-            palette = nil
+            palette = .cadenceFallback
             return
         }
 
@@ -74,7 +74,7 @@ final class RhythmPulseStore {
         let stateKey = [
             "visual-qa",
             String(visualQAState.seed),
-            String(visualQAState.isFocusActive == true),
+            String(visualQAState.isCadenceModeActive == true),
             laneKey,
         ].joined(separator: "-")
         guard preparedAssetKey != stateKey else {
@@ -87,7 +87,7 @@ final class RhythmPulseStore {
         var random = SplitMix64(seed: visualQAState.seed)
         let snapshotTime = ProcessInfo.processInfo.systemUptime
         for lane in visualQAState.lanes {
-            let emitterOrigin = if visualQAState.isFocusActive == true {
+            let emitterOrigin = if visualQAState.isCadenceModeActive == true {
                 CGPoint(
                     x: lane == .left ? 0.34 : 0.66,
                     y: 0.38
@@ -163,24 +163,24 @@ struct RhythmPulseVisualQAState: Sendable {
     let palette: RhythmAccentPalette
     let seed: UInt64
     let lanes: [RhythmLane]
-    let isFocusActive: Bool?
-    let focusLyricDocument: LyricDocument?
-    let focusPresentationTime: TimeInterval?
+    let isCadenceModeActive: Bool?
+    let cadenceModeLyricDocument: LyricDocument?
+    let cadenceModePresentationTime: TimeInterval?
 
     init(
         palette: RhythmAccentPalette,
         seed: UInt64,
         lanes: [RhythmLane],
-        isFocusActive: Bool? = nil,
-        focusLyricDocument: LyricDocument? = nil,
-        focusPresentationTime: TimeInterval? = nil
+        isCadenceModeActive: Bool? = nil,
+        cadenceModeLyricDocument: LyricDocument? = nil,
+        cadenceModePresentationTime: TimeInterval? = nil
     ) {
         self.palette = palette
         self.seed = seed
         self.lanes = lanes
-        self.isFocusActive = isFocusActive
-        self.focusLyricDocument = focusLyricDocument
-        self.focusPresentationTime = focusPresentationTime
+        self.isCadenceModeActive = isCadenceModeActive
+        self.cadenceModeLyricDocument = cadenceModeLyricDocument
+        self.cadenceModePresentationTime = cadenceModePresentationTime
     }
 }
 

@@ -7,7 +7,7 @@ artwork, system typography, and native interaction behavior.
 
 Shared semantic colors, radii, and feedback motion come from the local
 QenTerra Design System Swift package. `CadenceTheme` is the product facade:
-it maps QDS 1.10 semantic values into adaptive AppKit/SwiftUI colors while
+it maps QDS 1.11 semantic values into adaptive AppKit/SwiftUI colors while
 Cadence keeps ownership of music-specific geometry, artwork, playback, and
 lyrics. `qds-consumer.json` and `qds-exceptions.json` are validated by the
 read-only consumer doctor during `scripts/verify.sh`.
@@ -127,39 +127,49 @@ Cadence follows the current Unspool About pattern:
 The detailed behavior and lifecycle contract lives in
 [`ONBOARDING_GUIDE.md`](ONBOARDING_GUIDE.md).
 
-## Now Playing Rhythm Pulse
+## Now Playing Cadence Mode
 
-- Physical `Z` and `X` key positions trigger left and right pulses regardless
-  of the active keyboard layout. Editing controls, sheets, menus, and other
+- Standard Now Playing always shows the quiet `Z + X — Cadence Mode` hint.
+  Physical `Z` and `X` positions are recognized regardless of the active
+  keyboard layout, but neither key produces a pulse, particle, or haptic while
+  the standard view is visible. Editing controls, sheets, menus, and other
   workspaces retain their normal keyboard behavior.
-- Pressing opposite lanes within 180 ms enters Rhythm Focus. The artwork uses
-  one continuous hero transition from the context column to the horizontal
-  center, while the standard Now Playing content fades and softens. `Escape`,
-  a track change, or leaving Now Playing exits immediately; otherwise every
-  accepted Z/X hit restarts a ten-second inactivity deadline.
-- Rhythm Focus presents a five-line viewport beneath the artwork and smoothly
+- Pressing opposite lanes within 180 ms enters Cadence Mode. Activation itself
+  is visually clean and does not emit an effect; subsequent `Z` and `X` hits
+  produce the left and right effects. The artwork uses one continuous hero
+  transition from the context column to the horizontal center, while standard
+  Now Playing fades and softens. `Escape`, a track change, or leaving Now
+  Playing exits immediately; otherwise every accepted hit restarts a
+  ten-second inactivity deadline.
+- Cadence Mode presents a five-line viewport beneath the artwork and smoothly
   centers the active synchronized line. It reuses the production Now Playing
   lyric treatment: 24 pt semibold typography, active shimmer and glow, and the
   same inactive opacity and soft blur. Blank rows are omitted. Missing,
   partial, and unsynchronized lyrics show an honest track/status fallback and
   never invent an active line.
-- Shared feedback uses QDS motion through `CadenceTheme`. The longer Rhythm
-  Focus entry and exit are named Cadence product motions because the artwork
-  hero transition has no second QDS consumer; they remain interruptible and
-  reduce to the QDS dismiss transition when Reduce Motion is enabled.
+- Shared feedback uses QDS motion through `CadenceTheme`. The longer Cadence
+  Mode entry and exit are named product motions because the artwork hero
+  transition has no second QDS consumer; they remain interruptible and reduce
+  to the QDS dismiss transition when Reduce Motion is enabled.
+- Behind the active composition, three to five oversized artwork-color fields
+  drift slowly, overlap into a gradient, receive a strong blur, and sit beneath
+  a dark scrim. Cadence Mode deliberately uses dark foreground semantics in
+  both system appearances so lyrics and effects keep reliable contrast.
 - Each lane owns one active trio of color fields plus one bounded outgoing trio.
   Repeating the same key crossfades the outgoing wash instead of cutting it;
   `Z` and `X` overlap independently. Releasing a key never truncates the effect.
-- Accent colors are sampled from the current artwork. Cadence does not invent
-  a fallback neon palette for grayscale or unavailable artwork.
+- Accent colors are sampled from the current artwork. Grayscale artwork keeps
+  an artwork-faithful neutral palette with lifted midtones, so effects remain
+  visible without inventing hue. Missing, transparent, or unreadable artwork
+  uses a restrained deterministic Cadence palette instead of disabling the
+  mode.
 - Every hit starts all three fields at the corresponding artwork edge and sends
   them outward across the complete Now Playing workspace underneath track
   context, Lyrics or Queue, and structural dividers. Only the outer workspace
   bounds clip the expanding flash; the right panel attenuates it smoothly for
   text readability.
-- Light appearance preserves the sampled RGB values with multiply compositing.
-  It never adds a dark scrim, white flash, or gray haze. Dark appearance uses
-  screen compositing.
+- Active effects use screen compositing over the dark artwork gradient; there
+  is no white activation flash or generic gray backdrop.
 - Color fields follow the approved HTML impact timing: a 1.1-second
   `cubic-bezier(.1, .76, .14, 1)` lifecycle, scale from 0.2 to 1.48, and an
   opacity peak at the eased 10% point. Compact solid fields are composited
@@ -171,15 +181,18 @@ The detailed behavior and lifecycle contract lives in
   and opacity. Immutable spawn data is sampled analytically into a short shard
   that loses velocity and settles into a smaller dust mote; releasing a key or
   pressing the other lane never truncates pending particles.
-- Reduce Motion replaces expansion with a static color pulse, changes Rhythm
-  Focus through a short crossfade, and suppresses traveling particles. Reduce
-  Transparency removes the field blur and keeps solid particle geometry.
+- Reduce Motion stops background drift, replaces expansion with a static color
+  pulse, changes Cadence Mode through a short crossfade, and suppresses
+  traveling particles. Reduce Transparency makes the background base opaque,
+  removes pulse blur, and keeps solid particle geometry. Increased Contrast
+  strengthens the background scrim.
 - Rendering is capped at twelve fields during the brief crossfade in one
   asynchronous Canvas and 96 particles under any input rate. One fixed-radius
   blur is applied to the composite field layer and one batched glow to all
   particles rather than a filter per object; palette extraction is cached per
   artwork revision, and the 60 Hz animation timeline pauses when no effects
-  remain. Focus lyrics update independently at 10 Hz.
+  remain. The background runs at 30 Hz only while motion is allowed; Cadence
+  Mode lyrics update independently at 10 Hz.
 
 ## Verification
 
@@ -192,6 +205,7 @@ The implementation is complete only after:
    batch tag assignment, production-empty startup, and app-icon metadata.
 5. Wide and minimum-width screenshots in Light and Dark appearances are
    reviewed for All Tracks, Album Detail, Tags, Smart Collections, Playlists,
-   Settings, and an active Rhythm Pulse over Lyrics.
+   Settings, standard Now Playing with its hint, and active Cadence Mode over
+   Lyrics, including the grayscale palette.
 6. Keyboard selection, VoiceOver labels, Reduce Motion, System/Light/Dark, and
    tag-assignment error recovery are checked.

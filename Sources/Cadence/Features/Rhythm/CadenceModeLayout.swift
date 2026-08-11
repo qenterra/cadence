@@ -1,6 +1,6 @@
 import CoreGraphics
 
-struct RhythmFocusLayout: Sendable {
+struct CadenceModeLayout: Sendable {
     private static let outerMargin: CGFloat = 24
     private static let standardInset: CGFloat = 42
     private static let lyricsGap: CGFloat = 20
@@ -26,7 +26,7 @@ struct RhythmFocusLayout: Sendable {
         )
     }
 
-    var focusArtworkFrame: CGRect {
+    var modeArtworkFrame: CGRect {
         let size = min(
             420,
             canvasSize.width * 0.4,
@@ -44,31 +44,31 @@ struct RhythmFocusLayout: Sendable {
         )
     }
 
-    var focusLyricSlotHeight: CGFloat {
+    var modeLyricSlotHeight: CGFloat {
         let availableHeight = max(
             canvasSize.height - Self.outerMargin
-                - focusArtworkFrame.maxY - Self.lyricsGap,
+                - modeArtworkFrame.maxY - Self.lyricsGap,
             0
         )
         return min(max(availableHeight / 5, 32), 52)
     }
 
-    var focusLyricsFrame: CGRect {
+    var modeLyricsFrame: CGRect {
         let width = min(canvasSize.width - Self.outerMargin * 2, 760)
         return CGRect(
             x: (canvasSize.width - width) * 0.5,
-            y: focusArtworkFrame.maxY + Self.lyricsGap,
+            y: modeArtworkFrame.maxY + Self.lyricsGap,
             width: width,
-            height: focusLyricSlotHeight * 5
+            height: modeLyricSlotHeight * 5
         )
     }
 
     func emitterOrigin(
         lane: RhythmLane,
-        isFocused: Bool
+        isCadenceModeActive: Bool
     ) -> CGPoint {
-        let frame = isFocused
-            ? focusArtworkFrame
+        let frame = isCadenceModeActive
+            ? modeArtworkFrame
             : standardArtworkFrame
         let horizontalPosition: CGFloat = lane == .left ? 0.06 : 0.94
         return CGPoint(
@@ -79,12 +79,12 @@ struct RhythmFocusLayout: Sendable {
 
     func normalizedEmitterOrigin(
         lane: RhythmLane,
-        isFocused: Bool
+        isCadenceModeActive: Bool
     ) -> CGPoint {
         guard canvasSize.width > 0, canvasSize.height > 0 else {
             return .zero
         }
-        let origin = emitterOrigin(lane: lane, isFocused: isFocused)
+        let origin = emitterOrigin(lane: lane, isCadenceModeActive: isCadenceModeActive)
         return CGPoint(
             x: origin.x / canvasSize.width,
             y: origin.y / canvasSize.height

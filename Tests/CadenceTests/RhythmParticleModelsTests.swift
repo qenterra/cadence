@@ -227,7 +227,7 @@ struct RhythmParticleModelsTests {
     }
 
     @MainActor
-    @Test("Visual QA recomputes emitter origins when focus mode changes")
+    @Test("Visual QA recomputes emitter origins when Cadence Mode changes")
     func visualFixtureUpdatesOriginsForFocus() {
         let store = RhythmPulseStore()
         let standardState = RhythmPulseVisualQAState(
@@ -239,7 +239,7 @@ struct RhythmParticleModelsTests {
             palette: .particleFixture,
             seed: 0xCAD34CE,
             lanes: [.left, .right],
-            isFocusActive: true
+            isCadenceModeActive: true
         )
 
         store.prepare(visualQAState: standardState)

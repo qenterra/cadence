@@ -10,9 +10,8 @@ actor RhythmArtworkPaletteCache {
     }
 
     private var palettes: [Key: RhythmAccentPalette] = [:]
-    private var missingPalettes: Set<Key> = []
 
-    func palette(for asset: ArtworkAsset) async -> RhythmAccentPalette? {
+    func palette(for asset: ArtworkAsset) async -> RhythmAccentPalette {
         let key = Key(
             id: asset.id,
             revision: asset.revision,
@@ -21,20 +20,13 @@ actor RhythmArtworkPaletteCache {
         if let palette = palettes[key] {
             return palette
         }
-        guard !missingPalettes.contains(key) else {
-            return nil
-        }
-
         let data = asset.data
         let palette = await Task.detached(priority: .utility) {
             RhythmArtworkPaletteExtractor.extract(from: data)
+                ?? .cadenceFallback
         }.value
 
-        if let palette {
-            palettes[key] = palette
-        } else {
-            missingPalettes.insert(key)
-        }
+        palettes[key] = palette
         return palette
     }
 }
@@ -51,10 +43,61 @@ private enum RhythmArtworkPaletteExtractor {
         }
         let candidates = accentCandidates(in: pixels)
         let selected = distinctColors(from: candidates)
+        if selected.isEmpty {
+            return neutralPalette(from: pixels)
+        }
         guard !selected.isEmpty else {
             return nil
         }
         return RhythmAccentPalette(colors: selected)
+    }
+
+    private static func neutralPalette(
+        from pixels: [UInt8]
+    ) -> RhythmAccentPalette? {
+        var buckets: [Int: Int] = [:]
+        for offset in stride(from: 0, to: pixels.count, by: 4) {
+            let alpha = Double(pixels[offset + 3]) / 255
+            guard alpha >= 0.5 else {
+                continue
+            }
+            let color = RhythmPulseColor(
+                red: Double(pixels[offset]) / 255,
+                green: Double(pixels[offset + 1]) / 255,
+                blue: Double(pixels[offset + 2]) / 255
+            )
+            guard color.saturation < 0.35 else {
+                continue
+            }
+            let luminance = min(max(color.relativeLuminance, 0.38), 0.82)
+            let key = Int((luminance * 10).rounded())
+            buckets[key, default: 0] += 1
+        }
+
+        let luminances = buckets
+            .sorted {
+                if $0.value == $1.value {
+                    return $0.key < $1.key
+                }
+                return $0.value > $1.value
+            }
+            .map { Double($0.key) / 10 }
+            .reduce(into: [Double]()) { selected, luminance in
+                guard selected.allSatisfy({ abs($0 - luminance) >= 0.12 }) else {
+                    return
+                }
+                selected.append(luminance)
+            }
+            .prefix(5)
+
+        guard !luminances.isEmpty else {
+            return nil
+        }
+        return RhythmAccentPalette(
+            colors: luminances.map {
+                RhythmPulseColor(red: $0, green: $0, blue: $0)
+            }
+        )
     }
 
     private static func rgbaPixels(from data: Data) -> [UInt8]? {

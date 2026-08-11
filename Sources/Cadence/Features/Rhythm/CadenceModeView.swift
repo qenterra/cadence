@@ -1,12 +1,12 @@
 import SwiftUI
 
-struct RhythmFocusView: View {
+struct CadenceModeView: View {
     @Bindable var model: CadenceAppModel
     let track: PlaybackTrack
     let artworkID: UUID?
     let trackTitle: String
     let artist: String
-    let layout: RhythmFocusLayout
+    let layout: CadenceModeLayout
     let artworkNamespace: Namespace.ID
     let visualQADocument: LyricDocument?
     let visualQAPresentationTime: TimeInterval?
@@ -24,16 +24,16 @@ struct RhythmFocusView: View {
                 cornerRadius: CadenceTheme.radiusHero
             )
             .matchedGeometryEffect(
-                id: RhythmFocusTransition.artworkID,
+                id: CadenceModeTransition.artworkID,
                 in: artworkNamespace
             )
             .frame(
-                width: layout.focusArtworkFrame.width,
-                height: layout.focusArtworkFrame.height
+                width: layout.modeArtworkFrame.width,
+                height: layout.modeArtworkFrame.height
             )
             .position(
-                x: layout.focusArtworkFrame.midX,
-                y: layout.focusArtworkFrame.midY
+                x: layout.modeArtworkFrame.midX,
+                y: layout.modeArtworkFrame.midY
             )
             .shadow(
                 color: Color.black.opacity(0.22),
@@ -43,12 +43,12 @@ struct RhythmFocusView: View {
 
             lyricContent
                 .frame(
-                    width: layout.focusLyricsFrame.width,
-                    height: layout.focusLyricsFrame.height
+                    width: layout.modeLyricsFrame.width,
+                    height: layout.modeLyricsFrame.height
                 )
                 .position(
-                    x: layout.focusLyricsFrame.midX,
-                    y: layout.focusLyricsFrame.midY
+                    x: layout.modeLyricsFrame.midX,
+                    y: layout.modeLyricsFrame.midY
                 )
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -65,15 +65,15 @@ struct RhythmFocusView: View {
         if let effectiveDocument,
            effectiveDocument.timingStatus == .synchronized {
             TimelineView(.periodic(from: .now, by: 0.1)) { _ in
-                let projection = RhythmFocusLyricProjection.make(
+                let projection = CadenceModeLyricProjection.make(
                     document: effectiveDocument,
                     presentationTime: visualQAPresentationTime
                         ?? model.playbackPresentationTime()
                 )
-                RhythmFocusLyricStack(
+                CadenceModeLyricStack(
                     document: effectiveDocument,
                     activeLineID: projection.activeLineID,
-                    slotHeight: layout.focusLyricSlotHeight
+                    slotHeight: layout.modeLyricSlotHeight
                 )
             }
         } else {
@@ -117,19 +117,19 @@ struct RhythmFocusView: View {
     }
 }
 
-enum RhythmFocusTransition {
-    static let artworkID = "rhythm-focus-artwork"
+enum CadenceModeTransition {
+    static let artworkID = "cadence-mode-artwork"
 }
 
 extension AnyTransition {
-    static var rhythmFocusLayer: AnyTransition {
+    static var cadenceModeLayer: AnyTransition {
         .modifier(
-            active: RhythmFocusLayerModifier(
+            active: CadenceModeLayerModifier(
                 opacity: 0,
                 blurRadius: 9,
                 scale: 0.985
             ),
-            identity: RhythmFocusLayerModifier(
+            identity: CadenceModeLayerModifier(
                 opacity: 1,
                 blurRadius: 0,
                 scale: 1
@@ -138,7 +138,7 @@ extension AnyTransition {
     }
 }
 
-private struct RhythmFocusLayerModifier: ViewModifier {
+private struct CadenceModeLayerModifier: ViewModifier {
     let opacity: Double
     let blurRadius: CGFloat
     let scale: CGFloat
@@ -151,7 +151,7 @@ private struct RhythmFocusLayerModifier: ViewModifier {
     }
 }
 
-private struct RhythmFocusLyricStack: View {
+private struct CadenceModeLyricStack: View {
     let document: LyricDocument
     let activeLineID: LyricLine.ID?
     let slotHeight: CGFloat

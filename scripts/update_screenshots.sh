@@ -29,14 +29,14 @@ cd "$project_root"
 xcodegen generate --spec project.yml
 
 marker="$project_root/.build/update-screenshots"
-rhythm_marker="$project_root/.build/update-rhythm-screenshots"
+cadence_mode_marker="$project_root/.build/update-cadence-mode-screenshots"
 mkdir -p "$project_root/.build"
 touch "$marker"
-touch "$rhythm_marker"
+touch "$cadence_mode_marker"
 
 cleanup_markers() {
     unlink "$marker" 2>/dev/null || true
-    unlink "$rhythm_marker" 2>/dev/null || true
+    unlink "$cadence_mode_marker" 2>/dev/null || true
 }
 
 trap cleanup_markers EXIT
@@ -52,7 +52,7 @@ DEVELOPER_DIR="$developer_dir" xcodebuild \
     -derivedDataPath "$project_root/.build/ScreenshotDerivedData" \
     -destination 'platform=macOS' \
     -only-testing:CadenceTests/DocumentationScreenshotTests \
-    -only-testing:CadenceTests/RhythmPulseScreenshotTests \
+    -only-testing:CadenceTests/CadenceModeScreenshotTests \
     -parallel-testing-enabled NO \
     CODE_SIGN_ENTITLEMENTS= \
     test | xcbeautify
@@ -75,13 +75,13 @@ for image in "$project_root"/docs/images/qa-{library,now-playing,album,import-re
     [[ "$(sips -g pixelHeight "$image" | tail -n 1 | awk '{print $2}')" == "1800" ]]
 done
 
-for image in "$project_root"/docs/images/qa-rhythm-min-*.png; do
+for image in "$project_root"/docs/images/qa-cadence-mode-*min-*.png; do
     [[ -f "$image" ]]
     [[ "$(sips -g pixelWidth "$image" | tail -n 1 | awk '{print $2}')" == "2160" ]]
     is_supported_minimum_height "$(sips -g pixelHeight "$image" | tail -n 1 | awk '{print $2}')"
 done
 
-for image in "$project_root"/docs/images/qa-rhythm-wide-*.png; do
+for image in "$project_root"/docs/images/qa-cadence-mode-wide-*.png; do
     [[ -f "$image" ]]
     [[ "$(sips -g pixelWidth "$image" | tail -n 1 | awk '{print $2}')" == "2880" ]]
     [[ "$(sips -g pixelHeight "$image" | tail -n 1 | awk '{print $2}')" == "1800" ]]

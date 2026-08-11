@@ -2,24 +2,24 @@
 import CoreGraphics
 import Testing
 
-struct RhythmFocusLayoutTests {
-    @Test("Focus artwork is centered and leaves five lyric slots visible")
-    func focusCompositionFitsMinimumWindow() {
+struct CadenceModeLayoutTests {
+    @Test("Cadence Mode artwork is centered and leaves five lyric slots visible")
+    func cadenceModeCompositionFitsMinimumWindow() {
         let canvasSize = CGSize(width: 1080, height: 720)
         let context = NowPlayingLayoutMetrics(
             totalWidth: canvasSize.width
         ).contextWidth
-        let layout = RhythmFocusLayout(
+        let layout = CadenceModeLayout(
             canvasSize: canvasSize,
             contextWidth: context
         )
 
-        #expect(layout.focusArtworkFrame.midX == canvasSize.width / 2)
-        #expect((260 ... 420).contains(layout.focusArtworkFrame.width))
-        #expect(layout.focusLyricsFrame.minY > layout.focusArtworkFrame.maxY)
-        #expect(layout.focusLyricsFrame.maxY <= canvasSize.height - 24)
-        #expect(layout.focusLyricSlotHeight >= 36)
-        #expect(layout.focusLyricsFrame.height >= layout.focusLyricSlotHeight * 5)
+        #expect(layout.modeArtworkFrame.midX == canvasSize.width / 2)
+        #expect((260 ... 420).contains(layout.modeArtworkFrame.width))
+        #expect(layout.modeLyricsFrame.minY > layout.modeArtworkFrame.maxY)
+        #expect(layout.modeLyricsFrame.maxY <= canvasSize.height - 24)
+        #expect(layout.modeLyricSlotHeight >= 36)
+        #expect(layout.modeLyricsFrame.height >= layout.modeLyricSlotHeight * 5)
     }
 
     @Test("The standard artwork frame matches the padded context layout")
@@ -28,7 +28,7 @@ struct RhythmFocusLayoutTests {
         let context = NowPlayingLayoutMetrics(
             totalWidth: canvasSize.width
         ).contextWidth
-        let layout = RhythmFocusLayout(
+        let layout = CadenceModeLayout(
             canvasSize: canvasSize,
             contextWidth: context
         )
@@ -42,22 +42,22 @@ struct RhythmFocusLayoutTests {
     @Test("Z and X emit from opposite visible side edges of the artwork")
     func emitterOriginsStayInsideArtwork() {
         let canvasSize = CGSize(width: 1080, height: 720)
-        let layout = RhythmFocusLayout(
+        let layout = CadenceModeLayout(
             canvasSize: canvasSize,
             contextWidth: 432
         )
 
-        for isFocused in [false, true] {
-            let artworkFrame = isFocused
-                ? layout.focusArtworkFrame
+        for isCadenceModeActive in [false, true] {
+            let artworkFrame = isCadenceModeActive
+                ? layout.modeArtworkFrame
                 : layout.standardArtworkFrame
             let left = layout.emitterOrigin(
                 lane: .left,
-                isFocused: isFocused
+                isCadenceModeActive: isCadenceModeActive
             )
             let right = layout.emitterOrigin(
                 lane: .right,
-                isFocused: isFocused
+                isCadenceModeActive: isCadenceModeActive
             )
 
             #expect(artworkFrame.contains(left))
@@ -74,23 +74,23 @@ struct RhythmFocusLayoutTests {
 
             let normalized = layout.normalizedEmitterOrigin(
                 lane: .right,
-                isFocused: isFocused
+                isCadenceModeActive: isCadenceModeActive
             )
             #expect((0 ... 1).contains(normalized.x))
             #expect((0 ... 1).contains(normalized.y))
         }
     }
 
-    @Test("Focus composition remains bounded in a short workspace")
-    func focusCompositionFitsShortWorkspace() {
+    @Test("Cadence Mode composition remains bounded in a short workspace")
+    func cadenceModeCompositionFitsShortWorkspace() {
         let canvasSize = CGSize(width: 1080, height: 600)
-        let layout = RhythmFocusLayout(
+        let layout = CadenceModeLayout(
             canvasSize: canvasSize,
             contextWidth: 432
         )
 
-        #expect(layout.focusArtworkFrame.minY >= 24)
-        #expect(layout.focusLyricsFrame.maxY <= canvasSize.height - 24)
-        #expect(layout.focusLyricSlotHeight >= 32)
+        #expect(layout.modeArtworkFrame.minY >= 24)
+        #expect(layout.modeLyricsFrame.maxY <= canvasSize.height - 24)
+        #expect(layout.modeLyricSlotHeight >= 32)
     }
 }

@@ -1,13 +1,29 @@
 import Foundation
 
-enum RhythmFocusAction: Equatable, Sendable {
+enum CadenceModeAction: Equatable, Sendable {
     case none
     case activated
     case extended
     case deactivated
 }
 
-struct RhythmFocusState: Sendable {
+enum CadenceModeHitResponse: Equatable, Sendable {
+    case none
+    case activate
+    case emitPulse
+
+    static func resolve(
+        wasActive: Bool,
+        stateAction: CadenceModeAction
+    ) -> CadenceModeHitResponse {
+        if wasActive {
+            return .emitPulse
+        }
+        return stateAction == .activated ? .activate : .none
+    }
+}
+
+struct CadenceModeState: Sendable {
     static let chordWindow: TimeInterval = 0.18
     static let inactivityDuration: TimeInterval = 10
 
@@ -18,7 +34,7 @@ struct RhythmFocusState: Sendable {
     mutating func registerHit(
         lane: RhythmLane,
         at time: TimeInterval
-    ) -> RhythmFocusAction {
+    ) -> CadenceModeAction {
         defer {
             previousHit = (lane, time)
         }
@@ -42,7 +58,7 @@ struct RhythmFocusState: Sendable {
         return .activated
     }
 
-    mutating func update(at time: TimeInterval) -> RhythmFocusAction {
+    mutating func update(at time: TimeInterval) -> CadenceModeAction {
         guard isActive, let deadline, time >= deadline else {
             return .none
         }
@@ -50,7 +66,7 @@ struct RhythmFocusState: Sendable {
     }
 
     @discardableResult
-    mutating func deactivate() -> RhythmFocusAction {
+    mutating func deactivate() -> CadenceModeAction {
         guard isActive else {
             return .none
         }

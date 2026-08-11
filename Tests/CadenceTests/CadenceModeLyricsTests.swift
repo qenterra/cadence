@@ -2,7 +2,7 @@
 import Foundation
 import Testing
 
-struct RhythmFocusLyricsTests {
+struct CadenceModeLyricsTests {
     @Test("The active lyric stays in the center of five stable slots")
     func activeLineIsCentered() {
         let document = makeDocument(
@@ -10,7 +10,7 @@ struct RhythmFocusLyricsTests {
             startTimes: [0, 2, 4, 6, 8, 10]
         )
 
-        let projection = RhythmFocusLyricProjection.make(
+        let projection = CadenceModeLyricProjection.make(
             document: document,
             presentationTime: 6.5
         )
@@ -29,11 +29,11 @@ struct RhythmFocusLyricsTests {
             startTimes: [0, 2, 4]
         )
 
-        let beginning = RhythmFocusLyricProjection.make(
+        let beginning = CadenceModeLyricProjection.make(
             document: document,
             presentationTime: 0.5
         )
-        let end = RhythmFocusLyricProjection.make(
+        let end = CadenceModeLyricProjection.make(
             document: document,
             presentationTime: 8
         )
@@ -48,7 +48,7 @@ struct RhythmFocusLyricsTests {
         #expect(end.slots[2]?.id == end.activeLineID)
     }
 
-    @Test("Blank document rows never consume a focus slot")
+    @Test("Blank document rows never consume a Cadence Mode slot")
     func blankRowsAreSkipped() {
         let document = LyricDocument(
             trackID: UUID(),
@@ -61,7 +61,7 @@ struct RhythmFocusLyricsTests {
             ]
         )
 
-        let projection = RhythmFocusLyricProjection.make(
+        let projection = CadenceModeLyricProjection.make(
             document: document,
             presentationTime: 2.5
         )
@@ -82,15 +82,15 @@ struct RhythmFocusLyricsTests {
             startTimes: [0, nil]
         )
 
-        let missingProjection = RhythmFocusLyricProjection.make(
+        let missingProjection = CadenceModeLyricProjection.make(
             document: nil,
             presentationTime: 3
         )
-        let unsynchronizedProjection = RhythmFocusLyricProjection.make(
+        let unsynchronizedProjection = CadenceModeLyricProjection.make(
             document: unsynchronized,
             presentationTime: 3
         )
-        let partialProjection = RhythmFocusLyricProjection.make(
+        let partialProjection = CadenceModeLyricProjection.make(
             document: partial,
             presentationTime: 3
         )
@@ -110,7 +110,7 @@ struct RhythmFocusLyricsTests {
             startTimes: [5, 7, 9]
         )
 
-        let projection = RhythmFocusLyricProjection.make(
+        let projection = CadenceModeLyricProjection.make(
             document: document,
             presentationTime: 2
         )
@@ -121,8 +121,8 @@ struct RhythmFocusLyricsTests {
         ])
     }
 
-    @Test("Focus shimmer uses the production lyric duration contract")
-    func focusUsesProductionLineDuration() throws {
+    @Test("Cadence Mode shimmer uses the production lyric duration contract")
+    func cadenceModeUsesProductionLineDuration() throws {
         let document = makeDocument(
             ["one", "two", "three"],
             startTimes: [0, 2, 2.4]

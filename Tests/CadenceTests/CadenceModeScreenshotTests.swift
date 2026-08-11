@@ -4,9 +4,16 @@ import SwiftUI
 import Testing
 
 @MainActor
-struct RhythmPulseScreenshotTests {
-    @Test("Render Rhythm Pulse across Lyrics in Light and Dark")
-    func renderRhythmPulseScreenshots() async throws {
+struct CadenceModeScreenshotTests {
+    private struct VisualQAStates {
+        let standard: RhythmPulseVisualQAState
+        let cadenceMode: RhythmPulseVisualQAState
+        let grayscale: RhythmPulseVisualQAState
+        let entry: RhythmPulseVisualQAState
+    }
+
+    @Test("Render Cadence Mode, its entry, and the inactive hint")
+    func renderCadenceModeScreenshots() async throws {
         guard FileManager.default.fileExists(atPath: Self.updateMarker.path) else {
             return
         }
@@ -15,7 +22,22 @@ struct RhythmPulseScreenshotTests {
         fixture.model.presentNowPlaying()
         fixture.model.selectedNowPlayingPanel = .lyrics
 
-        let visualQAState = RhythmPulseVisualQAState(
+        let states = Self.makeVisualQAStates()
+
+        try await captureStaticStates(
+            fixture: fixture,
+            standardState: states.standard,
+            cadenceModeState: states.cadenceMode,
+            grayscaleState: states.grayscale
+        )
+        try await captureKeyboardTransition(
+            fixture: fixture,
+            visualQAState: states.entry
+        )
+    }
+
+    private static func makeVisualQAStates() -> VisualQAStates {
+        let standard = RhythmPulseVisualQAState(
             palette: RhythmAccentPalette(
                 colors: [
                     RhythmPulseColor(red: 0.93, green: 0.18, blue: 0.52),
@@ -26,77 +48,80 @@ struct RhythmPulseScreenshotTests {
             seed: 0xCAD34CE,
             lanes: [.left, .right, .left]
         )
-        let focusLyricDocument = Self.focusLyricDocument
-        let focusVisualQAState = RhythmPulseVisualQAState(
-            palette: visualQAState.palette,
-            seed: visualQAState.seed,
-            lanes: visualQAState.lanes,
-            isFocusActive: true,
-            focusLyricDocument: focusLyricDocument,
-            focusPresentationTime: 89
+        let cadenceMode = RhythmPulseVisualQAState(
+            palette: standard.palette,
+            seed: standard.seed,
+            lanes: standard.lanes,
+            isCadenceModeActive: true,
+            cadenceModeLyricDocument: cadenceModeLyricDocument,
+            cadenceModePresentationTime: 89
+        )
+        let grayscale = RhythmPulseVisualQAState(
+            palette: RhythmAccentPalette(
+                colors: [
+                    RhythmPulseColor(red: 0.4, green: 0.4, blue: 0.4),
+                    RhythmPulseColor(red: 0.7, green: 0.7, blue: 0.7),
+                ]
+            ),
+            seed: 0x6A4A,
+            lanes: [.left, .right],
+            isCadenceModeActive: true,
+            cadenceModeLyricDocument: cadenceModeLyricDocument,
+            cadenceModePresentationTime: 89
         )
 
-        try await captureStaticStates(
-            fixture: fixture,
-            pulseState: visualQAState,
-            focusState: focusVisualQAState
-        )
-        try await captureKeyboardTransition(
-            fixture: fixture,
-            visualQAState: RhythmPulseVisualQAState(
-                palette: visualQAState.palette,
-                seed: visualQAState.seed,
+        return VisualQAStates(
+            standard: standard,
+            cadenceMode: cadenceMode,
+            grayscale: grayscale,
+            entry: RhythmPulseVisualQAState(
+                palette: standard.palette,
+                seed: standard.seed,
                 lanes: [],
-                focusLyricDocument: focusLyricDocument,
-                focusPresentationTime: 89
+                cadenceModeLyricDocument: cadenceModeLyricDocument,
+                cadenceModePresentationTime: 89
             )
         )
     }
 
     private func captureStaticStates(
         fixture: DocumentationScreenshotFixture,
-        pulseState: RhythmPulseVisualQAState,
-        focusState: RhythmPulseVisualQAState
+        standardState: RhythmPulseVisualQAState,
+        cadenceModeState: RhythmPulseVisualQAState,
+        grayscaleState: RhythmPulseVisualQAState
     ) async throws {
         try await fixture.capture(
-            "qa-rhythm-min-dark.png",
-            rhythmPulseVisualQAState: pulseState
+            "qa-cadence-mode-standard-min-dark.png",
+            rhythmPulseVisualQAState: standardState
         )
         try await fixture.capture(
-            "qa-rhythm-min-light.png",
+            "qa-cadence-mode-standard-min-light.png",
             appearance: .light,
-            rhythmPulseVisualQAState: pulseState
+            rhythmPulseVisualQAState: standardState
         )
         try await fixture.capture(
-            "qa-rhythm-wide-dark.png",
-            contentSize: .wide,
-            rhythmPulseVisualQAState: pulseState
+            "qa-cadence-mode-min-dark.png",
+            rhythmPulseVisualQAState: cadenceModeState
         )
         try await fixture.capture(
-            "qa-rhythm-wide-light.png",
-            contentSize: .wide,
+            "qa-cadence-mode-min-light.png",
             appearance: .light,
-            rhythmPulseVisualQAState: pulseState
+            rhythmPulseVisualQAState: cadenceModeState
         )
         try await fixture.capture(
-            "qa-rhythm-min-focus-dark.png",
-            rhythmPulseVisualQAState: focusState
-        )
-        try await fixture.capture(
-            "qa-rhythm-min-focus-light.png",
-            appearance: .light,
-            rhythmPulseVisualQAState: focusState
-        )
-        try await fixture.capture(
-            "qa-rhythm-wide-focus-dark.png",
+            "qa-cadence-mode-wide-dark.png",
             contentSize: .wide,
-            rhythmPulseVisualQAState: focusState
+            rhythmPulseVisualQAState: cadenceModeState
         )
         try await fixture.capture(
-            "qa-rhythm-wide-focus-light.png",
+            "qa-cadence-mode-wide-light.png",
             contentSize: .wide,
             appearance: .light,
-            rhythmPulseVisualQAState: focusState
+            rhythmPulseVisualQAState: cadenceModeState
+        )
+        try await fixture.capture(
+            "qa-cadence-mode-grayscale-min-dark.png",
+            rhythmPulseVisualQAState: grayscaleState
         )
     }
 
@@ -139,14 +164,14 @@ struct RhythmPulseScreenshotTests {
         try capture(
             window: window,
             hostingView: hostingView,
-            filename: "qa-rhythm-wide-transition-mid-dark.png"
+            filename: "qa-cadence-mode-wide-transition-mid-dark.png"
         )
 
         try await Task.sleep(for: .milliseconds(380))
         try capture(
             window: window,
             hostingView: hostingView,
-            filename: "qa-rhythm-wide-transition-settled-dark.png"
+            filename: "qa-cadence-mode-wide-transition-settled-dark.png"
         )
     }
 
@@ -184,14 +209,14 @@ struct RhythmPulseScreenshotTests {
                 in: frameView.bounds
             )
         else {
-            throw RhythmScreenshotError.captureUnavailable
+            throw CadenceModeScreenshotError.captureUnavailable
         }
         frameView.cacheDisplay(in: frameView.bounds, to: representation)
         guard let data = representation.representation(
             using: .png,
             properties: [:]
         ) else {
-            throw RhythmScreenshotError.encodingFailed
+            throw CadenceModeScreenshotError.encodingFailed
         }
         try data.write(
             to: Self.outputDirectory.appending(path: filename),
@@ -204,7 +229,7 @@ struct RhythmPulseScreenshotTests {
             .deletingLastPathComponent()
             .deletingLastPathComponent()
             .deletingLastPathComponent()
-            .appending(path: ".build/update-rhythm-screenshots")
+            .appending(path: ".build/update-cadence-mode-screenshots")
     }
 
     private static var outputDirectory: URL {
@@ -215,7 +240,7 @@ struct RhythmPulseScreenshotTests {
             .appending(path: "docs/images", directoryHint: .isDirectory)
     }
 
-    private static var focusLyricDocument: LyricDocument {
+    private static var cadenceModeLyricDocument: LyricDocument {
         LyricDocument(
             trackID: UUID(),
             lines: [
@@ -231,7 +256,7 @@ struct RhythmPulseScreenshotTests {
     }
 }
 
-private enum RhythmScreenshotError: Error {
+private enum CadenceModeScreenshotError: Error {
     case captureUnavailable
     case encodingFailed
 }

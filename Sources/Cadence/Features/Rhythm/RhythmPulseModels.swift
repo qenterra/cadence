@@ -25,6 +25,10 @@ struct RhythmPulseColor: Hashable, Sendable {
         return (highest - min(red, green, blue)) / highest
     }
 
+    var relativeLuminance: Double {
+        red * 0.2126 + green * 0.7152 + blue * 0.0722
+    }
+
     func isNear(
         red targetRed: Double,
         green targetGreen: Double,
@@ -43,6 +47,14 @@ struct RhythmAccentPalette: Hashable, Sendable {
     init(colors: [RhythmPulseColor]) {
         self.colors = Array(colors.prefix(5))
     }
+
+    static let cadenceFallback = RhythmAccentPalette(
+        colors: [
+            RhythmPulseColor(red: 0.43, green: 0.35, blue: 0.7),
+            RhythmPulseColor(red: 0.22, green: 0.52, blue: 0.58),
+            RhythmPulseColor(red: 0.65, green: 0.34, blue: 0.51),
+        ]
+    )
 }
 
 struct RhythmPulseWash: Identifiable, Hashable, Sendable {

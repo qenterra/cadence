@@ -65,10 +65,10 @@ enum CadenceTheme {
     static let motionDismiss = QDS.MotionSeconds.dismiss
     static let motionSpatialLong = QDS.MotionSeconds.spatialLong
 
-    // Product motion: Rhythm Focus has no second consumer, so it stays named
+    // Product motion: Cadence Mode has no second consumer, so it stays named
     // here rather than inflating the cross-product QDS motion scale.
-    static let motionRhythmFocusEnter = 0.5
-    static let motionRhythmFocusExit = 0.55
+    static let motionCadenceModeEnter = 0.5
+    static let motionCadenceModeExit = 0.55
 
     private static func adaptive(_ token: QDSColorValue) -> Color {
         let light = NSColor(Color(qds: token, appearance: .light))

@@ -27,9 +27,7 @@ struct RhythmArtworkPaletteTests {
             data: makePNG(colors: [pink, cyan, nearBlack])
         )
 
-        let palette = try #require(
-            await RhythmArtworkPaletteCache().palette(for: asset)
-        )
+        let palette = await RhythmArtworkPaletteCache().palette(for: asset)
 
         #expect(palette.colors.allSatisfy { $0.saturation >= 0.35 })
         #expect(
@@ -44,20 +42,56 @@ struct RhythmArtworkPaletteTests {
         )
     }
 
-    @Test("Grayscale artwork does not invent accent colors")
-    func grayscaleHasNoAccentPalette() async throws {
+    @Test("Grayscale artwork keeps a visible neutral palette")
+    func grayscaleKeepsNeutralPalette() async throws {
         let asset = try ArtworkAsset(
             data: makePNG(
                 colors: [
-                    NSColor(calibratedWhite: 0.25, alpha: 1),
-                    NSColor(calibratedWhite: 0.65, alpha: 1),
+                    NSColor(
+                        deviceRed: 0.25,
+                        green: 0.25,
+                        blue: 0.25,
+                        alpha: 1
+                    ),
+                    NSColor(
+                        deviceRed: 0.65,
+                        green: 0.65,
+                        blue: 0.65,
+                        alpha: 1
+                    ),
                 ]
             )
         )
 
+        let palette = await RhythmArtworkPaletteCache().palette(for: asset)
+
+        #expect(palette.colors.count == 2)
+        #expect(palette.colors.allSatisfy { $0.saturation == 0 })
         #expect(
-            await RhythmArtworkPaletteCache().palette(for: asset) == nil
+            palette.colors.allSatisfy {
+                (0.32 ... 0.82).contains($0.relativeLuminance)
+            }
         )
+    }
+
+    @Test("Unreadable artwork uses the deterministic Cadence palette")
+    func unreadableArtworkUsesProductFallback() async {
+        let asset = ArtworkAsset(data: Data("not an image".utf8))
+
+        let palette = await RhythmArtworkPaletteCache().palette(for: asset)
+
+        #expect(palette == .cadenceFallback)
+        #expect(!palette.colors.isEmpty)
+    }
+
+    @MainActor
+    @Test("Missing artwork still prepares effects")
+    func missingArtworkUsesProductFallback() async {
+        let store = RhythmPulseStore()
+
+        await store.prepare(asset: nil)
+
+        #expect(store.palette == .cadenceFallback)
     }
 
     private func makePNG(colors: [NSColor]) throws -> Data {

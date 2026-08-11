@@ -16,67 +16,75 @@ struct ProductionNowPlayingView: View {
     @State private var isRenamePresented = false
     @State private var renameDraft = ""
     @State private var rhythmPulseStore = RhythmPulseStore()
-    @State private var rhythmFocusState = RhythmFocusState()
-    @Namespace private var rhythmFocusNamespace
+    @State private var cadenceModeState = CadenceModeState()
+    @Namespace private var cadenceModeNamespace
 
     var body: some View {
         GeometryReader { geometry in
             let layout = NowPlayingLayoutMetrics(
                 totalWidth: geometry.size.width
             )
-            let rhythmLayout = RhythmFocusLayout(
+            let cadenceModeLayout = CadenceModeLayout(
                 canvasSize: geometry.size,
                 contextWidth: layout.contextWidth
             )
-            let isRhythmFocused = rhythmPulseVisualQAState?.isFocusActive
-                ?? rhythmFocusState.isActive
+            let isCadenceModeActive = rhythmPulseVisualQAState?.isCadenceModeActive
+                ?? cadenceModeState.isActive
 
             ZStack {
-                RhythmPulseCanvas(
-                    store: rhythmPulseStore,
-                    panelStartX: layout.contextWidth + 1
-                )
+                if isCadenceModeActive {
+                    ZStack {
+                        CadenceModeBackground(
+                            palette: rhythmPulseStore.palette
+                                ?? .cadenceFallback
+                        )
 
-                if isRhythmFocused {
-                    RhythmFocusView(
-                        model: model,
-                        track: track,
-                        artworkID: displayedArtworkID,
-                        trackTitle: displayedTrackTitle,
-                        artist: track.artist,
-                        layout: rhythmLayout,
-                        artworkNamespace: rhythmFocusNamespace,
-                        visualQADocument: rhythmPulseVisualQAState?
-                            .focusLyricDocument,
-                        visualQAPresentationTime: rhythmPulseVisualQAState?
-                            .focusPresentationTime
-                    )
-                    .transition(reduceMotion ? .opacity : .rhythmFocusLayer)
+                        RhythmPulseCanvas(
+                            store: rhythmPulseStore,
+                            panelStartX: layout.contextWidth + 1
+                        )
+
+                        CadenceModeView(
+                            model: model,
+                            track: track,
+                            artworkID: displayedArtworkID,
+                            trackTitle: displayedTrackTitle,
+                            artist: track.artist,
+                            layout: cadenceModeLayout,
+                            artworkNamespace: cadenceModeNamespace,
+                            visualQADocument: rhythmPulseVisualQAState?
+                                .cadenceModeLyricDocument,
+                            visualQAPresentationTime: rhythmPulseVisualQAState?
+                                .cadenceModePresentationTime
+                        )
+                    }
+                    .environment(\.colorScheme, .dark)
+                    .transition(reduceMotion ? .opacity : .cadenceModeLayer)
                 } else {
                     standardNowPlaying(
                         layout: layout,
-                        rhythmLayout: rhythmLayout
+                        cadenceModeLayout: cadenceModeLayout
                     )
-                    .transition(reduceMotion ? .opacity : .rhythmFocusLayer)
+                    .transition(reduceMotion ? .opacity : .cadenceModeLayer)
                 }
             }
             .overlay(alignment: .topLeading) {
                 RhythmKeyboardCapture(
-                    isFocusActive: isRhythmFocused
+                    isCadenceModeActive: isCadenceModeActive
                 ) { lane in
-                    handleRhythmHit(
+                    handleCadenceModeHit(
                         lane,
-                        layout: rhythmLayout,
-                        isRhythmFocused: isRhythmFocused
+                        layout: cadenceModeLayout,
+                        isCadenceModeActive: isCadenceModeActive
                     )
-                } onExitFocus: {
-                    deactivateRhythmFocus()
+                } onExitCadenceMode: {
+                    deactivateCadenceMode()
                 }
                 .frame(width: 0, height: 0)
             }
             .clipped()
-            .task(id: rhythmFocusState.deadline) {
-                await waitForRhythmFocusDeadline()
+            .task(id: cadenceModeState.deadline) {
+                await waitForCadenceModeDeadline()
             }
         }
         .background(CadenceTheme.contentBackground)
@@ -113,11 +121,11 @@ struct ProductionNowPlayingView: View {
         }
         .onDisappear {
             rhythmPulseStore.reset()
-            rhythmFocusState.reset()
+            cadenceModeState.reset()
         }
         .onChange(of: track.id) { _, _ in
             rhythmPulseStore.reset()
-            rhythmFocusState.reset()
+            cadenceModeState.reset()
         }
         .catalogRenameAlert(
             "Rename Track",
@@ -138,43 +146,50 @@ struct ProductionNowPlayingView: View {
 }
 
 private extension ProductionNowPlayingView {
-    private func handleRhythmHit(
+    private func handleCadenceModeHit(
         _ lane: RhythmLane,
-        layout: RhythmFocusLayout,
-        isRhythmFocused: Bool
+        layout: CadenceModeLayout,
+        isCadenceModeActive: Bool
     ) {
         let now = ProcessInfo.processInfo.systemUptime
-        rhythmPulseStore.registerHit(
-            lane: lane,
-            emitterOrigin: layout.normalizedEmitterOrigin(
-                lane: lane,
-                isFocused: isRhythmFocused
-            )
+        var nextState = cadenceModeState
+        let action = nextState.registerHit(lane: lane, at: now)
+        let response = CadenceModeHitResponse.resolve(
+            wasActive: isCadenceModeActive,
+            stateAction: action
         )
 
-        var nextState = rhythmFocusState
-        let action = nextState.registerHit(lane: lane, at: now)
-        if action == .activated {
-            withAnimation(rhythmFocusEntryAnimation) {
-                rhythmFocusState = nextState
+        switch response {
+        case .activate:
+            withAnimation(cadenceModeEntryAnimation) {
+                cadenceModeState = nextState
             }
-        } else {
-            rhythmFocusState = nextState
+        case .emitPulse:
+            cadenceModeState = nextState
+            rhythmPulseStore.registerHit(
+                lane: lane,
+                emitterOrigin: layout.normalizedEmitterOrigin(
+                    lane: lane,
+                    isCadenceModeActive: true
+                )
+            )
+        case .none:
+            cadenceModeState = nextState
         }
     }
 
-    private func deactivateRhythmFocus() {
-        var nextState = rhythmFocusState
+    private func deactivateCadenceMode() {
+        var nextState = cadenceModeState
         guard nextState.deactivate() == .deactivated else {
             return
         }
-        withAnimation(rhythmFocusExitAnimation) {
-            rhythmFocusState = nextState
+        withAnimation(cadenceModeExitAnimation) {
+            cadenceModeState = nextState
         }
     }
 
-    private func waitForRhythmFocusDeadline() async {
-        guard let deadline = rhythmFocusState.deadline else {
+    private func waitForCadenceModeDeadline() async {
+        guard let deadline = cadenceModeState.deadline else {
             return
         }
         let delay = max(
@@ -190,36 +205,36 @@ private extension ProductionNowPlayingView {
             return
         }
 
-        var nextState = rhythmFocusState
+        var nextState = cadenceModeState
         guard nextState.update(
             at: ProcessInfo.processInfo.systemUptime
         ) == .deactivated else {
             return
         }
-        withAnimation(rhythmFocusExitAnimation) {
-            rhythmFocusState = nextState
+        withAnimation(cadenceModeExitAnimation) {
+            cadenceModeState = nextState
         }
     }
 
-    private var rhythmFocusEntryAnimation: Animation {
+    private var cadenceModeEntryAnimation: Animation {
         reduceMotion
             ? .easeOut(duration: CadenceTheme.motionDismiss)
-            : .smooth(duration: CadenceTheme.motionRhythmFocusEnter)
+            : .smooth(duration: CadenceTheme.motionCadenceModeEnter)
     }
 
-    private var rhythmFocusExitAnimation: Animation {
+    private var cadenceModeExitAnimation: Animation {
         reduceMotion
             ? .easeOut(duration: CadenceTheme.motionDismiss)
-            : .smooth(duration: CadenceTheme.motionRhythmFocusExit)
+            : .smooth(duration: CadenceTheme.motionCadenceModeExit)
     }
 
     private func standardNowPlaying(
         layout: NowPlayingLayoutMetrics,
-        rhythmLayout: RhythmFocusLayout
+        cadenceModeLayout: CadenceModeLayout
     ) -> some View {
         HStack(spacing: 0) {
             trackContext(
-                artworkSize: rhythmLayout.standardArtworkFrame.width
+                artworkSize: cadenceModeLayout.standardArtworkFrame.width
             )
             .frame(width: layout.contextWidth)
 
@@ -244,8 +259,8 @@ private extension ProductionNowPlayingView {
                 cornerRadius: CadenceTheme.radiusHero
             )
             .matchedGeometryEffect(
-                id: RhythmFocusTransition.artworkID,
-                in: rhythmFocusNamespace
+                id: CadenceModeTransition.artworkID,
+                in: cadenceModeNamespace
             )
             .frame(width: artworkSize, height: artworkSize)
             .contextMenu {
@@ -320,6 +335,8 @@ private extension ProductionNowPlayingView {
             trackTags
             audioPath
             playbackFailure
+            Spacer(minLength: 8)
+            CadenceModeHint()
         }
         .padding(42)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)

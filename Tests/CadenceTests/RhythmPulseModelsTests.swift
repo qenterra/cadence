@@ -213,6 +213,42 @@ struct RhythmPulseModelsTests {
         #expect(appearance.washBlendStrategy == .multiply)
         #expect(!appearance.usesDarkBackdrop)
     }
+
+    @Test("Cadence Mode background stays dark and softly animated")
+    func cadenceModeBackgroundUsesDarkBlurredFields() {
+        let appearance = CadenceModeBackgroundAppearance.resolve(
+            reduceMotion: false,
+            reduceTransparency: false,
+            increasedContrast: false
+        )
+
+        #expect(appearance.isAnimated)
+        #expect(appearance.blurRadius >= 80)
+        #expect(appearance.baseOpacity >= 0.78)
+        #expect(appearance.scrimOpacity >= 0.35)
+        #expect(
+            RhythmAccentPalette.fixture.backgroundColors
+                .allSatisfy { $0.relativeLuminance < 0.5 }
+        )
+    }
+
+    @Test("Cadence Mode background honors accessibility display settings")
+    func cadenceModeBackgroundHonorsAccessibility() {
+        let normal = CadenceModeBackgroundAppearance.resolve(
+            reduceMotion: false,
+            reduceTransparency: false,
+            increasedContrast: false
+        )
+        let accessible = CadenceModeBackgroundAppearance.resolve(
+            reduceMotion: true,
+            reduceTransparency: true,
+            increasedContrast: true
+        )
+
+        #expect(!accessible.isAnimated)
+        #expect(accessible.baseOpacity == 1)
+        #expect(accessible.scrimOpacity > normal.scrimOpacity)
+    }
 }
 
 private extension RhythmAccentPalette {

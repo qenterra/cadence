@@ -3,7 +3,7 @@ import SwiftUI
 
 enum RhythmKeyAction: Equatable {
     case hit(RhythmLane)
-    case exitFocus
+    case exitCadenceMode
 }
 
 enum RhythmKeyDecision {
@@ -16,7 +16,7 @@ enum RhythmKeyDecision {
         guard case let .hit(lane) = decideAction(
             keyCode: keyCode,
             isNowPlayingVisible: isNowPlayingVisible,
-            isFocusActive: false,
+            isCadenceModeActive: false,
             hasEditableFirstResponder: hasEditableFirstResponder,
             isBlockedByModal: isBlockedByModal
         ) else {
@@ -28,7 +28,7 @@ enum RhythmKeyDecision {
     static func decideAction(
         keyCode: UInt16,
         isNowPlayingVisible: Bool,
-        isFocusActive: Bool,
+        isCadenceModeActive: Bool,
         hasEditableFirstResponder: Bool,
         isBlockedByModal: Bool
     ) -> RhythmKeyAction? {
@@ -45,8 +45,8 @@ enum RhythmKeyDecision {
             return .hit(.left)
         case 7:
             return .hit(.right)
-        case 53 where isFocusActive:
-            return .exitFocus
+        case 53 where isCadenceModeActive:
+            return .exitCadenceMode
         default:
             return nil
         }
@@ -54,25 +54,25 @@ enum RhythmKeyDecision {
 }
 
 struct RhythmKeyboardCapture: NSViewRepresentable {
-    let isFocusActive: Bool
+    let isCadenceModeActive: Bool
     let onHit: @MainActor (RhythmLane) -> Void
-    let onExitFocus: @MainActor () -> Void
+    let onExitCadenceMode: @MainActor () -> Void
 
     init(
-        isFocusActive: Bool = false,
+        isCadenceModeActive: Bool = false,
         onHit: @escaping @MainActor (RhythmLane) -> Void,
-        onExitFocus: @escaping @MainActor () -> Void = {}
+        onExitCadenceMode: @escaping @MainActor () -> Void = {}
     ) {
-        self.isFocusActive = isFocusActive
+        self.isCadenceModeActive = isCadenceModeActive
         self.onHit = onHit
-        self.onExitFocus = onExitFocus
+        self.onExitCadenceMode = onExitCadenceMode
     }
 
     func makeCoordinator() -> Coordinator {
         Coordinator(
-            isFocusActive: isFocusActive,
+            isCadenceModeActive: isCadenceModeActive,
             onHit: onHit,
-            onExitFocus: onExitFocus
+            onExitCadenceMode: onExitCadenceMode
         )
     }
 
@@ -84,9 +84,9 @@ struct RhythmKeyboardCapture: NSViewRepresentable {
     }
 
     func updateNSView(_ nsView: NSView, context: Context) {
-        context.coordinator.isFocusActive = isFocusActive
+        context.coordinator.isCadenceModeActive = isCadenceModeActive
         context.coordinator.onHit = onHit
-        context.coordinator.onExitFocus = onExitFocus
+        context.coordinator.onExitCadenceMode = onExitCadenceMode
         context.coordinator.captureView = nsView
     }
 
@@ -96,20 +96,20 @@ struct RhythmKeyboardCapture: NSViewRepresentable {
 
     @MainActor
     final class Coordinator {
-        var isFocusActive: Bool
+        var isCadenceModeActive: Bool
         var onHit: @MainActor (RhythmLane) -> Void
-        var onExitFocus: @MainActor () -> Void
+        var onExitCadenceMode: @MainActor () -> Void
         weak var captureView: NSView?
         private var monitor: Any?
 
         init(
-            isFocusActive: Bool,
+            isCadenceModeActive: Bool,
             onHit: @escaping @MainActor (RhythmLane) -> Void,
-            onExitFocus: @escaping @MainActor () -> Void
+            onExitCadenceMode: @escaping @MainActor () -> Void
         ) {
-            self.isFocusActive = isFocusActive
+            self.isCadenceModeActive = isCadenceModeActive
             self.onHit = onHit
-            self.onExitFocus = onExitFocus
+            self.onExitCadenceMode = onExitCadenceMode
         }
 
         func installMonitor() {
@@ -157,7 +157,7 @@ struct RhythmKeyboardCapture: NSViewRepresentable {
             guard let action = RhythmKeyDecision.decideAction(
                 keyCode: event.keyCode,
                 isNowPlayingVisible: true,
-                isFocusActive: isFocusActive,
+                isCadenceModeActive: isCadenceModeActive,
                 hasEditableFirstResponder: hasEditableFirstResponder,
                 isBlockedByModal: isBlockedByModal
             ) else {
@@ -167,8 +167,8 @@ struct RhythmKeyboardCapture: NSViewRepresentable {
             switch action {
             case let .hit(lane):
                 onHit(lane)
-            case .exitFocus:
-                onExitFocus()
+            case .exitCadenceMode:
+                onExitCadenceMode()
             }
             return nil
         }

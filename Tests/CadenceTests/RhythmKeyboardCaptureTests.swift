@@ -64,22 +64,22 @@ struct RhythmKeyboardCaptureTests {
         )
     }
 
-    @Test("Escape exits only an active Rhythm Focus")
-    func escapeIsScopedToActiveFocus() {
+    @Test("Escape exits only an active Cadence Mode")
+    func escapeIsScopedToActiveCadenceMode() {
         #expect(
             RhythmKeyDecision.decideAction(
                 keyCode: 53,
                 isNowPlayingVisible: true,
-                isFocusActive: true,
+                isCadenceModeActive: true,
                 hasEditableFirstResponder: false,
                 isBlockedByModal: false
-            ) == .exitFocus
+            ) == .exitCadenceMode
         )
         #expect(
             RhythmKeyDecision.decideAction(
                 keyCode: 53,
                 isNowPlayingVisible: true,
-                isFocusActive: false,
+                isCadenceModeActive: false,
                 hasEditableFirstResponder: false,
                 isBlockedByModal: false
             ) == nil
