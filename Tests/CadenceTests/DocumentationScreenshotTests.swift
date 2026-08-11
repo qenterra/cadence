@@ -72,6 +72,8 @@ struct DocumentationScreenshotTests {
             contentSize: .wide
         )
 
+        try await fixture.captureSettings("cadence-settings.png")
+
         fixture.model.selectedDestination = .importMusic
         fixture.model.showImportPreviewStage(.review)
         try await fixture.capture("qa-import-review-min-dark.png")
@@ -165,7 +167,36 @@ final class DocumentationScreenshotFixture {
         appearance: DocumentationScreenshotAppearance = .dark,
         rhythmPulseVisualQAState: RhythmPulseVisualQAState? = nil
     ) async throws {
-        let rootView = CadenceRootView(model: model)
+        try await capture(
+            filename,
+            rootView: CadenceRootView(model: model),
+            contentSize: contentSize,
+            appearance: appearance,
+            rhythmPulseVisualQAState: rhythmPulseVisualQAState
+        )
+    }
+
+    func captureSettings(
+        _ filename: String,
+        contentSize: NSSize = .minimum,
+        appearance: DocumentationScreenshotAppearance = .dark
+    ) async throws {
+        try await capture(
+            filename,
+            rootView: CadenceSettingsWindow(model: model),
+            contentSize: contentSize,
+            appearance: appearance
+        )
+    }
+
+    private func capture(
+        _ filename: String,
+        rootView: some View,
+        contentSize: NSSize,
+        appearance: DocumentationScreenshotAppearance,
+        rhythmPulseVisualQAState: RhythmPulseVisualQAState? = nil
+    ) async throws {
+        let rootView = rootView
             .frame(width: contentSize.width, height: contentSize.height)
             .environment(\.colorScheme, appearance.colorScheme)
             .environment(

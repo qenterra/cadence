@@ -139,7 +139,7 @@ private extension LyricsSearchPreviewView {
                     if reduceMotion {
                         proxy.scrollTo(targetLineID, anchor: .center)
                     } else {
-                        withAnimation(.smooth(duration: 0.24)) {
+                        withAnimation(.smooth(duration: CadenceTheme.motionPresent)) {
                             proxy.scrollTo(targetLineID, anchor: .center)
                         }
                     }

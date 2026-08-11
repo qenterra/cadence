@@ -7,7 +7,7 @@ artwork, system typography, and native interaction behavior.
 
 Shared semantic colors, radii, and feedback motion come from the local
 QenTerra Design System Swift package. `CadenceTheme` is the product facade:
-it maps QDS 1.9 semantic values into adaptive AppKit/SwiftUI colors while
+it maps QDS 1.10 semantic values into adaptive AppKit/SwiftUI colors while
 Cadence keeps ownership of music-specific geometry, artwork, playback, and
 lyrics. `qds-consumer.json` and `qds-exceptions.json` are validated by the
 read-only consumer doctor during `scripts/verify.sh`.
@@ -143,6 +143,10 @@ The detailed behavior and lifecycle contract lives in
   same inactive opacity and soft blur. Blank rows are omitted. Missing,
   partial, and unsynchronized lyrics show an honest track/status fallback and
   never invent an active line.
+- Shared feedback uses QDS motion through `CadenceTheme`. The longer Rhythm
+  Focus entry and exit are named Cadence product motions because the artwork
+  hero transition has no second QDS consumer; they remain interruptible and
+  reduce to the QDS dismiss transition when Reduce Motion is enabled.
 - Each lane owns one active trio of color fields plus one bounded outgoing trio.
   Repeating the same key crossfades the outgoing wash instead of cutting it;
   `Z` and `X` overlap independently. Releasing a key never truncates the effect.

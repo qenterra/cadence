@@ -83,7 +83,7 @@ struct ProductionNowPlayingView: View {
         .id(track.id)
         .transition(.opacity)
         .animation(
-            reduceMotion ? nil : .smooth(duration: 0.24),
+            reduceMotion ? nil : .smooth(duration: CadenceTheme.motionPresent),
             value: track.id
         )
         .task(id: "\(track.id)-\(model.librarySession.store.tagRevision)") {
@@ -204,13 +204,13 @@ private extension ProductionNowPlayingView {
     private var rhythmFocusEntryAnimation: Animation {
         reduceMotion
             ? .easeOut(duration: CadenceTheme.motionDismiss)
-            : .smooth(duration: 0.5)
+            : .smooth(duration: CadenceTheme.motionRhythmFocusEnter)
     }
 
     private var rhythmFocusExitAnimation: Animation {
         reduceMotion
             ? .easeOut(duration: CadenceTheme.motionDismiss)
-            : .smooth(duration: 0.55)
+            : .smooth(duration: CadenceTheme.motionRhythmFocusExit)
     }
 
     private func standardNowPlaying(

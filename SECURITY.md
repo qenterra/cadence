@@ -32,7 +32,9 @@ Cadence:
 - uses staged import and manifests so interrupted work can recover or roll back;
 - resolves managed paths inside `Cadence.library`;
 - keeps Trash restore information with the deleted managed item;
-- does not include a network client, analytics SDK, or embedded web view.
+- connects to WebDAV or Google Drive only after explicit Remote Media setup;
+- keeps WebDAV credentials and Google OAuth state in Keychain; and
+- does not include an analytics SDK or embedded web view.
 
 Do not weaken sandbox entitlements, path containment, duplicate validation,
 managed-file rollback, or SwiftData migration checks to work around a local

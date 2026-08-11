@@ -1,19 +1,23 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "exceptions": [
     {
       "id": "artwork-palette-content-colors",
       "rule": "raw-color",
       "path": "Sources/Cadence/Components/ArtworkView.swift",
       "reason": "Artwork placeholder palettes are media content colors, not interface semantics, and must remain visually distinct from QDS chrome.",
-      "reviewTrigger": "Review when artwork placeholders move to extracted artwork colors or a dedicated media-content token contract."
+      "owner": "Cadence maintainers",
+      "reviewTrigger": "Review when artwork placeholders move to extracted artwork colors or a dedicated media-content token contract.",
+      "reviewBy": "2027-08-11"
     },
     {
       "id": "lyrics-shimmer-cycle",
       "rule": "raw-duration",
       "path": "Sources/Cadence/Features/NowPlaying/ProductionLyricsPanel.swift",
       "reason": "The repeating lyrics shimmer cycle is content animation rather than UI feedback motion and already stops under Reduce Motion.",
-      "reviewTrigger": "Review when QDS adds a repeating content-animation profile or the lyrics loading treatment changes."
+      "owner": "Cadence maintainers",
+      "reviewTrigger": "Review when QDS adds a repeating content-animation profile or the lyrics loading treatment changes.",
+      "reviewBy": "2027-08-11"
     }
   ]
 }

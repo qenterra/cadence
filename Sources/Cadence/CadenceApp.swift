@@ -184,7 +184,7 @@ struct CadenceApp: App {
     }
 }
 
-private struct CadenceSettingsWindow: View {
+struct CadenceSettingsWindow: View {
     @Bindable var model: CadenceAppModel
     @State private var selection = CadenceSettingsTab.general
 

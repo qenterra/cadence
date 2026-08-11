@@ -147,9 +147,13 @@ build settings.
 
 ## Permissions and privacy
 
-Cadence does not contain analytics, ads, tracking, or a network client. It opens
-external project links only when you select one in Settings. Your music,
-artwork, lyrics, tags, playlists, and playback history stay on your Mac.
+Cadence does not contain analytics, ads, tracking, or an account system. Remote
+media stays disconnected until you explicitly configure WebDAV or Google Drive
+in Settings. When connected, Cadence uses the selected provider only to read
+the remote library manifest and transfer the media needed for playback; it does
+not send your local library or listening activity to QenTerra. Credentials and
+Google OAuth state stay in Keychain, while remote audio uses a bounded local
+cache. External project links open only when you select one in Settings.
 
 - [Privacy](PRIVACY.md)
 - [Terms of Use](TERMS_OF_USE.md)

@@ -1,10 +1,11 @@
 # Privacy
 
-Last updated: July 31, 2026
+Last updated: August 11, 2026
 
-Cadence is a local macOS music player and library manager. It does not include a
-network client, account system, analytics, advertising, telemetry, or crash
-reporting service.
+Cadence is a local macOS music player and library manager. It does not include
+an account system, analytics, advertising, telemetry, or crash-reporting
+service. Its optional Remote Media feature uses a network client only after you
+choose and configure WebDAV or Google Drive in Settings.
 
 ## Data Cadence handles
 
@@ -19,11 +20,34 @@ The managed package can contain audio, artwork, lyrics, import manifests,
 SwiftData records, and recoverable Trash data. Cadence also stores interface and
 playback preferences through macOS preferences.
 
+## Optional Remote Media
+
+Remote Media is disconnected by default. After you explicitly connect a
+provider, Cadence reads its library manifest and downloads or prefetches remote
+audio needed for playback. Downloaded audio is SHA-256-verified and kept in a
+bounded local cache. Cadence does not upload your local managed library merely
+because a provider is connected.
+
+For WebDAV, Cadence stores the selected server URL and username in its local
+settings and stores the password in Keychain. WebDAV connections require HTTPS,
+except for loopback addresses used for local development. For Google Drive,
+Cadence starts the OAuth flow in the system browser and requests the
+`https://www.googleapis.com/auth/drive.file` scope. The OAuth authorization
+state is stored in Keychain; the configured folder, manifest, client, redirect
+URL, and cache budget stay in local settings.
+
+Disconnecting removes the configured provider and its Keychain credential or
+OAuth state. Existing remote-media cache files are local to your Mac and are
+not automatically deleted by Disconnect; remove Cadence's cache through macOS
+after quitting the app if you also want to erase downloaded remote audio.
+
 ## Data that stays on your Mac
 
-Cadence does not transmit your library, listening activity, tags, playlists,
-artwork, lyrics, search queries, or preferences to Nikita Melnychenko
-(QenTerra) or another service.
+Cadence does not transmit your local library, listening activity, tags,
+playlists, artwork, lyrics, search queries, or preferences to Nikita
+Melnychenko (QenTerra) or an analytics service. When you connect Remote Media,
+Cadence transmits only the requests, credentials, OAuth data, and remote media
+data necessary to use the provider you selected.
 The app opens a URL in your default browser only after you select a GitHub,
 Wiki, license, or Buy Me a Coffee link in Settings.
 
@@ -49,15 +73,19 @@ You can:
 - remove `~/Music/Cadence.library` after quitting the app to delete the managed
   library;
 - reset Cadence preferences through macOS or by removing the app's preference
-  data.
+  data;
+- disconnect Remote Media to remove the provider configuration and its Keychain
+  credential or OAuth state; and
+- delete the local Remote Media cache after quitting Cadence when you no longer
+  want downloaded remote audio on the Mac.
 
 Back up music you care about before deleting a library package. Cadence's
 managed library is not a substitute for a backup.
 
 ## Changes
 
-Any future feature that transmits library data, syncs through a service, or adds
-telemetry must update this document before release.
+Any future remote provider, library synchronization behavior, or telemetry must
+update this document before release.
 
 Questions can be opened in the
 [Cadence repository](https://github.com/QenTerra/cadence/issues) without

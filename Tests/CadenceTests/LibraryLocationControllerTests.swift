@@ -7,7 +7,10 @@ struct LibraryLocationControllerTests {
     @Test("No bookmark keeps the current Music location")
     func defaultLocation() {
         let fallback = ManagedLibraryLocation(
-            musicDirectory: URL(filePath: "/Users/example/Music")
+            musicDirectory: FileManager.default.temporaryDirectory.appending(
+                path: "CadenceLibraryLocationControllerTests/Music",
+                directoryHint: .isDirectory
+            )
         )
         let controller = LibraryLocationController(
             store: InMemoryLibraryLocationStore(),
@@ -123,7 +126,10 @@ private final class InMemoryLibraryLocationStore: LibraryLocationStoring {
 
 @MainActor
 private struct BookmarkResolverStub: LibraryBookmarkResolving {
-    var resolvedURL = URL(filePath: "/Users/example/Music")
+    var resolvedURL = FileManager.default.temporaryDirectory.appending(
+        path: "CadenceLibraryLocationControllerTests/ResolvedMusic",
+        directoryHint: .isDirectory
+    )
     var isStale = false
 
     func makeBookmark(for _: URL) throws -> Data {

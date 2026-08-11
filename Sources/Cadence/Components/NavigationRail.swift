@@ -63,7 +63,7 @@ struct NavigationRail: View {
             if reduceMotion {
                 isExpanded.toggle()
             } else {
-                withAnimation(.smooth(duration: 0.22)) {
+                withAnimation(.smooth(duration: CadenceTheme.motionReplace)) {
                     isExpanded.toggle()
                 }
             }

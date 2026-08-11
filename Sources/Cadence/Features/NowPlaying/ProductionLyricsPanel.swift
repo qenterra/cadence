@@ -113,7 +113,7 @@ struct ProductionLyricsPanel: View {
                 if reduceMotion {
                     proxy.scrollTo(lineID, anchor: .center)
                 } else {
-                    withAnimation(.smooth(duration: 0.24)) {
+                    withAnimation(.smooth(duration: CadenceTheme.motionPresent)) {
                         proxy.scrollTo(lineID, anchor: .center)
                     }
                 }
@@ -157,7 +157,7 @@ struct ProductionLyricsPanel: View {
             }
             .buttonStyle(.plain)
             .animation(
-                reduceMotion ? nil : .smooth(duration: 0.24),
+                reduceMotion ? nil : .smooth(duration: CadenceTheme.motionPresent),
                 value: isActive
             )
             .contextMenu {

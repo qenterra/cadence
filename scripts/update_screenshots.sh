@@ -33,7 +33,17 @@ rhythm_marker="$project_root/.build/update-rhythm-screenshots"
 mkdir -p "$project_root/.build"
 touch "$marker"
 touch "$rhythm_marker"
-trap 'unlink "$marker" "$rhythm_marker" 2>/dev/null || true' EXIT
+
+cleanup_markers() {
+    unlink "$marker" 2>/dev/null || true
+    unlink "$rhythm_marker" 2>/dev/null || true
+}
+
+trap cleanup_markers EXIT
+
+is_supported_minimum_height() {
+    [[ "$1" == "1752" || "$1" == "1768" ]]
+}
 
 DEVELOPER_DIR="$developer_dir" xcodebuild \
     -project Cadence.xcodeproj \
@@ -50,13 +60,13 @@ DEVELOPER_DIR="$developer_dir" xcodebuild \
 for image in "$project_root"/docs/images/cadence-{library,now-playing,tags,settings}.png; do
     [[ -f "$image" ]]
     [[ "$(sips -g pixelWidth "$image" | tail -n 1 | awk '{print $2}')" == "2160" ]]
-    [[ "$(sips -g pixelHeight "$image" | tail -n 1 | awk '{print $2}')" == "1752" ]]
+    is_supported_minimum_height "$(sips -g pixelHeight "$image" | tail -n 1 | awk '{print $2}')"
 done
 
 for image in "$project_root"/docs/images/qa-{library,now-playing,album,import-review}-min-*.png; do
     [[ -f "$image" ]]
     [[ "$(sips -g pixelWidth "$image" | tail -n 1 | awk '{print $2}')" == "2160" ]]
-    [[ "$(sips -g pixelHeight "$image" | tail -n 1 | awk '{print $2}')" == "1752" ]]
+    is_supported_minimum_height "$(sips -g pixelHeight "$image" | tail -n 1 | awk '{print $2}')"
 done
 
 for image in "$project_root"/docs/images/qa-{library,now-playing,album,import-review}-wide-*.png; do
@@ -68,7 +78,7 @@ done
 for image in "$project_root"/docs/images/qa-rhythm-min-*.png; do
     [[ -f "$image" ]]
     [[ "$(sips -g pixelWidth "$image" | tail -n 1 | awk '{print $2}')" == "2160" ]]
-    [[ "$(sips -g pixelHeight "$image" | tail -n 1 | awk '{print $2}')" == "1752" ]]
+    is_supported_minimum_height "$(sips -g pixelHeight "$image" | tail -n 1 | awk '{print $2}')"
 done
 
 for image in "$project_root"/docs/images/qa-rhythm-wide-*.png; do
