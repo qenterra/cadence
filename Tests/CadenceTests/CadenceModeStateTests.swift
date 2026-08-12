@@ -44,8 +44,8 @@ struct CadenceModeStateTests {
         #expect(!available.isActive)
     }
 
-    @Test("Held keys emit only after a new physical press")
-    func heldKeysDoNotRepeat() {
+    @Test("Presentation handoff releases activation keys without emitting")
+    func presentationHandoffReleasesActivationKeys() {
         var state = CadenceModeInputState()
         _ = state.keyDown(lane: .left, at: 3, canActivate: true)
         _ = state.keyDown(lane: .right, at: 3.1, canActivate: true)
@@ -53,18 +53,11 @@ struct CadenceModeStateTests {
 
         #expect(state.isActive)
         #expect(
-            state.keyDown(lane: .left, at: 30, canActivate: true) == .none
-        )
-        #expect(
-            state.keyDown(lane: .right, at: 31, canActivate: true) == .none
-        )
-        state.keyUp(lane: .left)
-        #expect(
-            state.keyDown(lane: .left, at: 32, canActivate: true)
+            state.keyDown(lane: .left, at: 30, canActivate: true)
                 == .emit(.left)
         )
         #expect(
-            state.keyDown(lane: .left, at: 33, canActivate: true) == .none
+            state.keyDown(lane: .left, at: 31, canActivate: true) == .none
         )
     }
 
@@ -114,8 +107,8 @@ struct CadenceModeStateTests {
     }
 
     @MainActor
-    @Test("The root session requires key release before another effect")
-    func rootSessionRequiresDiscretePresses() {
+    @Test("The root session emits once for each post-handoff press")
+    func rootSessionRequiresDiscretePostHandoffPresses() {
         let session = CadenceModeSession(automatesTiming: false)
         _ = session.keyDown(lane: .left, at: 7, canActivate: true)
         _ = session.keyDown(lane: .right, at: 7.1, canActivate: true)
@@ -123,12 +116,11 @@ struct CadenceModeStateTests {
 
         #expect(
             session.keyDown(lane: .left, at: 7.32, canActivate: true)
-                == .none
+                == .emit(.left)
         )
-        session.keyUp(lane: .left)
         #expect(
             session.keyDown(lane: .left, at: 7.5, canActivate: true)
-                == .emit(.left)
+                == .none
         )
         #expect(session.pulseStore.renderParticles.count >= 4)
     }
@@ -150,8 +142,8 @@ struct CadenceModeStateTests {
     }
 
     @MainActor
-    @Test("Ignored held-key events do not invalidate session presentation")
-    func ignoredHeldKeysDoNotInvalidatePresentation() {
+    @Test("Post-handoff effects do not invalidate session presentation")
+    func effectsDoNotInvalidatePresentation() {
         let session = CadenceModeSession(automatesTiming: false)
         _ = session.keyDown(lane: .left, at: 8, canActivate: true)
         _ = session.keyDown(lane: .right, at: 8.1, canActivate: true)
@@ -167,7 +159,7 @@ struct CadenceModeStateTests {
 
         #expect(
             session.keyDown(lane: .left, at: 8.32, canActivate: true)
-                == .none
+                == .emit(.left)
         )
         #expect(presentationInvalidations.value == 0)
     }

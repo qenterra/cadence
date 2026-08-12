@@ -317,7 +317,7 @@ struct RhythmPulseModelsTests {
         #expect(appearance.isAnimated)
         #expect(appearance.blurRadius == 0)
         #expect((12 ... 18).contains(appearance.animationDuration))
-        #expect(appearance.maximumAnimationFramesPerSecond == 30)
+        #expect(appearance.maximumAnimationFramesPerSecond == 120)
         #expect(appearance.gradientRasterizationScale == 0.33)
         #expect(appearance.animatedLayerCount == 2)
         #expect(appearance.baseOpacity >= 0.78)

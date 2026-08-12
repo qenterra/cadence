@@ -85,7 +85,10 @@ struct LyricsEditorView: View {
                 model.dismissLyricPersistenceError()
             }
         } message: {
-            Text(model.lyricPersistenceError ?? "Unknown error")
+            Text(
+                model.lyricPersistenceError
+                    ?? "Cadence could not save these lyrics. Your draft remains open."
+            )
         }
     }
 }

@@ -4,6 +4,9 @@ struct CadenceModeLayout: Hashable, Sendable {
     private static let outerMargin: CGFloat = 24
     private static let standardInset: CGFloat = 42
     private static let lyricsGap: CGFloat = 20
+    private static let minimumLyricSlotHeight: CGFloat = 32
+    private static let maximumLyricSlotHeight: CGFloat = 52
+    private static let maximumModeArtworkSize: CGFloat = 960
 
     let canvasSize: CGSize
     let contextWidth: CGFloat
@@ -27,34 +30,57 @@ struct CadenceModeLayout: Hashable, Sendable {
     }
 
     var modeArtworkFrame: CGRect {
-        let size = min(
-            420,
-            canvasSize.width * 0.4,
-            canvasSize.height * 0.46
+        let availableHeight = max(
+            canvasSize.height - Self.outerMargin * 2,
+            0
         )
-        let centerY = max(
-            Self.outerMargin + size * 0.5,
-            canvasSize.height * 0.38
+        let minimumLyricsHeight = Self.minimumLyricSlotHeight * 5
+        let size = max(
+            min(
+                Self.maximumModeArtworkSize,
+                canvasSize.width * 0.36,
+                availableHeight - Self.lyricsGap - minimumLyricsHeight
+            ),
+            0
+        )
+        let compositionHeight = size
+            + Self.lyricsGap
+            + modeLyricSlotHeight(forArtworkSize: size) * 5
+        let originY = Self.outerMargin + max(
+            (availableHeight - compositionHeight) * 0.5,
+            0
         )
         return CGRect(
             x: (canvasSize.width - size) * 0.5,
-            y: centerY - size * 0.5,
+            y: originY,
             width: size,
             height: size
         )
     }
 
     var modeLyricSlotHeight: CGFloat {
+        modeLyricSlotHeight(forArtworkSize: modeArtworkFrame.height)
+    }
+
+    private func modeLyricSlotHeight(
+        forArtworkSize artworkSize: CGFloat
+    ) -> CGFloat {
         let availableHeight = max(
-            canvasSize.height - Self.outerMargin
-                - modeArtworkFrame.maxY - Self.lyricsGap,
+            canvasSize.height - Self.outerMargin * 2
+                - artworkSize - Self.lyricsGap,
             0
         )
-        return min(max(availableHeight / 5, 32), 52)
+        return min(
+            max(availableHeight / 5, Self.minimumLyricSlotHeight),
+            Self.maximumLyricSlotHeight
+        )
     }
 
     var modeLyricsFrame: CGRect {
-        let width = min(canvasSize.width - Self.outerMargin * 2, 760)
+        let width = min(
+            max(canvasSize.width - Self.outerMargin * 2, 0),
+            760
+        )
         return CGRect(
             x: (canvasSize.width - width) * 0.5,
             y: modeArtworkFrame.maxY + Self.lyricsGap,

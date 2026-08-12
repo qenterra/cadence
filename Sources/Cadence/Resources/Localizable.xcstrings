@@ -221,7 +221,13 @@
     "Cadence Library Unavailable" : {
 
     },
+    "Cadence will install stable releases only." : {
+
+    },
     "Cadence will never merge with or overwrite an existing library package." : {
+
+    },
+    "Cadence will offer stable and beta releases. Beta builds may be less reliable." : {
 
     },
     "Cadence will scan a preview before anything is imported." : {
@@ -231,6 +237,12 @@
 
     },
     "Cancel" : {
+
+    },
+    "Check for Updates…" : {
+
+    },
+    "Check for updates automatically" : {
 
     },
     "Choose %@" : {
@@ -399,6 +411,9 @@
     "Done Editing" : {
 
     },
+    "Download and install updates automatically" : {
+
+    },
     "Draft" : {
 
     },
@@ -551,6 +566,9 @@
 
     },
     "Import music to start listening" : {
+
+    },
+    "Include beta updates" : {
 
     },
     "Indexing Lyrics…" : {
@@ -1183,6 +1201,9 @@
     "Track Name" : {
 
     },
+    "Tracks Could Not Be Loaded" : {
+
+    },
     "Tracks in Trash" : {
 
     },
@@ -1198,6 +1219,9 @@
     "True" : {
 
     },
+    "Try Again" : {
+
+    },
     "Unfavorite" : {
 
     },
@@ -1208,6 +1232,12 @@
 
     },
     "Unsaved changes" : {
+
+    },
+    "Update controls are unavailable in this preview." : {
+
+    },
+    "Updates Unavailable" : {
 
     },
     "Updates as the draft changes" : {
@@ -1224,6 +1254,16 @@
     },
     "Version %@" : {
 
+    },
+    "Version %@ (%@)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Version %1$@ (%2$@)"
+          }
+        }
+      }
     },
     "View Imported Tracks" : {
 

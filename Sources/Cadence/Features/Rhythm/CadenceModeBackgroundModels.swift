@@ -60,7 +60,7 @@ struct CadenceModeBackgroundAppearance: Equatable, Sendable {
             isAnimated: !reduceMotion,
             blurRadius: 0,
             animationDuration: 16,
-            maximumAnimationFramesPerSecond: 30,
+            maximumAnimationFramesPerSecond: 120,
             gradientRasterizationScale: 0.33,
             animatedLayerCount: 2,
             baseOpacity: reduceTransparency ? 1 : 0.9,

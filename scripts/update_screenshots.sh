@@ -63,17 +63,22 @@ for image in "$project_root"/docs/images/cadence-{library,now-playing,tags,setti
     is_supported_minimum_height "$(sips -g pixelHeight "$image" | tail -n 1 | awk '{print $2}')"
 done
 
-for image in "$project_root"/docs/images/qa-{library,now-playing,album,import-review}-min-*.png; do
+for image in "$project_root"/docs/images/qa-{library,all-tracks,now-playing,album,import-review}-min-*.png; do
     [[ -f "$image" ]]
     [[ "$(sips -g pixelWidth "$image" | tail -n 1 | awk '{print $2}')" == "2160" ]]
     is_supported_minimum_height "$(sips -g pixelHeight "$image" | tail -n 1 | awk '{print $2}')"
 done
 
-for image in "$project_root"/docs/images/qa-{library,now-playing,album,import-review}-wide-*.png; do
+for image in "$project_root"/docs/images/qa-{library,all-tracks,now-playing,album,import-review}-wide-*.png; do
     [[ -f "$image" ]]
     [[ "$(sips -g pixelWidth "$image" | tail -n 1 | awk '{print $2}')" == "2880" ]]
     [[ "$(sips -g pixelHeight "$image" | tail -n 1 | awk '{print $2}')" == "1800" ]]
 done
+
+settings_update_image="$project_root/docs/images/qa-settings-updates-dark.png"
+[[ -f "$settings_update_image" ]]
+[[ "$(sips -g pixelWidth "$settings_update_image" | tail -n 1 | awk '{print $2}')" == "2160" ]]
+is_supported_minimum_height "$(sips -g pixelHeight "$settings_update_image" | tail -n 1 | awk '{print $2}')"
 
 for image in "$project_root"/docs/images/qa-cadence-mode-*min-*.png; do
     [[ -f "$image" ]]
@@ -86,3 +91,8 @@ for image in "$project_root"/docs/images/qa-cadence-mode-wide-*.png; do
     [[ "$(sips -g pixelWidth "$image" | tail -n 1 | awk '{print $2}')" == "2880" ]]
     [[ "$(sips -g pixelHeight "$image" | tail -n 1 | awk '{print $2}')" == "1800" ]]
 done
+
+large_cadence_image="$project_root/docs/images/qa-cadence-mode-large-dark.png"
+[[ -f "$large_cadence_image" ]]
+[[ "$(sips -g pixelWidth "$large_cadence_image" | tail -n 1 | awk '{print $2}')" == "4400" ]]
+[[ "$(sips -g pixelHeight "$large_cadence_image" | tail -n 1 | awk '{print $2}')" == "2664" ]]

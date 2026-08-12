@@ -8,10 +8,8 @@ struct CadenceModeView: View {
     let artist: String
     let layout: CadenceModeLayout
     let artworkNamespace: Namespace.ID
-    let visualQADocument: LyricDocument?
+    let lyricDocument: LyricDocument?
     let visualQAPresentationTime: TimeInterval?
-
-    @State private var document: LyricDocument?
 
     var body: some View {
         ZStack(alignment: .topLeading) {
@@ -52,26 +50,20 @@ struct CadenceModeView: View {
                 )
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .task(id: "\(track.id)-\(model.lyricsRevision)") {
-            guard visualQADocument == nil else {
-                return
-            }
-            document = await model.loadProductionLyrics(for: track)
-        }
     }
 
     @ViewBuilder
     private var lyricContent: some View {
-        if let effectiveDocument,
-           effectiveDocument.timingStatus == .synchronized {
+        if let lyricDocument,
+           lyricDocument.timingStatus == .synchronized {
             TimelineView(.periodic(from: .now, by: 0.1)) { _ in
                 let projection = CadenceModeLyricProjection.make(
-                    document: effectiveDocument,
+                    document: lyricDocument,
                     presentationTime: visualQAPresentationTime
                         ?? model.playbackPresentationTime()
                 )
                 CadenceModeLyricStack(
-                    document: effectiveDocument,
+                    document: lyricDocument,
                     activeLineID: projection.activeLineID,
                     slotHeight: layout.modeLyricSlotHeight
                 )
@@ -79,10 +71,6 @@ struct CadenceModeView: View {
         } else {
             unavailableLyrics
         }
-    }
-
-    private var effectiveDocument: LyricDocument? {
-        visualQADocument ?? document
     }
 
     private var unavailableLyrics: some View {
@@ -104,7 +92,7 @@ struct CadenceModeView: View {
     }
 
     private var unavailableLyricsCaption: String {
-        switch effectiveDocument?.timingStatus ?? .missing {
+        switch lyricDocument?.timingStatus ?? .missing {
         case .missing:
             "No synchronized lyrics"
         case .unsynchronized:

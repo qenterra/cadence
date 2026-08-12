@@ -218,17 +218,6 @@ struct RhythmKeyboardCaptureTests {
         #expect(fixture.model.playbackWorkspace == .nowPlaying)
         #expect(session.isActive)
 
-        let previousTrackID = fixture.model.currentPlaybackTrack?.id
-        fixture.model.selectNextTrack()
-        for _ in 0 ..< 20 where
-            fixture.model.currentPlaybackTrack?.id == previousTrackID {
-            try await Task.sleep(for: .milliseconds(25))
-        }
-
-        #expect(fixture.model.currentPlaybackTrack?.id != previousTrackID)
-        #expect(fixture.model.playbackWorkspace == .nowPlaying)
-        #expect(session.isActive)
-
         sendKey(
             type: .keyUp,
             keyCode: 6,
@@ -241,6 +230,33 @@ struct RhythmKeyboardCaptureTests {
             characters: "x",
             to: window
         )
+        sendKey(
+            type: .keyDown,
+            keyCode: 6,
+            characters: "z",
+            to: window
+        )
+        sendKey(
+            type: .keyUp,
+            keyCode: 6,
+            characters: "z",
+            to: window
+        )
+        try await Task.sleep(for: .milliseconds(40))
+
+        #expect(!session.pulseStore.renderParticles.isEmpty)
+        #expect(!session.pulseStore.renderWashes.isEmpty)
+
+        let previousTrackID = fixture.model.currentPlaybackTrack?.id
+        fixture.model.selectNextTrack()
+        for _ in 0 ..< 20 where
+            fixture.model.currentPlaybackTrack?.id == previousTrackID {
+            try await Task.sleep(for: .milliseconds(25))
+        }
+
+        #expect(fixture.model.currentPlaybackTrack?.id != previousTrackID)
+        #expect(fixture.model.playbackWorkspace == .nowPlaying)
+        #expect(session.isActive)
     }
 
     @MainActor

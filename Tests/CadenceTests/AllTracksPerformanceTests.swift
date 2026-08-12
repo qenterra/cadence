@@ -119,6 +119,63 @@ struct AllTracksPerformanceTests {
 
         #expect(await counter.requests == [0, 64, 512, 448])
     }
+
+    @Test("The first viewport reports loading and becomes ready on first open")
+    func firstViewportLifecycle() async {
+        let track = makeTrack(title: "First Track")
+        let window = LibraryTrackWindow(
+            pageSize: 64,
+            pageCapacity: 3,
+            prefetchPages: 0
+        ) { _, offset, _ in
+            offset == 0 ? [track] : []
+        }
+
+        #expect(window.firstPageState == .idle)
+        await window.configure(totalCount: 1, query: .allTracks)
+
+        #expect(window.firstPageState == .ready)
+        #expect(window.track(at: 0) == track)
+    }
+
+    @Test("A zero-to-positive table transition requires a full reload")
+    func firstPresentationRefreshPolicy() {
+        #expect(
+            TrackTableRefreshPolicy.requiresFullReload(
+                previousCount: 0,
+                count: 1
+            )
+        )
+        #expect(
+            !TrackTableRefreshPolicy.requiresFullReload(
+                previousCount: 10,
+                count: 10
+            )
+        )
+    }
+
+    private func makeTrack(title: String) -> LibraryTrackProjection {
+        LibraryTrackProjection(
+            id: UUID(),
+            title: title,
+            artistID: nil,
+            artist: "Artist",
+            albumID: nil,
+            album: "Album",
+            duration: 180,
+            year: 2026,
+            codec: "ALAC",
+            sampleRate: 48000,
+            channelCount: 2,
+            bitDepth: 24,
+            isFavorite: false,
+            customArtworkID: nil,
+            artworkID: nil,
+            relativeMediaPath: "first.m4a",
+            lastPlayedAt: nil,
+            hasSynchronizedLyrics: false
+        )
+    }
 }
 
 private actor TrackWindowLoadCounter {

@@ -1,6 +1,15 @@
 import AppKit
 import SwiftUI
 
+enum TrackTableRefreshPolicy {
+    static func requiresFullReload(
+        previousCount: Int,
+        count: Int
+    ) -> Bool {
+        previousCount != count
+    }
+}
+
 struct TrackTableCore: NSViewRepresentable {
     let model: CadenceAppModel
     let context: TrackTableContext
@@ -83,11 +92,13 @@ struct TrackTableCore: NSViewRepresentable {
             return
         }
         coordinator.updateColumnWidth()
-        if previousCount != totalCount {
-            tableView.noteNumberOfRowsChanged()
+        if TrackTableRefreshPolicy.requiresFullReload(
+            previousCount: previousCount,
+            count: totalCount
+        ) {
+            tableView.reloadData()
             coordinator.didReachEnd = false
-        }
-        if previousRevision != revision || previousCount == totalCount {
+        } else if previousRevision != revision {
             coordinator.reloadVisibleRows()
         }
         coordinator.restoreSelection()

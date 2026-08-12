@@ -6,6 +6,7 @@ enum CadenceSettingsTab: String, CaseIterable, Identifiable {
     case sidebar
     case remote
     case shortcuts
+    case updates
     case about
 
     var id: Self {
@@ -19,6 +20,7 @@ enum CadenceSettingsTab: String, CaseIterable, Identifiable {
         case .sidebar: "Sidebar"
         case .remote: "Remote Media"
         case .shortcuts: "Shortcuts"
+        case .updates: "Updates"
         case .about: "About"
         }
     }
@@ -30,6 +32,7 @@ enum CadenceSettingsTab: String, CaseIterable, Identifiable {
         case .sidebar: "sidebar.left"
         case .remote: "network"
         case .shortcuts: "keyboard"
+        case .updates: "arrow.triangle.2.circlepath"
         case .about: "info.circle"
         }
     }
@@ -38,6 +41,7 @@ enum CadenceSettingsTab: String, CaseIterable, Identifiable {
 struct ProductionSettingsView: View {
     @Bindable var model: CadenceAppModel
     let tab: CadenceSettingsTab
+    let updateController: CadenceUpdateController?
     @AppStorage("appearance")
     private var appearanceRawValue = CadenceAppearance.system.rawValue
     @AppStorage("navigationRail.order")
@@ -48,10 +52,12 @@ struct ProductionSettingsView: View {
 
     init(
         model: CadenceAppModel,
-        tab: CadenceSettingsTab = .general
+        tab: CadenceSettingsTab = .general,
+        updateController: CadenceUpdateController? = nil
     ) {
         self.model = model
         self.tab = tab
+        self.updateController = updateController
     }
 
     var body: some View {
@@ -75,11 +81,14 @@ struct ProductionSettingsView: View {
                 }
             )
         ) {
-            Button("OK", role: .cancel) {
+            Button("Dismiss", role: .cancel) {
                 model.dismissLibraryRelocationError()
             }
         } message: {
-            Text(model.libraryRelocationError ?? "Unknown error")
+            Text(
+                model.libraryRelocationError
+                    ?? "Cadence could not move the library. The original library remains in place."
+            )
         }
         .confirmationDialog(
             "Cadence.library Already Exists",
@@ -131,6 +140,18 @@ struct ProductionSettingsView: View {
             }
         case .shortcuts:
             ShortcutsSettingsView()
+        case .updates:
+            if let updateController {
+                UpdatesSettingsView(updateController: updateController)
+            } else {
+                ContentUnavailableView(
+                    "Updates Unavailable",
+                    systemImage: "arrow.triangle.2.circlepath",
+                    description: Text(
+                        "Update controls are unavailable in this preview."
+                    )
+                )
+            }
         case .about:
             SettingsAboutSection()
         }

@@ -48,5 +48,23 @@ struct AppConfigurationTests {
             AppConfiguration.supportURL.absoluteString
                 == "https://buymeacoffee.com/qenterra"
         )
+        #expect(
+            AppConfiguration.updateFeedURL.absoluteString
+                == "https://raw.githubusercontent.com/QenTerra/cadence/main/appcast.xml"
+        )
+    }
+
+    @Test("Stable updates exclude prereleases unless beta updates are enabled")
+    func updateChannelPolicy() {
+        #expect(
+            CadenceUpdateChannelPolicy.allowedChannels(
+                includesBetaUpdates: false
+            ).isEmpty
+        )
+        #expect(
+            CadenceUpdateChannelPolicy.allowedChannels(
+                includesBetaUpdates: true
+            ) == Set(["beta"])
+        )
     }
 }

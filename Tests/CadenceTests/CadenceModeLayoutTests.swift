@@ -22,6 +22,24 @@ struct CadenceModeLayoutTests {
         #expect(layout.modeLyricsFrame.height >= layout.modeLyricSlotHeight * 5)
     }
 
+    @Test("Cadence Mode artwork scales beyond the old cap on large displays")
+    func cadenceModeCompositionUsesLargeDisplay() {
+        let canvasSize = CGSize(width: 2560, height: 1400)
+        let context = NowPlayingLayoutMetrics(
+            totalWidth: canvasSize.width
+        ).contextWidth
+        let layout = CadenceModeLayout(
+            canvasSize: canvasSize,
+            contextWidth: context
+        )
+
+        #expect(layout.modeArtworkFrame.width > 420)
+        #expect(layout.modeArtworkFrame.width <= 960)
+        #expect(layout.modeArtworkFrame.minY >= 24)
+        #expect(layout.modeLyricsFrame.minY > layout.modeArtworkFrame.maxY)
+        #expect(layout.modeLyricsFrame.maxY <= canvasSize.height - 24)
+    }
+
     @Test("The standard artwork frame matches the padded context layout")
     func standardArtworkMatchesContext() {
         let canvasSize = CGSize(width: 1440, height: 868)

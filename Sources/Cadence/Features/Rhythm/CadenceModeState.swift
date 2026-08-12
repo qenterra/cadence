@@ -82,6 +82,9 @@ struct CadenceModeInputState: Sendable {
             return
         }
         presentationAvailable = isAvailable
+        if isAvailable {
+            releaseAllKeys()
+        }
     }
 
     mutating func update(at time: TimeInterval) -> CadenceModeAction {

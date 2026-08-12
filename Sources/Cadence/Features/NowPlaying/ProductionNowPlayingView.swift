@@ -15,6 +15,7 @@ struct ProductionNowPlayingView: View {
     @State private var renamedTrackTitle: String?
     @State private var isRenamePresented = false
     @State private var renameDraft = ""
+    @State private var cadenceModeLyricDocument: LyricDocument?
     @Namespace private var cadenceModeNamespace
 
     var body: some View {
@@ -52,8 +53,9 @@ struct ProductionNowPlayingView: View {
                             artist: track.artist,
                             layout: cadenceModeLayout,
                             artworkNamespace: cadenceModeNamespace,
-                            visualQADocument: rhythmPulseVisualQAState?
-                                .cadenceModeLyricDocument,
+                            lyricDocument: rhythmPulseVisualQAState?
+                                .cadenceModeLyricDocument
+                                ?? cadenceModeLyricDocument,
                             visualQAPresentationTime: rhythmPulseVisualQAState?
                                 .cadenceModePresentationTime
                         )
@@ -106,6 +108,18 @@ struct ProductionNowPlayingView: View {
                 variant: .thumbnail
             )
             await cadenceModeSession.pulseStore.prepare(asset: asset)
+        }
+        .task(id: cadenceLyricsTaskID) {
+            guard rhythmPulseVisualQAState == nil else {
+                cadenceModeLyricDocument = nil
+                return
+            }
+            cadenceModeLyricDocument = nil
+            let loadedDocument = await model.loadProductionLyrics(for: track)
+            guard !Task.isCancelled else {
+                return
+            }
+            cadenceModeLyricDocument = loadedDocument
         }
         .catalogRenameAlert(
             "Rename Track",
@@ -394,6 +408,14 @@ private extension ProductionNowPlayingView {
             return artworkKey
         }
         return artworkKey + "-qa-\(rhythmPulseVisualQAState.seed)"
+    }
+
+    private var cadenceLyricsTaskID: String {
+        let base = "\(track.id)-\(model.lyricsRevision)"
+        guard let rhythmPulseVisualQAState else {
+            return base
+        }
+        return base + "-qa-\(rhythmPulseVisualQAState.seed)"
     }
 
     private func beginRename() {

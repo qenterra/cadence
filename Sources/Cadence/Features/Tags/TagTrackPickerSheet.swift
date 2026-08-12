@@ -51,7 +51,10 @@ struct TagTrackPickerSheet: View {
                 errorMessage = nil
             }
         } message: {
-            Text(errorMessage ?? "Unknown error")
+            Text(
+                errorMessage
+                    ?? "Cadence could not update this tag. Your library was not changed."
+            )
         }
     }
 }

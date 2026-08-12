@@ -5,6 +5,9 @@ import SwiftUI
 struct CadenceApp: App {
     @State private var model = Self.makeInitialModel()
     @State private var appearanceController = AppearanceController()
+    @State private var updateController = CadenceUpdateController(
+        startsUpdater: !CadenceLaunchEnvironment.shouldUsePreviewLibrary()
+    )
     @AppStorage("appearance")
     private var appearanceRawValue = CadenceAppearance.system.rawValue
 
@@ -29,11 +32,20 @@ struct CadenceApp: App {
         .windowToolbarStyle(.unifiedCompact(showsTitle: false))
 
         Settings {
-            CadenceSettingsWindow(model: model)
-                .preferredColorScheme(appearance.colorScheme)
-                .tint(CadenceTheme.primaryAccent)
+            CadenceSettingsWindow(
+                model: model,
+                updateController: updateController
+            )
+            .preferredColorScheme(appearance.colorScheme)
+            .tint(CadenceTheme.primaryAccent)
         }
         .commands {
+            CommandGroup(after: .appInfo) {
+                Button("Check for Updates…") {
+                    updateController.checkForUpdates()
+                }
+            }
+
             CommandMenu("Playback") {
                 Button("Play or Pause") {
                     AppCommandRouter(model: model).handle(
@@ -186,16 +198,31 @@ struct CadenceApp: App {
 
 struct CadenceSettingsWindow: View {
     @Bindable var model: CadenceAppModel
-    @State private var selection = CadenceSettingsTab.general
+    let updateController: CadenceUpdateController
+    @State private var selection: CadenceSettingsTab
+
+    init(
+        model: CadenceAppModel,
+        updateController: CadenceUpdateController,
+        selection: CadenceSettingsTab = .general
+    ) {
+        self.model = model
+        self.updateController = updateController
+        _selection = State(initialValue: selection)
+    }
 
     var body: some View {
         TabView(selection: $selection) {
             ForEach(CadenceSettingsTab.allCases) { tab in
-                ProductionSettingsView(model: model, tab: tab)
-                    .tabItem {
-                        Label(tab.title, systemImage: tab.symbolName)
-                    }
-                    .tag(tab)
+                ProductionSettingsView(
+                    model: model,
+                    tab: tab,
+                    updateController: updateController
+                )
+                .tabItem {
+                    Label(tab.title, systemImage: tab.symbolName)
+                }
+                .tag(tab)
             }
         }
         .frame(width: 760, height: 640, alignment: .topLeading)

@@ -9,7 +9,11 @@ struct AllTracksView: View {
         VStack(spacing: 0) {
             header
 
-            if store.tracks.isEmpty {
+            if store.availability == .loading,
+               store.catalogCounts.liveTrackCount == 0 {
+                ProgressView("Loading Tracks")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if store.catalogCounts.liveTrackCount == 0 {
                 EmptyLibraryView(
                     title: "No Tracks Yet",
                     description: "Import music to build your library."
@@ -17,16 +21,7 @@ struct AllTracksView: View {
                     model.requestNavigationDestination(.importMusic)
                 }
             } else if let window = store.allTracksWindow {
-                NativeAllTracksTable(
-                    model: model,
-                    window: window,
-                    repositorySortAction: { sort in
-                        await store.sortTracks(sort)
-                    },
-                    selection: $selection
-                )
-                .padding(.horizontal, 28)
-                .padding(.bottom, 24)
+                windowContent(window)
             } else {
                 ProductionTrackTable(
                     model: model,
@@ -58,6 +53,41 @@ struct AllTracksView: View {
         }
     }
 
+    @ViewBuilder
+    private func windowContent(_ window: LibraryTrackWindow) -> some View {
+        switch window.firstPageState {
+        case .idle, .loading:
+            ProgressView("Loading Tracks")
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        case let .failed(message):
+            ContentUnavailableView(
+                "Tracks Could Not Be Loaded",
+                systemImage: "exclamationmark.triangle",
+                description: Text(message)
+            )
+            .overlay(alignment: .bottom) {
+                Button("Try Again") {
+                    Task {
+                        await window.retryFirstPage()
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+                .padding(.bottom, 32)
+            }
+        case .ready:
+            NativeAllTracksTable(
+                model: model,
+                window: window,
+                repositorySortAction: { sort in
+                    await store.sortTracks(sort)
+                },
+                selection: $selection
+            )
+            .padding(.horizontal, 28)
+            .padding(.bottom, 24)
+        }
+    }
+
     private var trackWindowConfigurationID: String {
         let sort = store.trackQuery.sort
         return "\(store.catalogCounts.liveTrackCount)-\(sort.field.rawValue)-"
@@ -80,6 +110,7 @@ struct AllTracksView: View {
                     isShuffled: true
                 )
             }
+            .disabled(store.tracks.isEmpty)
             Button("Play", systemImage: "play.fill") {
                 guard let first = store.tracks.first else {
                     return
@@ -91,6 +122,7 @@ struct AllTracksView: View {
                 )
             }
             .buttonStyle(.borderedProminent)
+            .disabled(store.tracks.isEmpty)
         }
         .padding(.horizontal, 28)
         .padding(.top, 24)

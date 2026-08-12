@@ -7,6 +7,13 @@ typealias LibraryTrackWindowLoader = @Sendable (
     _ limit: Int
 ) async throws -> [LibraryTrackProjection]
 
+enum TrackViewportLoadState: Equatable, Sendable {
+    case idle
+    case loading
+    case ready
+    case failed(String)
+}
+
 enum TrackViewportPrefetchDirection {
     case before
     case after
@@ -160,6 +167,7 @@ final class LibraryTrackWindow {
     private(set) var totalCount = 0
     private(set) var query = LibraryTrackQuery.allTracks
     private(set) var revision = 0
+    private(set) var firstPageState = TrackViewportLoadState.idle
 
     @ObservationIgnored
     private var pages: TrackPageWindow<LibraryTrackProjection>
@@ -197,6 +205,8 @@ final class LibraryTrackWindow {
         guard boundedCount != self.totalCount || query != self.query else {
             if boundedCount > 0 {
                 await load(page: 0)
+            } else {
+                firstPageState = .ready
             }
             return
         }
@@ -207,8 +217,20 @@ final class LibraryTrackWindow {
         requests.invalidate()
         revision &+= 1
         if boundedCount > 0 {
+            firstPageState = .loading
             await load(page: 0)
+        } else {
+            firstPageState = .ready
         }
+    }
+
+    func retryFirstPage() async {
+        guard totalCount > 0 else {
+            firstPageState = .ready
+            return
+        }
+        firstPageState = .loading
+        await load(page: 0)
     }
 
     func track(at index: Int) -> LibraryTrackProjection? {
@@ -243,6 +265,9 @@ final class LibraryTrackWindow {
         }
         let requestQuery = query
         let requestGeneration = generation
+        if requestedPage == 0 {
+            firstPageState = .loading
+        }
         do {
             let items = try await loader(
                 requestQuery,
@@ -257,6 +282,9 @@ final class LibraryTrackWindow {
             }
             let evictedPage = pages.insert(items, page: requestedPage)
             requests.finishRequest(page: requestedPage)
+            if requestedPage == 0 {
+                firstPageState = .ready
+            }
             if let evictedPage {
                 requests.forgetRequest(page: evictedPage)
             }
@@ -268,7 +296,16 @@ final class LibraryTrackWindow {
                 )
             }
         } catch {
+            guard
+                requestGeneration == generation,
+                requestQuery == query
+            else {
+                return
+            }
             requests.failRequest(page: requestedPage)
+            if requestedPage == 0 {
+                firstPageState = .failed(error.localizedDescription)
+            }
         }
     }
 

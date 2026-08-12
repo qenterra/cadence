@@ -120,6 +120,11 @@ struct CadenceModeScreenshotTests {
             rhythmPulseVisualQAState: cadenceModeState
         )
         try await fixture.capture(
+            "qa-cadence-mode-large-dark.png",
+            contentSize: .large,
+            rhythmPulseVisualQAState: cadenceModeState
+        )
+        try await fixture.capture(
             "qa-cadence-mode-grayscale-min-dark.png",
             rhythmPulseVisualQAState: grayscaleState
         )
@@ -202,10 +207,9 @@ struct CadenceModeScreenshotTests {
 
     private func capture(
         window: NSWindow,
-        hostingView: NSView,
+        hostingView _: NSView,
         filename: String
     ) throws {
-        hostingView.layoutSubtreeIfNeeded()
         guard
             let frameView = window.contentView?.superview,
             let representation = frameView.bitmapImageRepForCachingDisplay(

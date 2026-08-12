@@ -14,4 +14,7 @@ enum AppConfiguration {
     static let supportURL = URL(
         string: "https://buymeacoffee.com/qenterra"
     )!
+    static let updateFeedURL = URL(
+        string: "https://raw.githubusercontent.com/QenTerra/cadence/main/appcast.xml"
+    )!
 }

@@ -49,11 +49,14 @@ struct ManagedLibrarySettingsCard: View {
                 }
             )
         ) {
-            Button("OK", role: .cancel) {
+            Button("Dismiss", role: .cancel) {
                 model.dismissLibraryResetNotice()
             }
         } message: {
-            Text(model.libraryResetNotice ?? "Unknown error")
+            Text(
+                model.libraryResetNotice
+                    ?? "Cadence finished the library reset operation."
+            )
         }
     }
 

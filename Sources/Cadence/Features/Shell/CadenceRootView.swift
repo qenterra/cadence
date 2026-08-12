@@ -106,11 +106,14 @@ struct CadenceRootView: View {
             "Library Operation Failed",
             isPresented: libraryOperationErrorPresented
         ) {
-            Button("OK") {
+            Button("Dismiss", role: .cancel) {
                 model.dismissLibraryOperationError()
             }
         } message: {
-            Text(model.libraryOperationError ?? "Unknown error")
+            Text(
+                model.libraryOperationError
+                    ?? "Cadence could not complete the library operation."
+            )
         }
         .alert(
             model.librarySession.store.operationFailure?.title
@@ -128,7 +131,7 @@ struct CadenceRootView: View {
         } message: {
             Text(
                 model.librarySession.store.operationFailure?.message
-                    ?? "Unknown error"
+                    ?? "Cadence could not complete the library operation."
             )
         }
         .task {

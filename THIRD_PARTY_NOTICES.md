@@ -4,9 +4,10 @@ Cadence includes the following Swift Package Manager runtime dependencies:
 
 | Package | Version | Role | License | Source |
 | --- | --- | --- | --- | --- |
-| QenTerraDesignTokens | Local QDS `1.9.x` | Shared visual tokens | MIT | QenTerra design system |
+| QenTerraDesignTokens | Local QDS `1.12.x` | Shared visual tokens | MIT | QenTerra design system |
 | GRDB.swift | `7.10.0` | Derived lyrics full-text index | MIT | [groue/GRDB.swift](https://github.com/groue/GRDB.swift) |
 | AppAuth | `2.1.0` | Google Drive OAuth 2.0 flow | Apache-2.0 | [openid/AppAuth-iOS](https://github.com/openid/AppAuth-iOS) |
+| Sparkle | `2.9.5` | Signed in-app software updates | MIT | [sparkle-project/Sparkle](https://github.com/sparkle-project/Sparkle) |
 
 Their complete license texts and copyright notices remain available in their
 linked source distributions. Cadence does not modify or relicense them.

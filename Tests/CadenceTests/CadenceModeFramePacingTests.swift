@@ -95,6 +95,7 @@ struct CadenceModeFramePacingTests {
                 >= Self.minimumDeliveredFrameRatio,
             Comment(rawValue: "Idle " + idleCadenceReport.summary)
         )
+        expectFrameBudget(idleCadenceReport, label: "Idle")
         #expect(
             report.deliveredFrameRatio
                 >= Self.minimumDeliveredFrameRatio,
@@ -108,12 +109,7 @@ struct CadenceModeFramePacingTests {
                 rawValue: baselineReport.summary + "; " + cadenceSummary
             )
         )
-        #expect(
-            report.longestFrameDuration
-                <= report.frameBudget * Self.maximumFrameIntervalMultiplier
-                + Self.clockPrecisionTolerance,
-            Comment(rawValue: cadenceSummary)
-        )
+        expectFrameBudget(report, label: "Active")
     }
 
     private static var runMarker: URL {
@@ -129,6 +125,18 @@ struct CadenceModeFramePacingTests {
     private static let clockPrecisionTolerance: TimeInterval = 0.000_001
     private static let minimumDeliveredFrameRatio = 0.995
     private static let maximumFrameIntervalMultiplier = 1.5
+
+    private func expectFrameBudget(
+        _ report: CadenceFramePacingReport,
+        label: String
+    ) {
+        #expect(
+            report.longestFrameDuration
+                <= report.frameBudget * Self.maximumFrameIntervalMultiplier
+                + Self.clockPrecisionTolerance,
+            Comment(rawValue: label + " " + report.summary)
+        )
+    }
 
     private func makeWindow(
         contentSize: NSSize,

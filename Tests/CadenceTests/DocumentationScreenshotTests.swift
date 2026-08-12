@@ -46,6 +46,13 @@ struct DocumentationScreenshotTests {
             appearance: .light
         )
 
+        fixture.model.selectedDestination = .allTracks
+        try await fixture.capture("qa-all-tracks-min-dark.png")
+        try await fixture.capture(
+            "qa-all-tracks-wide-dark.png",
+            contentSize: .wide
+        )
+
         fixture.model.presentNowPlaying()
         fixture.model.selectedNowPlayingPanel = .queue
         try await fixture.capture("cadence-now-playing.png")
@@ -73,6 +80,10 @@ struct DocumentationScreenshotTests {
         )
 
         try await fixture.captureSettings("cadence-settings.png")
+        try await fixture.captureSettings(
+            "qa-settings-updates-dark.png",
+            tab: .updates
+        )
 
         fixture.model.selectedDestination = .importMusic
         fixture.model.showImportPreviewStage(.review)
@@ -179,11 +190,18 @@ final class DocumentationScreenshotFixture {
     func captureSettings(
         _ filename: String,
         contentSize: NSSize = .minimum,
-        appearance: DocumentationScreenshotAppearance = .dark
+        appearance: DocumentationScreenshotAppearance = .dark,
+        tab: CadenceSettingsTab = .general
     ) async throws {
         try await capture(
             filename,
-            rootView: CadenceSettingsWindow(model: model),
+            rootView: CadenceSettingsWindow(
+                model: model,
+                updateController: CadenceUpdateController(
+                    startsUpdater: false
+                ),
+                selection: tab
+            ),
             contentSize: contentSize,
             appearance: appearance
         )
@@ -221,7 +239,6 @@ final class DocumentationScreenshotFixture {
         window.makeKeyAndOrderFront(nil)
 
         try await Task.sleep(for: .milliseconds(500))
-        hostingView.layoutSubtreeIfNeeded()
         try pngData(for: window).write(
             to: Self.outputDirectory.appending(path: filename),
             options: .atomic
@@ -276,6 +293,7 @@ enum DocumentationScreenshotAppearance {
 extension NSSize {
     static let minimum = NSSize(width: 1080, height: 844)
     static let wide = NSSize(width: 1440, height: 868)
+    static let large = NSSize(width: 2200, height: 1300)
 }
 
 private extension DocumentationScreenshotFixture {
