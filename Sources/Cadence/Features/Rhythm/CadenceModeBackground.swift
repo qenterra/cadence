@@ -103,13 +103,11 @@ final class CadenceModeBackgroundView: NSView {
         primaryGradientLayer.startPoint = CGPoint(x: 0.5, y: 0.5)
         primaryGradientLayer.endPoint = CGPoint(x: 0.5, y: 0)
         primaryGradientLayer.shouldRasterize = true
-        primaryGradientLayer.drawsAsynchronously = true
 
         bloomGradientLayer.type = .radial
         bloomGradientLayer.startPoint = CGPoint(x: 0.5, y: 0.5)
         bloomGradientLayer.endPoint = CGPoint(x: 1, y: 1)
         bloomGradientLayer.shouldRasterize = true
-        bloomGradientLayer.drawsAsynchronously = true
 
         scrimLayer.type = .radial
         scrimLayer.startPoint = CGPoint(x: 0.5, y: 0.46)
@@ -128,13 +126,11 @@ final class CadenceModeBackgroundView: NSView {
         baseLayer.frame = bounds
         scrimLayer.frame = bounds
 
-        let expandedBounds = bounds.insetBy(
-            dx: -bounds.width * 0.28,
-            dy: -bounds.height * 0.36
-        )
+        let primaryFieldSize = CadenceModeBackgroundGeometry
+            .primaryFieldSize(for: bounds)
         primaryGradientLayer.bounds = CGRect(
             origin: .zero,
-            size: expandedBounds.size
+            size: primaryFieldSize
         )
         primaryGradientLayer.position = CGPoint(
             x: bounds.midX,
@@ -215,12 +211,6 @@ final class CadenceModeBackgroundView: NSView {
             return
         }
 
-        let primaryRotation = CABasicAnimation(
-            keyPath: "transform.rotation.z"
-        )
-        primaryRotation.fromValue = -0.22
-        primaryRotation.toValue = Double.pi * 2 - 0.22
-
         let primaryScale = CAKeyframeAnimation(keyPath: "transform.scale")
         primaryScale.values = [1.02, 1.12, 1.05, 1.02]
         primaryScale.keyTimes = [0, 0.36, 0.72, 1]
@@ -239,7 +229,6 @@ final class CadenceModeBackgroundView: NSView {
 
         let primaryAnimation = CAAnimationGroup()
         primaryAnimation.animations = [
-            primaryRotation,
             primaryScale,
             primaryPosition,
         ]
@@ -281,17 +270,11 @@ final class CadenceModeBackgroundView: NSView {
     }
 
     private var preferredFrameRateRange: CAFrameRateRange {
-        let displayFramesPerSecond = Float(
-            window?.screen?.maximumFramesPerSecond ?? 60
-        )
-        let maximumFramesPerSecond = min(
-            displayFramesPerSecond,
-            Float(backgroundAppearance?.maximumAnimationFramesPerSecond ?? 60)
-        )
-        return CAFrameRateRange(
-            minimum: min(30, maximumFramesPerSecond),
-            maximum: maximumFramesPerSecond,
-            preferred: maximumFramesPerSecond
+        CadenceModePerformancePolicy.animationFrameRateRange(
+            displayMaximumFramesPerSecond: window?.screen?
+                .maximumFramesPerSecond ?? 60,
+            contentMaximumFramesPerSecond: backgroundAppearance?
+                .maximumAnimationFramesPerSecond ?? 60
         )
     }
 

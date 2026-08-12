@@ -30,8 +30,9 @@ struct CadenceModeScreenshotTests {
             cadenceModeState: states.cadenceMode,
             grayscaleState: states.grayscale
         )
+        let transitionFixture = try await DocumentationScreenshotFixture.make()
         try await captureKeyboardTransition(
-            fixture: fixture,
+            fixture: transitionFixture,
             visualQAState: states.entry
         )
     }
@@ -134,12 +135,17 @@ struct CadenceModeScreenshotTests {
         fixture: DocumentationScreenshotFixture,
         visualQAState: RhythmPulseVisualQAState
     ) async throws {
+        fixture.model.dismissNowPlaying()
+        let cadenceModeSession = CadenceModeSession(automatesTiming: false)
         let contentSize = NSSize.wide
-        let rootView = CadenceRootView(model: fixture.model)
-            .frame(width: contentSize.width, height: contentSize.height)
-            .environment(\.colorScheme, ColorScheme.dark)
-            .environment(\.rhythmPulseVisualQAState, visualQAState)
-            .tint(CadenceTheme.primaryAccent)
+        let rootView = CadenceRootView(
+            model: fixture.model,
+            cadenceModeSession: cadenceModeSession
+        )
+        .frame(width: contentSize.width, height: contentSize.height)
+        .environment(\.colorScheme, ColorScheme.dark)
+        .environment(\.rhythmPulseVisualQAState, visualQAState)
+        .tint(CadenceTheme.primaryAccent)
         let hostingView = NSHostingView(rootView: rootView)
         let window = NSWindow(
             contentRect: NSRect(origin: .zero, size: contentSize),
@@ -172,14 +178,24 @@ struct CadenceModeScreenshotTests {
             filename: "qa-cadence-mode-wide-transition-mid-dark.png"
         )
 
-        try await Task.sleep(for: .milliseconds(340))
+        guard cadenceModeSession.isActive else {
+            throw CadenceModeScreenshotError.presentationDidNotActivate
+        }
+        try await Task.sleep(for: .milliseconds(300))
+        sendKey(type: .keyUp, keyCode: 6, characters: "z", to: window)
+        sendKey(type: .keyUp, keyCode: 7, characters: "x", to: window)
+        sendKey(type: .keyDown, keyCode: 6, characters: "z", to: window)
+        try await Task.sleep(for: .milliseconds(120))
+        guard !cadenceModeSession.pulseStore.renderParticles.isEmpty,
+              !cadenceModeSession.pulseStore.renderWashes.isEmpty else {
+            throw CadenceModeScreenshotError.pulseDidNotRender
+        }
         try capture(
             window: window,
             hostingView: hostingView,
             filename: "qa-cadence-mode-wide-transition-settled-dark.png"
         )
         sendKey(type: .keyUp, keyCode: 6, characters: "z", to: window)
-        sendKey(type: .keyUp, keyCode: 7, characters: "x", to: window)
     }
 
     private func sendKey(
@@ -266,4 +282,6 @@ struct CadenceModeScreenshotTests {
 private enum CadenceModeScreenshotError: Error {
     case captureUnavailable
     case encodingFailed
+    case presentationDidNotActivate
+    case pulseDidNotRender
 }

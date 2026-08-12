@@ -29,7 +29,6 @@ final class RhythmPulseStore {
             return
         }
 
-        reset()
         preparedAssetKey = assetKey
         guard let asset else {
             palette = .cadenceFallback
@@ -130,6 +129,14 @@ final class RhythmPulseStore {
 
     var renderParticles: [RhythmParticle] {
         particleSimulation.allParticles
+    }
+
+    var hasAttachedCompositor: Bool {
+        compositorView != nil
+    }
+
+    var visibleCompositorEffectCount: Int {
+        compositorView?.visibleEffectCount ?? 0
     }
 
     func reset() {

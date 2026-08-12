@@ -3,6 +3,18 @@ import Foundation
 import Testing
 
 struct CadenceModeLyricsTests {
+    @MainActor
+    @Test("Cadence lyric rows seek to their synchronized timestamp")
+    func lyricRowSeekTarget() {
+        let timed = LyricLine(text: "timed", startTime: 42.5)
+        let untimed = LyricLine(text: "untimed", startTime: nil)
+
+        #expect(CadenceModeLyricInteraction.seekTime(for: timed) == 42.5)
+        #expect(CadenceModeLyricInteraction.seekTime(for: untimed) == nil)
+        #expect(CadenceModeLyricsEdgeFade.topOpaqueLocation > 0)
+        #expect(CadenceModeLyricsEdgeFade.bottomFadeLocation < 1)
+    }
+
     @Test("The active lyric stays in the center of five stable slots")
     func activeLineIsCentered() {
         let document = makeDocument(

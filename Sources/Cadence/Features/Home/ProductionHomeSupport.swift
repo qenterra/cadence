@@ -1,25 +1,81 @@
 import SwiftUI
 
 enum HomeListeningSelection {
-    static func continueTrack<Item>(from items: [Item]) -> Item? {
-        items.first
-    }
-
     static func items<Item>(_ items: [Item], limit: Int) -> [Item] {
         Array(items.prefix(max(limit, 0)))
+    }
+
+    static func recentItems<Item: Identifiable>(
+        _ items: [Item],
+        excludingID: Item.ID?,
+        limit: Int
+    ) -> [Item] where Item.ID: Equatable {
+        guard limit > 0 else {
+            return []
+        }
+        return Array(
+            items.lazy.filter { item in
+                guard let excludingID else {
+                    return true
+                }
+                return item.id != excludingID
+            }.prefix(limit)
+        )
+    }
+}
+
+struct HomeFavoritesPreviewBudget: Equatable {
+    let trackLimit: Int
+    let albumLimit: Int
+    let artistLimit: Int
+
+    static func resolve(
+        trackCount: Int,
+        albumCount: Int,
+        artistCount: Int,
+        limit: Int
+    ) -> HomeFavoritesPreviewBudget {
+        let capacities = [trackCount, albumCount, artistCount].map {
+            max($0, 0)
+        }
+        var allocations = [0, 0, 0]
+        let resolvedLimit = max(limit, 0)
+        var allocatedCount = 0
+
+        while allocatedCount < resolvedLimit {
+            var allocatedItem = false
+            for index in allocations.indices
+                where allocations[index] < capacities[index] {
+                allocations[index] += 1
+                allocatedCount += 1
+                allocatedItem = true
+                if allocatedCount == resolvedLimit {
+                    break
+                }
+            }
+            if !allocatedItem {
+                break
+            }
+        }
+
+        return HomeFavoritesPreviewBudget(
+            trackLimit: allocations[0],
+            albumLimit: allocations[1],
+            artistLimit: allocations[2]
+        )
     }
 }
 
 struct HomeShelf<Content: View>: View {
     let title: String
-    let subtitle: String
+    let subtitle: String?
     let actionTitle: String?
     let action: (() -> Void)?
     @ViewBuilder let content: Content
 
     init(
         title: String,
-        subtitle: String,
+        subtitle: String? = nil,
         actionTitle: String? = nil,
         action: (() -> Void)? = nil,
         @ViewBuilder content: () -> Content
@@ -37,18 +93,23 @@ struct HomeShelf<Content: View>: View {
                 VStack(alignment: .leading, spacing: 3) {
                     Text(title)
                         .font(.title2.bold())
-                    Text(subtitle)
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
+                    if let subtitle {
+                        Text(subtitle)
+                            .font(.callout)
+                            .foregroundStyle(.secondary)
+                    }
                 }
 
                 Spacer()
 
                 if let actionTitle, let action {
-                    Button(actionTitle, systemImage: "chevron.right") {
-                        action()
+                    Button(action: action) {
+                        HStack(spacing: 5) {
+                            Text(actionTitle)
+                            Image(systemName: "chevron.right")
+                                .font(.caption.weight(.semibold))
+                        }
                     }
-                    .labelStyle(.titleAndIcon)
                 }
             }
             content
@@ -65,59 +126,39 @@ struct HomeTrackGrid: View {
     var body: some View {
         LazyVGrid(
             columns: [
-                GridItem(.adaptive(minimum: 150, maximum: 220), spacing: 16),
+                GridItem(.adaptive(minimum: 260, maximum: 380), spacing: 12),
             ],
             alignment: .leading,
-            spacing: 16
+            spacing: 12
         ) {
             ForEach(tracks) { track in
-                Button {
-                    model.playProductionTrack(
-                        track,
-                        within: tracks,
-                        source: queueSource
-                    )
-                } label: {
-                    VStack(alignment: .leading, spacing: 8) {
-                        ProductionArtworkView(
-                            model: model,
-                            artworkID: track.artworkID,
-                            title: track.title,
-                            placeholder: .track,
-                            cornerRadius: CadenceTheme.radiusGroup
-                        )
-                        .aspectRatio(1, contentMode: .fit)
-
-                        Text(track.title)
-                            .font(.headline)
-                            .lineLimit(1)
-                        Text(track.artist)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                            .lineLimit(1)
-                    }
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Play \(track.title) by \(track.artist)")
+                HomeTrackTile(
+                    model: model,
+                    track: track,
+                    queue: tracks,
+                    queueSource: queueSource
+                )
             }
         }
     }
 }
 
-struct HomeContinueListeningRow: View {
+struct HomeTrackTile: View {
     @Bindable var model: CadenceAppModel
     let track: LibraryTrackProjection
     let queue: [LibraryTrackProjection]
+    let queueSource: PlaybackQueueSource
+    @State private var isHovered = false
 
     var body: some View {
         Button {
             model.playProductionTrack(
                 track,
                 within: queue,
-                source: .adHoc
+                source: queueSource
             )
         } label: {
-            HStack(spacing: 14) {
+            HStack(spacing: 12) {
                 ProductionArtworkView(
                     model: model,
                     artworkID: track.artworkID,
@@ -125,7 +166,7 @@ struct HomeContinueListeningRow: View {
                     placeholder: .track,
                     cornerRadius: CadenceTheme.radiusControl
                 )
-                .frame(width: 68, height: 68)
+                .frame(width: 56, height: 56)
 
                 VStack(alignment: .leading, spacing: 3) {
                     Text(track.title)
@@ -136,91 +177,109 @@ struct HomeContinueListeningRow: View {
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
-                    if !track.album.isEmpty {
-                        Text(track.album)
-                            .font(.caption)
-                            .foregroundStyle(.tertiary)
-                            .lineLimit(1)
-                    }
                 }
 
-                Spacer(minLength: 16)
+                Spacer(minLength: 8)
 
                 Image(systemName: "play.fill")
-                    .font(.headline)
-                    .frame(width: 34, height: 34)
-                    .background(CadenceTheme.primaryAccent, in: Circle())
-                    .foregroundStyle(.black)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(
+                        isHovered ? CadenceTheme.primaryAccent : .secondary
+                    )
+                    .frame(width: 28, height: 28)
             }
-            .padding(12)
+            .padding(8)
+            .frame(maxWidth: .infinity, minHeight: 72, alignment: .leading)
             .background(
-                CadenceTheme.subduedFill,
+                isHovered ? CadenceTheme.hoverFill : CadenceTheme.subduedFill,
                 in: RoundedRectangle(
                     cornerRadius: CadenceTheme.radiusGroup,
                     style: .continuous
                 )
             )
         }
-        .buttonStyle(.plain)
-        .frame(maxWidth: 620)
-        .accessibilityLabel("Continue \(track.title) by \(track.artist)")
+        .buttonStyle(CadenceRowButtonStyle())
+        .onHover { isHovered = $0 }
+        .animation(
+            .easeOut(duration: CadenceTheme.motionHover),
+            value: isHovered
+        )
+        .accessibilityLabel("Play \(track.title) by \(track.artist)")
     }
 }
 
-struct HomeSubsectionTitle: View {
-    let title: String
-
-    init(_ title: String) {
-        self.title = title
-    }
-
-    var body: some View {
-        Text(title)
-            .font(.headline)
-            .foregroundStyle(.secondary)
-    }
-}
-
-struct HomePinnedAlbumTile: View {
+struct HomeAlbumTile: View {
     @Bindable var model: CadenceAppModel
     let album: LibraryAlbumProjection
+    @State private var isHovered = false
 
     var body: some View {
         Button {
             model.requestOpenProductionAlbumContextually(id: album.id)
         } label: {
-            VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 12) {
                 ProductionArtworkView(
                     model: model,
                     artworkID: album.customArtworkID,
                     title: album.title,
                     placeholder: .album,
-                    cornerRadius: CadenceTheme.radiusGroup
+                    cornerRadius: CadenceTheme.radiusControl
                 )
-                .aspectRatio(1, contentMode: .fit)
-                Text(album.title)
-                    .font(.headline)
-                    .foregroundStyle(.primary)
-                    .lineLimit(1)
-                Text(album.artist)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
+                .frame(width: 56, height: 56)
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(album.title)
+                        .font(.headline)
+                        .foregroundStyle(.primary)
+                        .lineLimit(1)
+                    Text(album.artist.isEmpty ? "Album" : album.artist)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+
+                Spacer(minLength: 8)
+
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.tertiary)
             }
+            .padding(8)
+            .frame(maxWidth: .infinity, minHeight: 72, alignment: .leading)
+            .background(
+                isHovered ? CadenceTheme.hoverFill : CadenceTheme.subduedFill,
+                in: RoundedRectangle(
+                    cornerRadius: CadenceTheme.radiusGroup,
+                    style: .continuous
+                )
+            )
         }
-        .buttonStyle(.plain)
+        .buttonStyle(CadenceRowButtonStyle())
+        .onHover { isHovered = $0 }
+        .animation(
+            .easeOut(duration: CadenceTheme.motionHover),
+            value: isHovered
+        )
+        .accessibilityLabel("Open \(album.title) by \(album.artist)")
     }
 }
 
-struct HomePinnedDestinationTile: View {
+struct HomeDestinationTile: View {
     let title: String
     let subtitle: String
     let symbol: String
     let action: () -> Void
+    @State private var isHovered = false
 
     var body: some View {
         Button(action: action) {
-            Label {
+            HStack(spacing: 12) {
+                Image(systemName: symbol)
+                    .font(.title3)
+                    .foregroundStyle(CadenceTheme.primaryAccent)
+                    .frame(width: 56, height: 56)
+                    .background(CadenceTheme.subduedFill, in: Circle())
+
                 VStack(alignment: .leading, spacing: 3) {
                     Text(title)
                         .font(.headline)
@@ -229,15 +288,45 @@ struct HomePinnedDestinationTile: View {
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                 }
-            } icon: {
-                Image(systemName: symbol)
-                    .frame(width: 28)
+
+                Spacer(minLength: 8)
+
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.tertiary)
             }
-            .frame(maxWidth: .infinity, minHeight: 56, alignment: .leading)
-            .padding(12)
-            .background(CadenceTheme.subduedFill)
-            .clipShape(RoundedRectangle(cornerRadius: CadenceTheme.radiusGroup))
+            .padding(8)
+            .frame(maxWidth: .infinity, minHeight: 72, alignment: .leading)
+            .background(
+                isHovered ? CadenceTheme.hoverFill : CadenceTheme.subduedFill,
+                in: RoundedRectangle(
+                    cornerRadius: CadenceTheme.radiusGroup,
+                    style: .continuous
+                )
+            )
         }
         .buttonStyle(CadenceRowButtonStyle())
+        .onHover { isHovered = $0 }
+        .animation(
+            .easeOut(duration: CadenceTheme.motionHover),
+            value: isHovered
+        )
+        .accessibilityLabel("Open \(title), \(subtitle)")
+    }
+}
+
+struct HomeCompactGrid<Content: View>: View {
+    @ViewBuilder let content: Content
+
+    var body: some View {
+        LazyVGrid(
+            columns: [
+                GridItem(.adaptive(minimum: 260, maximum: 380), spacing: 12),
+            ],
+            alignment: .leading,
+            spacing: 12
+        ) {
+            content
+        }
     }
 }

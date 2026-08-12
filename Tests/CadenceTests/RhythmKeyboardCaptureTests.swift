@@ -56,7 +56,7 @@ struct RhythmKeyboardCaptureTests {
         )
     }
 
-    @Test("Cadence keys pass through while playback is unavailable")
+    @Test("Cadence keys pass through only when no playback item is loaded")
     func unavailablePlaybackPassesThrough() {
         #expect(
             RhythmKeyDecision.decideAction(
@@ -172,9 +172,12 @@ struct RhythmKeyboardCaptureTests {
     }
 
     @MainActor
-    @Test("A global chord presents Cadence Mode and track changes keep it active")
+    @Test("A paused global chord presents Cadence and post-transition keys emit")
     func globalChordAndTrackChangeLifecycle() async throws {
         let fixture = try await DocumentationScreenshotFixture.make()
+        fixture.model.isPlaying = false
+        #expect(fixture.model.hasCurrentPlaybackItem)
+        #expect(!fixture.model.isPlaying)
         fixture.model.playbackWorkspace = .hidden
         let session = CadenceModeSession(automatesTiming: false)
         let contentSize = NSSize(width: 1200, height: 760)
@@ -213,10 +216,22 @@ struct RhythmKeyboardCaptureTests {
             characters: "x",
             to: window
         )
-        try await Task.sleep(for: .milliseconds(80))
+
+        #expect(fixture.model.playbackWorkspace == .nowPlaying)
+        #expect(session.activationIsPending)
+        #expect(!session.isActive)
+
+        for _ in 0 ..< 20 where !session.isActive {
+            try await Task.sleep(for: .milliseconds(20))
+        }
 
         #expect(fixture.model.playbackWorkspace == .nowPlaying)
         #expect(session.isActive)
+        #expect(!fixture.model.isPlaying)
+        for _ in 0 ..< 20 where !session.pulseStore.hasAttachedCompositor {
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        #expect(session.pulseStore.hasAttachedCompositor)
 
         sendKey(
             type: .keyUp,
@@ -246,6 +261,11 @@ struct RhythmKeyboardCaptureTests {
 
         #expect(!session.pulseStore.renderParticles.isEmpty)
         #expect(!session.pulseStore.renderWashes.isEmpty)
+        for _ in 0 ..< 20 where
+            session.pulseStore.visibleCompositorEffectCount == 0 {
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        #expect(session.pulseStore.visibleCompositorEffectCount > 0)
 
         let previousTrackID = fixture.model.currentPlaybackTrack?.id
         fixture.model.selectNextTrack()

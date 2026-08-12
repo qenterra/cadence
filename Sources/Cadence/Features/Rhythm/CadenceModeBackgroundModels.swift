@@ -1,5 +1,22 @@
 import Foundation
 
+enum CadenceModeBackgroundGeometry {
+    static func primaryFieldSize(for bounds: CGRect) -> CGSize {
+        guard !bounds.isEmpty else {
+            return .zero
+        }
+
+        // The field drifts by up to 6% horizontally and 7% vertically. Its
+        // minimum animated scale is 1.02, so these axis-aligned bounds cover
+        // every corner without paying for a fullscreen diagonal square.
+        let minimumScale: CGFloat = 1.02
+        return CGSize(
+            width: ceil((bounds.width * 1.12 + 4) / minimumScale),
+            height: ceil((bounds.height * 1.14 + 4) / minimumScale)
+        )
+    }
+}
+
 extension RhythmAccentPalette {
     var backgroundColors: [RhythmPulseColor] {
         let darkenedColors = colors.map { color in
@@ -60,8 +77,8 @@ struct CadenceModeBackgroundAppearance: Equatable, Sendable {
             isAnimated: !reduceMotion,
             blurRadius: 0,
             animationDuration: 16,
-            maximumAnimationFramesPerSecond: 120,
-            gradientRasterizationScale: 0.33,
+            maximumAnimationFramesPerSecond: 60,
+            gradientRasterizationScale: 0.25,
             animatedLayerCount: 2,
             baseOpacity: reduceTransparency ? 1 : 0.9,
             fieldOpacity: reduceTransparency ? 0.7 : 0.76,

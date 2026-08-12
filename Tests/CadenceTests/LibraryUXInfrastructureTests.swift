@@ -135,13 +135,55 @@ struct LibraryUXInfrastructureTests {
         #expect(ordered == [first, second])
     }
 
-    @Test("Home listening shelves stay bounded and continue from the latest item")
-    func homeListeningSelection() {
-        let items = Array(1 ... 10)
+    @Test("Home recent items omit the track already visible in the player")
+    func homeRecentListeningSelection() {
+        struct Item: Identifiable, Equatable {
+            let id: Int
+        }
+        let items = (1 ... 10).map(Item.init)
 
-        #expect(HomeListeningSelection.continueTrack(from: items) == 1)
-        #expect(HomeListeningSelection.items(items, limit: 6) == Array(1 ... 6))
-        #expect(HomeListeningSelection.items(items, limit: 0).isEmpty)
+        #expect(
+            HomeListeningSelection.recentItems(
+                items,
+                excludingID: 1,
+                limit: 6
+            ).map(\.id) == Array(2 ... 7)
+        )
+        #expect(
+            HomeListeningSelection.recentItems(
+                items,
+                excludingID: nil,
+                limit: 0
+            ).isEmpty
+        )
+    }
+
+    @Test("Home favorites preview shares six slots across media types")
+    func homeFavoritesPreviewBudget() {
+        #expect(
+            HomeFavoritesPreviewBudget.resolve(
+                trackCount: 8,
+                albumCount: 2,
+                artistCount: 1,
+                limit: 6
+            ) == HomeFavoritesPreviewBudget(
+                trackLimit: 3,
+                albumLimit: 2,
+                artistLimit: 1
+            )
+        )
+        #expect(
+            HomeFavoritesPreviewBudget.resolve(
+                trackCount: 0,
+                albumCount: 5,
+                artistCount: 1,
+                limit: 6
+            ) == HomeFavoritesPreviewBudget(
+                trackLimit: 0,
+                albumLimit: 5,
+                artistLimit: 1
+            )
+        )
     }
 
     @Test("New navigation profiles start expanded and every destination symbol is unique")

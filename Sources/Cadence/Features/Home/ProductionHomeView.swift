@@ -10,21 +10,25 @@ struct ProductionHomeView: View {
             LazyVStack(alignment: .leading, spacing: 30) {
                 CadencePageHeader(
                     "Home",
-                    subtitle: "Your library, within reach"
+                    subtitle: "\(store.catalogCounts.liveTrackCount) tracks"
                 )
 
-                if store.catalogCounts.liveTrackCount == 0 {
+                if store.availability == .loading,
+                   store.catalogCounts.liveTrackCount == 0 {
+                    ProgressView("Loading Home")
+                        .frame(maxWidth: .infinity, minHeight: 240)
+                } else if store.catalogCounts.liveTrackCount == 0 {
                     EmptyLibraryView(
-                        title: "Make Cadence Your Home",
-                        description: "Import music to build your listening space."
+                        title: "No Music Yet",
+                        description: "Import music to start building your library."
                     ) {
                         model.requestNavigationDestination(.importMusic)
                     }
                 } else {
-                    continueListening
+                    pinnedItems
                     recentlyPlayed
                     favorites
-                    pinnedItems
+                    personalizationEmptyState
                 }
             }
             .padding(.horizontal, 28)
@@ -35,37 +39,14 @@ struct ProductionHomeView: View {
     }
 
     @ViewBuilder
-    private var continueListening: some View {
-        if let track = HomeListeningSelection.continueTrack(
-            from: store.recentlyPlayedTracks
-        ) {
-            HomeShelf(
-                title: "Continue Listening",
-                subtitle: "Resume your latest track"
-            ) {
-                HomeContinueListeningRow(
-                    model: model,
-                    track: track,
-                    queue: store.recentlyPlayedTracks
-                )
-            }
-        }
-    }
-
     private var recentlyPlayed: some View {
-        HomeShelf(
-            title: "Recently Played",
-            subtitle: "Pick up where you left off"
-        ) {
-            let tracks = HomeListeningSelection.items(
-                store.recentlyPlayedTracks,
-                limit: 6
-            )
-            if tracks.isEmpty {
-                Text("Play a track and it will appear here.")
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-            } else {
+        let tracks = HomeListeningSelection.recentItems(
+            store.recentlyPlayedTracks,
+            excludingID: model.currentPlaybackTrack?.id,
+            limit: 6
+        )
+        if !tracks.isEmpty {
+            HomeShelf(title: "Recently Played") {
                 HomeTrackGrid(
                     model: model,
                     tracks: tracks,
@@ -73,5 +54,34 @@ struct ProductionHomeView: View {
                 )
             }
         }
+    }
+
+    @ViewBuilder
+    private var personalizationEmptyState: some View {
+        if !hasPinnedItems,
+           !hasRecentItems,
+           store.favoriteTracks.isEmpty,
+           store.favoriteAlbums.isEmpty,
+           store.favoriteArtists.isEmpty {
+            ContentUnavailableView {
+                Label("Start Listening", systemImage: "waveform")
+            } description: {
+                Text("Recently played music, favorites, and shortcuts will appear here.")
+            } actions: {
+                Button("Browse All Tracks") {
+                    model.requestNavigationDestination(.allTracks)
+                }
+                .buttonStyle(.borderedProminent)
+            }
+            .frame(maxWidth: .infinity, minHeight: 260)
+        }
+    }
+
+    private var hasRecentItems: Bool {
+        !HomeListeningSelection.recentItems(
+            store.recentlyPlayedTracks,
+            excludingID: model.currentPlaybackTrack?.id,
+            limit: 1
+        ).isEmpty
     }
 }

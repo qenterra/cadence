@@ -5,8 +5,8 @@ import Observation
 import Testing
 
 struct CadenceModeStateTests {
-    @Test("A global chord requests presentation only while playback is active")
-    func globalChordRequiresActivePlayback() {
+    @Test("A global chord needs a loaded item, not active transport")
+    func globalChordRequiresLoadedPlaybackItem() {
         var unavailable = CadenceModeInputState()
         var available = CadenceModeInputState()
 

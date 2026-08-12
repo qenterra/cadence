@@ -6,8 +6,7 @@ struct CadenceModeInputCapture: View {
 
     var body: some View {
         RhythmKeyboardCapture(
-            canActivateCadenceMode: model.hasCurrentPlaybackItem
-                && model.isPlaying,
+            canActivateCadenceMode: model.hasCurrentPlaybackItem,
             isCadenceModeActive: session.isActive
         ) { lane in
             handleKeyDown(lane)
@@ -29,7 +28,7 @@ struct CadenceModeInputCapture: View {
     private func handleKeyDown(_ lane: RhythmLane) {
         let action = session.keyDown(
             lane: lane,
-            canActivate: model.hasCurrentPlaybackItem && model.isPlaying
+            canActivate: model.hasCurrentPlaybackItem
         )
         guard action == .requestPresentation else {
             return
@@ -38,16 +37,9 @@ struct CadenceModeInputCapture: View {
             session.deactivate()
             return
         }
-        session.setPresentationAvailable(
-            model.playbackWorkspace == .nowPlaying
-        )
     }
 
     private func synchronizePresentation(with workspace: PlaybackWorkspace) {
-        if workspace == .nowPlaying, session.activationIsPending {
-            session.setPresentationAvailable(true)
-            return
-        }
         if workspace != .nowPlaying, session.isActive {
             session.deactivate()
         }

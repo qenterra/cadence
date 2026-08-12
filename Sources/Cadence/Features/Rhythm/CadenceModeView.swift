@@ -56,21 +56,45 @@ struct CadenceModeView: View {
     private var lyricContent: some View {
         if let lyricDocument,
            lyricDocument.timingStatus == .synchronized {
-            TimelineView(.periodic(from: .now, by: 0.1)) { _ in
-                let projection = CadenceModeLyricProjection.make(
-                    document: lyricDocument,
-                    presentationTime: visualQAPresentationTime
-                        ?? model.playbackPresentationTime()
-                )
-                CadenceModeLyricStack(
-                    document: lyricDocument,
-                    activeLineID: projection.activeLineID,
-                    slotHeight: layout.modeLyricSlotHeight
-                )
-            }
+            synchronizedLyrics(lyricDocument)
         } else {
             unavailableLyrics
         }
+    }
+
+    @ViewBuilder
+    private func synchronizedLyrics(
+        _ lyricDocument: LyricDocument
+    ) -> some View {
+        if let visualQAPresentationTime {
+            lyricStack(
+                lyricDocument,
+                presentationTime: visualQAPresentationTime
+            )
+        } else {
+            TimelineView(.periodic(from: .now, by: 0.1)) { _ in
+                lyricStack(
+                    lyricDocument,
+                    presentationTime: model.playbackPresentationTime()
+                )
+            }
+        }
+    }
+
+    private func lyricStack(
+        _ document: LyricDocument,
+        presentationTime: TimeInterval
+    ) -> some View {
+        let projection = CadenceModeLyricProjection.make(
+            document: document,
+            presentationTime: presentationTime
+        )
+        return CadenceModeLyricStack(
+            document: document,
+            activeLineID: projection.activeLineID,
+            slotHeight: layout.modeLyricSlotHeight,
+            seek: model.seekProductionPlayback
+        )
     }
 
     private var unavailableLyrics: some View {
@@ -114,12 +138,10 @@ extension AnyTransition {
         .modifier(
             active: CadenceModeLayerModifier(
                 opacity: 0,
-                blurRadius: 9,
                 scale: 0.985
             ),
             identity: CadenceModeLayerModifier(
                 opacity: 1,
-                blurRadius: 0,
                 scale: 1
             )
         )
@@ -128,13 +150,11 @@ extension AnyTransition {
 
 private struct CadenceModeLayerModifier: ViewModifier {
     let opacity: Double
-    let blurRadius: CGFloat
     let scale: CGFloat
 
     func body(content: Content) -> some View {
         content
             .opacity(opacity)
-            .blur(radius: blurRadius)
             .scaleEffect(scale)
     }
 }
@@ -143,6 +163,7 @@ private struct CadenceModeLyricStack: View {
     let document: LyricDocument
     let activeLineID: LyricLine.ID?
     let slotHeight: CGFloat
+    let seek: (TimeInterval) -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -153,15 +174,25 @@ private struct CadenceModeLyricStack: View {
                     Color.clear.frame(height: slotHeight * 2)
                     ForEach(contentLines) { line in
                         let isActive = line.id == activeLineID
-                        ProductionLyricLineLabel(
-                            text: line.text,
-                            isActive: isActive,
-                            isSynchronized: true,
-                            alignment: .center,
-                            lineLimit: 2
-                        )
-                        .frame(maxWidth: .infinity)
-                        .frame(height: slotHeight)
+                        Button {
+                            guard let seekTime = CadenceModeLyricInteraction
+                                .seekTime(for: line) else {
+                                return
+                            }
+                            seek(seekTime)
+                        } label: {
+                            ProductionLyricLineLabel(
+                                text: line.text,
+                                isActive: isActive,
+                                isSynchronized: true,
+                                alignment: .center,
+                                lineLimit: 2
+                            )
+                            .frame(maxWidth: .infinity)
+                            .frame(height: slotHeight)
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
                         .id(line.id)
                         .animation(
                             reduceMotion
@@ -174,7 +205,7 @@ private struct CadenceModeLyricStack: View {
                 }
             }
             .scrollIndicators(.hidden)
-            .allowsHitTesting(false)
+            .mask(CadenceModeLyricsEdgeFade())
             .onChange(of: scrollTargetID, initial: true) { _, lineID in
                 guard let lineID else {
                     return
@@ -198,5 +229,29 @@ private struct CadenceModeLyricStack: View {
 
     private var scrollTargetID: LyricLine.ID? {
         activeLineID ?? contentLines.first?.id
+    }
+}
+
+enum CadenceModeLyricInteraction {
+    static func seekTime(for line: LyricLine) -> TimeInterval? {
+        line.startTime
+    }
+}
+
+struct CadenceModeLyricsEdgeFade: View {
+    static let topOpaqueLocation = 0.18
+    static let bottomFadeLocation = 0.88
+
+    var body: some View {
+        LinearGradient(
+            stops: [
+                .init(color: .clear, location: 0),
+                .init(color: .black, location: Self.topOpaqueLocation),
+                .init(color: .black, location: Self.bottomFadeLocation),
+                .init(color: .clear, location: 1),
+            ],
+            startPoint: .top,
+            endPoint: .bottom
+        )
     }
 }

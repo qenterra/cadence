@@ -124,13 +124,27 @@ final class RhythmPulseCompositorView: NSView {
         reconcileLayers()
     }
 
+    var visibleEffectCount: Int {
+        washLayers.values.count(where: isVisibleEffectLayer)
+            + particleLayers.values.count(where: isVisibleEffectLayer)
+    }
+
+    private func isVisibleEffectLayer(_ layer: CALayer) -> Bool {
+        guard !layer.isHidden else {
+            return false
+        }
+        return (layer.presentation()?.opacity ?? layer.opacity) > 0.001
+    }
+
     private func configureLayerTree() {
         wantsLayer = true
         layer?.masksToBounds = true
         layer?.addSublayer(effectLayer)
         layerContentsRedrawPolicy = .never
         washLayerPool = makeAttachedLayerPool(count: 12)
-        particleLayerPool = makeAttachedLayerPool(count: 16)
+        particleLayerPool = makeAttachedLayerPool(
+            count: RhythmParticleSimulation.maximumParticleCount
+        )
     }
 
     private func makeAttachedLayerPool(count: Int) -> [CALayer] {
@@ -544,28 +558,18 @@ private extension RhythmPulseCompositorView {
     }
 
     private var displayFrameRateRange: CAFrameRateRange {
-        let maximumFramesPerSecond = Float(
-            window?.screen?.maximumFramesPerSecond ?? 60
-        )
-        return CAFrameRateRange(
-            minimum: min(60, maximumFramesPerSecond),
-            maximum: maximumFramesPerSecond,
-            preferred: maximumFramesPerSecond
+        CadenceModePerformancePolicy.animationFrameRateRange(
+            displayMaximumFramesPerSecond: window?.screen?
+                .maximumFramesPerSecond ?? 60
         )
     }
 
     private var washFrameRateRange: CAFrameRateRange {
-        let displayMaximum = Float(
-            window?.screen?.maximumFramesPerSecond ?? 60
-        )
-        let washMaximum = Float(
-            state.appearance?.maximumWashAnimationFramesPerSecond ?? 60
-        )
-        let maximumFramesPerSecond = min(displayMaximum, washMaximum)
-        return CAFrameRateRange(
-            minimum: min(30, maximumFramesPerSecond),
-            maximum: maximumFramesPerSecond,
-            preferred: maximumFramesPerSecond
+        CadenceModePerformancePolicy.animationFrameRateRange(
+            displayMaximumFramesPerSecond: window?.screen?
+                .maximumFramesPerSecond ?? 60,
+            contentMaximumFramesPerSecond: state.appearance?
+                .maximumWashAnimationFramesPerSecond ?? 60
         )
     }
 }

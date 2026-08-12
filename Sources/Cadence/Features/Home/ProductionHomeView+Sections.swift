@@ -3,77 +3,54 @@ import SwiftUI
 extension ProductionHomeView {
     @ViewBuilder
     var favorites: some View {
+        let budget = HomeFavoritesPreviewBudget.resolve(
+            trackCount: store.favoriteTracks.count,
+            albumCount: store.favoriteAlbums.count,
+            artistCount: store.favoriteArtists.count,
+            limit: 6
+        )
         let tracks = HomeListeningSelection.items(
             store.favoriteTracks,
-            limit: 6
+            limit: budget.trackLimit
         )
         let albums = HomeListeningSelection.items(
             store.favoriteAlbums,
-            limit: 6
+            limit: budget.albumLimit
         )
         let artists = HomeListeningSelection.items(
             store.favoriteArtists,
-            limit: 6
+            limit: budget.artistLimit
         )
 
         if !tracks.isEmpty || !albums.isEmpty || !artists.isEmpty {
             HomeShelf(
                 title: "Favorites",
-                subtitle: "The music you keep coming back to",
                 actionTitle: "See All",
                 action: openFavorites
             ) {
-                VStack(alignment: .leading, spacing: 22) {
-                    if !tracks.isEmpty {
-                        HomeSubsectionTitle("Songs")
-                        HomeTrackGrid(
+                HomeCompactGrid {
+                    ForEach(tracks) { track in
+                        HomeTrackTile(
                             model: model,
-                            tracks: tracks,
+                            track: track,
+                            queue: store.favoriteTracks,
                             queueSource: .favorites
                         )
                     }
 
-                    if !albums.isEmpty {
-                        HomeSubsectionTitle("Albums")
-                        LazyVGrid(
-                            columns: [
-                                GridItem(
-                                    .adaptive(minimum: 150),
-                                    spacing: 16
-                                ),
-                            ],
-                            alignment: .leading,
-                            spacing: 16
-                        ) {
-                            ForEach(albums) { album in
-                                HomePinnedAlbumTile(model: model, album: album)
-                            }
-                        }
+                    ForEach(albums) { album in
+                        HomeAlbumTile(model: model, album: album)
                     }
 
-                    if !artists.isEmpty {
-                        HomeSubsectionTitle("Artists")
-                        LazyVGrid(
-                            columns: [
-                                GridItem(
-                                    .adaptive(minimum: 190),
-                                    spacing: 12
-                                ),
-                            ],
-                            alignment: .leading,
-                            spacing: 12
+                    ForEach(artists) { artist in
+                        HomeDestinationTile(
+                            title: artist.name,
+                            subtitle: "Artist",
+                            symbol: "music.mic"
                         ) {
-                            ForEach(artists) { artist in
-                                HomePinnedDestinationTile(
-                                    title: artist.name,
-                                    subtitle: "Artist",
-                                    symbol: "music.mic"
-                                ) {
-                                    model.requestOpenProductionArtistContextually(
-                                        id: artist.id
-                                    )
-                                }
-                            }
+                            model.requestOpenProductionArtistContextually(
+                                id: artist.id
+                            )
                         }
                     }
                 }
@@ -93,29 +70,15 @@ extension ProductionHomeView {
         let playlists = pinnedPlaylists
         let smartCollections = pinnedSmartCollections
 
-        if !albums.isEmpty {
-            HomeShelf(title: HomePinKind.album.title, subtitle: "Kept close") {
-                LazyVGrid(
-                    columns: [GridItem(.adaptive(minimum: 150), spacing: 16)],
-                    alignment: .leading,
-                    spacing: 16
-                ) {
+        if !albums.isEmpty || !artists.isEmpty || !playlists.isEmpty
+            || !smartCollections.isEmpty {
+            HomeShelf(title: "Quick Access") {
+                HomeCompactGrid {
                     ForEach(albums) { album in
-                        HomePinnedAlbumTile(model: model, album: album)
+                        HomeAlbumTile(model: model, album: album)
                     }
-                }
-            }
-        }
-
-        if !artists.isEmpty || !playlists.isEmpty || !smartCollections.isEmpty {
-            HomeShelf(title: "Pinned", subtitle: "Your shortcuts") {
-                LazyVGrid(
-                    columns: [GridItem(.adaptive(minimum: 190), spacing: 12)],
-                    alignment: .leading,
-                    spacing: 12
-                ) {
                     ForEach(artists) { artist in
-                        HomePinnedDestinationTile(
+                        HomeDestinationTile(
                             title: artist.name,
                             subtitle: "Artist",
                             symbol: "music.mic"
@@ -126,7 +89,7 @@ extension ProductionHomeView {
                         }
                     }
                     ForEach(playlists) { playlist in
-                        HomePinnedDestinationTile(
+                        HomeDestinationTile(
                             title: playlist.name,
                             subtitle: "\(playlist.trackCount) tracks",
                             symbol: "music.note.list"
@@ -136,7 +99,7 @@ extension ProductionHomeView {
                         }
                     }
                     ForEach(smartCollections) { collection in
-                        HomePinnedDestinationTile(
+                        HomeDestinationTile(
                             title: collection.name,
                             subtitle: "Smart Collection",
                             symbol: "slider.horizontal.3"
@@ -167,6 +130,13 @@ extension ProductionHomeView {
             kind: .smartCollection,
             source: model.smartCollections
         )
+    }
+
+    var hasPinnedItems: Bool {
+        !pinnedAlbums.isEmpty
+            || !pinnedArtists.isEmpty
+            || !pinnedPlaylists.isEmpty
+            || !pinnedSmartCollections.isEmpty
     }
 
     private func orderedPinnedItems<Item: Identifiable>(

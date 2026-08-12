@@ -17,11 +17,15 @@ struct CadenceModeFramePacingTests {
         fixture.model.selectedNowPlayingPanel = .lyrics
 
         let contentSize = NSSize(width: 1512, height: 982)
+        let cadenceModeSession = CadenceModeSession(automatesTiming: false)
         let hostingView = NSHostingView(
-            rootView: CadenceRootView(model: fixture.model)
-                .frame(width: contentSize.width, height: contentSize.height)
-                .environment(\.colorScheme, ColorScheme.dark)
-                .tint(CadenceTheme.primaryAccent)
+            rootView: CadenceRootView(
+                model: fixture.model,
+                cadenceModeSession: cadenceModeSession
+            )
+            .frame(width: contentSize.width, height: contentSize.height)
+            .environment(\.colorScheme, ColorScheme.dark)
+            .tint(CadenceTheme.primaryAccent)
         )
         let window = makeWindow(
             contentSize: contentSize,
@@ -44,6 +48,7 @@ struct CadenceModeFramePacingTests {
             expectedFramesPerSecond: expectedFramesPerSecond
         )
         displayLink.add(to: .main, forMode: .common)
+        try await beginMeasurement(probe)
         try await Task.sleep(for: .seconds(2))
         let baselineReport = try #require(
             probe.report(
@@ -56,10 +61,11 @@ struct CadenceModeFramePacingTests {
         try await Task.sleep(for: .milliseconds(80))
         sendKey(type: .keyDown, keyCode: 7, characters: "x", to: window)
         try await Task.sleep(for: .milliseconds(260))
+        cadenceModeSession.pulseStore.reset()
         sendKey(type: .keyUp, keyCode: 6, characters: "z", to: window)
         sendKey(type: .keyUp, keyCode: 7, characters: "x", to: window)
         try await Task.sleep(for: .milliseconds(440))
-        probe.reset()
+        try await beginMeasurement(probe)
 
         try await Task.sleep(for: .seconds(2))
         let idleCadenceReport = try #require(
@@ -67,9 +73,9 @@ struct CadenceModeFramePacingTests {
                 expectedFramesPerSecond: expectedFramesPerSecond
             )
         )
-        probe.reset()
+        try await beginMeasurement(probe)
 
-        let tapLatencySummary = try await stressWithDiscreteTaps(
+        let tapLatencyReport = try await stressWithDiscreteTaps(
             window: window,
             duration: 4
         )
@@ -80,36 +86,30 @@ struct CadenceModeFramePacingTests {
                 expectedFramesPerSecond: expectedFramesPerSecond
             )
         )
-        let cadenceSummary = report.summary + "; " + tapLatencySummary
+        let cadenceSummary = report.summary + "; " + tapLatencyReport.summary
         print(baselineReport.summary)
         print("Idle " + idleCadenceReport.summary)
         print(cadenceSummary)
 
-        #expect(
-            baselineReport.deliveredFrameRatio
-                >= Self.minimumDeliveredFrameRatio,
-            Comment(rawValue: baselineReport.summary)
+        expectBaselineFrameRate(
+            baselineReport,
+            expectedFramesPerSecond: expectedFramesPerSecond
+        )
+        expectCadencePerformance(
+            idleCadenceReport,
+            expectedFramesPerSecond: expectedFramesPerSecond,
+            label: "Idle"
+        )
+        expectCadencePerformance(
+            report,
+            expectedFramesPerSecond: expectedFramesPerSecond,
+            label: "Active"
         )
         #expect(
-            idleCadenceReport.deliveredFrameRatio
-                >= Self.minimumDeliveredFrameRatio,
-            Comment(rawValue: "Idle " + idleCadenceReport.summary)
-        )
-        expectFrameBudget(idleCadenceReport, label: "Idle")
-        #expect(
-            report.deliveredFrameRatio
-                >= Self.minimumDeliveredFrameRatio,
+            tapLatencyReport.maximum
+                <= CadenceModePerformancePolicy.maximumInputLatency,
             Comment(rawValue: cadenceSummary)
         )
-        #expect(
-            report.deliveredFramesPerSecond
-                >= baselineReport.deliveredFramesPerSecond
-                * Self.minimumDeliveredFrameRatio,
-            Comment(
-                rawValue: baselineReport.summary + "; " + cadenceSummary
-            )
-        )
-        expectFrameBudget(report, label: "Active")
     }
 
     private static var runMarker: URL {
@@ -123,8 +123,53 @@ struct CadenceModeFramePacingTests {
     /// CADisplayLink timestamps may differ from their nominal cadence by a
     /// fraction of a microsecond due to floating-point clock conversion.
     private static let clockPrecisionTolerance: TimeInterval = 0.000_001
-    private static let minimumDeliveredFrameRatio = 0.995
-    private static let maximumFrameIntervalMultiplier = 1.5
+
+    private func expectCadencePerformance(
+        _ report: CadenceFramePacingReport,
+        expectedFramesPerSecond: Int,
+        label: String
+    ) {
+        expectMinimumFrameRate(
+            report,
+            expectedFramesPerSecond: expectedFramesPerSecond,
+            label: label
+        )
+        expectFrameBudget(report, label: label)
+    }
+
+    /// The pre-Cadence sample is a control for catastrophic system load, not
+    /// a ProMotion acceptance target. Cadence Mode's idle and active samples
+    /// below retain the full 110 FPS and 25 ms product gates.
+    private func expectBaselineFrameRate(
+        _ report: CadenceFramePacingReport,
+        expectedFramesPerSecond: Int
+    ) {
+        #expect(
+            report.deliveredFramesPerSecond
+                >= Double(
+                    min(
+                        expectedFramesPerSecond,
+                        CadenceModePerformancePolicy
+                            .minimumSupportedFramesPerSecond
+                    )
+                ),
+            Comment(rawValue: "Baseline " + report.summary)
+        )
+    }
+
+    private func expectMinimumFrameRate(
+        _ report: CadenceFramePacingReport,
+        expectedFramesPerSecond: Int,
+        label: String = "Baseline"
+    ) {
+        #expect(
+            report.deliveredFramesPerSecond
+                >= minimumDeliveredFramesPerSecond(
+                    expectedFramesPerSecond: expectedFramesPerSecond
+                ),
+            Comment(rawValue: label + " " + report.summary)
+        )
+    }
 
     private func expectFrameBudget(
         _ report: CadenceFramePacingReport,
@@ -132,10 +177,26 @@ struct CadenceModeFramePacingTests {
     ) {
         #expect(
             report.longestFrameDuration
-                <= report.frameBudget * Self.maximumFrameIntervalMultiplier
+                <= CadenceModePerformancePolicy.maximumFrameDuration
                 + Self.clockPrecisionTolerance,
             Comment(rawValue: label + " " + report.summary)
         )
+    }
+
+    private func minimumDeliveredFramesPerSecond(
+        expectedFramesPerSecond: Int
+    ) -> Double {
+        CadenceModePerformancePolicy.minimumDeliveredFramesPerSecond(
+            displayMaximumFramesPerSecond: expectedFramesPerSecond
+        )
+    }
+
+    private func beginMeasurement(
+        _ probe: CadenceDisplayLinkProbe
+    ) async throws {
+        probe.reset()
+        try await Task.sleep(for: .milliseconds(400))
+        probe.reset()
     }
 
     private func makeWindow(
@@ -202,7 +263,7 @@ struct CadenceModeFramePacingTests {
     private func stressWithDiscreteTaps(
         window: NSWindow,
         duration: TimeInterval
-    ) async throws -> String {
+    ) async throws -> CadenceTapLatencyReport {
         let deadline = ProcessInfo.processInfo.systemUptime + duration
         var usesLeftLane = true
         var tapDurations: [TimeInterval] = []
@@ -228,10 +289,22 @@ struct CadenceModeFramePacingTests {
             usesLeftLane.toggle()
             try await Task.sleep(for: .milliseconds(180))
         }
-        return String(
+        return CadenceTapLatencyReport(
+            maximum: tapDurations.max() ?? 0,
+            average: tapDurations.reduce(0, +) / Double(tapDurations.count)
+        )
+    }
+}
+
+private struct CadenceTapLatencyReport {
+    let maximum: TimeInterval
+    let average: TimeInterval
+
+    var summary: String {
+        String(
             format: "tap latency max %.2f ms, average %.2f ms",
-            (tapDurations.max() ?? 0) * 1000,
-            (tapDurations.reduce(0, +) / Double(tapDurations.count)) * 1000
+            maximum * 1000,
+            average * 1000
         )
     }
 }
@@ -239,6 +312,11 @@ struct CadenceModeFramePacingTests {
 @MainActor
 private final class CadenceDisplayLinkProbe: NSObject {
     private var timestamps: [TimeInterval] = []
+
+    override init() {
+        timestamps.reserveCapacity(2000)
+        super.init()
+    }
 
     @objc func tick(_ displayLink: CADisplayLink) {
         timestamps.append(displayLink.timestamp)

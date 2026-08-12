@@ -9,15 +9,6 @@ enum HomePinKind: String, CaseIterable, Sendable {
     var storageKey: String {
         "home.pins.\(rawValue)"
     }
-
-    var title: String {
-        switch self {
-        case .album: "Pinned Albums"
-        case .artist: "Pinned Artists"
-        case .playlist: "Pinned Playlists"
-        case .smartCollection: "Pinned Smart Collections"
-        }
-    }
 }
 
 enum HomePinStore {

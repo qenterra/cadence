@@ -29,6 +29,7 @@ struct DocumentationScreenshotTests {
         }
 
         let fixture = try await DocumentationScreenshotFixture.make()
+        try await captureHome(fixture)
 
         fixture.model.selectedDestination = .library
         try await fixture.capture("cadence-library.png")
@@ -102,6 +103,30 @@ struct DocumentationScreenshotTests {
         try await fixture.capture("cadence-tags.png")
     }
 
+    private func captureHome(
+        _ fixture: DocumentationScreenshotFixture
+    ) async throws {
+        let preferences = HomeScreenshotPreferences(fixture: fixture)
+        preferences.install()
+        defer { preferences.restore() }
+
+        fixture.model.selectedDestination = .home
+        try await fixture.capture("qa-home-min-dark.png")
+        try await fixture.capture(
+            "qa-home-min-light.png",
+            appearance: .light
+        )
+        try await fixture.capture(
+            "qa-home-wide-dark.png",
+            contentSize: .wide
+        )
+        try await fixture.capture(
+            "qa-home-wide-light.png",
+            contentSize: .wide,
+            appearance: .light
+        )
+    }
+
     private static var updateMarker: URL {
         URL(filePath: #filePath)
             .deletingLastPathComponent()
@@ -115,15 +140,18 @@ struct DocumentationScreenshotTests {
 final class DocumentationScreenshotFixture {
     let model: CadenceAppModel
     let albumID: UUID
+    let artistID: UUID
     let tagID: UUID
 
     init(
         model: CadenceAppModel,
         albumID: UUID,
+        artistID: UUID,
         tagID: UUID
     ) {
         self.model = model
         self.albumID = albumID
+        self.artistID = artistID
         self.tagID = tagID
     }
 
@@ -168,6 +196,7 @@ final class DocumentationScreenshotFixture {
         return DocumentationScreenshotFixture(
             model: model,
             albumID: seeded.albumID,
+            artistID: seeded.artistID,
             tagID: seeded.tagID
         )
     }
@@ -300,6 +329,7 @@ private extension DocumentationScreenshotFixture {
     struct SeededLibrary {
         let tracks: [TrackRecord]
         let albumID: UUID
+        let artistID: UUID
         let tagID: UUID
     }
 
@@ -331,6 +361,7 @@ private extension DocumentationScreenshotFixture {
         return SeededLibrary(
             tracks: tracks,
             albumID: albums[0].id,
+            artistID: artists[0].id,
             tagID: tag.id
         )
     }
@@ -356,6 +387,10 @@ private extension DocumentationScreenshotFixture {
                 artist: album.artist,
                 album: album,
                 trackNumber: index % 3 + 1,
+                lastPlayedAt: index < 7
+                    ? Date(timeIntervalSince1970: 1_800_000_000 - Double(index))
+                    : nil,
+                isFavorite: index < 4,
                 spatialFormat: .stereo
             )
         }
@@ -400,7 +435,13 @@ private extension DocumentationScreenshotFixture {
 
     static func makeArtists() -> [ArtistRecord] {
         [
-            ArtistRecord(name: "North Assembly", trackCount: 6, albumCount: 2),
+            ArtistRecord(
+                name: "North Assembly",
+                isFavorite: true,
+                favoriteDate: Date(timeIntervalSince1970: 1_800_000_000),
+                trackCount: 6,
+                albumCount: 2
+            ),
             ArtistRecord(name: "Glass District", trackCount: 3, albumCount: 1),
             ArtistRecord(name: "Mara Vale", trackCount: 3, albumCount: 1),
         ]
@@ -414,6 +455,8 @@ private extension DocumentationScreenshotFixture {
                 title: "Signals After Dark",
                 artist: artists[0],
                 year: 2026,
+                isFavorite: true,
+                favoriteDate: Date(timeIntervalSince1970: 1_800_000_000),
                 trackCount: 3,
                 totalDuration: 657
             ),
@@ -439,6 +482,44 @@ private extension DocumentationScreenshotFixture {
                 totalDuration: 900
             ),
         ]
+    }
+}
+
+private final class HomeScreenshotPreferences {
+    private let defaults = UserDefaults.standard
+    private let values: [String: [String]]
+    private let previousValues: [String: Any]
+
+    init(fixture: DocumentationScreenshotFixture) {
+        let values = [
+            HomePinKind.album.storageKey: [fixture.albumID.uuidString],
+            HomePinKind.artist.storageKey: [fixture.artistID.uuidString],
+        ]
+        let defaults = UserDefaults.standard
+        self.values = values
+        previousValues = values.keys.reduce(into: [:]) { result, key in
+            result[key] = defaults.object(forKey: key)
+        }
+    }
+
+    func install() {
+        for (key, value) in values {
+            defaults.set(value, forKey: key)
+        }
+        defaults.set(
+            defaults.integer(forKey: "home.pins.revision") + 1,
+            forKey: "home.pins.revision"
+        )
+    }
+
+    func restore() {
+        for key in values.keys {
+            if let value = previousValues[key] {
+                defaults.set(value, forKey: key)
+            } else {
+                defaults.removeObject(forKey: key)
+            }
+        }
     }
 }
 

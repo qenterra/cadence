@@ -57,15 +57,19 @@ struct CadenceRootView: View {
             Rectangle()
                 .fill(CadenceTheme.separator)
                 .frame(height: 1)
-            PlayerBar(model: model)
+            PlayerBar(
+                model: model,
+                suspendsProgressAnimation: cadenceModeSession.isActive
+            )
         }
         .background(CadenceTheme.contentBackground)
-        .overlay(alignment: .topLeading) {
+        .background {
             CadenceModeInputCapture(
                 model: model,
                 session: cadenceModeSession
             )
-            .frame(width: 0, height: 0)
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
         }
         .toolbarBackground(
             CadenceTheme.opaqueSurface,

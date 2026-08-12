@@ -209,6 +209,9 @@
     "Back to Search" : {
 
     },
+    "Browse All Tracks" : {
+
+    },
     "Browse a tag or use the editor to assign one." : {
 
     },
@@ -310,16 +313,6 @@
     },
     "Connect…" : {
 
-    },
-    "Continue %@ by %@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Continue %1$@ by %2$@"
-          }
-        }
-      }
     },
     "Copy LRC" : {
 
@@ -628,6 +621,9 @@
     "Loading Artists" : {
 
     },
+    "Loading Home" : {
+
+    },
     "Loading Library" : {
 
     },
@@ -827,6 +823,26 @@
     "OK" : {
 
     },
+    "Open %@ by %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Open %1$@ by %2$@"
+          }
+        }
+      }
+    },
+    "Open %@, %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Open %1$@, %2$@"
+          }
+        }
+      }
+    },
     "Open Existing Library" : {
 
     },
@@ -889,9 +905,6 @@
 
     },
     "Play Now" : {
-
-    },
-    "Play a track and it will appear here." : {
 
     },
     "Play a track to create a playback queue." : {
@@ -958,6 +971,9 @@
 
     },
     "Reading metadata, checking duplicates, and matching LRC files…" : {
+
+    },
+    "Recently played music, favorites, and shortcuts will appear here." : {
 
     },
     "Redirect URL" : {
@@ -1127,6 +1143,9 @@
 
     },
     "Stamp Current Line" : {
+
+    },
+    "Start Listening" : {
 
     },
     "Start a track to open Now Playing." : {

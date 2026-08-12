@@ -44,6 +44,8 @@ struct ProductionNowPlayingView: View {
                             store: cadenceModeSession.pulseStore,
                             panelStartX: layout.contextWidth + 1
                         )
+                        .allowsHitTesting(false)
+                        .accessibilityHidden(true)
 
                         CadenceModeView(
                             model: model,
@@ -72,6 +74,16 @@ struct ProductionNowPlayingView: View {
             }
             .task(id: cadenceModeLayout) {
                 cadenceModeSession.updateLayout(cadenceModeLayout)
+                completePendingCadenceModePresentation()
+            }
+            .task(id: cadenceModeSession.activationIsPending) {
+                guard cadenceModeSession.activationIsPending else {
+                    return
+                }
+                await Task.yield()
+                completeCadenceModePresentation(
+                    layout: cadenceModeLayout
+                )
             }
             .clipped()
             .animation(
@@ -408,6 +420,22 @@ private extension ProductionNowPlayingView {
             return artworkKey
         }
         return artworkKey + "-qa-\(rhythmPulseVisualQAState.seed)"
+    }
+
+    private func completeCadenceModePresentation(
+        layout: CadenceModeLayout
+    ) {
+        cadenceModeSession.updateLayout(layout)
+        completePendingCadenceModePresentation()
+    }
+
+    private func completePendingCadenceModePresentation() {
+        guard cadenceModeSession.activationIsPending else {
+            return
+        }
+        // The view task runs only after Now Playing has joined the render tree,
+        // so the standard scene is ready to transition.
+        cadenceModeSession.setPresentationAvailable(true)
     }
 
     private var cadenceLyricsTaskID: String {

@@ -3,6 +3,23 @@ import Foundation
 import Testing
 
 struct RhythmParticleModelsTests {
+    @Test("One hit creates a dense but bounded particle burst")
+    func hitCreatesDenseParticleBurst() {
+        var simulation = RhythmParticleSimulation()
+        var random = SplitMix64(seed: 47)
+
+        simulation.registerHit(
+            lane: .left,
+            origin: CGPoint(x: 0.34, y: 0.38),
+            palette: .particleFixture,
+            time: 0,
+            generator: &random
+        )
+
+        #expect((7 ... 9).contains(simulation.allParticles.count))
+        #expect(simulation.allParticles.allSatisfy { $0.size >= 1.8 })
+    }
+
     @MainActor
     @Test("The live pulse store registers and clears an emitter burst")
     func pulseStoreOwnsParticleLifetime() {
@@ -20,7 +37,7 @@ struct RhythmParticleModelsTests {
             emitterOrigin: CGPoint(x: 0.3, y: 0.6)
         )
 
-        #expect((4 ... 5).contains(store.renderParticles.count))
+        #expect((7 ... 9).contains(store.renderParticles.count))
         #expect(store.renderParticles.allSatisfy {
             $0.origin == CGPoint(x: 0.3, y: 0.6)
         })
@@ -43,7 +60,7 @@ struct RhythmParticleModelsTests {
         )
 
         let particles = simulation.allParticles
-        #expect((4 ... 5).contains(particles.count))
+        #expect((7 ... 9).contains(particles.count))
         #expect(particles.allSatisfy { $0.origin == origin })
         #expect(particles.allSatisfy {
             (-0.02 ... 0.02).contains($0.emissionOffset.dx)
@@ -199,7 +216,7 @@ struct RhythmParticleModelsTests {
                     <= RhythmParticleSimulation.maximumParticleCount
             )
         }
-        #expect(RhythmParticleSimulation.maximumParticleCount == 16)
+        #expect(RhythmParticleSimulation.maximumParticleCount == 32)
     }
 
     @MainActor
