@@ -20,6 +20,7 @@ enum PlaybackQueueSource: Hashable, Sendable {
     case playlist(UUID)
     case favorites
     case allTracks
+    case externalFiles
     case adHoc
 }
 

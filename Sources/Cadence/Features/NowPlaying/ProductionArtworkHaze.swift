@@ -55,10 +55,7 @@ struct ProductionArtworkHaze: View {
             palette = nil
             guard
                 let artworkID,
-                let asset = await model.librarySession.store.artworkAsset(
-                    id: artworkID,
-                    location: model.librarySession.location
-                )
+                let asset = await model.playbackArtworkAsset(id: artworkID)
             else {
                 return
             }

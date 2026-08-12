@@ -19,11 +19,13 @@ struct ProductionLyricsPanel: View {
 
                 Spacer()
 
-                Button("Edit Lyrics", systemImage: "pencil") {
-                    model.presentLyricsEditor()
+                if !model.isCurrentPlaybackExternal {
+                    Button("Edit Lyrics", systemImage: "pencil") {
+                        model.presentLyricsEditor()
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(.secondary)
                 }
-                .buttonStyle(.plain)
-                .foregroundStyle(.secondary)
             }
             .padding(.horizontal, 28)
             .frame(height: 52)
@@ -33,7 +35,17 @@ struct ProductionLyricsPanel: View {
                 .frame(height: 1)
 
             Group {
-                if let document {
+                if model.isCurrentPlaybackExternal {
+                    ContentUnavailableView {
+                        Label("External File", systemImage: "doc.badge.play")
+                    } description: {
+                        Text("Lyrics editing is available after you add the track to your library.")
+                    } actions: {
+                        Button("Add to Library…") {
+                            model.addCurrentExternalAudioToLibrary()
+                        }
+                    }
+                } else if let document {
                     if document.timingStatus == .unsynchronized {
                         lyrics(
                             document,
@@ -62,6 +74,10 @@ struct ProductionLyricsPanel: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .task(id: "\(track.id)-\(model.lyricsRevision)") {
+            guard !model.isCurrentPlaybackExternal else {
+                document = nil
+                return
+            }
             document = await model.loadProductionLyrics(for: track)
             editingLineID = nil
             focusedEditingLineID = nil

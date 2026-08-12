@@ -25,9 +25,8 @@ struct ProductionArtworkView: View {
                 asset = nil
                 return
             }
-            asset = await model.librarySession.store.artworkAsset(
+            asset = await model.playbackArtworkAsset(
                 id: artworkID,
-                location: model.librarySession.location,
                 variant: variant
             )
         }

@@ -42,6 +42,8 @@ struct ProductionSettingsView: View {
     @Bindable var model: CadenceAppModel
     let tab: CadenceSettingsTab
     let updateController: CadenceUpdateController?
+    @State private var defaultAudioApplication =
+        DefaultAudioApplicationController()
     @AppStorage("appearance")
     private var appearanceRawValue = CadenceAppearance.system.rawValue
     @AppStorage("navigationRail.order")
@@ -118,6 +120,7 @@ struct ProductionSettingsView: View {
         switch tab {
         case .general:
             playbackCard
+            defaultAudioApplicationCard
             appearanceCard
         case .library:
             ManagedLibrarySettingsCard(model: model)
@@ -191,6 +194,61 @@ struct ProductionSettingsView: View {
             )
             .font(.caption)
             .foregroundStyle(.secondary)
+        }
+    }
+
+    private var defaultAudioApplicationCard: some View {
+        SettingsCard(
+            title: "Audio Files",
+            symbol: "doc.badge.play"
+        ) {
+            HStack(spacing: 12) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(
+                        defaultAudioApplication.isDefaultForAllSupportedAudio
+                            ? "Cadence is the default audio player"
+                            : "Open supported audio files with Cadence"
+                    )
+                    .font(.callout.weight(.medium))
+
+                    Text(
+                        "Opening a file plays it temporarily. Cadence adds it "
+                            + "to the library only when you choose Add to Library."
+                    )
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                }
+
+                Spacer(minLength: 16)
+
+                Button(
+                    defaultAudioApplication.isDefaultForAllSupportedAudio
+                        ? "Default"
+                        : "Use Cadence as Default"
+                ) {
+                    Task {
+                        await defaultAudioApplication.setCadenceAsDefault()
+                    }
+                }
+                .disabled(
+                    defaultAudioApplication.isChanging
+                        || defaultAudioApplication.isDefaultForAllSupportedAudio
+                )
+            }
+
+            if defaultAudioApplication.isChanging {
+                ProgressView("Updating file associations…")
+                    .controlSize(.small)
+            }
+
+            if let errorMessage = defaultAudioApplication.errorMessage {
+                Text(errorMessage)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .task {
+            defaultAudioApplication.refresh()
         }
     }
 

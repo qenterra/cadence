@@ -80,6 +80,9 @@
     "Add %@ to Favorites" : {
 
     },
+    "Add %@ to Library" : {
+
+    },
     "Add Album to Playlist" : {
 
     },
@@ -114,6 +117,9 @@
 
     },
     "Add to Group" : {
+
+    },
+    "Add to Library…" : {
 
     },
     "Add to Playlist" : {
@@ -224,6 +230,9 @@
     "Cadence Library Unavailable" : {
 
     },
+    "Cadence is the default audio player" : {
+
+    },
     "Cadence will install stable releases only." : {
 
     },
@@ -323,6 +332,9 @@
     "Couldn’t Import Music" : {
 
     },
+    "Couldn’t Open Audio" : {
+
+    },
     "Couldn’t Scan Music" : {
 
     },
@@ -342,6 +354,9 @@
 
     },
     "Current track" : {
+
+    },
+    "Default" : {
 
     },
     "Delete" : {
@@ -489,6 +504,9 @@
 
     },
     "Export Preview" : {
+
+    },
+    "External File" : {
 
     },
     "False" : {
@@ -684,6 +702,9 @@
     "Lyrics Unavailable" : {
 
     },
+    "Lyrics editing is available after you add the track to your library." : {
+
+    },
     "Lyrics match in %@ by %@" : {
       "localizations" : {
         "en" : {
@@ -852,6 +873,9 @@
     "Open Trash" : {
 
     },
+    "Open supported audio files with Cadence" : {
+
+    },
     "Opening Cadence.library…" : {
 
     },
@@ -932,6 +956,9 @@
 
     },
     "Playing" : {
+
+    },
+    "Playing external file" : {
 
     },
     "Playlist Name" : {
@@ -1136,6 +1163,9 @@
     "Smart Collections" : {
 
     },
+    "Some Files Were Skipped" : {
+
+    },
     "Sort Albums" : {
 
     },
@@ -1205,6 +1235,9 @@
     "This permanently removes the collection definition from Cadence.library." : {
 
     },
+    "This track is not in your library. Add it only if you want to keep it there." : {
+
+    },
     "Time" : {
 
     },
@@ -1260,6 +1293,12 @@
 
     },
     "Updates as the draft changes" : {
+
+    },
+    "Updating file associations…" : {
+
+    },
+    "Use Cadence as Default" : {
 
     },
     "Use a standalone tag or one level such as mood/calm." : {

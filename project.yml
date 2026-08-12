@@ -44,6 +44,18 @@ targets:
       path: Sources/Cadence/Resources/Info.plist
       properties:
         CFBundleDisplayName: Cadence
+        CFBundleDocumentTypes:
+          - CFBundleTypeExtensions:
+              - aac
+              - aif
+              - aiff
+              - flac
+              - m4a
+              - mp3
+              - wav
+            CFBundleTypeName: Supported Audio
+            CFBundleTypeRole: Viewer
+            LSHandlerRank: Alternate
         CFBundleIconFile: Cadence
         CFBundleIconName: Cadence
         CFBundleShortVersionString: $(MARKETING_VERSION)

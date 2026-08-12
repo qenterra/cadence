@@ -15,6 +15,9 @@ flowchart LR
     Import --> Inspector["Inspection and duplicate review"]
     Import --> Managed["Cadence.library"]
     Model --> Playback["PlaybackCoordinator"]
+    OpenFile["Finder Open File"] --> External["ExternalAudioSession<br/>memory only"]
+    External --> Playback
+    External -->|"explicit Add to Library"| Import
     Playback --> PCM["PCMPlaybackBackend"]
     Playback --> Native["NativePlaybackBackend"]
     Playback --> System["Media keys and Control Center"]
@@ -86,6 +89,13 @@ Original source files remain untouched.
 
 UI controls, lyrics timing, Now Playing, and the queue observe the coordinator
 instead of maintaining competing clocks.
+
+Finder Open File events enter an ordered `ExternalAudioSession`. It resolves
+only the exact registered files into a transient playback queue, retains their
+security-scoped access for that session, and never writes catalog records or
+scans sibling folders. `CompositePlaybackTrackResolver` lets that queue use the
+normal playback backends. The explicit **Add to Library…** action passes only
+the current file to the existing import inspection and duplicate-review flow.
 
 Remote libraries keep the live SwiftData catalog local. The provider-neutral
 manifest maps track IDs to immutable media objects. WebDAV and Google Drive

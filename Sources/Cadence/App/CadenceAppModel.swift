@@ -143,12 +143,15 @@ final class CadenceAppModel {
     var isResettingLibrary = false
     var libraryResetNotice: String?
     var libraryResetRevision = 0
+    var externalAudioNotice: String?
+    var externalAudioOpenError: String?
 
     private(set) var favoriteTrackIDs: Set<TrackPreview.ID>
     var importCoordinator: ImportCoordinator?
     var importDestination: ManagedLibraryImportDestination?
     var importRecovery: ManagedLibraryImportRecovery?
     let playbackCoordinator: PlaybackCoordinator?
+    let externalAudioSession: ExternalAudioSession?
     let libraryRelocator: LibraryRelocator
     let libraryResetter: ManagedLibraryResetter
     let remoteLibraryController: RemoteLibraryController?
@@ -168,6 +171,7 @@ final class CadenceAppModel {
         importDestination: ManagedLibraryImportDestination? = nil,
         importRecovery: ManagedLibraryImportRecovery? = nil,
         playbackCoordinator: PlaybackCoordinator? = nil,
+        externalAudioSession: ExternalAudioSession? = nil,
         remoteLibraryController: RemoteLibraryController? = nil,
         libraryRelocator: LibraryRelocator = LibraryRelocator(),
         libraryResetter: ManagedLibraryResetter = ManagedLibraryResetter(),
@@ -190,6 +194,7 @@ final class CadenceAppModel {
         self.importDestination = importDestination
         self.importRecovery = importRecovery
         self.playbackCoordinator = playbackCoordinator
+        self.externalAudioSession = externalAudioSession
         self.remoteLibraryController = remoteLibraryController
         self.libraryRelocator = libraryRelocator
         self.libraryResetter = libraryResetter

@@ -155,13 +155,23 @@ private extension PlayerBar {
                     artist: track.artist
                 )
 
-                FavoriteButton(
-                    isFavorite: model.currentProductionTrackIsFavorite,
-                    itemName: track.title
-                ) { requestedValue in
-                    await model.setCurrentProductionTrackFavorite(
-                        requestedValue
-                    )
+                if model.isCurrentPlaybackExternal {
+                    Button("Add to Library…", systemImage: "plus.rectangle.on.folder") {
+                        model.addCurrentExternalAudioToLibrary()
+                    }
+                    .labelStyle(.iconOnly)
+                    .buttonStyle(CadenceRowButtonStyle())
+                    .help("Add to Library…")
+                    .accessibilityLabel("Add \(track.title) to Library")
+                } else {
+                    FavoriteButton(
+                        isFavorite: model.currentProductionTrackIsFavorite,
+                        itemName: track.title
+                    ) { requestedValue in
+                        await model.setCurrentProductionTrackFavorite(
+                            requestedValue
+                        )
+                    }
                 }
 
                 Spacer(minLength: 0)

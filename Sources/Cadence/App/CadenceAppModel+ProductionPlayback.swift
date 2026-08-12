@@ -14,6 +14,7 @@ extension CadenceAppModel {
         let source: PlaybackQueueSource = requestedSource
             ?? track.albumID.map { .album($0) }
             ?? .adHoc
+        endExternalAudioSession()
         Task {
             let trackIDs = if source == .allTracks {
                 await librarySession.store.allTrackIDs()
@@ -76,10 +77,22 @@ extension CadenceAppModel {
     }
 
     var productionPlaybackQueueTracks: [PlaybackQueueTrackProjection] {
-        librarySession.store.playbackQueueTracks
+        if playbackCoordinator?.state.queue?.source == .externalFiles,
+           let queue = playbackCoordinator?.state.queue {
+            return PlaybackQueuePresentation.trackIDs(for: queue).map { id in
+                let state = externalAudioSession?.item(id: id).map {
+                    PlaybackQueueTrackState.available($0.libraryProjection)
+                } ?? .unavailable
+                return PlaybackQueueTrackProjection(id: id, state: state)
+            }
+        }
+        return librarySession.store.playbackQueueTracks
     }
 
     func loadProductionPlaybackQueueTracks() async {
+        guard playbackCoordinator?.state.queue?.source != .externalFiles else {
+            return
+        }
         let ids = playbackCoordinator?.state.queue.map(
             PlaybackQueuePresentation.trackIDs
         ) ?? []
@@ -225,13 +238,17 @@ extension CadenceAppModel {
     }
 
     func shutdownPlayback() {
+        endExternalAudioSession()
         playbackCoordinator?.shutdown()
     }
 
     func loadProductionLyrics(
         for track: PlaybackTrack
     ) async -> LyricDocument? {
-        try? await librarySession.store.lyricsDocument(trackID: track.id)
+        guard !isCurrentPlaybackExternal else {
+            return nil
+        }
+        return try? await librarySession.store.lyricsDocument(trackID: track.id)
     }
 
     func updateProductionLyricLine(

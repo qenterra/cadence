@@ -81,6 +81,23 @@ asset_catalog="$app_bundle/Contents/Resources/Assets.car"
 [[ -f "$asset_catalog" ]]
 [[ "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIconFile' "$info_plist")" == "Cadence" ]]
 [[ "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIconName' "$info_plist")" == "Cadence" ]]
+[[ "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleDocumentTypes:0:CFBundleTypeRole' "$info_plist")" == "Viewer" ]]
+[[ "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleDocumentTypes:0:LSHandlerRank' "$info_plist")" == "Alternate" ]]
+expected_audio_extensions=(aac aif aiff flac m4a mp3 wav)
+for index in "${!expected_audio_extensions[@]}"; do
+    actual_extension="$(
+        /usr/libexec/PlistBuddy \
+            -c "Print :CFBundleDocumentTypes:0:CFBundleTypeExtensions:$index" \
+            "$info_plist"
+    )"
+    [[ "$actual_extension" == "${expected_audio_extensions[$index]}" ]]
+done
+if /usr/libexec/PlistBuddy \
+    -c "Print :CFBundleDocumentTypes:0:CFBundleTypeExtensions:${#expected_audio_extensions[@]}" \
+    "$info_plist" >/dev/null 2>&1; then
+    echo "Unexpected extra registered audio extension."
+    exit 1
+fi
 
 asset_catalog_info="$(DEVELOPER_DIR="$developer_dir" xcrun assetutil --info "$asset_catalog")"
 [[ "$asset_catalog_info" == *'"Appearance" : "NSAppearanceNameAqua"'* ]]

@@ -80,6 +80,10 @@ synthetic; the capture process cannot open the developer's music library.
 
 ### Native playback
 
+- Open registered AAC, AIFF, FLAC, M4A, MP3, and WAV files from Finder in a
+  temporary queue without importing or scanning nearby folders.
+- Choose **Add to Library…** to send only the current external file through the
+  normal scan and duplicate-review flow.
 - Play supported lossless stereo through an `AVAudioEngine` PCM path.
 - Fall back to the system player for formats and routes that need native
   handling.

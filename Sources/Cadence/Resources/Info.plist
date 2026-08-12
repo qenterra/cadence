@@ -6,6 +6,27 @@
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
 	<string>Cadence</string>
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>aac</string>
+				<string>aif</string>
+				<string>aiff</string>
+				<string>flac</string>
+				<string>m4a</string>
+				<string>mp3</string>
+				<string>wav</string>
+			</array>
+			<key>CFBundleTypeName</key>
+			<string>Supported Audio</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
+		</dict>
+	</array>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIconFile</key>

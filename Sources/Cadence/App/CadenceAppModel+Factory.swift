@@ -6,10 +6,14 @@ extension CadenceAppModel {
     ) -> CadenceAppModel {
         let importRuntime = importRuntime(librarySession: librarySession)
         let remote = remoteRuntime(librarySession: librarySession)
+        let externalAudioSession = ExternalAudioSession()
         let playbackCoordinator = PlaybackCoordinator(
-            resolver: ManagedPlaybackTrackResolver(
-                librarySession: librarySession,
-                remoteSource: remote.source
+            resolver: CompositePlaybackTrackResolver(
+                external: externalAudioSession,
+                managed: ManagedPlaybackTrackResolver(
+                    librarySession: librarySession,
+                    remoteSource: remote.source
+                )
             ),
             backends: [
                 PCMPlaybackBackend(),
@@ -35,6 +39,7 @@ extension CadenceAppModel {
                 ManagedLibraryImportRecovery(destination: $0)
             },
             playbackCoordinator: playbackCoordinator,
+            externalAudioSession: externalAudioSession,
             remoteLibraryController: remote.controller
         )
         Task {

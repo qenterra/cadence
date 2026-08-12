@@ -2,6 +2,11 @@ import AVFoundation
 import CoreMedia
 import Foundation
 
+protocol AudioMetadataReading: Sendable {
+    func read(url: URL) async throws -> ScannedAudioMetadata
+    func readEmbeddedArtwork(url: URL) async -> EmbeddedArtworkPayload?
+}
+
 struct EmbeddedArtworkMetadata: Codable, Equatable, Sendable {
     let contentHash: String
     let format: String
@@ -298,3 +303,5 @@ struct MetadataReader: Sendable {
         return text
     }
 }
+
+extension MetadataReader: AudioMetadataReading {}

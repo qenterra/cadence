@@ -3,6 +3,8 @@ import SwiftUI
 
 @main
 struct CadenceApp: App {
+    @NSApplicationDelegateAdaptor(CadenceApplicationDelegate.self)
+    private var applicationDelegate
     @State private var model = Self.makeInitialModel()
     @State private var appearanceController = AppearanceController()
     @State private var updateController = CadenceUpdateController(
@@ -25,6 +27,16 @@ struct CadenceApp: App {
                     initial: true
                 ) { _, _ in
                     appearanceController.apply(appearance)
+                }
+                .task {
+                    applicationDelegate.connect { urls in
+                        Task { @MainActor in
+                            await model.openExternalAudio(urls: urls)
+                        }
+                    }
+                    applicationDelegate.onTermination {
+                        model.shutdownPlayback()
+                    }
                 }
         }
         .defaultSize(width: 1512, height: 982)

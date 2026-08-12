@@ -17,6 +17,8 @@ enum SupportedAudioFormat: String, CaseIterable, Codable, Sendable {
     case mp3
     case wav
 
+    static let supportedPathExtensions = Set(allCases.map(\.rawValue))
+
     init?(pathExtension: String) {
         self.init(rawValue: pathExtension.lowercased())
     }

@@ -58,28 +58,34 @@ struct ProductionPlaybackQueueRow: View {
                     .lineLimit(1)
 
                 HStack(spacing: 0) {
-                    MediaMetadataLink(
-                        track.artist,
-                        accessibilityLabel: "Open artist \(track.artist)"
-                    ) {
-                        guard let artistID = track.artistID else {
-                            return
+                    if model.isCurrentPlaybackExternal {
+                        Text(track.artist)
+                        Text(" · ")
+                        Text(track.album)
+                    } else {
+                        MediaMetadataLink(
+                            track.artist,
+                            accessibilityLabel: "Open artist \(track.artist)"
+                        ) {
+                            guard let artistID = track.artistID else {
+                                return
+                            }
+                            model.requestOpenProductionArtistContextually(
+                                id: artistID
+                            )
                         }
-                        model.requestOpenProductionArtistContextually(
-                            id: artistID
-                        )
-                    }
-                    Text(" · ")
-                    MediaMetadataLink(
-                        track.album,
-                        accessibilityLabel: "Open album \(track.album)"
-                    ) {
-                        guard let albumID = track.albumID else {
-                            return
+                        Text(" · ")
+                        MediaMetadataLink(
+                            track.album,
+                            accessibilityLabel: "Open album \(track.album)"
+                        ) {
+                            guard let albumID = track.albumID else {
+                                return
+                            }
+                            model.requestOpenProductionAlbumContextually(
+                                id: albumID
+                            )
                         }
-                        model.requestOpenProductionAlbumContextually(
-                            id: albumID
-                        )
                     }
                 }
                 .font(.caption)
@@ -124,18 +130,20 @@ struct ProductionPlaybackQueueRow: View {
     private var contextMenu: some View {
         if let track = item.track {
             Button("Play Now", systemImage: "play.fill", action: play)
-            Button("Edit Tags…", systemImage: "tag.badge.plus") {
-                model.openProductionTagEditor(trackID: track.id)
+            if !model.isCurrentPlaybackExternal {
+                Button("Edit Tags…", systemImage: "tag.badge.plus") {
+                    model.openProductionTagEditor(trackID: track.id)
+                }
+                AddToPlaylistMenuItems(
+                    store: model.librarySession.store,
+                    trackIDs: [track.id]
+                )
+                ArtworkMenuItems(
+                    model: model,
+                    target: .managedTrack(track.id),
+                    label: "Track Artwork"
+                )
             }
-            AddToPlaylistMenuItems(
-                store: model.librarySession.store,
-                trackIDs: [track.id]
-            )
-            ArtworkMenuItems(
-                model: model,
-                target: .managedTrack(track.id),
-                label: "Track Artwork"
-            )
         }
         if let remove {
             Divider()

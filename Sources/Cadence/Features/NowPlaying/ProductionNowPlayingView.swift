@@ -97,6 +97,10 @@ struct ProductionNowPlayingView: View {
         }
         .background(CadenceTheme.contentBackground)
         .task(id: "\(track.id)-\(model.librarySession.store.tagRevision)") {
+            guard !model.isCurrentPlaybackExternal else {
+                tagStates = []
+                return
+            }
             tagStates = await (
                 try? model.librarySession.store.tagStates(
                     trackID: track.id
@@ -114,9 +118,8 @@ struct ProductionNowPlayingView: View {
                 await cadenceModeSession.pulseStore.prepare(asset: nil)
                 return
             }
-            let asset = await model.librarySession.store.artworkAsset(
+            let asset = await model.playbackArtworkAsset(
                 id: displayedArtworkID,
-                location: model.librarySession.location,
                 variant: .thumbnail
             )
             await cadenceModeSession.pulseStore.prepare(asset: asset)
@@ -174,89 +177,14 @@ private extension ProductionNowPlayingView {
 
     private func trackContext(artworkSize: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: 22) {
-            ProductionArtworkView(
-                model: model,
-                artworkID: displayedArtworkID,
-                title: displayedTrackTitle,
-                placeholder: .track,
-                variant: .original,
-                cornerRadius: CadenceTheme.radiusHero
-            )
-            .matchedGeometryEffect(
-                id: CadenceModeTransition.artworkID,
-                in: cadenceModeNamespace
-            )
-            .frame(width: artworkSize, height: artworkSize)
-            .contextMenu {
-                ArtworkMenuItems(
-                    model: model,
-                    target: .managedTrack(track.id),
-                    label: "Track Artwork"
-                )
+            trackArtwork(size: artworkSize)
+            trackIdentity
+
+            if model.isCurrentPlaybackExternal {
+                externalFileNotice
+            } else {
+                trackTags
             }
-
-            VStack(alignment: .leading, spacing: 7) {
-                HStack(alignment: .top, spacing: 10) {
-                    Text(displayedTrackTitle)
-                        .font(.largeTitle.weight(.bold))
-                        .lineLimit(2)
-                        .contextMenu {
-                            Button("Rename", systemImage: "pencil") {
-                                beginRename()
-                            }
-                        }
-
-                    FavoriteButton(
-                        isFavorite: model.currentProductionTrackIsFavorite,
-                        itemName: displayedTrackTitle
-                    ) { requestedValue in
-                        await model.setCurrentProductionTrackFavorite(
-                            requestedValue
-                        )
-                    }
-                    .padding(.top, 2)
-                }
-                MediaMetadataLink(
-                    track.artist,
-                    accessibilityLabel: "Open artist \(track.artist)"
-                ) {
-                    guard let artistID = track.artistID else {
-                        return
-                    }
-                    model.requestOpenProductionArtistContextually(
-                        id: artistID
-                    )
-                }
-                .font(.title3.weight(.medium))
-
-                HStack(spacing: 8) {
-                    MediaMetadataLink(
-                        track.album,
-                        accessibilityLabel: "Open album \(track.album)"
-                    ) {
-                        guard let albumID = track.albumID else {
-                            return
-                        }
-                        model.requestOpenProductionAlbumContextually(
-                            id: albumID
-                        )
-                    }
-                    .font(.body)
-
-                    if let year = track.year {
-                        Text("·")
-                            .foregroundStyle(.tertiary)
-                        Text(
-                            year.formatted(
-                                .number.grouping(.never)
-                            )
-                        )
-                        .foregroundStyle(.tertiary)
-                    }
-                }
-            }
-
-            trackTags
             audioPath
             playbackFailure
             Spacer(minLength: 8)
@@ -273,6 +201,119 @@ private extension ProductionNowPlayingView {
             .offset(x: -50, y: -34)
         }
         .clipped()
+    }
+
+    private func trackArtwork(size: CGFloat) -> some View {
+        ProductionArtworkView(
+            model: model,
+            artworkID: displayedArtworkID,
+            title: displayedTrackTitle,
+            placeholder: .track,
+            variant: .original,
+            cornerRadius: CadenceTheme.radiusHero
+        )
+        .matchedGeometryEffect(
+            id: CadenceModeTransition.artworkID,
+            in: cadenceModeNamespace
+        )
+        .frame(width: size, height: size)
+        .contextMenu {
+            if !model.isCurrentPlaybackExternal {
+                ArtworkMenuItems(
+                    model: model,
+                    target: .managedTrack(track.id),
+                    label: "Track Artwork"
+                )
+            }
+        }
+    }
+
+    private var trackIdentity: some View {
+        VStack(alignment: .leading, spacing: 7) {
+            trackTitleAndAction
+            trackArtist
+            trackAlbumAndYear
+        }
+    }
+
+    private var trackTitleAndAction: some View {
+        HStack(alignment: .top, spacing: 10) {
+            Text(displayedTrackTitle)
+                .font(.largeTitle.weight(.bold))
+                .lineLimit(2)
+                .contextMenu {
+                    if !model.isCurrentPlaybackExternal {
+                        Button("Rename", systemImage: "pencil") {
+                            beginRename()
+                        }
+                    }
+                }
+
+            if model.isCurrentPlaybackExternal {
+                Button(
+                    "Add to Library…",
+                    systemImage: "plus.rectangle.on.folder"
+                ) {
+                    model.addCurrentExternalAudioToLibrary()
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.small)
+            } else {
+                FavoriteButton(
+                    isFavorite: model.currentProductionTrackIsFavorite,
+                    itemName: displayedTrackTitle
+                ) { requestedValue in
+                    await model.setCurrentProductionTrackFavorite(requestedValue)
+                }
+                .padding(.top, 2)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var trackArtist: some View {
+        if model.isCurrentPlaybackExternal {
+            Text(track.artist)
+                .font(.title3.weight(.medium))
+        } else {
+            MediaMetadataLink(
+                track.artist,
+                accessibilityLabel: "Open artist \(track.artist)"
+            ) {
+                guard let artistID = track.artistID else {
+                    return
+                }
+                model.requestOpenProductionArtistContextually(id: artistID)
+            }
+            .font(.title3.weight(.medium))
+        }
+    }
+
+    private var trackAlbumAndYear: some View {
+        HStack(spacing: 8) {
+            if model.isCurrentPlaybackExternal {
+                Text(track.album)
+                    .font(.body)
+            } else {
+                MediaMetadataLink(
+                    track.album,
+                    accessibilityLabel: "Open album \(track.album)"
+                ) {
+                    guard let albumID = track.albumID else {
+                        return
+                    }
+                    model.requestOpenProductionAlbumContextually(id: albumID)
+                }
+                .font(.body)
+            }
+
+            if let year = track.year {
+                Text("·")
+                    .foregroundStyle(.tertiary)
+                Text(year.formatted(.number.grouping(.never)))
+                    .foregroundStyle(.tertiary)
+            }
+        }
     }
 
     private var trackTags: some View {
@@ -375,6 +416,24 @@ private extension ProductionNowPlayingView {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
+    private var externalFileNotice: some View {
+        VStack(alignment: .leading, spacing: 5) {
+            Label("Playing external file", systemImage: "doc.badge.play")
+                .font(.caption.weight(.semibold))
+            Text("This track is not in your library. Add it only if you want to keep it there.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .padding(12)
+        .background(
+            CadenceTheme.subduedFill,
+            in: RoundedRectangle(
+                cornerRadius: CadenceTheme.radiusControl,
+                style: .continuous
+            )
+        )
+    }
+
     private var trimmedTagPath: String {
         newTagPath.trimmingCharacters(in: .whitespacesAndNewlines)
     }
@@ -404,7 +463,10 @@ private extension ProductionNowPlayingView {
     }
 
     private var displayedArtworkID: UUID? {
-        model.librarySession.store.tracks.first {
+        if model.isCurrentPlaybackExternal {
+            return track.artworkID
+        }
+        return model.librarySession.store.tracks.first {
             $0.id == track.id
         }?.artworkID ?? track.artworkID
     }

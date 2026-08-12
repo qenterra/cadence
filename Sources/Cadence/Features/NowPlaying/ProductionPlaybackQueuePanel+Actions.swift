@@ -209,6 +209,8 @@ extension ProductionPlaybackQueuePanel {
             "Favorites snapshot"
         case .allTracks:
             "Library snapshot"
+        case .externalFiles:
+            "External files"
         case .adHoc:
             "Manual queue"
         }

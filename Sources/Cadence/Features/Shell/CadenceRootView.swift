@@ -138,6 +138,32 @@ struct CadenceRootView: View {
                     ?? "Cadence could not complete the library operation."
             )
         }
+        .alert(
+            "Couldn’t Open Audio",
+            isPresented: externalAudioErrorPresented
+        ) {
+            Button("Dismiss", role: .cancel) {
+                model.externalAudioOpenError = nil
+            }
+        } message: {
+            Text(
+                model.externalAudioOpenError
+                    ?? "Cadence could not open the selected audio file."
+            )
+        }
+        .alert(
+            "Some Files Were Skipped",
+            isPresented: externalAudioNoticePresented
+        ) {
+            Button("OK", role: .cancel) {
+                model.externalAudioNotice = nil
+            }
+        } message: {
+            Text(
+                model.externalAudioNotice
+                    ?? "Cadence opened the supported audio files."
+            )
+        }
         .task {
             model.activateSystemMediaSession()
             await model.recoverManagedLibraryIfNeeded()
@@ -151,7 +177,9 @@ struct CadenceRootView: View {
             await model.librarySession.store.loadPlaylists()
         }
         .task(id: model.currentPlaybackTrack?.id) {
-            guard let trackID = model.currentPlaybackTrack?.id else {
+            guard !model.isCurrentPlaybackExternal,
+                  let trackID = model.currentPlaybackTrack?.id
+            else {
                 return
             }
             await model.librarySession.store.recordRecentlyPlayed(
@@ -385,6 +413,28 @@ private extension CadenceRootView {
             set: {
                 if !$0 {
                     model.librarySession.store.dismissOperationFailure()
+                }
+            }
+        )
+    }
+
+    private var externalAudioErrorPresented: Binding<Bool> {
+        Binding(
+            get: { model.externalAudioOpenError != nil },
+            set: {
+                if !$0 {
+                    model.externalAudioOpenError = nil
+                }
+            }
+        )
+    }
+
+    private var externalAudioNoticePresented: Binding<Bool> {
+        Binding(
+            get: { model.externalAudioNotice != nil },
+            set: {
+                if !$0 {
+                    model.externalAudioNotice = nil
                 }
             }
         )
