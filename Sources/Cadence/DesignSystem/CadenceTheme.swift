@@ -49,6 +49,7 @@ enum CadenceTheme {
         QDS.Color.fillSelectedStrong
     )
     static let hoverFill = adaptive(QDS.Color.fillHover)
+    static let playerMetadata = adaptive(QDS.Color.textSecondary)
 
     static let radiusNone = QDS.Radius.none
     static let radiusControl = QDS.Radius.control
@@ -63,6 +64,12 @@ enum CadenceTheme {
     static let motionReplace = QDS.MotionSeconds.replace
     static let motionDismiss = QDS.MotionSeconds.dismiss
     static let motionSpatialLong = QDS.MotionSeconds.spatialLong
+
+    static func playerControl(
+        _ state: PlayerControlVisualState
+    ) -> Color {
+        adaptive(state.token)
+    }
 
     // Product motion: Cadence Mode has no second consumer, so it stays named
     // here rather than inflating the cross-product QDS motion scale.

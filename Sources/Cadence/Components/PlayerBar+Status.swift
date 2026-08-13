@@ -3,20 +3,12 @@ import SwiftUI
 extension PlayerBar {
     @ViewBuilder
     var emptyPlaybackGuidance: some View {
-        if model.librarySession.store.catalogCounts.liveTrackCount == 0 {
-            Button {
-                model.requestNavigationDestination(.importMusic)
-            } label: {
-                Label("Import Music", systemImage: "folder.badge.plus")
-            }
-            .buttonStyle(.plain)
-            .foregroundStyle(.secondary)
-            .help("Import music to start listening")
-        } else {
-            Label("Select a Track", systemImage: "music.note")
-                .foregroundStyle(.secondary)
-                .help("Choose a track from the library to start playback")
-        }
+        let presentation = PlayerBarEmptyPresentation(
+            libraryTrackCount: model.librarySession.store.catalogCounts.liveTrackCount
+        )
+        Label(presentation.title, systemImage: presentation.symbolName)
+            .foregroundStyle(CadenceTheme.playerMetadata)
+            .help(presentation.title)
     }
 
     @ViewBuilder

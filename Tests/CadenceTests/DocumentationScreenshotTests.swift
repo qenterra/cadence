@@ -30,6 +30,7 @@ struct DocumentationScreenshotTests {
 
         let fixture = try await DocumentationScreenshotFixture.make()
         try await captureHome(fixture)
+        try await captureEmptyHome()
 
         fixture.model.selectedDestination = .library
         try await fixture.capture("cadence-library.png")
@@ -127,6 +128,16 @@ struct DocumentationScreenshotTests {
         )
     }
 
+    private func captureEmptyHome() async throws {
+        let fixture = try await DocumentationScreenshotFixture.makeEmpty()
+        fixture.model.selectedDestination = .home
+        try await fixture.capture("qa-empty-home-min-dark.png")
+        try await fixture.capture(
+            "qa-empty-home-min-light.png",
+            appearance: .light
+        )
+    }
+
     private static var updateMarker: URL {
         URL(filePath: #filePath)
             .deletingLastPathComponent()
@@ -198,6 +209,36 @@ final class DocumentationScreenshotFixture {
             albumID: seeded.albumID,
             artistID: seeded.artistID,
             tagID: seeded.tagID
+        )
+    }
+
+    static func makeEmpty() async throws -> DocumentationScreenshotFixture {
+        let container = try LibraryContainerFactory.inMemory()
+        let repository = LibraryRepository(modelContainer: container)
+        let session = LibrarySession.preview()
+        await session.activate(repository: repository)
+
+        let model = CadenceAppModel(
+            librarySession: session,
+            tracks: [],
+            tags: [],
+            tagAssignments: [],
+            tagExclusions: [],
+            smartCollections: [],
+            lyricDocuments: [:],
+            favoriteAlbumDates: [:],
+            favoriteArtistDates: [:],
+            importCandidates: [],
+            playbackCoordinator: PlaybackCoordinator(
+                resolver: PlaybackTestResolver(tracks: []),
+                backends: [PlaybackTestBackend(kind: .pcm)]
+            )
+        )
+        return DocumentationScreenshotFixture(
+            model: model,
+            albumID: UUID(),
+            artistID: UUID(),
+            tagID: UUID()
         )
     }
 

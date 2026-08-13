@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct PlayerBar: View {
-    @Environment(\.colorScheme) private var colorScheme
     @Bindable var model: CadenceAppModel
     let suspendsProgressAnimation: Bool
     @State private var pendingSeekProgress: Double?
@@ -26,7 +25,6 @@ struct PlayerBar: View {
 }
 
 private struct PlaybackProgressControl: View {
-    @Environment(\.colorScheme) private var colorScheme
     @Bindable var model: CadenceAppModel
     @Binding var pendingSeekProgress: Double?
     let suspendsProgressAnimation: Bool
@@ -53,12 +51,8 @@ private struct PlaybackProgressControl: View {
         }
         .frame(minWidth: 220, idealWidth: 300, maxWidth: 360)
         .font(.caption2)
-        .foregroundStyle(secondaryTextColor)
+        .foregroundStyle(CadenceTheme.playerMetadata)
         .monospacedDigit()
-    }
-
-    private var secondaryTextColor: Color {
-        colorScheme == .dark ? Color.white.opacity(0.72) : Color.secondary
     }
 
     private var elapsedText: String {
@@ -209,7 +203,7 @@ private extension PlayerBar {
                         .font(.system(size: 14, weight: .bold))
                         .frame(width: 34, height: 34)
                         .foregroundStyle(CadenceTheme.contentBackground)
-                        .background(CadenceTheme.primaryAccent, in: Circle())
+                        .background(primaryControlFill, in: Circle())
                 }
                 .buttonStyle(CadenceRowButtonStyle())
                 .help(model.isPlaying ? "Pause" : "Play")
@@ -250,7 +244,9 @@ private extension PlayerBar {
             } label: {
                 Image(systemName: volumeSymbol)
                     .contentTransition(.symbolEffect(.replace))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(
+                        CadenceTheme.playerControl(.normal)
+                    )
                     .frame(width: 28, height: 28)
             }
             .buttonStyle(CadenceRowButtonStyle())
@@ -275,6 +271,12 @@ private extension PlayerBar {
 
     private var hasPlaybackItem: Bool {
         model.hasCurrentPlaybackItem
+    }
+
+    private var primaryControlFill: Color {
+        CadenceTheme.playerControl(
+            hasPlaybackItem ? .active : .disabled
+        )
     }
 
     private var repeatLabel: String {
@@ -320,7 +322,11 @@ private extension PlayerBar {
         Button(action: action) {
             Image(systemName: symbol)
                 .symbolVariant(isActive ? .fill : .none)
-                .foregroundStyle(isActive ? .primary : .secondary)
+                .foregroundStyle(
+                    CadenceTheme.playerControl(
+                        isEnabled ? (isActive ? .active : .normal) : .disabled
+                    )
+                )
                 .frame(width: 34, height: 34)
                 .background {
                     if isActive {
@@ -345,20 +351,12 @@ private extension PlayerBar {
         VStack(alignment: .leading, spacing: 3) {
             Text(title)
                 .font(.subheadline.weight(.medium))
-                .foregroundStyle(primaryTextColor)
+                .foregroundStyle(CadenceTheme.playerControl(.normal))
                 .lineLimit(1)
             Text(artist)
                 .font(.caption)
-                .foregroundStyle(secondaryTextColor)
+                .foregroundStyle(CadenceTheme.playerMetadata)
                 .lineLimit(1)
         }
-    }
-
-    private var primaryTextColor: Color {
-        colorScheme == .dark ? .white : .primary
-    }
-
-    private var secondaryTextColor: Color {
-        colorScheme == .dark ? Color.white.opacity(0.68) : Color.secondary
     }
 }

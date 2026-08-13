@@ -69,6 +69,12 @@ for image in "$project_root"/docs/images/qa-{library,all-tracks,now-playing,albu
     is_supported_minimum_height "$(sips -g pixelHeight "$image" | tail -n 1 | awk '{print $2}')"
 done
 
+for image in "$project_root"/docs/images/qa-empty-home-min-*.png; do
+    [[ -f "$image" ]]
+    [[ "$(sips -g pixelWidth "$image" | tail -n 1 | awk '{print $2}')" == "2160" ]]
+    is_supported_minimum_height "$(sips -g pixelHeight "$image" | tail -n 1 | awk '{print $2}')"
+done
+
 for image in "$project_root"/docs/images/qa-{library,all-tracks,now-playing,album,import-review}-wide-*.png; do
     [[ -f "$image" ]]
     [[ "$(sips -g pixelWidth "$image" | tail -n 1 | awk '{print $2}')" == "2880" ]]

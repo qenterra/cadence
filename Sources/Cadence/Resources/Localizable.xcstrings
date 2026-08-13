@@ -284,9 +284,6 @@
     "Choose a collection, or create one from the sidebar." : {
 
     },
-    "Choose a track from the library to start playback" : {
-
-    },
     "Choose or create a Smart Collection." : {
 
     },
@@ -574,9 +571,6 @@
 
     },
     "Import music before building a Smart Collection." : {
-
-    },
-    "Import music to start listening" : {
 
     },
     "Include beta updates" : {
@@ -1118,9 +1112,6 @@
 
     },
     "Select All in Review" : {
-
-    },
-    "Select a Track" : {
 
     },
     "Select rows with ⌘ or ⇧ · Space toggles inclusion" : {
