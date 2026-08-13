@@ -20,7 +20,7 @@ show_icon_preview = True
 include_icon_view_settings = True
 
 icon_size = 112
-text_size = 13
+text_size = 12
 label_pos = "bottom"
 icon_locations = {
     "Cadence.app": (180, 220),

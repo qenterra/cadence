@@ -13,6 +13,7 @@ volume_name="$3"
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 project_root="$(cd "$script_dir/.." && pwd)"
 background="$project_root/release/dmg-background.png"
+retina_background="$project_root/release/dmg-background@2x.png"
 settings="$project_root/release/dmgbuild-settings.py"
 requirements="$project_root/release/requirements.txt"
 tools_dir="$project_root/.build/release-tools"
@@ -21,8 +22,8 @@ if [[ ! -d "$app_bundle" ]]; then
     echo "App bundle was not found: $app_bundle" >&2
     exit 66
 fi
-if [[ ! -f "$background" ]]; then
-    echo "DMG background was not found: $background" >&2
+if [[ ! -f "$background" || ! -f "$retina_background" ]]; then
+    echo "DMG 1x/2x background pair is incomplete." >&2
     exit 66
 fi
 if [[ ! -f "$settings" || ! -f "$requirements" ]]; then
@@ -66,7 +67,11 @@ hdiutil attach -readonly -nobrowse -mountpoint "$verification_mount" "$dmg_file"
 [[ -d "$verification_mount/Cadence.app" ]]
 [[ -L "$verification_mount/Applications" ]]
 [[ "$(readlink "$verification_mount/Applications")" == "/Applications" ]]
-[[ -f "$verification_mount/.background.png" ]]
+[[ -f "$verification_mount/.background.tiff" ]]
+background_info="$(tiffutil -info "$verification_mount/.background.tiff")"
+[[ "$(printf '%s\n' "$background_info" | grep -c '^Directory at ')" -eq 2 ]]
+[[ "$background_info" == *"Resolution: 72, 72"* ]]
+[[ "$background_info" == *"Resolution: 144, 144"* ]]
 codesign --verify --deep --strict "$verification_mount/Cadence.app"
 [[ "$(shasum -a 256 "$app_bundle/Contents/MacOS/Cadence" | awk '{print $1}')" == \
     "$(shasum -a 256 "$verification_mount/Cadence.app/Contents/MacOS/Cadence" | awk '{print $1}')" ]]
