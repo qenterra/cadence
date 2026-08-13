@@ -23,11 +23,13 @@ struct ProductionPlaybackAppModelTests {
             playbackTestTrack(id: UUID(), title: "One"),
             playbackTestTrack(id: UUID(), title: "Two"),
         ]
-        let coordinator = PlaybackCoordinator(
+        let coordinator = makePlaybackCoordinator(
             resolver: PlaybackTestResolver(tracks: resolved),
             backends: [PlaybackTestBackend(kind: .pcm)]
         )
         let model = CadenceAppModel(
+            runtimeMode: .production,
+            importRuntimeAvailability: .unavailable("Not used by this test."),
             librarySession: .preview(),
             tracks: [],
             tags: [],
@@ -66,11 +68,13 @@ struct ProductionPlaybackAppModelTests {
             duration: 200
         )
         let backend = PlaybackTestBackend(kind: .pcm)
-        let coordinator = PlaybackCoordinator(
+        let coordinator = makePlaybackCoordinator(
             resolver: PlaybackTestResolver(tracks: [resolved]),
             backends: [backend]
         )
         let model = CadenceAppModel(
+            runtimeMode: .production,
+            importRuntimeAvailability: .unavailable("Not used by this test."),
             librarySession: .preview(),
             tracks: [],
             tags: [],
@@ -100,11 +104,13 @@ struct ProductionPlaybackAppModelTests {
         let resolved = (0 ..< 5).map {
             playbackTestTrack(id: UUID(), title: "Track \($0)")
         }
-        let coordinator = PlaybackCoordinator(
+        let coordinator = makePlaybackCoordinator(
             resolver: PlaybackTestResolver(tracks: resolved),
             backends: [PlaybackTestBackend(kind: .pcm)]
         )
         let model = CadenceAppModel(
+            runtimeMode: .production,
+            importRuntimeAvailability: .unavailable("Not used by this test."),
             librarySession: .preview(),
             tracks: [],
             tags: [],
@@ -246,6 +252,7 @@ private struct ProductionLyricsFixture {
             location: ManagedLibraryLocation(musicDirectory: musicURL)
         )
         try package.bootstrapForConfirmedImport()
+        try package.writeIdentity(LibraryIdentity())
         trackID = UUID()
 
         let container = try LibraryContainerFactory.persistent(
@@ -263,11 +270,13 @@ private struct ProductionLyricsFixture {
             id: trackID,
             title: "Track"
         )
-        coordinator = PlaybackCoordinator(
+        coordinator = makePlaybackCoordinator(
             resolver: PlaybackTestResolver(tracks: [resolved]),
             backends: [PlaybackTestBackend(kind: .pcm)]
         )
         model = CadenceAppModel(
+            runtimeMode: .production,
+            importRuntimeAvailability: .unavailable("Not used by this test."),
             librarySession: session,
             tracks: [],
             tags: [],

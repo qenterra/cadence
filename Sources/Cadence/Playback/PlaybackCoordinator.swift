@@ -32,10 +32,8 @@ final class PlaybackCoordinator {
     init(
         resolver: any PlaybackTrackResolving,
         backends: [any PlaybackBackend],
-        systemMediaSession: any SystemMediaSessionControlling =
-            NoOpSystemMediaSession(),
-        audioRouteProvider: any AudioRouteProviding =
-            StaticAudioRouteProvider()
+        systemMediaSession: any SystemMediaSessionControlling,
+        audioRouteProvider: any AudioRouteProviding
     ) {
         self.resolver = resolver
         self.backends = Dictionary(

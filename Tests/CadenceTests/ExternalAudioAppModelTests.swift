@@ -98,7 +98,10 @@ struct ExternalAudioAppModelTests {
         defer { files.remove() }
         let inspector = ExternalImportInspector()
         let coordinator = ImportCoordinator(
-            service: ImportInspectionService(inspector: inspector)
+            service: ImportInspectionService(
+                inspector: inspector,
+                duplicateLookup: ImportDuplicateLookup { _ in .empty }
+            )
         )
         let harness = externalModelHarness(
             metadataByURL: [
@@ -152,11 +155,13 @@ private func externalModelHarness(
         external: externalSession,
         managed: PlaybackTestResolver(tracks: managedTracks)
     )
-    let coordinator = PlaybackCoordinator(
+    let coordinator = makePlaybackCoordinator(
         resolver: resolver,
         backends: [PlaybackTestBackend(kind: .pcm)]
     )
     let model = CadenceAppModel(
+        runtimeMode: .production,
+        importRuntimeAvailability: .available,
         librarySession: .preview(),
         tracks: [],
         tags: [],

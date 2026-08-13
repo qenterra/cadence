@@ -14,6 +14,7 @@
 		0152C45A79D5BD21CB5912D5 /* SmartCollectionListeningAppModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EE7AD050308F644272ED041 /* SmartCollectionListeningAppModelTests.swift */; };
 		0205E2DAAA9F24F1E30D8832 /* ArtworkAssetCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98152F906C832A0A05BCD5C3 /* ArtworkAssetCache.swift */; };
 		031EA911053E8A51BC7ED64B /* SmartCollectionListeningDomainTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8CC1C2CE7ADB0E4CBAF0327 /* SmartCollectionListeningDomainTests.swift */; };
+		037077309E9EC904669A9CBA /* RemoteCacheError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B1B11B4F84C197C1CE75EDA /* RemoteCacheError.swift */; };
 		03C61C4262DBDD2C6738009C /* SmartCollectionRule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25871E90CFCA6E263E15D2D6 /* SmartCollectionRule.swift */; };
 		04208CF161AA15CB4C3FAF74 /* InterfaceScrollPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B851D33FA45439EDB93AC980 /* InterfaceScrollPolicyTests.swift */; };
 		066B6ABE8826D5E0FB295961 /* TagEditingSelectionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E9E23EA608B7E988B0D1027 /* TagEditingSelectionTests.swift */; };
@@ -189,6 +190,7 @@
 		572EDBDD146DAF387F9C9356 /* LibraryStore+TrackPaging.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73CC4DDDF7B46E57CE552492 /* LibraryStore+TrackPaging.swift */; };
 		578FCADDF1DBFD566EFA5488 /* ProductionPlaybackQueuePanel+Actions.swift in Sources */ = {isa = PBXBuildFile; fileRef = C78F7E1BDF52205C8F3DC768 /* ProductionPlaybackQueuePanel+Actions.swift */; };
 		58D6EAE6262AD5E719CC4BA9 /* MetadataValueResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6778AAC21B282E5A0BE4FF05 /* MetadataValueResolver.swift */; };
+		594A30A18D23328EC37A549F /* RemoteCachePersistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D7D37D8325E789302879903 /* RemoteCachePersistence.swift */; };
 		59B99142B89542B0B7061CBA /* RemoteCacheIndex.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8A65B14A963B8D139172113 /* RemoteCacheIndex.swift */; };
 		5A3716A645E50BC6A6EC91AE /* CadenceModeBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F3B206C42DF6E3A1DE8E0BA /* CadenceModeBackground.swift */; };
 		5A511809527E8AA211DBFD97 /* ProductionTagsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 344F66B086354C9D263B887E /* ProductionTagsView.swift */; };
@@ -526,6 +528,7 @@
 		1CD920CDD739C2F456F838E2 /* LibraryRelocatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryRelocatorTests.swift; sourceTree = "<group>"; };
 		1CF246AE7FF79512A54A8354 /* LibraryProjectionFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryProjectionFactory.swift; sourceTree = "<group>"; };
 		1D74EE3C58D64BBC011DC5CB /* MockAlbumFavorites.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockAlbumFavorites.swift; sourceTree = "<group>"; };
+		1D7D37D8325E789302879903 /* RemoteCachePersistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteCachePersistence.swift; sourceTree = "<group>"; };
 		1DEDF7574CC73C83198218FC /* LyricsSearchPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsSearchPreviewView.swift; sourceTree = "<group>"; };
 		1E44217D2FBD0FFD1B87B824 /* ExternalAudioSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExternalAudioSession.swift; sourceTree = "<group>"; };
 		1E598C476F50794B7CCBC85D /* LyricsSearchLifecycleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsSearchLifecycleTests.swift; sourceTree = "<group>"; };
@@ -693,6 +696,7 @@
 		6AC5A29E17028AF1C843A2AD /* RhythmKeyboardCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RhythmKeyboardCapture.swift; sourceTree = "<group>"; };
 		6AD9CC8F2DEB7246478E425C /* ManagedLibraryImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManagedLibraryImporter.swift; sourceTree = "<group>"; };
 		6AFB4DCCD1E3CFAC0A1803A2 /* PlaybackCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackCoordinator.swift; sourceTree = "<group>"; };
+		6B1B11B4F84C197C1CE75EDA /* RemoteCacheError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteCacheError.swift; sourceTree = "<group>"; };
 		6BAE666347184CE37B3117B7 /* RhythmPulseCompositorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RhythmPulseCompositorView.swift; sourceTree = "<group>"; };
 		6C2705CDE401CC8CF995C0F4 /* PlaybackBackend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackBackend.swift; sourceTree = "<group>"; };
 		6D5F081873D2223FE262B69A /* EmbeddedLyricsReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmbeddedLyricsReader.swift; sourceTree = "<group>"; };
@@ -1044,7 +1048,9 @@
 		19E27F090F374815B21C60B4 /* Remote */ = {
 			isa = PBXGroup;
 			children = (
+				6B1B11B4F84C197C1CE75EDA /* RemoteCacheError.swift */,
 				E8A65B14A963B8D139172113 /* RemoteCacheIndex.swift */,
+				1D7D37D8325E789302879903 /* RemoteCachePersistence.swift */,
 				84B3AD3BE5B27D1831E0C32C /* RemoteLibraryController.swift */,
 				CCBA850DBE2F72FC33DD2686 /* RemoteLibraryManifest.swift */,
 				2C3DF7CE8244D6A5FE249614 /* RemoteLibraryProvider.swift */,
@@ -2142,7 +2148,9 @@
 				29336DC43AAF373963137958 /* ProductionTrashView.swift in Sources */,
 				E50D2F5A73597E765977D6FA /* QuickTagMenuItems.swift in Sources */,
 				C8EE5C0D97A8493B211FBF38 /* ReleaseClassification.swift in Sources */,
+				037077309E9EC904669A9CBA /* RemoteCacheError.swift in Sources */,
 				59B99142B89542B0B7061CBA /* RemoteCacheIndex.swift in Sources */,
+				594A30A18D23328EC37A549F /* RemoteCachePersistence.swift in Sources */,
 				10DD50D8C509855208C10ED9 /* RemoteLibraryController.swift in Sources */,
 				8EF782AE70532C9A75121FB7 /* RemoteLibraryManifest.swift in Sources */,
 				636B6D9228DD14B474B503BF /* RemoteLibraryProvider.swift in Sources */,

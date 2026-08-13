@@ -151,6 +151,60 @@ final class PlaybackTestSystemMediaSession: SystemMediaSessionControlling {
     }
 }
 
+@MainActor
+final class PlaybackTestAudioRouteProvider: AudioRouteProviding {
+    private var route: AudioRouteSnapshot
+    private var changeHandler: AudioRouteChangeHandler?
+    private(set) var monitoringStartCount = 0
+    private(set) var monitoringStopCount = 0
+
+    init(route: AudioRouteSnapshot = .unknown) {
+        self.route = route
+    }
+
+    func currentRoute() -> AudioRouteSnapshot {
+        route
+    }
+
+    func startMonitoring(
+        _ handler: @escaping AudioRouteChangeHandler
+    ) {
+        if changeHandler == nil {
+            monitoringStartCount += 1
+        }
+        changeHandler = handler
+    }
+
+    func stopMonitoring() {
+        if changeHandler != nil {
+            monitoringStopCount += 1
+        }
+        changeHandler = nil
+    }
+
+    func emit(_ route: AudioRouteSnapshot) {
+        self.route = route
+        changeHandler?(route)
+    }
+}
+
+@MainActor
+func makePlaybackCoordinator(
+    resolver: any PlaybackTrackResolving,
+    backends: [any PlaybackBackend],
+    systemMediaSession: any SystemMediaSessionControlling =
+        PlaybackTestSystemMediaSession(),
+    audioRouteProvider: any AudioRouteProviding =
+        PlaybackTestAudioRouteProvider()
+) -> PlaybackCoordinator {
+    PlaybackCoordinator(
+        resolver: resolver,
+        backends: backends,
+        systemMediaSession: systemMediaSession,
+        audioRouteProvider: audioRouteProvider
+    )
+}
+
 func playbackTestTrack(
     id: UUID,
     title: String,

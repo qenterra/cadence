@@ -126,7 +126,7 @@ extension PlaybackCoordinator {
             )
         }
         let kind = routeBackend(for: current.track)
-        guard let backend = backends[kind] ?? fallbackBackend else {
+        guard let backend = backends[kind] else {
             throw PlaybackFailure(
                 trackID: currentID,
                 message: "No compatible playback backend is available."
@@ -228,10 +228,6 @@ extension PlaybackCoordinator {
                 route: route ?? outputRoute
             )
         )
-    }
-
-    private var fallbackBackend: (any PlaybackBackend)? {
-        backends[.native] ?? backends[.pcm]
     }
 
     private func nextResolvedTrack(

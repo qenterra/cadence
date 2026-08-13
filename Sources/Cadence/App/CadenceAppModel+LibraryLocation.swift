@@ -67,7 +67,7 @@ extension CadenceAppModel {
                         to: location,
                         repository: repository
                     )
-                    controller.commit(activation)
+                    try controller.commit(activation)
                 } catch {
                     controller.cancel(activation)
                     throw error
@@ -144,7 +144,7 @@ extension CadenceAppModel {
         do {
             let location = ManagedLibraryLocation(musicDirectory: parent)
             let package = ManagedLibraryPackage(location: location)
-            let identity = try package.readOrCreateIdentity()
+            let identity = try package.readIdentity()
             let container = try LibraryContainerFactory.persistent(package: package)
             let repository = LibraryRepository(modelContainer: container)
             let activation = try controller.prepareActivation(
@@ -157,7 +157,7 @@ extension CadenceAppModel {
                     to: location,
                     repository: repository
                 )
-                controller.commit(activation)
+                try controller.commit(activation)
             } catch {
                 controller.cancel(activation)
                 throw error
@@ -216,7 +216,7 @@ private extension CadenceAppModel {
                 to: prepared.destination,
                 repository: prepared.repository
             )
-            controller.commit(activation)
+            try controller.commit(activation)
         } catch {
             controller.cancel(activation)
             throw error
@@ -268,7 +268,7 @@ private extension CadenceAppModel {
                 to: location,
                 repository: repository
             )
-            controller.commit(activation)
+            try controller.commit(activation)
         } catch {
             controller.cancel(activation)
             throw error

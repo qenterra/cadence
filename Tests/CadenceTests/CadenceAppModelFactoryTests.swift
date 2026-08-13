@@ -59,6 +59,85 @@ struct CadenceAppModelFactoryTests {
         #expect(model.favoriteArtistDates.isEmpty)
         #expect(model.importCandidates.isEmpty)
     }
+}
+
+@MainActor
+extension CadenceAppModelFactoryTests {
+    @Test("Production with no library location is unavailable, not a preview")
+    func missingImportDestinationIsExplicit() {
+        let model = CadenceAppModel.production(librarySession: .preview())
+
+        #expect(model.runtimeMode == .production)
+        guard case let .unavailable(message) = model.importRuntimeAvailability else {
+            Issue.record("Expected an unavailable production import runtime.")
+            return
+        }
+        #expect(message.contains("library location"))
+        #expect(!model.isImportPreviewMode)
+    }
+
+    @Test("An unreadable existing library identity is a startup failure")
+    func unreadableIdentityFailsStartup() throws {
+        try withTemporaryDirectory { musicDirectory in
+            let location = ManagedLibraryLocation(
+                musicDirectory: musicDirectory
+            )
+            let package = ManagedLibraryPackage(location: location)
+            try package.bootstrapForConfirmedImport()
+            try Data().write(to: package.metadataStoreURL)
+            try Data("not an identity".utf8).write(to: package.identityURL)
+
+            let session = LibrarySession.startup(location: location)
+
+            guard case let .failed(failure) = session.availability else {
+                Issue.record("Expected an unreadable identity failure.")
+                return
+            }
+            #expect(failure.kind == .unreadableIdentity)
+            #expect(failure.revealURL == package.identityURL)
+        }
+    }
+
+    @Test("Remote setup preserves an explicit local identity failure")
+    func remoteIdentityFailureIsExplicit() async {
+        let controller = RemoteLibraryController(
+            source: RemotePlaybackSource(),
+            identityExpectation: .unavailable(
+                "Cadence.library has an unreadable library identity."
+            )
+        )
+
+        await controller.restore()
+
+        guard case let .unavailable(message) = controller.status else {
+            Issue.record("Expected remote configuration to fail explicitly.")
+            return
+        }
+        #expect(message.contains("unreadable library identity"))
+    }
+
+    @Test("Corrupt remote settings fail explicitly")
+    func corruptRemoteSettingsFailExplicitly() async throws {
+        let suiteName = "Cadence.RemoteSettings.\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suiteName))
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        defaults.set(
+            Data("not remote settings".utf8),
+            forKey: "remoteLibrary.settings.v1"
+        )
+        let controller = RemoteLibraryController(
+            source: RemotePlaybackSource(),
+            identityExpectation: .unbound,
+            store: UserDefaultsRemoteLibrarySettingsStore(defaults: defaults)
+        )
+
+        await controller.restore()
+
+        guard case .unavailable = controller.status else {
+            Issue.record("Expected corrupt remote settings to fail explicitly.")
+            return
+        }
+    }
 
     @Test("A damaged existing package blocks startup without replacement")
     func damagedPackageBlocksStartup() throws {
@@ -78,6 +157,12 @@ struct CadenceAppModelFactoryTests {
             }
             #expect(failure.kind == .blockingPackageFile)
             #expect(failure.revealURL == location.packageURL)
+            let model = CadenceAppModel.production(librarySession: session)
+            guard case .unavailable = model.importRuntimeAvailability else {
+                Issue.record("A damaged package must not expose import.")
+                return
+            }
+            #expect(model.importCoordinator == nil)
             #expect(
                 try Data(contentsOf: location.packageURL)
                     == Data("not a package".utf8)

@@ -12,13 +12,14 @@ actor RemoteMediaCache {
     private var pinnedIDs: Set<RemoteObjectID> = []
     private var inFlight: [RemoteObjectID: Task<URL, Error>] = [:]
     private var prefetchTasks: [RemoteObjectID: Task<Void, Never>] = [:]
+    private(set) var lastPrefetchFailure: String?
 
     init(
         rootURL: URL,
         budgetBytes: Int64,
         provider: any RemoteLibraryProvider,
         fileManager: FileManager = .default
-    ) {
+    ) throws {
         self.rootURL = rootURL
         objectsURL = rootURL.appending(
             path: "Objects",
@@ -35,17 +36,24 @@ actor RemoteMediaCache {
         self.budgetBytes = max(budgetBytes, 0)
         self.provider = provider
         self.fileManager = fileManager
-        index = Self.loadIndex(from: indexURL)
+        do {
+            try fileManager.createDirectory(
+                at: objectsURL,
+                withIntermediateDirectories: true
+            )
+            try fileManager.createDirectory(
+                at: stagingURL,
+                withIntermediateDirectories: true
+            )
+        } catch {
+            throw RemoteCacheError.directoryPreparationFailed(rootURL, error)
+        }
 
-        try? fileManager.createDirectory(
-            at: objectsURL,
-            withIntermediateDirectories: true
+        index = try RemoteCachePersistence.loadIndex(
+            from: indexURL,
+            fileManager: fileManager
         )
-        try? fileManager.createDirectory(
-            at: stagingURL,
-            withIntermediateDirectories: true
-        )
-        Self.removeAbandonedStagingFiles(
+        try RemoteCachePersistence.removeAbandonedStagingFiles(
             at: stagingURL,
             fileManager: fileManager
         )
@@ -59,7 +67,7 @@ actor RemoteMediaCache {
 
     func playableURL(
         for id: RemoteObjectID
-    ) -> URL? {
+    ) throws -> URL? {
         guard let entry = index[id] else {
             return nil
         }
@@ -68,8 +76,10 @@ actor RemoteMediaCache {
             directoryHint: .notDirectory
         )
         guard fileManager.fileExists(atPath: url.path) else {
-            index[id] = nil
-            try? saveIndex()
+            var updatedIndex = index
+            updatedIndex[id] = nil
+            try persist(updatedIndex)
+            index = updatedIndex
             return nil
         }
         return url
@@ -78,7 +88,14 @@ actor RemoteMediaCache {
     func prefetch(
         _ object: RemoteMediaObject
     ) async {
-        _ = try? await materialize(object, protectedFromEviction: false)
+        do {
+            _ = try await materialize(object, protectedFromEviction: false)
+            lastPrefetchFailure = nil
+        } catch is CancellationError {
+            // Cancellation is expected when the queue's prefetch target changes.
+        } catch {
+            lastPrefetchFailure = error.localizedDescription
+        }
     }
 
     func replacePrefetchTargets(
@@ -99,16 +116,28 @@ actor RemoteMediaCache {
 
     func pin(
         _ ids: Set<RemoteObjectID>
-    ) {
+    ) throws {
+        let previous = pinnedIDs
         pinnedIDs = ids
-        try? enforceBudget(protectedID: nil)
+        do {
+            try enforceBudget(protectedID: nil)
+        } catch {
+            pinnedIDs = previous
+            throw error
+        }
     }
 
     func setBudget(
         bytes: Int64
-    ) {
+    ) throws {
+        let previous = budgetBytes
         budgetBytes = max(bytes, 0)
-        try? enforceBudget(protectedID: nil)
+        do {
+            try enforceBudget(protectedID: nil)
+        } catch {
+            budgetBytes = previous
+            throw error
+        }
     }
 }
 
@@ -118,8 +147,8 @@ private extension RemoteMediaCache {
         protectedFromEviction: Bool
     ) async throws -> URL {
         try object.validate()
-        if let cached = validCachedURL(for: object) {
-            touch(object.id)
+        if let cached = try validCachedURL(for: object) {
+            try touch(object.id)
             return cached
         }
         if let task = inFlight[object.id] {
@@ -135,7 +164,7 @@ private extension RemoteMediaCache {
         try enforceBudget(
             protectedID: protectedFromEviction ? object.id : nil
         )
-        guard playableURL(for: object.id) != nil else {
+        guard try playableURL(for: object.id) != nil else {
             throw RemoteProviderError.serviceUnavailable(
                 "The object exceeds the available cache budget."
             )
@@ -150,7 +179,6 @@ private extension RemoteMediaCache {
             path: "\(UUID().uuidString).partial",
             directoryHint: .notDirectory
         )
-        defer { try? fileManager.removeItem(at: stagedURL) }
         guard fileManager.createFile(
             atPath: stagedURL.path,
             contents: nil
@@ -159,23 +187,42 @@ private extension RemoteMediaCache {
                 "The cache staging file could not be created."
             )
         }
-
-        try await download(object, to: stagedURL)
-
         let relativePath = "Objects/\(object.sha256).\(object.fileExtension)"
         let destinationURL = rootURL.appending(
             path: relativePath,
             directoryHint: .notDirectory
         )
-        if !fileManager.fileExists(atPath: destinationURL.path) {
-            try fileManager.moveItem(at: stagedURL, to: destinationURL)
-        }
-        index[object.id] = RemoteCacheEntry(
-            object: object,
-            relativePath: relativePath,
-            lastAccessedAt: Date()
+        let destinationExisted = fileManager.fileExists(
+            atPath: destinationURL.path
         )
-        try saveIndex()
+        do {
+            try await download(object, to: stagedURL)
+            if !destinationExisted {
+                try fileManager.moveItem(at: stagedURL, to: destinationURL)
+            }
+            var updatedIndex = index
+            updatedIndex[object.id] = RemoteCacheEntry(
+                object: object,
+                relativePath: relativePath,
+                lastAccessedAt: Date()
+            )
+            try persist(updatedIndex)
+            index = updatedIndex
+        } catch {
+            try RemoteCachePersistence.rollbackPromotion(
+                destinationExisted: destinationExisted,
+                destinationURL: destinationURL,
+                stagedURL: stagedURL,
+                fileManager: fileManager,
+                primaryError: error
+            )
+            throw error
+        }
+        try RemoteCachePersistence.removeStagedFileIfPresent(
+            stagedURL,
+            fileManager: fileManager,
+            primaryError: nil
+        )
         return destinationURL
     }
 
@@ -200,6 +247,8 @@ private extension RemoteMediaCache {
                 throw RemoteProviderError.interrupted
             }
         } catch {
+            // Preserve the download failure; the startup reconciliation owns
+            // abandoned partial files if closing this handle also fails.
             try? handle.close()
             throw error
         }
@@ -210,23 +259,26 @@ private extension RemoteMediaCache {
 
     func validCachedURL(
         for object: RemoteMediaObject
-    ) -> URL? {
+    ) throws -> URL? {
         guard let entry = index[object.id],
               entry.object == object
         else {
-            removeEntry(for: object.id)
+            try removeEntry(for: object.id)
             return nil
         }
         let url = rootURL.appending(
             path: entry.relativePath,
             directoryHint: .notDirectory
         )
-        guard let values = try? url.resourceValues(
-            forKeys: [.fileSizeKey]
-        ),
-            Int64(values.fileSize ?? -1) == object.byteCount
-        else {
-            removeEntry(for: object.id)
+        let values: URLResourceValues
+        do {
+            values = try url.resourceValues(forKeys: [.fileSizeKey])
+        } catch {
+            try removeEntry(for: object.id)
+            throw RemoteCacheError.objectInspectionFailed(url, error)
+        }
+        guard Int64(values.fileSize ?? -1) == object.byteCount else {
+            try removeEntry(for: object.id)
             return nil
         }
         return url
@@ -234,13 +286,15 @@ private extension RemoteMediaCache {
 
     func touch(
         _ id: RemoteObjectID
-    ) {
+    ) throws {
         guard var entry = index[id] else {
             return
         }
         entry.lastAccessedAt = Date()
-        index[id] = entry
-        try? saveIndex()
+        var updatedIndex = index
+        updatedIndex[id] = entry
+        try persist(updatedIndex)
+        index = updatedIndex
     }
 
     func enforceBudget(
@@ -260,85 +314,71 @@ private extension RemoteMediaCache {
                 }
                 return $0.lastAccessedAt < $1.lastAccessedAt
             }
+        var updatedIndex = index
+        var evictedEntries: [RemoteCacheEntry] = []
         for entry in candidates where total > budgetBytes {
-            removeEntry(for: entry.object.id)
+            updatedIndex[entry.object.id] = nil
+            evictedEntries.append(entry)
             total -= entry.object.byteCount
         }
-        try saveIndex()
+        guard !evictedEntries.isEmpty else {
+            return
+        }
+        try persist(updatedIndex)
+        index = updatedIndex
+        for entry in evictedEntries {
+            try removeObjectFileIfUnshared(entry)
+        }
     }
 
     func removeEntry(
         for id: RemoteObjectID
-    ) {
+    ) throws {
         guard let entry = index[id] else {
             return
         }
-        let sharedByAnotherEntry = index.entries.contains {
-            $0.object.id != id && $0.relativePath == entry.relativePath
-        }
-        if !sharedByAnotherEntry {
-            let url = rootURL.appending(
-                path: entry.relativePath,
-                directoryHint: .notDirectory
-            )
-            try? fileManager.removeItem(at: url)
-        }
-        index[id] = nil
+        var updatedIndex = index
+        updatedIndex[id] = nil
+        try persist(updatedIndex)
+        index = updatedIndex
+        try removeObjectFileIfUnshared(entry)
     }
 
-    func saveIndex() throws {
-        let data = try JSONEncoder().encode(index)
-        try data.write(to: indexURL, options: .atomic)
+    func persist(_ updatedIndex: RemoteCacheIndex) throws {
+        do {
+            let data = try JSONEncoder().encode(updatedIndex)
+            try data.write(to: indexURL, options: .atomic)
+        } catch {
+            throw RemoteCacheError.indexPersistenceFailed(indexURL, error)
+        }
+    }
+
+    func removeObjectFileIfUnshared(
+        _ entry: RemoteCacheEntry
+    ) throws {
+        let sharedByAnotherEntry = index.entries.contains {
+            $0.relativePath == entry.relativePath
+        }
+        guard !sharedByAnotherEntry else {
+            return
+        }
+        let url = rootURL.appending(
+            path: entry.relativePath,
+            directoryHint: .notDirectory
+        )
+        guard fileManager.fileExists(atPath: url.path) else {
+            return
+        }
+        do {
+            try fileManager.removeItem(at: url)
+        } catch {
+            throw RemoteCacheError.objectRemovalFailed(url, error)
+        }
     }
 
     func finishPrefetch(
         _ id: RemoteObjectID
     ) {
         prefetchTasks[id] = nil
-    }
-
-    static func loadIndex(
-        from url: URL
-    ) -> RemoteCacheIndex {
-        guard let data = try? Data(contentsOf: url),
-              let index = try? JSONDecoder().decode(
-                  RemoteCacheIndex.self,
-                  from: data
-              ),
-              index.schemaVersion == RemoteCacheIndex.currentSchemaVersion
-        else {
-            return RemoteCacheIndex()
-        }
-        var sanitized = index
-        sanitized.entries = index.entries.filter {
-            validRelativePath($0.relativePath)
-        }
-        return sanitized
-    }
-
-    static func validRelativePath(
-        _ path: String
-    ) -> Bool {
-        let components = path.split(separator: "/", omittingEmptySubsequences: false)
-        return components.count == 2
-            && components[0] == "Objects"
-            && !components[1].isEmpty
-            && components[1] != "."
-            && components[1] != ".."
-    }
-
-    static func removeAbandonedStagingFiles(
-        at url: URL,
-        fileManager: FileManager
-    ) {
-        guard let files = try? fileManager.contentsOfDirectory(
-            at: url,
-            includingPropertiesForKeys: nil
-        ) else {
-            return
-        }
-        for file in files {
-            try? fileManager.removeItem(at: file)
-        }
     }
 }

@@ -31,7 +31,7 @@ extension CadenceAppModel {
                 )
                 do {
                     try await activateLibrary(at: location)
-                    locationController.commit(activation)
+                    try locationController.commit(activation)
                 } catch {
                     locationController.cancel(activation)
                     throw error
@@ -50,8 +50,7 @@ extension CadenceAppModel {
                 )
             }
         } catch {
-            try? await reopenLibrary(at: location)
-            libraryResetNotice = error.localizedDescription
+            await handleResetPreparationFailure(error, location: location)
         }
 
         libraryResetRevision &+= 1
@@ -64,6 +63,19 @@ extension CadenceAppModel {
 }
 
 private extension CadenceAppModel {
+    func handleResetPreparationFailure(
+        _ resetError: Error,
+        location: ManagedLibraryLocation
+    ) async {
+        do {
+            try await reopenLibrary(at: location)
+            libraryResetNotice = resetError.localizedDescription
+        } catch {
+            librarySession.fail(message: error.localizedDescription)
+            libraryResetNotice = error.localizedDescription
+        }
+    }
+
     func activateLibrary(
         at location: ManagedLibraryLocation
     ) async throws {

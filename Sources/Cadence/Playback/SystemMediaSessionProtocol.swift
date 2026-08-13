@@ -20,16 +20,3 @@ protocol SystemMediaSessionControlling: AnyObject {
     func clear()
     func shutdown()
 }
-
-@MainActor
-final class NoOpSystemMediaSession: SystemMediaSessionControlling {
-    func activate(
-        handler _: @escaping (SystemMediaCommand) -> Void
-    ) {}
-
-    func update(state _: PlaybackCoordinatorState) {}
-
-    func clear() {}
-
-    func shutdown() {}
-}

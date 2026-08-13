@@ -20,6 +20,31 @@ struct LibraryLocationControllerTests {
         #expect(controller.resolveActiveLibrary(fallback: fallback) == .available(fallback))
     }
 
+    @Test("Corrupt saved location settings fail explicitly")
+    func corruptSettingsFailExplicitly() throws {
+        let suiteName = "Cadence.LibraryLocation.\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suiteName))
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        defaults.set(
+            Data("not a location record".utf8),
+            forKey: "managedLibrary.location.v1"
+        )
+        let controller = LibraryLocationController(
+            store: UserDefaultsLibraryLocationStore(defaults: defaults),
+            bookmarkResolver: BookmarkResolverStub()
+        )
+        let fallback = ManagedLibraryLocation(
+            musicDirectory: URL(filePath: "/tmp/Cadence-Fallback")
+        )
+
+        guard case let .configurationUnavailable(message) =
+            controller.resolveActiveLibrary(fallback: fallback) else {
+            Issue.record("Expected an explicit settings failure.")
+            return
+        }
+        #expect(message.contains("unreadable"))
+    }
+
     @Test("A stale bookmark fails closed and asks the user to locate the library")
     func staleBookmark() {
         let parent = URL(filePath: "/Volumes/Music")
@@ -87,10 +112,10 @@ struct LibraryLocationControllerTests {
             parentURL: parent,
             identity: identity
         )
-        #expect(store.record == nil)
+        #expect(try store.load() == nil)
 
-        controller.commit(activation)
-        #expect(store.record?.identity == identity)
+        try controller.commit(activation)
+        #expect(try store.load()?.identity == identity)
     }
 
     @Test("Cancelling a prepared activation preserves the current location")
@@ -111,15 +136,23 @@ struct LibraryLocationControllerTests {
         )
         controller.cancel(activation)
 
-        #expect(store.record == original)
+        #expect(try store.load() == original)
     }
 }
 
 @MainActor
 private final class InMemoryLibraryLocationStore: LibraryLocationStoring {
-    var record: LibraryLocationRecord?
+    private var record: LibraryLocationRecord?
 
     init(record: LibraryLocationRecord? = nil) {
+        self.record = record
+    }
+
+    func load() throws -> LibraryLocationRecord? {
+        record
+    }
+
+    func save(_ record: LibraryLocationRecord?) throws {
         self.record = record
     }
 }

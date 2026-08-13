@@ -18,7 +18,7 @@ actor RemotePlaybackSource {
                 ($0.trackID, $0.media)
             }
         )
-        cache = RemoteMediaCache(
+        cache = try RemoteMediaCache(
             rootURL: cacheRootURL,
             budgetBytes: budgetBytes,
             provider: provider
@@ -35,12 +35,14 @@ actor RemotePlaybackSource {
         trackIDs: [UUID]
     ) async throws -> [UUID: URL] {
         guard let cache else {
-            return [:]
+            throw RemoteProviderError.serviceUnavailable(
+                "The remote library is not connected."
+            )
         }
         let objects = trackIDs.compactMap { id in
             objectsByTrackID[id].map { (id, $0) }
         }
-        await cache.pin(Set(objects.prefix(2).map(\.1.id)))
+        try await cache.pin(Set(objects.prefix(2).map(\.1.id)))
         guard let current = objects.first else {
             return [:]
         }
@@ -49,7 +51,7 @@ actor RemotePlaybackSource {
         result[current.0] = try await cache.localURL(for: current.1)
         let following = Array(objects.dropFirst())
         for (trackID, object) in following {
-            if let url = await cache.playableURL(for: object.id) {
+            if let url = try await cache.playableURL(for: object.id) {
                 result[trackID] = url
             }
         }
@@ -59,7 +61,12 @@ actor RemotePlaybackSource {
 
     func setCacheBudget(
         _ bytes: Int64
-    ) async {
-        await cache?.setBudget(bytes: bytes)
+    ) async throws {
+        guard let cache else {
+            throw RemoteProviderError.serviceUnavailable(
+                "The remote library cache is not active."
+            )
+        }
+        try await cache.setBudget(bytes: bytes)
     }
 }

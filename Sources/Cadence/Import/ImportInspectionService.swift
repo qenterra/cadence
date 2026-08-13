@@ -19,8 +19,6 @@ struct ImportDuplicateLookup: Sendable {
         try await operation(probes)
     }
 
-    static let empty = ImportDuplicateLookup { _ in .empty }
-
     static func repository(
         _ repository: LibraryRepository
     ) -> ImportDuplicateLookup {
@@ -44,7 +42,7 @@ struct ImportInspectionService: Sendable {
     init(
         scanner: SourceScanner = SourceScanner(),
         inspector: any ImportFileInspecting = ImportFileInspector(),
-        duplicateLookup: ImportDuplicateLookup = .empty,
+        duplicateLookup: ImportDuplicateLookup,
         classifier: DuplicateClassifier = DuplicateClassifier(),
         maximumConcurrentFiles: Int = defaultMaximumConcurrentFiles
     ) {

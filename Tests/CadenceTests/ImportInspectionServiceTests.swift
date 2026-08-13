@@ -25,6 +25,7 @@ struct ImportInspectionServiceTests {
         let inspector = ConcurrencyRecordingInspector()
         let service = ImportInspectionService(
             inspector: inspector,
+            duplicateLookup: ImportDuplicateLookup { _ in .empty },
             maximumConcurrentFiles: 99
         )
 
@@ -61,7 +62,8 @@ struct ImportInspectionServiceTests {
 
         let recorder = ProgressRecorder()
         let service = ImportInspectionService(
-            inspector: ConcurrencyRecordingInspector()
+            inspector: ConcurrencyRecordingInspector(),
+            duplicateLookup: ImportDuplicateLookup { _ in .empty }
         )
         _ = try await service.inspect(
             source: ImportSource(urls: [root])

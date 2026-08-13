@@ -151,11 +151,13 @@ final class DocumentationScreenshotFixture {
                 mediaURL: URL(filePath: "/tmp/\($0.id).flac")
             )
         }
-        let coordinator = PlaybackCoordinator(
+        let coordinator = makePlaybackCoordinator(
             resolver: PlaybackTestResolver(tracks: resolved),
             backends: [PlaybackTestBackend(kind: .pcm)]
         )
         let model = CadenceAppModel(
+            runtimeMode: .preview,
+            importRuntimeAvailability: .preview,
             librarySession: session,
             tracks: [],
             tags: [],
@@ -193,6 +195,8 @@ final class DocumentationScreenshotFixture {
         await session.activate(repository: repository)
         let readinessTracker = DocumentationScreenshotReadinessTracker()
         let model = CadenceAppModel(
+            runtimeMode: .preview,
+            importRuntimeAvailability: .preview,
             librarySession: session,
             tracks: [],
             tags: [],
@@ -203,7 +207,7 @@ final class DocumentationScreenshotFixture {
             favoriteAlbumDates: [:],
             favoriteArtistDates: [:],
             importCandidates: [],
-            playbackCoordinator: PlaybackCoordinator(
+            playbackCoordinator: makePlaybackCoordinator(
                 resolver: PlaybackTestResolver(tracks: []),
                 backends: [PlaybackTestBackend(kind: .pcm)]
             )

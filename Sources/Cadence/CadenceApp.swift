@@ -202,7 +202,7 @@ struct CadenceApp: App {
 
     private static func makeInitialModel() -> CadenceAppModel {
         if CadenceLaunchEnvironment.shouldUsePreviewLibrary() {
-            return .production(librarySession: .preview())
+            return .preview()
         }
         return .production(librarySession: .startup())
     }

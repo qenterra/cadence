@@ -80,6 +80,7 @@ struct LibraryRecoveryTests {
         #expect(failure.revealURL == location.packageURL)
 
         _ = try LibraryContainerFactory.persistent(package: package)
+        try package.writeIdentity(LibraryIdentity())
         let model = CadenceAppModel.production(librarySession: session)
         await model.retryManagedLibrary()
 

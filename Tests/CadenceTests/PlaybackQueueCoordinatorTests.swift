@@ -9,7 +9,7 @@ struct PlaybackQueueCoordinatorTests {
         let tracks = (0 ..< 4).map {
             playbackTestTrack(id: UUID(), title: "Track \($0)")
         }
-        let coordinator = PlaybackCoordinator(
+        let coordinator = makePlaybackCoordinator(
             resolver: PlaybackTestResolver(tracks: tracks),
             backends: [PlaybackTestBackend(kind: .pcm)]
         )
@@ -39,7 +39,7 @@ struct PlaybackQueueCoordinatorTests {
             playbackTestTrack(id: UUID(), title: "Track \($0)")
         }
         let backend = PlaybackTestBackend(kind: .pcm)
-        let coordinator = PlaybackCoordinator(
+        let coordinator = makePlaybackCoordinator(
             resolver: PlaybackTestResolver(tracks: tracks),
             backends: [backend]
         )
@@ -69,7 +69,7 @@ struct PlaybackQueueCoordinatorTests {
         let tracks = (0 ..< 4).map {
             playbackTestTrack(id: UUID(), title: "Track \($0)")
         }
-        let coordinator = PlaybackCoordinator(
+        let coordinator = makePlaybackCoordinator(
             resolver: PlaybackTestResolver(tracks: tracks),
             backends: [PlaybackTestBackend(kind: .pcm)]
         )

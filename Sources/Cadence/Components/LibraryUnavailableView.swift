@@ -57,6 +57,8 @@ struct LibraryUnavailableView: View {
         switch failure.kind {
         case .locationUnavailable:
             "Cadence could not access the saved library location."
+        case .configurationUnavailable:
+            "Cadence could not read the saved library location settings."
         case .staleBookmark:
             "Cadence needs permission to access the library again."
         case .identityMismatch:
@@ -65,6 +67,8 @@ struct LibraryUnavailableView: View {
             "A file is blocking the Cadence.library package."
         case .missingMetadataStore:
             "Cadence.library is missing its metadata store."
+        case .unreadableIdentity:
+            "Cadence.library has an unreadable identity record."
         case .openFailed:
             "Cadence could not open the managed library."
         case .recoveryFailed:
@@ -74,9 +78,11 @@ struct LibraryUnavailableView: View {
 
     private var canRetry: Bool {
         switch failure.kind {
-        case .locationUnavailable, .staleBookmark, .identityMismatch:
+        case .locationUnavailable, .configurationUnavailable,
+             .staleBookmark, .identityMismatch:
             false
-        case .blockingPackageFile, .missingMetadataStore, .openFailed, .recoveryFailed:
+        case .blockingPackageFile, .missingMetadataStore, .unreadableIdentity,
+             .openFailed, .recoveryFailed:
             true
         }
     }

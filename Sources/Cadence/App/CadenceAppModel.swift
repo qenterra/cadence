@@ -1,6 +1,17 @@
 import Foundation
 import Observation
 
+enum CadenceRuntimeMode: Equatable, Sendable {
+    case production
+    case preview
+}
+
+enum ImportRuntimeAvailability: Equatable, Sendable {
+    case available
+    case preview
+    case unavailable(String)
+}
+
 struct ImportWorkspaceState {
     var autoAdvanceEnabled = true
     var scanError: String?
@@ -50,6 +61,8 @@ struct PendingLibraryDeletion: Equatable, Sendable {
 @MainActor
 @Observable
 final class CadenceAppModel {
+    let runtimeMode: CadenceRuntimeMode
+    let importRuntimeAvailability: ImportRuntimeAvailability
     let librarySession: LibrarySession
     let tracks: [TrackPreview]
     private(set) var tags: [TagPreview]
@@ -157,6 +170,8 @@ final class CadenceAppModel {
     let remoteLibraryController: RemoteLibraryController?
 
     init(
+        runtimeMode: CadenceRuntimeMode,
+        importRuntimeAvailability: ImportRuntimeAvailability,
         librarySession: LibrarySession,
         tracks: [TrackPreview],
         tags: [TagPreview],
@@ -177,6 +192,8 @@ final class CadenceAppModel {
         libraryResetter: ManagedLibraryResetter = ManagedLibraryResetter(),
         artworkRepository: any ArtworkRepository = InMemoryArtworkRepository()
     ) {
+        self.runtimeMode = runtimeMode
+        self.importRuntimeAvailability = importRuntimeAvailability
         self.librarySession = librarySession
         self.tracks = tracks
         self.tags = tags

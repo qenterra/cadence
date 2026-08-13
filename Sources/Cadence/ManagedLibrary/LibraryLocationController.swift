@@ -27,6 +27,7 @@ struct PreparedLibraryLocationActivation: Sendable {
 
 enum LibraryLocationResolution: Equatable, Sendable {
     case available(ManagedLibraryLocation)
+    case configurationUnavailable(String)
     case unavailable(previousParent: URL?)
     case staleBookmark(previousParent: URL)
     case identityMismatch(expected: LibraryIdentity, actual: LibraryIdentity)
@@ -34,7 +35,8 @@ enum LibraryLocationResolution: Equatable, Sendable {
 
 @MainActor
 protocol LibraryLocationStoring: AnyObject {
-    var record: LibraryLocationRecord? { get set }
+    func load() throws -> LibraryLocationRecord?
+    func save(_ record: LibraryLocationRecord?) throws
 }
 
 @MainActor
@@ -46,25 +48,23 @@ final class UserDefaultsLibraryLocationStore: LibraryLocationStoring {
         self.defaults = defaults
     }
 
-    var record: LibraryLocationRecord? {
-        get {
-            guard let data = defaults.data(forKey: Self.key) else {
-                return nil
-            }
-            return try? JSONDecoder().decode(
-                LibraryLocationRecord.self,
-                from: data
-            )
+    func load() throws -> LibraryLocationRecord? {
+        guard let data = defaults.data(forKey: Self.key) else {
+            return nil
         }
-        set {
-            guard let newValue,
-                  let data = try? JSONEncoder().encode(newValue)
-            else {
-                defaults.removeObject(forKey: Self.key)
-                return
-            }
-            defaults.set(data, forKey: Self.key)
+        return try JSONDecoder().decode(
+            LibraryLocationRecord.self,
+            from: data
+        )
+    }
+
+    func save(_ record: LibraryLocationRecord?) throws {
+        guard let record else {
+            defaults.removeObject(forKey: Self.key)
+            return
         }
+        let data = try JSONEncoder().encode(record)
+        defaults.set(data, forKey: Self.key)
     }
 }
 
@@ -132,7 +132,15 @@ final class LibraryLocationController {
     func resolveActiveLibrary(
         fallback: ManagedLibraryLocation
     ) -> LibraryLocationResolution {
-        guard let record = store.record else {
+        let record: LibraryLocationRecord?
+        do {
+            record = try store.load()
+        } catch {
+            return .configurationUnavailable(
+                "The saved library location settings are unreadable."
+            )
+        }
+        guard let record else {
             return .available(fallback)
         }
         let resolved: ResolvedLibraryBookmark
@@ -176,7 +184,7 @@ final class LibraryLocationController {
             parentURL: parentURL,
             identity: identity
         )
-        commit(activation)
+        try commit(activation)
     }
 
     func prepareActivation(
@@ -205,7 +213,7 @@ final class LibraryLocationController {
     func prepareReconnect(
         parentURL: URL
     ) throws -> PreparedLibraryLocationActivation {
-        guard let expected = store.record?.identity else {
+        guard let expected = try store.load()?.identity else {
             throw ManagedLibraryError.musicDirectoryUnavailable
         }
         let location = ManagedLibraryLocation(musicDirectory: parentURL)
@@ -223,8 +231,8 @@ final class LibraryLocationController {
 
     func commit(
         _ activation: PreparedLibraryLocationActivation
-    ) {
-        store.record = activation.record
+    ) throws {
+        try store.save(activation.record)
         replaceAccessedParent(with: activation.parentURL)
         pendingParentURL = nil
     }
@@ -239,8 +247,8 @@ final class LibraryLocationController {
         pendingParentURL = nil
     }
 
-    func clearCustomLocation() {
-        store.record = nil
+    func clearCustomLocation() throws {
+        try store.save(nil)
         if let accessedParentURL {
             bookmarkResolver.stopAccessing(accessedParentURL)
             self.accessedParentURL = nil

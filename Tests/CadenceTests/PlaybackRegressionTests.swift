@@ -13,7 +13,7 @@ struct PlaybackRegressionTests {
         )
         let pcm = PlaybackTestBackend(kind: .pcm)
         let media = PlaybackTestSystemMediaSession()
-        let coordinator = PlaybackCoordinator(
+        let coordinator = makePlaybackCoordinator(
             resolver: PlaybackTestResolver(tracks: [track]),
             backends: [pcm],
             systemMediaSession: media
@@ -47,7 +47,7 @@ struct PlaybackRegressionTests {
     func presentationClock() async {
         let track = playbackTestTrack(id: UUID(), title: "Clock", duration: 200)
         let pcm = PlaybackTestBackend(kind: .pcm)
-        let coordinator = PlaybackCoordinator(
+        let coordinator = makePlaybackCoordinator(
             resolver: PlaybackTestResolver(tracks: [track]),
             backends: [pcm]
         )
@@ -91,7 +91,7 @@ struct PlaybackRegressionTests {
         let track = playbackTestTrack(id: UUID(), title: "Clock", duration: 200)
         let pcm = PlaybackTestBackend(kind: .pcm)
         let native = PlaybackTestBackend(kind: .native)
-        let coordinator = PlaybackCoordinator(
+        let coordinator = makePlaybackCoordinator(
             resolver: PlaybackTestResolver(tracks: [track]),
             backends: [pcm, native]
         )
@@ -128,7 +128,7 @@ struct PlaybackRegressionTests {
     func stablePlaybackIndicator() async {
         let track = playbackTestTrack(id: UUID(), title: "Indicator")
         let pcm = PlaybackTestBackend(kind: .pcm)
-        let coordinator = PlaybackCoordinator(
+        let coordinator = makePlaybackCoordinator(
             resolver: PlaybackTestResolver(tracks: [track]),
             backends: [pcm]
         )

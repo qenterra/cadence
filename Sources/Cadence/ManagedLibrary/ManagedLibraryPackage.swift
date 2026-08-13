@@ -140,15 +140,6 @@ struct ManagedLibraryPackage: Sendable {
         try data.write(to: identityURL, options: .atomic)
     }
 
-    func readOrCreateIdentity() throws -> LibraryIdentity {
-        if let identity = try? readIdentity() {
-            return identity
-        }
-        let identity = LibraryIdentity()
-        try writeIdentity(identity)
-        return identity
-    }
-
     private var requiredDirectories: [URL] {
         [
             packageURL,

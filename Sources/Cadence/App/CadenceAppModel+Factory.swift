@@ -1,5 +1,16 @@
 import Foundation
 
+private struct ImportRuntime {
+    let destination: ManagedLibraryImportDestination?
+    let coordinator: ImportCoordinator?
+    let availability: ImportRuntimeAvailability
+}
+
+private struct RemoteRuntime {
+    let source: RemotePlaybackSource
+    let controller: RemoteLibraryController
+}
+
 extension CadenceAppModel {
     static func production(
         librarySession: LibrarySession
@@ -23,6 +34,8 @@ extension CadenceAppModel {
             audioRouteProvider: SystemAudioRouteProvider()
         )
         let model = CadenceAppModel(
+            runtimeMode: .production,
+            importRuntimeAvailability: importRuntime.availability,
             librarySession: librarySession,
             tracks: [],
             tags: [],
@@ -61,6 +74,8 @@ extension CadenceAppModel {
         artworkRepository: any ArtworkRepository = InMemoryArtworkRepository()
     ) -> CadenceAppModel {
         CadenceAppModel(
+            runtimeMode: .preview,
+            importRuntimeAvailability: .preview,
             librarySession: .preview(),
             tracks: tracks,
             tags: tags,
@@ -79,49 +94,85 @@ extension CadenceAppModel {
 private extension CadenceAppModel {
     static func importRuntime(
         librarySession: LibrarySession
-    ) -> (
-        destination: ManagedLibraryImportDestination?,
-        coordinator: ImportCoordinator
-    ) {
-        let destination = librarySession.location.map {
-            ManagedLibraryImportDestination(
-                package: ManagedLibraryPackage(location: $0),
-                repository: librarySession.store.repository
+    ) -> ImportRuntime {
+        if case let .failed(failure) = librarySession.availability {
+            let destination = librarySession.location.map {
+                ManagedLibraryImportDestination(
+                    package: ManagedLibraryPackage(location: $0),
+                    repository: librarySession.store.repository
+                )
+            }
+            return ImportRuntime(
+                destination: destination,
+                coordinator: nil,
+                availability: .unavailable(failure.message)
             )
         }
-        let duplicateLookup = destination.map { destination in
-            ImportDuplicateLookup { probes in
-                try await destination.duplicateEvidence(probes: probes)
-            }
-        } ?? .empty
-        return (
-            destination,
-            ImportCoordinator(
+        guard let location = librarySession.location else {
+            return ImportRuntime(
+                destination: nil,
+                coordinator: nil,
+                availability: .unavailable(
+                    "Import is unavailable because the library location could not be resolved."
+                )
+            )
+        }
+        let destination = ManagedLibraryImportDestination(
+            package: ManagedLibraryPackage(location: location),
+            repository: librarySession.store.repository
+        )
+        let duplicateLookup = ImportDuplicateLookup { probes in
+            try await destination.duplicateEvidence(probes: probes)
+        }
+        return ImportRuntime(
+            destination: destination,
+            coordinator: ImportCoordinator(
                 service: ImportInspectionService(
                     duplicateLookup: duplicateLookup
                 ),
-                importer: destination.map {
-                    ManagedLibraryImporter(destination: $0)
-                }
-            )
+                importer: ManagedLibraryImporter(destination: destination)
+            ),
+            availability: .available
         )
     }
 
     static func remoteRuntime(
         librarySession: LibrarySession
-    ) -> (
-        source: RemotePlaybackSource,
-        controller: RemoteLibraryController
-    ) {
+    ) -> RemoteRuntime {
         let source = RemotePlaybackSource()
-        let expectedLibraryID = librarySession.location.flatMap {
-            try? ManagedLibraryPackage(location: $0).readIdentity().id
+        let identityExpectation: RemoteLibraryIdentityExpectation
+        switch librarySession.availability {
+        case .empty:
+            identityExpectation = .unbound
+        case .recovering, .ready:
+            do {
+                guard let location = librarySession.location else {
+                    identityExpectation = .unavailable(
+                        "Remote libraries are unavailable because the local library location is missing."
+                    )
+                    break
+                }
+                let identity = try ManagedLibraryPackage(
+                    location: location
+                ).readIdentity()
+                identityExpectation = .exact(identity.id)
+            } catch {
+                identityExpectation = .unavailable(
+                    "Remote libraries are unavailable because the local library identity cannot be read."
+                )
+            }
+        case let .failed(failure):
+            identityExpectation = .unavailable(failure.message)
+        case .preview:
+            identityExpectation = .unavailable(
+                "Remote libraries are unavailable until the local library is ready."
+            )
         }
-        return (
-            source,
-            RemoteLibraryController(
+        return RemoteRuntime(
+            source: source,
+            controller: RemoteLibraryController(
                 source: source,
-                expectedLibraryID: expectedLibraryID
+                identityExpectation: identityExpectation
             )
         )
     }

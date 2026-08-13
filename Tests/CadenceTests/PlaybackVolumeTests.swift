@@ -8,7 +8,7 @@ struct PlaybackVolumeTests {
     func volumeChanges() async {
         let track = playbackTestTrack(id: UUID(), title: "Volume")
         let pcm = PlaybackTestBackend(kind: .pcm)
-        let coordinator = PlaybackCoordinator(
+        let coordinator = makePlaybackCoordinator(
             resolver: PlaybackTestResolver(tracks: [track]),
             backends: [pcm]
         )

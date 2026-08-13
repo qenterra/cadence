@@ -3,7 +3,7 @@ import Foundation
 
 extension CadenceAppModel {
     var isImportPreviewMode: Bool {
-        importCoordinator == nil
+        runtimeMode == .preview
     }
 
     var visibleImportCandidates: [ImportCandidatePreview] {

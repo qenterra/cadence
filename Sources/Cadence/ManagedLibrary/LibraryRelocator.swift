@@ -71,7 +71,7 @@ private struct RelocationContext: Sendable {
             )
         manifest = try LibraryRelocationManifest(
             operationID: operationID,
-            libraryIdentity: sourcePackage.readOrCreateIdentity(),
+            libraryIdentity: sourcePackage.readIdentity(),
             sourcePackagePath: sourcePackage.packageURL.path,
             destinationPackagePath: destinationPackage.packageURL.path,
             phase: .preflight,

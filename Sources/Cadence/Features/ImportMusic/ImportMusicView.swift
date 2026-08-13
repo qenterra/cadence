@@ -133,6 +133,23 @@ struct ImportMusicView: View {
 
     @ViewBuilder
     private var stateContent: some View {
+        if case let .unavailable(message) = model.importRuntimeAvailability {
+            ContentUnavailableView {
+                Label(
+                    "Import Unavailable",
+                    systemImage: "exclamationmark.triangle"
+                )
+            } description: {
+                Text(message)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else {
+            importStageContent
+        }
+    }
+
+    @ViewBuilder
+    private var importStageContent: some View {
         switch model.importPreviewStage {
         case .empty:
             ImportMusicEmptyState(

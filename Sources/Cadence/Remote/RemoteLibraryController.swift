@@ -9,6 +9,12 @@ enum RemoteLibraryStatus: Equatable, Sendable {
     case unavailable(String)
 }
 
+enum RemoteLibraryIdentityExpectation: Equatable, Sendable {
+    case unbound
+    case exact(UUID)
+    case unavailable(String)
+}
+
 enum RemoteProviderConfiguration: Codable, Equatable, Sendable {
     case webDAV(rootURL: URL, username: String, credentialKey: String)
     case googleDrive(
@@ -32,7 +38,8 @@ struct RemoteLibrarySettingsRecord: Codable, Equatable, Sendable {
 
 @MainActor
 protocol RemoteLibrarySettingsStoring: AnyObject {
-    var record: RemoteLibrarySettingsRecord? { get set }
+    func load() throws -> RemoteLibrarySettingsRecord?
+    func save(_ record: RemoteLibrarySettingsRecord?) throws
 }
 
 @MainActor
@@ -44,25 +51,23 @@ final class UserDefaultsRemoteLibrarySettingsStore: RemoteLibrarySettingsStoring
         self.defaults = defaults
     }
 
-    var record: RemoteLibrarySettingsRecord? {
-        get {
-            guard let data = defaults.data(forKey: Self.key) else {
-                return nil
-            }
-            return try? JSONDecoder().decode(
-                RemoteLibrarySettingsRecord.self,
-                from: data
-            )
+    func load() throws -> RemoteLibrarySettingsRecord? {
+        guard let data = defaults.data(forKey: Self.key) else {
+            return nil
         }
-        set {
-            guard let newValue,
-                  let data = try? JSONEncoder().encode(newValue)
-            else {
-                defaults.removeObject(forKey: Self.key)
-                return
-            }
-            defaults.set(data, forKey: Self.key)
+        return try JSONDecoder().decode(
+            RemoteLibrarySettingsRecord.self,
+            from: data
+        )
+    }
+
+    func save(_ record: RemoteLibrarySettingsRecord?) throws {
+        guard let record else {
+            defaults.removeObject(forKey: Self.key)
+            return
         }
+        let data = try JSONEncoder().encode(record)
+        defaults.set(data, forKey: Self.key)
     }
 }
 
@@ -77,33 +82,38 @@ final class RemoteLibraryController {
 
     @ObservationIgnored private let source: RemotePlaybackSource
     @ObservationIgnored private let store: any RemoteLibrarySettingsStoring
-    @ObservationIgnored private let expectedLibraryID: UUID?
+    @ObservationIgnored private let identityExpectation: RemoteLibraryIdentityExpectation
     @ObservationIgnored private let fileManager: FileManager
     @ObservationIgnored private var webDAVAuthentication: WebDAVAuthentication?
     @ObservationIgnored private var googleDriveProvider: GoogleDriveProvider?
 
     init(
         source: RemotePlaybackSource,
-        expectedLibraryID: UUID? = nil,
+        identityExpectation: RemoteLibraryIdentityExpectation,
         store: any RemoteLibrarySettingsStoring = UserDefaultsRemoteLibrarySettingsStore(),
         fileManager: FileManager = .default
     ) {
         self.source = source
-        self.expectedLibraryID = expectedLibraryID
+        self.identityExpectation = identityExpectation
         self.store = store
         self.fileManager = fileManager
-        cacheBudgetBytes = store.record?.cacheBudgetBytes
-            ?? Self.defaultCacheBudgetBytes
-        configuredProviderName = store.record?.provider.displayName
+        cacheBudgetBytes = Self.defaultCacheBudgetBytes
+        configuredProviderName = nil
     }
 
     func restore() async {
-        guard let record = store.record else {
-            status = .disconnected
+        if case let .unavailable(message) = identityExpectation {
+            status = .unavailable(message)
             return
         }
         status = .connecting
         do {
+            guard let record = try store.load() else {
+                status = .disconnected
+                return
+            }
+            cacheBudgetBytes = record.cacheBudgetBytes
+            configuredProviderName = record.provider.displayName
             switch record.provider {
             case let .webDAV(rootURL, _, credentialKey):
                 let authentication = WebDAVAuthentication(key: credentialKey)
@@ -162,14 +172,14 @@ final class RemoteLibraryController {
             try await activate(provider: provider, name: "WebDAV")
             webDAVAuthentication = authentication
             googleDriveProvider = nil
-            store.record = RemoteLibrarySettingsRecord(
+            try store.save(RemoteLibrarySettingsRecord(
                 provider: .webDAV(
                     rootURL: rootURL,
                     username: username,
                     credentialKey: credentialKey
                 ),
                 cacheBudgetBytes: cacheBudgetBytes
-            )
+            ))
             configuredProviderName = "WebDAV"
         } catch {
             await source.deactivate()
@@ -198,14 +208,14 @@ final class RemoteLibraryController {
             try await activate(provider: provider, name: "Google Drive")
             googleDriveProvider = provider
             webDAVAuthentication = nil
-            store.record = RemoteLibrarySettingsRecord(
+            try store.save(RemoteLibrarySettingsRecord(
                 provider: .googleDrive(
                     drive: drive,
                     clientID: clientID,
                     redirectURL: redirectURL
                 ),
                 cacheBudgetBytes: cacheBudgetBytes
-            )
+            ))
             configuredProviderName = "Google Drive"
         } catch {
             await source.deactivate()
@@ -214,11 +224,16 @@ final class RemoteLibraryController {
     }
 
     func disconnect() async {
-        try? await webDAVAuthentication?.signOut()
-        try? await googleDriveProvider?.signOut()
+        do {
+            try await webDAVAuthentication?.signOut()
+            try await googleDriveProvider?.signOut()
+            try store.save(nil)
+        } catch {
+            status = .unavailable(error.localizedDescription)
+            return
+        }
         webDAVAuthentication = nil
         googleDriveProvider = nil
-        store.record = nil
         configuredProviderName = nil
         status = .disconnected
         await source.deactivate()
@@ -227,12 +242,35 @@ final class RemoteLibraryController {
     func setCacheBudget(
         _ bytes: Int64
     ) async {
-        cacheBudgetBytes = max(bytes, 0)
-        if var record = store.record {
-            record.cacheBudgetBytes = cacheBudgetBytes
-            store.record = record
+        let previousBudget = cacheBudgetBytes
+        let updatedBudget = max(bytes, 0)
+        let hasActiveCache = if case .ready = status {
+            true
+        } else {
+            false
         }
-        await source.setCacheBudget(cacheBudgetBytes)
+        do {
+            if hasActiveCache {
+                try await source.setCacheBudget(updatedBudget)
+            }
+            if var record = try store.load() {
+                record.cacheBudgetBytes = updatedBudget
+                try store.save(record)
+            }
+            cacheBudgetBytes = updatedBudget
+        } catch {
+            if hasActiveCache {
+                do {
+                    try await source.setCacheBudget(previousBudget)
+                } catch let rollbackError {
+                    status = .unavailable(
+                        "\(error.localizedDescription) Rollback also failed: \(rollbackError.localizedDescription)"
+                    )
+                    return
+                }
+            }
+            status = .unavailable(error.localizedDescription)
+        }
     }
 }
 
@@ -241,11 +279,14 @@ private extension RemoteLibraryController {
         provider: any RemoteLibraryProvider,
         name: String
     ) async throws {
+        if case let .unavailable(message) = identityExpectation {
+            throw RemoteProviderError.serviceUnavailable(message)
+        }
         let response = try await provider.fetchManifest(ifNoneMatch: nil)
         guard let manifest = response.manifest else {
             throw RemoteProviderError.invalidManifest("missing initial manifest")
         }
-        if let expectedLibraryID,
+        if case let .exact(expectedLibraryID) = identityExpectation,
            manifest.libraryID != expectedLibraryID {
             throw RemoteProviderError.conflict
         }

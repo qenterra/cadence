@@ -15,7 +15,7 @@ struct PlaybackCoordinatorTests {
         let pcm = PlaybackTestBackend(kind: .pcm)
         let native = PlaybackTestBackend(kind: .native)
         let media = PlaybackTestSystemMediaSession()
-        let coordinator = PlaybackCoordinator(
+        let coordinator = makePlaybackCoordinator(
             resolver: resolver,
             backends: [pcm, native],
             systemMediaSession: media
@@ -58,7 +58,7 @@ struct PlaybackCoordinatorTests {
         )
         let resolver = PlaybackTestResolver(tracks: [track])
         let pcm = PlaybackTestBackend(kind: .pcm)
-        let coordinator = PlaybackCoordinator(
+        let coordinator = makePlaybackCoordinator(
             resolver: resolver,
             backends: [pcm]
         )
@@ -80,7 +80,7 @@ struct PlaybackCoordinatorTests {
             playbackTestTrack(id: UUID(), title: "Two"),
         ]
         let pcm = PlaybackTestBackend(kind: .pcm)
-        let coordinator = PlaybackCoordinator(
+        let coordinator = makePlaybackCoordinator(
             resolver: PlaybackTestResolver(tracks: tracks),
             backends: [pcm]
         )
@@ -112,10 +112,10 @@ struct PlaybackCoordinatorTests {
         ]
         let resolver = PlaybackTestResolver(tracks: tracks)
         resolver.unavailableIDs = [tracks[0].track.id]
-        let native = PlaybackTestBackend(kind: .native)
-        let coordinator = PlaybackCoordinator(
+        let pcm = PlaybackTestBackend(kind: .pcm)
+        let coordinator = makePlaybackCoordinator(
             resolver: resolver,
-            backends: [native]
+            backends: [pcm]
         )
 
         await coordinator.startQueue(
@@ -126,7 +126,7 @@ struct PlaybackCoordinatorTests {
         #expect(coordinator.state.queue?.currentTrackID == tracks[0].track.id)
         #expect(coordinator.state.failure != nil)
         #expect(coordinator.state.transport == .failed)
-        #expect(native.loadRequests.isEmpty)
+        #expect(pcm.loadRequests.isEmpty)
 
         resolver.unavailableIDs = []
         #expect(await coordinator.retryFailedCurrent())
@@ -148,7 +148,7 @@ struct PlaybackCoordinatorTests {
         let track = playbackTestTrack(id: UUID(), title: "Remote")
         let backend = PlaybackTestBackend(kind: .pcm)
         let media = PlaybackTestSystemMediaSession()
-        let coordinator = PlaybackCoordinator(
+        let coordinator = makePlaybackCoordinator(
             resolver: PlaybackTestResolver(tracks: [track]),
             backends: [backend],
             systemMediaSession: media
@@ -171,7 +171,7 @@ struct PlaybackCoordinatorTests {
     @Test("System media registration remains idempotent")
     func systemRegistration() {
         let media = PlaybackTestSystemMediaSession()
-        let coordinator = PlaybackCoordinator(
+        let coordinator = makePlaybackCoordinator(
             resolver: PlaybackTestResolver(tracks: []),
             backends: [],
             systemMediaSession: media
@@ -188,7 +188,7 @@ struct PlaybackCoordinatorTests {
         let track = playbackTestTrack(id: UUID(), title: "Missing")
         let resolver = PlaybackTestResolver(tracks: [track])
         resolver.unavailableIDs = [track.track.id]
-        let coordinator = PlaybackCoordinator(
+        let coordinator = makePlaybackCoordinator(
             resolver: resolver,
             backends: [PlaybackTestBackend(kind: .pcm)]
         )
@@ -203,6 +203,30 @@ struct PlaybackCoordinatorTests {
         #expect(coordinator.state.failure?.message == "Unavailable")
     }
 
+    @Test("The selected route never substitutes another playback backend")
+    func missingSelectedBackendFailsExplicitly() async {
+        let track = playbackTestTrack(id: UUID(), title: "PCM Required")
+        let native = PlaybackTestBackend(kind: .native)
+        let coordinator = makePlaybackCoordinator(
+            resolver: PlaybackTestResolver(tracks: [track]),
+            backends: [native]
+        )
+
+        #expect(
+            await !(coordinator.startQueue(
+                source: .adHoc,
+                trackIDs: [track.track.id]
+            ))
+        )
+        #expect(native.loadRequests.isEmpty)
+        #expect(coordinator.state.transport == .failed)
+        #expect(
+            coordinator.state.failure?.message.contains(
+                "No compatible playback backend"
+            ) == true
+        )
+    }
+
     @Test("A silent PCM start is rescheduled once before Playing")
     func silentPCMStartRetriesOnce() async {
         let track = playbackTestTrack(id: UUID(), title: "Retry")
@@ -211,7 +235,7 @@ struct PlaybackCoordinatorTests {
             .failed(.renderDidNotAdvance),
             .started,
         ]
-        let coordinator = PlaybackCoordinator(
+        let coordinator = makePlaybackCoordinator(
             resolver: PlaybackTestResolver(tracks: [track]),
             backends: [backend]
         )
@@ -237,7 +261,7 @@ struct PlaybackCoordinatorTests {
             .failed(.renderDidNotAdvance),
             .failed(.renderDidNotAdvance),
         ]
-        let coordinator = PlaybackCoordinator(
+        let coordinator = makePlaybackCoordinator(
             resolver: PlaybackTestResolver(tracks: [track]),
             backends: [backend]
         )

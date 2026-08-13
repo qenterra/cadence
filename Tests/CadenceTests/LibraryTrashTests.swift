@@ -107,6 +107,8 @@ struct LibraryTrashTests {
         defer { fixture.remove() }
         await fixture.session.store.loadInitialLibrary()
         let model = CadenceAppModel(
+            runtimeMode: .production,
+            importRuntimeAvailability: .unavailable("Not used by this test."),
             librarySession: fixture.session,
             tracks: [],
             tags: [],
@@ -304,6 +306,7 @@ private final class DeletionHandoffFixture {
         let location = ManagedLibraryLocation(musicDirectory: musicDirectory)
         let package = ManagedLibraryPackage(location: location)
         try package.bootstrapForConfirmedImport()
+        try package.writeIdentity(LibraryIdentity())
         let container = try LibraryContainerFactory.persistent(package: package)
         let context = ModelContext(container)
         let artist = ArtistRecord(name: "Captured Artist", trackCount: 1, albumCount: 1)

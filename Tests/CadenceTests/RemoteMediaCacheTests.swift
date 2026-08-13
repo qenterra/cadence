@@ -13,7 +13,7 @@ struct RemoteMediaCacheTests {
             try await fixture.cache.localURL(for: fixture.first)
         }
 
-        #expect(await fixture.cache.playableURL(for: fixture.first.id) == nil)
+        #expect(try await fixture.cache.playableURL(for: fixture.first.id) == nil)
         #expect(try FileManager.default.contentsOfDirectory(
             at: fixture.stagingURL,
             includingPropertiesForKeys: nil
@@ -35,22 +35,22 @@ struct RemoteMediaCacheTests {
             try await fixture.cache.localURL(for: invalid)
         }
 
-        #expect(await fixture.cache.playableURL(for: invalid.id) == nil)
+        #expect(try await fixture.cache.playableURL(for: invalid.id) == nil)
     }
 
     @Test("Eviction keeps pinned current and next tracks")
     func evictionKeepsPinnedCurrentAndNext() async throws {
         let fixture = try RemoteMediaCacheFixture(budget: 20)
         defer { fixture.cleanup() }
-        await fixture.cache.pin([fixture.first.id, fixture.second.id])
+        try await fixture.cache.pin([fixture.first.id, fixture.second.id])
 
         _ = try await fixture.cache.localURL(for: fixture.first)
         _ = try await fixture.cache.localURL(for: fixture.second)
         await fixture.cache.prefetch(fixture.third)
 
-        #expect(await fixture.cache.playableURL(for: fixture.first.id) != nil)
-        #expect(await fixture.cache.playableURL(for: fixture.second.id) != nil)
-        #expect(await fixture.cache.playableURL(for: fixture.third.id) == nil)
+        #expect(try await fixture.cache.playableURL(for: fixture.first.id) != nil)
+        #expect(try await fixture.cache.playableURL(for: fixture.second.id) != nil)
+        #expect(try await fixture.cache.playableURL(for: fixture.third.id) == nil)
     }
 
     @Test("A verified cache hit does not download twice")
@@ -71,17 +71,17 @@ struct RemoteMediaCacheTests {
         defer { fixture.cleanup() }
         let expected = try await fixture.cache.localURL(for: fixture.first)
 
-        let reopened = RemoteMediaCache(
+        let reopened = try RemoteMediaCache(
             rootURL: fixture.rootURL,
             budgetBytes: 100,
             provider: fixture.provider
         )
 
-        #expect(await reopened.playableURL(for: fixture.first.id) == expected)
+        #expect(try await reopened.playableURL(for: fixture.first.id) == expected)
     }
 
     @Test("A corrupted cache index cannot escape the cache root")
-    func corruptedIndexCannotEscapeCacheRoot() async throws {
+    func corruptedIndexCannotEscapeCacheRoot() throws {
         let fixture = try RemoteMediaCacheFixture(budget: 100)
         defer { fixture.cleanup() }
         let victim = fixture.rootURL.deletingLastPathComponent().appending(
@@ -101,14 +101,107 @@ struct RemoteMediaCacheTests {
             options: .atomic
         )
 
-        let reopened = RemoteMediaCache(
-            rootURL: fixture.rootURL,
-            budgetBytes: 100,
-            provider: fixture.provider
+        #expect(throws: RemoteCacheError.self) {
+            _ = try RemoteMediaCache(
+                rootURL: fixture.rootURL,
+                budgetBytes: 100,
+                provider: fixture.provider
+            )
+        }
+        #expect(FileManager.default.fileExists(atPath: victim.path))
+    }
+
+    @Test("Cache directory creation failure is explicit")
+    func directoryCreationFailure() throws {
+        let root = FileManager.default.temporaryDirectory.appending(
+            path: "Cadence-Remote-Cache-Blocked-\(UUID().uuidString)",
+            directoryHint: .isDirectory
+        )
+        try FileManager.default.createDirectory(
+            at: root,
+            withIntermediateDirectories: true
+        )
+        defer { try? FileManager.default.removeItem(at: root) }
+        try Data("blocking file".utf8).write(
+            to: root.appending(path: "Objects")
         )
 
-        #expect(await reopened.playableURL(for: fixture.first.id) == nil)
-        #expect(FileManager.default.fileExists(atPath: victim.path))
+        #expect(throws: RemoteCacheError.self) {
+            _ = try RemoteMediaCache(
+                rootURL: root,
+                budgetBytes: 100,
+                provider: RemoteCacheProviderStub(objects: [:])
+            )
+        }
+    }
+
+    @Test("A corrupt cache index fails closed")
+    func corruptIndexFailsClosed() throws {
+        let root = FileManager.default.temporaryDirectory.appending(
+            path: "Cadence-Remote-Cache-Corrupt-\(UUID().uuidString)",
+            directoryHint: .isDirectory
+        )
+        try FileManager.default.createDirectory(
+            at: root,
+            withIntermediateDirectories: true
+        )
+        defer { try? FileManager.default.removeItem(at: root) }
+        try Data("not json".utf8).write(
+            to: root.appending(path: "CacheIndex.json")
+        )
+
+        #expect(throws: RemoteCacheError.self) {
+            _ = try RemoteMediaCache(
+                rootURL: root,
+                budgetBytes: 100,
+                provider: RemoteCacheProviderStub(objects: [:])
+            )
+        }
+    }
+
+    @Test("Eviction index persistence failure reaches the caller")
+    func evictionPersistenceFailure() async throws {
+        let fixture = try RemoteMediaCacheFixture(budget: 100)
+        defer { fixture.cleanup() }
+        _ = try await fixture.cache.localURL(for: fixture.first)
+        let indexURL = fixture.rootURL.appending(path: "CacheIndex.json")
+        try FileManager.default.removeItem(at: indexURL)
+        try FileManager.default.createDirectory(
+            at: indexURL,
+            withIntermediateDirectories: false
+        )
+
+        await #expect(throws: RemoteCacheError.self) {
+            try await fixture.cache.setBudget(bytes: 0)
+        }
+    }
+
+    @Test("A failed index write rolls back a newly promoted object")
+    func promotionPersistenceFailureRollsBackObject() async throws {
+        let fixture = try RemoteMediaCacheFixture(budget: 100)
+        defer { fixture.cleanup() }
+        let indexURL = fixture.rootURL.appending(path: "CacheIndex.json")
+        try FileManager.default.createDirectory(
+            at: indexURL,
+            withIntermediateDirectories: false
+        )
+
+        await #expect(throws: RemoteCacheError.self) {
+            try await fixture.cache.localURL(for: fixture.first)
+        }
+
+        let objects = try FileManager.default.contentsOfDirectory(
+            at: fixture.rootURL.appending(
+                path: "Objects",
+                directoryHint: .isDirectory
+            ),
+            includingPropertiesForKeys: nil
+        )
+        #expect(objects.isEmpty)
+        #expect(try FileManager.default.contentsOfDirectory(
+            at: fixture.stagingURL,
+            includingPropertiesForKeys: nil
+        ).isEmpty)
     }
 }
 
@@ -140,7 +233,7 @@ private struct RemoteMediaCacheFixture {
             second.id: secondBytes,
             third.id: thirdBytes,
         ])
-        cache = RemoteMediaCache(
+        cache = try RemoteMediaCache(
             rootURL: rootURL,
             budgetBytes: budget,
             provider: provider

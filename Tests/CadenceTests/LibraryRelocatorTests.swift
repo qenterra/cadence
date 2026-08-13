@@ -14,6 +14,7 @@ struct LibraryRelocatorTests {
         let source = ManagedLibraryLocation(musicDirectory: sourceParent)
         let package = ManagedLibraryPackage(location: source)
         try package.bootstrapForConfirmedImport()
+        try package.writeIdentity(LibraryIdentity())
         try Data("audio".utf8).write(
             to: package.mediaDirectoryURL.appending(path: "track.flac")
         )

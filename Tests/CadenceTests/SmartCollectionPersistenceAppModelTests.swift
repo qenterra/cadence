@@ -21,6 +21,7 @@ struct SmartCollectionPersistenceAppModelTests {
         let location = ManagedLibraryLocation(musicDirectory: directory)
         let package = ManagedLibraryPackage(location: location)
         try package.bootstrapForConfirmedImport()
+        try package.writeIdentity(LibraryIdentity())
         let original = collection(name: "Favorites")
         let container = try LibraryContainerFactory.persistent(package: package)
         let repository = LibraryRepository(modelContainer: container)

@@ -38,8 +38,8 @@ struct AudioRouteMonitoringTests {
 
     @Test("Route monitoring lifecycle is idempotent")
     func monitoringLifecycle() {
-        let provider = StaticAudioRouteProvider(route: builtIn)
-        let coordinator = PlaybackCoordinator(
+        let provider = PlaybackTestAudioRouteProvider(route: builtIn)
+        let coordinator = makePlaybackCoordinator(
             resolver: PlaybackTestResolver(tracks: []),
             backends: [],
             audioRouteProvider: provider
@@ -224,9 +224,9 @@ extension AudioRouteMonitoringTests {
     @Test("A missing required backend pauses and reports the route")
     func missingBackend() async {
         let track = playbackTestTrack(id: UUID(), title: "PCM Only")
-        let provider = StaticAudioRouteProvider(route: builtIn)
+        let provider = PlaybackTestAudioRouteProvider(route: builtIn)
         let pcm = PlaybackTestBackend(kind: .pcm)
-        let coordinator = PlaybackCoordinator(
+        let coordinator = makePlaybackCoordinator(
             resolver: PlaybackTestResolver(tracks: [track]),
             backends: [pcm],
             audioRouteProvider: provider
@@ -272,10 +272,10 @@ extension AudioRouteMonitoringTests {
     func newQueueSerializesAfterRouteTransition() async {
         let first = playbackTestTrack(id: UUID(), title: "First")
         let second = playbackTestTrack(id: UUID(), title: "Second")
-        let provider = StaticAudioRouteProvider(route: builtIn)
+        let provider = PlaybackTestAudioRouteProvider(route: builtIn)
         let pcm = PlaybackTestBackend(kind: .pcm)
         let native = PlaybackTestBackend(kind: .native)
-        let coordinator = PlaybackCoordinator(
+        let coordinator = makePlaybackCoordinator(
             resolver: PlaybackTestResolver(tracks: [first, second]),
             backends: [pcm, native],
             audioRouteProvider: provider
@@ -304,8 +304,8 @@ extension AudioRouteMonitoringTests {
 
     @Test("A route change without a loaded track updates the snapshot")
     func unloadedRouteChange() async {
-        let provider = StaticAudioRouteProvider(route: builtIn)
-        let coordinator = PlaybackCoordinator(
+        let provider = PlaybackTestAudioRouteProvider(route: builtIn)
+        let coordinator = makePlaybackCoordinator(
             resolver: PlaybackTestResolver(tracks: []),
             backends: [],
             audioRouteProvider: provider
@@ -323,10 +323,10 @@ extension AudioRouteMonitoringTests {
         route: AudioRouteSnapshot
     ) -> RouteMonitoringSetup {
         let track = playbackTestTrack(id: UUID(), title: "Route Test")
-        let provider = StaticAudioRouteProvider(route: route)
+        let provider = PlaybackTestAudioRouteProvider(route: route)
         let pcm = PlaybackTestBackend(kind: .pcm)
         let native = PlaybackTestBackend(kind: .native)
-        let coordinator = PlaybackCoordinator(
+        let coordinator = makePlaybackCoordinator(
             resolver: PlaybackTestResolver(tracks: [track]),
             backends: [pcm, native],
             audioRouteProvider: provider
@@ -353,7 +353,7 @@ extension AudioRouteMonitoringTests {
 @MainActor
 private struct RouteMonitoringSetup {
     let track: ResolvedPlaybackTrack
-    let provider: StaticAudioRouteProvider
+    let provider: PlaybackTestAudioRouteProvider
     let pcm: PlaybackTestBackend
     let native: PlaybackTestBackend
     let coordinator: PlaybackCoordinator

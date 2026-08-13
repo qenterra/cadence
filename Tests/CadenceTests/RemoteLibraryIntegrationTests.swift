@@ -108,7 +108,7 @@ private final class RemotePlaybackFixture {
             next: (nextID, nextObject),
             cacheURL: cacheURL
         )
-        coordinator = PlaybackCoordinator(
+        coordinator = makePlaybackCoordinator(
             resolver: ManagedPlaybackTrackResolver(
                 librarySession: session,
                 remoteSource: source
@@ -148,6 +148,7 @@ private final class RemotePlaybackFixture {
             location: ManagedLibraryLocation(musicDirectory: musicURL)
         )
         try package.bootstrapForConfirmedImport()
+        try package.writeIdentity(LibraryIdentity())
         let container = try LibraryContainerFactory.persistent(package: package)
         for track in tracks {
             try insertTrack(
