@@ -4,7 +4,7 @@ Cadence includes the following Swift Package Manager runtime dependencies:
 
 | Package | Version | Role | License | Source |
 | --- | --- | --- | --- | --- |
-| QenTerraDesignTokens | Local QDS `1.12.x` | Shared visual tokens | MIT | QenTerra design system |
+| QenTerraDesignTokens | Local QDS `4.1.0` | Shared visual tokens | MIT | QenTerra design system |
 | GRDB.swift | `7.10.0` | Derived lyrics full-text index | MIT | [groue/GRDB.swift](https://github.com/groue/GRDB.swift) |
 | AppAuth | `2.1.0` | Google Drive OAuth 2.0 flow | Apache-2.0 | [openid/AppAuth-iOS](https://github.com/openid/AppAuth-iOS) |
 | Sparkle | `2.9.5` | Signed in-app software updates | MIT | [sparkle-project/Sparkle](https://github.com/sparkle-project/Sparkle) |
@@ -31,9 +31,11 @@ are not bundled in the app:
 | SwiftFormat | Formatting checks | MIT | [nicklockwood/SwiftFormat](https://github.com/nicklockwood/SwiftFormat) |
 | SwiftLint | Static style checks | MIT | [realm/SwiftLint](https://github.com/realm/SwiftLint) |
 | xcbeautify | Format `xcodebuild` output | MIT | [cpisciotta/xcbeautify](https://github.com/cpisciotta/xcbeautify) |
+| Python | Run release tooling | Python-2.0 | [Python Software Foundation](https://www.python.org/) |
+| dmgbuild `1.6.7` | Build the styled release disk image and deterministic Finder metadata | MIT | [dmgbuild documentation](https://dmgbuild.readthedocs.io/) |
 
-Homebrew resolves the installed versions from `Brewfile`. Xcode is installed
-separately from Apple.
+Homebrew resolves the installed formula versions from `Brewfile`; the release
+requirements file pins `dmgbuild`. Xcode is installed separately from Apple.
 
 ## Imported media
 

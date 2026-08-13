@@ -34,16 +34,9 @@ dmg_file="$output_dir/$DMG_NAME"
 checksums_file="$output_dir/$CHECKSUMS_NAME"
 sparkle_tools="$derived_data/SourcePackages/artifacts/sparkle/Sparkle/bin"
 staging_dir="$(mktemp -d /private/tmp/cadence-release.XXXXXX)"
-dmg_source="$staging_dir/dmg-source"
-mount_point="$staging_dir/mount"
-read_write_dmg="$staging_dir/Cadence-read-write.dmg"
 appcast_staging="$staging_dir/appcast"
-mounted=0
 
 cleanup() {
-    if [[ "$mounted" == "1" ]]; then
-        hdiutil detach "$mount_point" -force >/dev/null 2>&1 || true
-    fi
     rm -rf "$staging_dir"
 }
 trap cleanup EXIT
@@ -100,8 +93,9 @@ fi
 [[ "$(lipo -archs "$app_bundle/Contents/MacOS/Cadence")" == "$ARCHITECTURE" ]]
 codesign --verify --deep --strict --verbose=2 "$app_bundle"
 
-mkdir -p "$output_dir" "$appcast_staging" "$dmg_source/.background" "$mount_point"
+mkdir -p "$output_dir" "$appcast_staging"
 ditto -c -k --sequesterRsrc --keepParent "$app_bundle" "$zip_file"
+"$project_root/scripts/create_dmg.sh" "$app_bundle" "$dmg_file" "$HUMAN_RELEASE_NAME"
 cp "$project_root/appcast.xml" "$appcast_staging/appcast.xml"
 cp "$zip_file" "$appcast_staging/$ZIP_NAME"
 cp "$release_notes_path" "$appcast_staging/Cadence-$PUBLIC_VERSION.md"
@@ -123,38 +117,12 @@ fi
 cp "$appcast_staging/appcast.xml" "$project_root/appcast.xml"
 cp "$appcast_staging/$ZIP_NAME" "$zip_file"
 
-ditto "$app_bundle" "$dmg_source/Cadence.app"
-cp "$project_root/release/dmg-background.png" "$dmg_source/.background/dmg-background.png"
-ln -s /Applications "$dmg_source/Applications"
-
-hdiutil create \
-    -volname "$HUMAN_RELEASE_NAME" \
-    -srcfolder "$dmg_source" \
-    -ov \
-    -format UDRW \
-    "$read_write_dmg"
-
-hdiutil attach \
-    "$read_write_dmg" \
-    -readwrite \
-    -noverify \
-    -noautoopen \
-    -mountpoint "$mount_point"
-mounted=1
-osascript "$project_root/release/layout.applescript" "$HUMAN_RELEASE_NAME"
-sync
-hdiutil detach "$mount_point"
-mounted=0
-
-hdiutil convert "$read_write_dmg" -format UDZO -imagekey zlib-level=9 -o "$dmg_file"
-
 (
     cd "$output_dir"
     shasum -a 256 "$DMG_NAME" "$ZIP_NAME" > "$CHECKSUMS_NAME"
 )
 
 codesign --verify --deep --strict --verbose=2 "$app_bundle"
-hdiutil verify "$dmg_file"
 unzip -t "$zip_file"
 
 echo "Prepared $HUMAN_RELEASE_NAME."
