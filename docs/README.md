@@ -13,6 +13,7 @@
 - [Building from source](BUILDING.md)
 - [Architecture](ARCHITECTURE.md)
 - [Dependencies](DEPENDENCIES.md)
+- [Release versions, installer, and updates](UPDATES.md)
 - [UI system](UI_SYSTEM.md)
 - [Contributing](../CONTRIBUTING.md)
 - [Security Policy](../SECURITY.md)

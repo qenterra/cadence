@@ -1,0 +1,38 @@
+{
+  "$schema": "../design-system/schemas/product-release.schema.json",
+  "schemaVersion": 1,
+  "product": {
+    "name": "Cadence",
+    "artifactStem": "Cadence",
+    "bundleIdentifier": "com.qenterra.cadence",
+    "humanReleaseName": "Cadence 0.2.0 Beta 1 (2)"
+  },
+  "release": {
+    "marketingVersion": "0.2.0",
+    "build": 2,
+    "channel": "beta",
+    "iteration": 1,
+    "version": "0.2.0-beta.1",
+    "tag": "v0.2.0-beta.1"
+  },
+  "platform": {
+    "name": "macOS",
+    "minimumVersion": "26.0",
+    "architecture": "arm64"
+  },
+  "distribution": {
+    "signing": "ad-hoc",
+    "notarized": false,
+    "gatekeeperDisclosure": true
+  },
+  "installer": {
+    "format": "dmg",
+    "style": "soft-graphite-monochrome",
+    "applicationsAlias": true
+  },
+  "artifacts": {
+    "installer": "Cadence-0.2.0-beta.1-arm64.dmg",
+    "update": "Cadence-0.2.0-beta.1-arm64.zip",
+    "checksums": "Cadence-0.2.0-beta.1-SHA256SUMS.txt"
+  }
+}

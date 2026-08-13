@@ -20,17 +20,27 @@ Updates**.
 
 ## Preparing a release
 
-1. Make sure the release candidate passes `scripts/verify.sh` and silent manual
-   playback/library checks.
-2. Run `scripts/prepare_release.sh <version> <build> <stable|beta>
-   [release-notes.md]`. The script archives Cadence, creates the update ZIP,
-   signs it with the Keychain EdDSA key, and updates `appcast.xml`.
-3. Inspect the archive, appcast diff, release notes, and version/build values.
-4. Create GitHub release tag `v<version>` and upload the ZIP printed by the
-   script. Do not rename the asset after generating the appcast.
-5. Commit and publish the updated `appcast.xml`. Verify its enclosure URL from
-   a clean machine before announcing the release.
+`qds-release.json` is the canonical release source. The current contract is
+**Cadence 0.2.0 Beta 1 (2)**, tag `v0.2.0-beta.1`, Apple silicon, macOS 26 or
+later. It produces exactly:
 
-For a beta, use a prerelease version such as `0.2.0-beta.1`, select `beta`, and
-mark the GitHub release as a prerelease. Sparkle tags that appcast item with the
-`beta` channel, so stable users never receive it.
+- `Cadence-0.2.0-beta.1-arm64.dmg`
+- `Cadence-0.2.0-beta.1-arm64.zip`
+- `Cadence-0.2.0-beta.1-SHA256SUMS.txt`
+
+1. Make sure the release candidate passes `scripts/verify.sh` and focused live
+   playback/library checks.
+2. Run `scripts/prepare_release.sh [release-notes.md]`. The script validates the
+   QDS contract, archives Cadence with the manifest version/build, creates the
+   update ZIP and styled DMG, signs the ZIP with the Keychain EdDSA key, updates
+   `appcast.xml`, and writes checksums.
+3. Inspect the mounted DMG, both archive payloads, appcast diff, release notes,
+   version/build values, signing output, and checksums.
+4. Create the manifest tag and GitHub prerelease and upload all three named
+   assets. Do not rename an asset after generating the appcast.
+5. Commit and publish the updated `appcast.xml`. Read the public release and
+   enclosure URL back before announcing it.
+
+The first beta is ad-hoc signed and not notarized. Its release page and README
+must keep the Gatekeeper disclosure visible. Sparkle tags the appcast item with
+the `beta` channel, so stable users never receive it.

@@ -5,10 +5,23 @@ uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.2.0-beta.1] - 2026-08-13
+
+### Added
+
+- Added temporary Finder playback for supported audio files without automatic
+  library import, plus an explicit **Add to Library…** action for the current
+  external track.
+- Added the first installable Apple silicon beta as a styled monochrome DMG,
+  a Sparkle update archive, and SHA-256 checksums.
+- Added one manifest-backed release version contract across Xcode, Git tags,
+  documentation, archive names, signing claims, and installer metadata.
+
 ### Changed
 
-- Public documentation, project metadata, and contributor workflow are being
-  prepared for the first source release.
+- Updated Cadence to QenTerra Design System 4.1.0.
+- Registered supported audio formats as Viewer document types while keeping
+  manual library import as the only persistence path.
 
 ## [0.1.0] - 2026-07-31
 
@@ -24,5 +37,6 @@ uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   light, dark, and system appearance modes.
 - SwiftData persistence and a unit and integration test suite.
 
-[Unreleased]: https://github.com/QenTerra/cadence/compare/main...HEAD
+[Unreleased]: https://github.com/QenTerra/cadence/compare/v0.2.0-beta.1...HEAD
+[0.2.0-beta.1]: https://github.com/QenTerra/cadence/releases/tag/v0.2.0-beta.1
 [0.1.0]: https://github.com/QenTerra/cadence/tree/main

@@ -2,8 +2,8 @@
 
 ## Supported version
 
-Cadence is a source-only development project. Security fixes target the current
-`main` branch.
+Cadence `0.2.0-beta.1` is the current binary beta. Security fixes target the
+current `main` branch; the beta is ad-hoc signed and not notarized.
 
 ## Report a vulnerability
 

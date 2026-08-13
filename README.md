@@ -17,7 +17,7 @@
   <a href="LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-f2f2f2"></a>
   <img alt="macOS 26 or later" src="https://img.shields.io/badge/macOS-26%2B-f2f2f2">
   <img alt="Swift 6" src="https://img.shields.io/badge/Swift-6-f2f2f2">
-  <img alt="Version 0.1.0" src="https://img.shields.io/badge/version-0.1.0-f2f2f2">
+  <img alt="Version 0.2.0-beta.1" src="https://img.shields.io/badge/version-0.2.0--beta.1-f2f2f2">
   <a href="https://buymeacoffee.com/qenterra"><img alt="Buy Me a Coffee" src="https://img.shields.io/badge/Buy%20Me%20a%20Coffee-FFDD00?logo=buymeacoffee&logoColor=000000"></a>
 </p>
 
@@ -33,8 +33,9 @@ untouched, and puts playback, lyrics, tags, playlists, and smart collections in
 one native SwiftUI app. The library lives at `~/Music/Cadence.library`.
 
 > [!IMPORTANT]
-> Cadence is a source-only development build. There is no signed, notarized,
-> App Store, or GitHub binary release yet.
+> Cadence 0.2.0 Beta 1 (2) is available as an ad-hoc signed Apple silicon
+> beta. It is not notarized, so macOS may show Gatekeeper friction on first
+> launch. It has not passed Apple review and is not an App Store release.
 
 ## Interface
 
@@ -112,6 +113,19 @@ synthetic; the capture process cannot open the developer's music library.
 - Import, crop, replace, or remove track, album, and artist artwork.
 
 ## Quick start
+
+### Install the beta
+
+Download
+[`Cadence-0.2.0-beta.1-arm64.dmg`](https://github.com/QenTerra/cadence/releases/download/v0.2.0-beta.1/Cadence-0.2.0-beta.1-arm64.dmg),
+open it, and drag Cadence to the visible **Applications** alias.
+
+This beta is ad-hoc signed and not notarized. If Gatekeeper blocks the first
+launch, Control-click Cadence in Applications and choose **Open**. If macOS
+still blocks it, review the named Cadence warning under **System Settings >
+Privacy & Security** and choose **Open Anyway** only if you downloaded the DMG
+from the official QenTerra release. Future Developer ID builds should not
+require this workaround.
 
 ### Requirements
 
@@ -192,7 +206,8 @@ the [GitHub Wiki](https://github.com/QenTerra/cadence/wiki) for more detail.
 
 ## Current limitations
 
-- Cadence is available as source only; there is no signed or notarized binary.
+- The first binary beta is Apple silicon only, ad-hoc signed, and not notarized.
+- Intel and universal binaries are not included in `0.2.0-beta.1`.
 - The complete Xcode 27 build and test gate remains local while the hosted
   GitHub runner provides an older toolchain.
 - Output-device behavior, long playback, VoiceOver, spatial audio, and large

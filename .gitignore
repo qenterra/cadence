@@ -7,6 +7,8 @@ xcuserdata/
 *.xccheckout
 *.xcscmblueprint
 Cadence.xcodeproj/**/xcuserdata/
+__pycache__/
+*.py[cod]
 
 # Local configuration and credentials
 *.mobileprovision
