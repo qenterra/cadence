@@ -57,34 +57,43 @@ DEVELOPER_DIR="$developer_dir" xcodebuild \
     CODE_SIGN_ENTITLEMENTS= \
     test | xcbeautify
 
-for image in "$project_root"/docs/images/cadence-{library,now-playing,tags,settings}.png; do
+for image in "$project_root"/docs/images/cadence-{library,now-playing,tags}.png; do
     [[ -f "$image" ]]
     [[ "$(sips -g pixelWidth "$image" | tail -n 1 | awk '{print $2}')" == "2160" ]]
     is_supported_minimum_height "$(sips -g pixelHeight "$image" | tail -n 1 | awk '{print $2}')"
 done
 
-for image in "$project_root"/docs/images/qa-{library,all-tracks,now-playing,album,import-review}-min-*.png; do
+for scene in home library album now-playing import-review; do
+    for viewport in min ideal wide; do
+        case "$viewport" in
+            min) expected_width=2160 ;;
+            ideal) expected_width=3024 ;;
+            wide) expected_width=2880 ;;
+        esac
+        for appearance in system light dark; do
+            image="$project_root/docs/images/qa-$scene-$viewport-$appearance.png"
+            [[ -f "$image" ]]
+            [[ "$(sips -g pixelWidth "$image" | tail -n 1 | awk '{print $2}')" == "$expected_width" ]]
+        done
+    done
+done
+
+for appearance in system light dark; do
+    image="$project_root/docs/images/qa-empty-home-min-$appearance.png"
     [[ -f "$image" ]]
     [[ "$(sips -g pixelWidth "$image" | tail -n 1 | awk '{print $2}')" == "2160" ]]
-    is_supported_minimum_height "$(sips -g pixelHeight "$image" | tail -n 1 | awk '{print $2}')"
 done
 
-for image in "$project_root"/docs/images/qa-empty-home-min-*.png; do
-    [[ -f "$image" ]]
-    [[ "$(sips -g pixelWidth "$image" | tail -n 1 | awk '{print $2}')" == "2160" ]]
-    is_supported_minimum_height "$(sips -g pixelHeight "$image" | tail -n 1 | awk '{print $2}')"
+settings_image="$project_root/docs/images/cadence-settings.png"
+[[ -f "$settings_image" ]]
+[[ "$(sips -g pixelWidth "$settings_image" | tail -n 1 | awk '{print $2}')" == "1520" ]]
+for tab in general library sidebar remote shortcuts updates about; do
+    for appearance in system light dark; do
+        image="$project_root/docs/images/qa-settings-$tab-$appearance.png"
+        [[ -f "$image" ]]
+        [[ "$(sips -g pixelWidth "$image" | tail -n 1 | awk '{print $2}')" == "1520" ]]
+    done
 done
-
-for image in "$project_root"/docs/images/qa-{library,all-tracks,now-playing,album,import-review}-wide-*.png; do
-    [[ -f "$image" ]]
-    [[ "$(sips -g pixelWidth "$image" | tail -n 1 | awk '{print $2}')" == "2880" ]]
-    [[ "$(sips -g pixelHeight "$image" | tail -n 1 | awk '{print $2}')" == "1800" ]]
-done
-
-settings_update_image="$project_root/docs/images/qa-settings-updates-dark.png"
-[[ -f "$settings_update_image" ]]
-[[ "$(sips -g pixelWidth "$settings_update_image" | tail -n 1 | awk '{print $2}')" == "2160" ]]
-is_supported_minimum_height "$(sips -g pixelHeight "$settings_update_image" | tail -n 1 | awk '{print $2}')"
 
 for image in "$project_root"/docs/images/qa-cadence-mode-*min-*.png; do
     [[ -f "$image" ]]

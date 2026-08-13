@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct PlayerBar: View {
+    @Environment(\.visualRegressionUsesStableSystemControls)
+    var usesStableSystemControls
     @Bindable var model: CadenceAppModel
     let suspendsProgressAnimation: Bool
     @State private var pendingSeekProgress: Double?

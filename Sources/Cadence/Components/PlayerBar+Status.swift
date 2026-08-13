@@ -36,9 +36,16 @@ extension PlayerBar {
     }
 
     var audioOutputMenu: some View {
-        AirPlayRoutePicker(
-            player: model.playbackCoordinator?.airPlayPlayer
-        )
+        Group {
+            if usesStableSystemControls {
+                Image(systemName: "airplayaudio")
+                    .foregroundStyle(CadenceTheme.playerMetadata)
+            } else {
+                AirPlayRoutePicker(
+                    player: model.playbackCoordinator?.airPlayPlayer
+                )
+            }
+        }
         .frame(width: 34, height: 34)
         .help("Audio Output: \(model.playbackOutputRoute.name)")
         .accessibilityLabel(

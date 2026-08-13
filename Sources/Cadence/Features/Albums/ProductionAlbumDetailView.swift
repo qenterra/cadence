@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct ProductionAlbumDetailView: View {
+    @Environment(\.albumDetailReadinessObserver) private var readinessObserver
     @Bindable var model: CadenceAppModel
     @Bindable var store: LibraryStore
     let albumID: UUID
@@ -293,6 +294,9 @@ private extension ProductionAlbumDetailView {
             loadFailure = error.localizedDescription
         }
         isLoading = false
+        if loadFailure == nil {
+            readinessObserver?.notify(albumID)
+        }
     }
 
     func albumTitle(_ album: LibraryAlbumProjection) -> some View {

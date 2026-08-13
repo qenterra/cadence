@@ -6,47 +6,58 @@ import Testing
 
 @MainActor
 struct DocumentationScreenshotTests {
+    @Test("Album capture cannot complete while album content is loading")
+    func albumCaptureRequiresSemanticReadiness() async throws {
+        let fixture = try await DocumentationScreenshotFixture.make()
+        fixture.model.requestOpenProductionAlbumContextually(
+            id: fixture.albumID
+        )
+
+        await #expect(throws: DocumentationScreenshotReadinessError.self) {
+            try await fixture.waitUntilReady(
+                for: .album(fixture.albumID),
+                timeout: .milliseconds(50)
+            )
+        }
+    }
+
+    @Test("A visual mismatch produces a deterministic diff artifact")
+    func mismatchedBaselineProducesDiff() throws {
+        let baseline = Self.imageURL("qa-home-min-dark.png")
+        let actual = Self.imageURL("qa-empty-home-min-dark.png")
+        let diff = FileManager.default.temporaryDirectory.appending(
+            path: "Cadence-Screenshot-Diff-\(UUID().uuidString).png"
+        )
+        defer { try? FileManager.default.removeItem(at: diff) }
+
+        #expect(throws: DocumentationScreenshotComparisonError.self) {
+            try DocumentationScreenshotComparator.assertMatch(
+                actual: actual,
+                baseline: baseline,
+                diff: diff
+            )
+        }
+        #expect(FileManager.default.fileExists(atPath: diff.path))
+    }
+
     @Test("Render public screenshots from production projections")
     func renderProductionScreenshots() async throws {
-        guard FileManager.default.fileExists(atPath: Self.updateMarker.path) else {
-            return
-        }
-
-        let railPreferenceKey = "navigationRail.expanded"
-        let previousRailPreference = UserDefaults.standard.object(
-            forKey: railPreferenceKey
-        )
-        UserDefaults.standard.set(true, forKey: railPreferenceKey)
-        defer {
-            if let previousRailPreference {
-                UserDefaults.standard.set(
-                    previousRailPreference,
-                    forKey: railPreferenceKey
-                )
-            } else {
-                UserDefaults.standard.removeObject(forKey: railPreferenceKey)
-            }
-        }
+        let navigationPreferences = NavigationScreenshotPreferences()
+        navigationPreferences.install()
+        defer { navigationPreferences.restore() }
 
         let fixture = try await DocumentationScreenshotFixture.make()
-        try await captureHome(fixture)
+        let homePreferences = HomeScreenshotPreferences(fixture: fixture)
+        homePreferences.install()
+        defer { homePreferences.restore() }
+
+        fixture.model.selectedDestination = .home
+        try await fixture.captureMatrix(prefix: "home")
         try await captureEmptyHome()
 
         fixture.model.selectedDestination = .library
         try await fixture.capture("cadence-library.png")
-        try await fixture.capture(
-            "qa-library-min-light.png",
-            appearance: .light
-        )
-        try await fixture.capture(
-            "qa-library-wide-dark.png",
-            contentSize: .wide
-        )
-        try await fixture.capture(
-            "qa-library-wide-light.png",
-            contentSize: .wide,
-            appearance: .light
-        )
+        try await fixture.captureMatrix(prefix: "library")
 
         fixture.model.selectedDestination = .allTracks
         try await fixture.capture("qa-all-tracks-min-dark.png")
@@ -55,95 +66,48 @@ struct DocumentationScreenshotTests {
             contentSize: .wide
         )
 
-        fixture.model.presentNowPlaying()
-        fixture.model.selectedNowPlayingPanel = .queue
-        try await fixture.capture("cadence-now-playing.png")
-        try await fixture.capture(
-            "qa-now-playing-min-light.png",
-            appearance: .light
-        )
-        try await fixture.capture(
-            "qa-now-playing-wide-dark.png",
-            contentSize: .wide
-        )
+        let nowPlayingFixture = try await DocumentationScreenshotFixture.make()
+        nowPlayingFixture.model.presentNowPlaying()
+        nowPlayingFixture.model.selectedNowPlayingPanel = .queue
+        try await nowPlayingFixture.capture("cadence-now-playing.png")
+        try await nowPlayingFixture.captureMatrix(prefix: "now-playing")
 
-        fixture.model.dismissNowPlaying()
-        fixture.model.requestOpenProductionAlbumContextually(
-            id: fixture.albumID
+        let albumFixture = try await DocumentationScreenshotFixture.make()
+        albumFixture.model.requestOpenProductionAlbumContextually(
+            id: albumFixture.albumID
         )
-        try await fixture.capture("qa-album-min-dark.png")
-        try await fixture.capture(
-            "qa-album-min-light.png",
-            appearance: .light
-        )
-        try await fixture.capture(
-            "qa-album-wide-dark.png",
-            contentSize: .wide
-        )
+        try await albumFixture.captureMatrix(prefix: "album")
 
         try await fixture.captureSettings("cadence-settings.png")
-        try await fixture.captureSettings(
-            "qa-settings-updates-dark.png",
-            tab: .updates
-        )
+        try await fixture.captureSettingsMatrix()
 
-        fixture.model.selectedDestination = .importMusic
-        fixture.model.showImportPreviewStage(.review)
-        try await fixture.capture("qa-import-review-min-dark.png")
-        try await fixture.capture(
-            "qa-import-review-min-light.png",
-            appearance: .light
-        )
-        try await fixture.capture(
-            "qa-import-review-wide-dark.png",
-            contentSize: .wide
-        )
+        let importFixture = try await DocumentationScreenshotFixture.make()
+        importFixture.model.selectedDestination = .importMusic
+        importFixture.model.showImportPreviewStage(.review)
+        try await importFixture.captureMatrix(prefix: "import-review")
 
         fixture.model.selectedDestination = .tags
         fixture.model.selectedProductionTagID = fixture.tagID
         try await fixture.capture("cadence-tags.png")
     }
 
-    private func captureHome(
-        _ fixture: DocumentationScreenshotFixture
-    ) async throws {
-        let preferences = HomeScreenshotPreferences(fixture: fixture)
-        preferences.install()
-        defer { preferences.restore() }
-
-        fixture.model.selectedDestination = .home
-        try await fixture.capture("qa-home-min-dark.png")
-        try await fixture.capture(
-            "qa-home-min-light.png",
-            appearance: .light
-        )
-        try await fixture.capture(
-            "qa-home-wide-dark.png",
-            contentSize: .wide
-        )
-        try await fixture.capture(
-            "qa-home-wide-light.png",
-            contentSize: .wide,
-            appearance: .light
-        )
-    }
-
     private func captureEmptyHome() async throws {
         let fixture = try await DocumentationScreenshotFixture.makeEmpty()
         fixture.model.selectedDestination = .home
-        try await fixture.capture("qa-empty-home-min-dark.png")
-        try await fixture.capture(
-            "qa-empty-home-min-light.png",
-            appearance: .light
-        )
+        for appearance in DocumentationScreenshotAppearance.allCases {
+            try await fixture.capture(
+                "qa-empty-home-min-\(appearance.slug).png",
+                appearance: appearance
+            )
+        }
     }
 
-    private static var updateMarker: URL {
+    private static func imageURL(_ name: String) -> URL {
         URL(filePath: #filePath)
             .deletingLastPathComponent()
             .deletingLastPathComponent()
             .deletingLastPathComponent()
-            .appending(path: ".build/update-screenshots")
+            .appending(path: "docs/images/\(name)")
     }
 }
 
@@ -153,17 +117,20 @@ final class DocumentationScreenshotFixture {
     let albumID: UUID
     let artistID: UUID
     let tagID: UUID
+    let readinessTracker: DocumentationScreenshotReadinessTracker
 
     init(
         model: CadenceAppModel,
         albumID: UUID,
         artistID: UUID,
-        tagID: UUID
+        tagID: UUID,
+        readinessTracker: DocumentationScreenshotReadinessTracker
     ) {
         self.model = model
         self.albumID = albumID
         self.artistID = artistID
         self.tagID = tagID
+        self.readinessTracker = readinessTracker
     }
 
     static func make() async throws -> DocumentationScreenshotFixture {
@@ -172,6 +139,11 @@ final class DocumentationScreenshotFixture {
         let repository = LibraryRepository(modelContainer: container)
         let session = LibrarySession.preview()
         await session.activate(repository: repository)
+        let readinessTracker = DocumentationScreenshotReadinessTracker()
+        session.store.catalogLookupClient = trackedCatalogClient(
+            repository: repository,
+            readinessTracker: readinessTracker
+        )
 
         let resolved = seeded.tracks.map {
             ResolvedPlaybackTrack(
@@ -200,15 +172,17 @@ final class DocumentationScreenshotFixture {
         await coordinator.startQueue(
             source: .album(seeded.albumID),
             trackIDs: trackIDs,
-            startingAt: trackIDs.first
+            startingAt: session.store.recentlyPlayedTracks.first?.id
         )
         coordinator.receive(.time(89), from: .pcm)
+        coordinator.pause()
 
         return DocumentationScreenshotFixture(
             model: model,
             albumID: seeded.albumID,
             artistID: seeded.artistID,
-            tagID: seeded.tagID
+            tagID: seeded.tagID,
+            readinessTracker: readinessTracker
         )
     }
 
@@ -217,7 +191,7 @@ final class DocumentationScreenshotFixture {
         let repository = LibraryRepository(modelContainer: container)
         let session = LibrarySession.preview()
         await session.activate(repository: repository)
-
+        let readinessTracker = DocumentationScreenshotReadinessTracker()
         let model = CadenceAppModel(
             librarySession: session,
             tracks: [],
@@ -238,7 +212,8 @@ final class DocumentationScreenshotFixture {
             model: model,
             albumID: UUID(),
             artistID: UUID(),
-            tagID: UUID()
+            tagID: UUID(),
+            readinessTracker: readinessTracker
         )
     }
 
@@ -253,13 +228,14 @@ final class DocumentationScreenshotFixture {
             rootView: CadenceRootView(model: model),
             contentSize: contentSize,
             appearance: appearance,
+            scene: inferredScene,
             rhythmPulseVisualQAState: rhythmPulseVisualQAState
         )
     }
 
     func captureSettings(
         _ filename: String,
-        contentSize: NSSize = .minimum,
+        contentSize: NSSize = .settings,
         appearance: DocumentationScreenshotAppearance = .dark,
         tab: CadenceSettingsTab = .general
     ) async throws {
@@ -273,8 +249,26 @@ final class DocumentationScreenshotFixture {
                 selection: tab
             ),
             contentSize: contentSize,
-            appearance: appearance
+            appearance: appearance,
+            scene: .settings(tab)
         )
+    }
+
+    func waitUntilReady(
+        for scene: DocumentationScreenshotScene,
+        timeout: Duration = .seconds(3)
+    ) async throws {
+        let clock = ContinuousClock()
+        let deadline = clock.now.advanced(by: timeout)
+        while !isReady(for: scene) {
+            guard clock.now < deadline else {
+                throw DocumentationScreenshotReadinessError.timedOut(
+                    scene,
+                    diagnostic: readinessDiagnostic(for: scene)
+                )
+            }
+            try await Task.sleep(for: .milliseconds(10))
+        }
     }
 
     private func capture(
@@ -282,14 +276,29 @@ final class DocumentationScreenshotFixture {
         rootView: some View,
         contentSize: NSSize,
         appearance: DocumentationScreenshotAppearance,
+        scene: DocumentationScreenshotScene,
         rhythmPulseVisualQAState: RhythmPulseVisualQAState? = nil
     ) async throws {
+        readinessTracker.prepareForCapture(scene)
         let rootView = rootView
             .frame(width: contentSize.width, height: contentSize.height)
-            .environment(\.colorScheme, appearance.colorScheme)
+            .transaction { transaction in
+                transaction.animation = nil
+                transaction.disablesAnimations = true
+            }
             .environment(
                 \.rhythmPulseVisualQAState,
                 rhythmPulseVisualQAState
+            )
+            .environment(
+                \.albumDetailReadinessObserver,
+                AlbumDetailReadinessObserver(
+                    notify: readinessTracker.didRenderAlbum
+                )
+            )
+            .environment(
+                \.visualRegressionUsesStableSystemControls,
+                true
             )
             .tint(CadenceTheme.primaryAccent)
 
@@ -306,14 +315,22 @@ final class DocumentationScreenshotFixture {
         window.toolbarStyle = .unifiedCompact
         window.appearance = NSAppearance(named: appearance.appKitName)
         window.contentView = hostingView
+        window.contentMinSize = contentSize
+        window.contentMaxSize = contentSize
+        window.setContentSize(contentSize)
         window.makeKeyAndOrderFront(nil)
 
-        try await Task.sleep(for: .milliseconds(500))
-        try pngData(for: window).write(
-            to: Self.outputDirectory.appending(path: filename),
-            options: .atomic
+        // Mount the SwiftUI tree before waiting for view-owned async tasks.
+        hostingView.layoutSubtreeIfNeeded()
+        hostingView.displayIfNeeded()
+        try await waitUntilReady(for: scene)
+        hostingView.layoutSubtreeIfNeeded()
+        await Task.yield()
+        let data = try pngData(for: window)
+        try Self.storeScreenshot(
+            data,
+            filename: filename
         )
-        window.orderOut(nil)
         window.close()
     }
 
@@ -338,32 +355,213 @@ final class DocumentationScreenshotFixture {
         return data
     }
 
-    private static var outputDirectory: URL {
+    private static var projectRoot: URL {
         URL(filePath: #filePath)
             .deletingLastPathComponent()
             .deletingLastPathComponent()
             .deletingLastPathComponent()
-            .appending(path: "docs/images", directoryHint: .isDirectory)
     }
 }
 
-enum DocumentationScreenshotAppearance {
+@MainActor
+enum DocumentationScreenshotAppearance: CaseIterable {
+    case system
     case dark
     case light
 
-    var colorScheme: ColorScheme {
-        self == .dark ? .dark : .light
+    var appKitName: NSAppearance.Name {
+        switch self {
+        case .system: NSApp.effectiveAppearance.name
+        case .dark: .darkAqua
+        case .light: .aqua
+        }
     }
 
-    var appKitName: NSAppearance.Name {
-        self == .dark ? .darkAqua : .aqua
+    var slug: String {
+        switch self {
+        case .system: "system"
+        case .dark: "dark"
+        case .light: "light"
+        }
+    }
+}
+
+enum DocumentationScreenshotViewport: CaseIterable {
+    case minimum
+    case ideal
+    case wide
+
+    var size: NSSize {
+        switch self {
+        case .minimum: .minimum
+        case .ideal: .ideal
+        case .wide: .wide
+        }
+    }
+
+    var slug: String {
+        switch self {
+        case .minimum: "min"
+        case .ideal: "ideal"
+        case .wide: "wide"
+        }
     }
 }
 
 extension NSSize {
     static let minimum = NSSize(width: 1080, height: 844)
+    static let ideal = NSSize(width: 1512, height: 982)
     static let wide = NSSize(width: 1440, height: 868)
     static let large = NSSize(width: 2200, height: 1300)
+    static let settings = NSSize(width: 760, height: 640)
+}
+
+@MainActor
+private extension DocumentationScreenshotFixture {
+    var inferredScene: DocumentationScreenshotScene {
+        if model.playbackWorkspace == .nowPlaying {
+            return .nowPlaying
+        }
+        if model.selectedDestination == .albums,
+           let albumID = model.selectedProductionAlbumID {
+            return .album(albumID)
+        }
+        switch model.selectedDestination {
+        case .home:
+            return .home
+        case .importMusic:
+            return .importReview
+        default:
+            return .library(model.selectedDestination)
+        }
+    }
+
+    func isReady(for scene: DocumentationScreenshotScene) -> Bool {
+        guard model.librarySession.availability == .ready else {
+            return false
+        }
+        switch scene {
+        case .home:
+            return model.selectedDestination == .home
+        case let .library(destination):
+            let destinationIsReady = if destination == .allTracks {
+                model.librarySession.store.allTracksWindow?.firstPageState
+                    == .ready
+            } else {
+                true
+            }
+            return model.playbackWorkspace == .hidden
+                && model.selectedDestination == destination
+                && destinationIsReady
+        case let .album(albumID):
+            return model.selectedProductionAlbumID == albumID
+                && readinessTracker.isAlbumReady(albumID)
+        case .nowPlaying:
+            return model.playbackWorkspace == .nowPlaying
+                && model.currentPlaybackTrack != nil
+        case .importReview:
+            return model.selectedDestination == .importMusic
+                && model.importPreviewStage == .review
+                && !model.importCandidates.isEmpty
+        case .settings:
+            return true
+        }
+    }
+
+    func readinessDiagnostic(
+        for scene: DocumentationScreenshotScene
+    ) -> String {
+        switch scene {
+        case .home:
+            "destination=\(model.selectedDestination)"
+        case let .album(albumID):
+            "selected=\(String(describing: model.selectedProductionAlbumID)), "
+                + readinessTracker.albumDiagnostic(albumID)
+        case .library(.allTracks):
+            "destination=\(model.selectedDestination), firstPage="
+                + "\(String(describing: model.librarySession.store.allTracksWindow?.firstPageState))"
+        default:
+            "destination=\(model.selectedDestination), workspace=\(model.playbackWorkspace)"
+        }
+    }
+
+    static func trackedCatalogClient(
+        repository: LibraryRepository,
+        readinessTracker: DocumentationScreenshotReadinessTracker
+    ) -> LibraryCatalogLookupClient {
+        let base = LibraryCatalogLookupClient(repository: repository)
+        return LibraryCatalogLookupClient(
+            artist: base.artist,
+            album: { id in
+                let album = try await base.album(id)
+                await readinessTracker.didLoadAlbum(id)
+                return album
+            },
+            albumTracks: { id in
+                let tracks = try await base.albumTracks(id)
+                await readinessTracker.didLoadAlbumTracks(id)
+                return tracks
+            },
+            artistTracks: base.artistTracks,
+            artistAlbums: base.artistAlbums,
+            artistReleases: base.artistReleases,
+            tagTracks: base.tagTracks,
+            allTrackIDs: base.allTrackIDs
+        )
+    }
+
+    func captureMatrix(prefix: String) async throws {
+        for viewport in DocumentationScreenshotViewport.allCases {
+            for appearance in DocumentationScreenshotAppearance.allCases {
+                try await capture(
+                    "qa-\(prefix)-\(viewport.slug)-\(appearance.slug).png",
+                    contentSize: viewport.size,
+                    appearance: appearance
+                )
+            }
+        }
+    }
+
+    func captureSettingsMatrix() async throws {
+        for tab in CadenceSettingsTab.allCases {
+            for appearance in DocumentationScreenshotAppearance.allCases {
+                try await captureSettings(
+                    "qa-settings-\(tab.rawValue)-\(appearance.slug).png",
+                    appearance: appearance,
+                    tab: tab
+                )
+            }
+        }
+    }
+
+    static func storeScreenshot(
+        _ data: Data,
+        filename: String
+    ) throws {
+        let baseline = projectRoot.appending(path: "docs/images/\(filename)")
+        let workspace = FileManager.default.temporaryDirectory.appending(
+            path: "CadenceVisualRegression",
+            directoryHint: .isDirectory
+        )
+        let marker = projectRoot.appending(path: ".build/update-screenshots")
+        if FileManager.default.fileExists(atPath: marker.path) {
+            try data.write(to: baseline, options: .atomic)
+            return
+        }
+
+        let actual = workspace.appending(path: "actual/\(filename)")
+        let diff = workspace.appending(path: "diff/\(filename)")
+        try FileManager.default.createDirectory(
+            at: actual.deletingLastPathComponent(),
+            withIntermediateDirectories: true
+        )
+        try data.write(to: actual, options: .atomic)
+        try DocumentationScreenshotComparator.assertMatch(
+            actual: actual,
+            baseline: baseline,
+            diff: diff
+        )
+    }
 }
 
 private extension DocumentationScreenshotFixture {
@@ -551,6 +749,64 @@ private final class HomeScreenshotPreferences {
             defaults.integer(forKey: "home.pins.revision") + 1,
             forKey: "home.pins.revision"
         )
+    }
+
+    func restore() {
+        for key in values.keys {
+            if let value = previousValues[key] {
+                defaults.set(value, forKey: key)
+            } else {
+                defaults.removeObject(forKey: key)
+            }
+        }
+    }
+}
+
+/// Isolates captures from navigation preferences mutated by other test suites.
+private final class NavigationScreenshotPreferences {
+    private let defaults = UserDefaults.standard
+    private let values: [String: Any] = [
+        "navigationRail.expanded": true,
+        "navigationRail.order": NavigationRailConfiguration.defaultOrderRawValue,
+        "navigationRail.hidden": "",
+        "trackTable.visibleColumns": TrackTableColumn.defaultRawValue,
+        "trackTable.columnDefaultsVersion": 2,
+        "trackTable.sortField": TrackTableSortField.song.rawValue,
+        "trackTable.sortDirection": TrackTableSortDirection.ascending.rawValue,
+        "trackTable.songWidth": TrackTableWidth.song.defaultValue,
+        "trackTable.albumWidth": TrackTableWidth.album.defaultValue,
+        "trackTable.yearWidth": TrackTableWidth.year.defaultValue,
+        "trackTable.timeWidth": TrackTableWidth.time.defaultValue,
+        "tags.sidebarWidth": 300.0,
+        "tags.inspectorWidth": 330.0,
+    ]
+    private let previousValues: [String: Any]
+
+    init() {
+        let keys = [
+            "navigationRail.expanded",
+            "navigationRail.order",
+            "navigationRail.hidden",
+            "trackTable.visibleColumns",
+            "trackTable.columnDefaultsVersion",
+            "trackTable.sortField",
+            "trackTable.sortDirection",
+            "trackTable.songWidth",
+            "trackTable.albumWidth",
+            "trackTable.yearWidth",
+            "trackTable.timeWidth",
+            "tags.sidebarWidth",
+            "tags.inspectorWidth",
+        ]
+        previousValues = keys.reduce(into: [:]) { result, key in
+            result[key] = UserDefaults.standard.object(forKey: key)
+        }
+    }
+
+    func install() {
+        for (key, value) in values {
+            defaults.set(value, forKey: key)
+        }
     }
 
     func restore() {

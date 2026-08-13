@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct CadenceRootView: View {
+    @Environment(\.visualRegressionUsesStableSystemControls)
+    private var usesStableSystemControls
     @Bindable var model: CadenceAppModel
     @State private var isSearchPresented = false
     @State private var cadenceModeSession: CadenceModeSession
@@ -179,7 +181,8 @@ struct CadenceRootView: View {
             await model.librarySession.store.loadPlaylists()
         }
         .task(id: model.currentPlaybackTrack?.id) {
-            guard !model.isCurrentPlaybackExternal,
+            guard !usesStableSystemControls,
+                  !model.isCurrentPlaybackExternal,
                   let trackID = model.currentPlaybackTrack?.id
             else {
                 return
