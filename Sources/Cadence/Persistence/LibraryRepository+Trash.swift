@@ -4,6 +4,7 @@ import SwiftData
 enum LibraryTrashError: Error, LocalizedError, Sendable {
     case destinationConflict
     case invalidManifest
+    case missingManagedFile(String)
     case missingTarget
     case unavailableLibrary
 
@@ -13,6 +14,8 @@ enum LibraryTrashError: Error, LocalizedError, Sendable {
             "A managed file already exists at the restore destination."
         case .invalidManifest:
             "The Trash operation cannot be restored safely."
+        case let .missingManagedFile(path):
+            "A managed file is missing: \(path)"
         case .missingTarget:
             "The selected library item no longer exists."
         case .unavailableLibrary:
@@ -33,6 +36,14 @@ struct LibraryTrashPlan {
     let targetArtistID: UUID?
     let artworks: [ArtworkRecord]
     let relativePaths: [String]
+}
+
+private struct TrashCompensationContext {
+    let operationID: UUID
+    let phase: LibraryTrashTransactionPhase
+    let manifestWasWritten: Bool
+    let movedPaths: [(original: URL, trashed: URL)]
+    let location: ManagedLibraryLocation
 }
 
 extension LibraryRepository {
@@ -57,27 +68,36 @@ extension LibraryRepository {
     func trash(
         targetKind: TrashTargetKind,
         targetID: UUID,
-        location: ManagedLibraryLocation
+        location: ManagedLibraryLocation,
+        operationID: UUID = UUID(),
+        fileClient: TrashFileClient = .live
     ) throws -> UUID {
         let plan = try makeTrashPlan(
             kind: targetKind,
             id: targetID
         )
-        let operationID = UUID()
         let manifest = try makeTrashManifest(
             plan: plan,
             operationID: operationID,
             targetKind: targetKind
         )
-        let movedPaths = try moveToTrash(
-            relativePaths: plan.relativePaths,
-            operationID: operationID,
-            location: location
-        )
-
+        let manifestStore = ManagedTrashManifestStore(location: location)
+        var movedPaths: [(original: URL, trashed: URL)] = []
+        var phase = LibraryTrashTransactionPhase.writeManifest
+        var manifestWasWritten = false
         do {
-            try ManagedTrashManifestStore(location: location)
-                .write(manifest)
+            // Recovery evidence must be durable before the first file mutation.
+            try manifestStore.write(manifest)
+            manifestWasWritten = true
+            phase = .moveFiles
+            try moveToTrash(
+                relativePaths: plan.relativePaths,
+                operationID: operationID,
+                location: location,
+                fileClient: fileClient,
+                moved: &movedPaths
+            )
+            phase = .commitCatalog
             try commitTrash(
                 plan,
                 operationID: operationID,
@@ -86,12 +106,17 @@ extension LibraryRepository {
             return operationID
         } catch {
             modelContext.rollback()
-            restoreMovedPaths(movedPaths)
-            removeTrashOperationDirectory(
-                operationID: operationID,
-                location: location
+            throw compensateFailedTrash(
+                primary: error,
+                context: TrashCompensationContext(
+                    operationID: operationID,
+                    phase: phase,
+                    manifestWasWritten: manifestWasWritten,
+                    movedPaths: movedPaths,
+                    location: location
+                ),
+                fileClient: fileClient
             )
-            throw error
         }
     }
 
@@ -102,54 +127,116 @@ extension LibraryRepository {
             )
         )
         let decoder = JSONDecoder()
-        return records.compactMap { record in
-            guard
-                let ids = try? decoder.decode(
+        return try records.map { record in
+            do {
+                let ids = try decoder.decode(
                     [UUID].self,
                     from: record.targetIDsData
-                ),
-                let paths = try? decoder.decode(
+                )
+                let paths = try decoder.decode(
                     [String].self,
                     from: record.originalRelativePathsData
                 )
-            else {
-                return nil
+                return LibraryTrashProjection(
+                    id: record.id,
+                    targetKind: record.targetKind,
+                    targetIDs: ids,
+                    relativePaths: paths,
+                    createdAt: record.createdAt
+                )
+            } catch {
+                throw LibraryTrashError.invalidManifest
             }
-            return LibraryTrashProjection(
-                id: record.id,
-                targetKind: record.targetKind,
-                targetIDs: ids,
-                relativePaths: paths,
-                createdAt: record.createdAt
-            )
         }
     }
 
     func emptyTrash(
         operationIDs: Set<UUID>? = nil,
-        location: ManagedLibraryLocation
+        location: ManagedLibraryLocation,
+        fileClient: TrashFileClient = .live
     ) throws {
         let records = try modelContext.fetch(
             FetchDescriptor<TrashOperationRecord>()
         ).filter {
             operationIDs?.contains($0.id) ?? true
         }
-        let package = ManagedLibraryPackage(location: location)
+        // Commit metadata first. If that save fails, no permanent file deletion
+        // has happened and SwiftData can roll back the entire request.
+        let operationIDs = records.map(\.id)
         for record in records {
-            let directory = package.trashDirectoryURL.appending(
-                path: record.id.uuidString,
-                directoryHint: .isDirectory
-            )
-            if FileManager.default.fileExists(atPath: directory.path) {
-                try FileManager.default.removeItem(at: directory)
-            }
             modelContext.delete(record)
         }
-        try modelContext.save()
+        do {
+            try modelContext.save()
+        } catch {
+            modelContext.rollback()
+            throw error
+        }
+
+        var cleanupFailures: [(operationID: UUID, message: String)] = []
+        for operationID in operationIDs {
+            do {
+                try removeTrashOperationDirectory(
+                    operationID: operationID,
+                    location: location,
+                    fileClient: fileClient
+                )
+            } catch {
+                cleanupFailures.append(
+                    (operationID, error.localizedDescription)
+                )
+            }
+        }
+        if let firstFailure = cleanupFailures.first {
+            throw LibraryTrashTransactionError(
+                operationID: firstFailure.operationID,
+                phase: .cleanup,
+                primaryFailure: firstFailure.message,
+                compensationFailures: cleanupFailures.dropFirst().map {
+                    "\($0.operationID.uuidString): \($0.message)"
+                },
+                recoveryDirectory: trashOperationDirectory(
+                    operationID: firstFailure.operationID,
+                    location: location
+                )
+            )
+        }
     }
 }
 
 private extension LibraryRepository {
+    func compensateFailedTrash(
+        primary: any Error,
+        context: TrashCompensationContext,
+        fileClient: TrashFileClient
+    ) -> LibraryTrashTransactionError {
+        var failures = restoreMovedPaths(
+            context.movedPaths,
+            fileClient: fileClient
+        )
+        if context.manifestWasWritten, failures.isEmpty {
+            do {
+                try removeTrashOperationDirectory(
+                    operationID: context.operationID,
+                    location: context.location,
+                    fileClient: fileClient
+                )
+            } catch {
+                failures.append(error.localizedDescription)
+            }
+        }
+        return LibraryTrashTransactionError(
+            operationID: context.operationID,
+            phase: context.phase,
+            primaryFailure: primary.localizedDescription,
+            compensationFailures: failures,
+            recoveryDirectory: trashOperationDirectory(
+                operationID: context.operationID,
+                location: context.location
+            )
+        )
+    }
+
     func makeTrashPlan(
         kind: TrashTargetKind,
         id: UUID

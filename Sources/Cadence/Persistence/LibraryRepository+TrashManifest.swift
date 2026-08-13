@@ -13,6 +13,7 @@ extension LibraryRepository {
             version: ManagedTrashManifest.currentVersion,
             operationID: operationID,
             targetKind: targetKind,
+            targetID: targetKind == .artist ? plan.targetArtistID : nil,
             createdAt: .now,
             artists: plan.artists.values.map(artistSnapshot).sorted {
                 $0.id.uuidString < $1.id.uuidString

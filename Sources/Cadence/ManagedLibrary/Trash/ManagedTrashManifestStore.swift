@@ -39,4 +39,26 @@ struct ManagedTrashManifestStore {
             .appending(path: operationID.uuidString, directoryHint: .isDirectory)
             .appending(path: "manifest.json", directoryHint: .notDirectory)
     }
+
+    func operationIDs() throws -> [UUID] {
+        let trashURL = ManagedLibraryPackage(location: location)
+            .trashDirectoryURL
+        guard FileManager.default.fileExists(atPath: trashURL.path) else {
+            return []
+        }
+        return try FileManager.default.contentsOfDirectory(
+            at: trashURL,
+            includingPropertiesForKeys: [.isDirectoryKey],
+            options: [.skipsHiddenFiles]
+        ).map { url in
+            guard
+                try url.resourceValues(forKeys: [.isDirectoryKey])
+                .isDirectory == true,
+                let operationID = UUID(uuidString: url.lastPathComponent)
+            else {
+                throw LibraryTrashError.invalidManifest
+            }
+            return operationID
+        }
+    }
 }

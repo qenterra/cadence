@@ -85,8 +85,19 @@ actor ManagedArtworkService {
                     recovered.append(manifest.operationID)
                 }
             } catch {
-                try? manifestStore.quarantine(manifest.operationID)
-                throw error
+                var compensationFailures: [String] = []
+                do {
+                    try manifestStore.quarantine(manifest.operationID)
+                } catch {
+                    compensationFailures.append(error.localizedDescription)
+                }
+                throw managedFileError(
+                    preserving: error,
+                    subsystem: .artwork,
+                    operationID: manifest.operationID,
+                    compensationFailures: compensationFailures,
+                    recoveryDirectory: manifestStore.rootURL
+                )
             }
         }
         return ManagedArtworkRecoveryResult(

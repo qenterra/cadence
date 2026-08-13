@@ -19,6 +19,7 @@ struct LibraryTrashTests {
             version: 2,
             operationID: operationID,
             targetKind: .track,
+            targetID: nil,
             createdAt: .now,
             artists: [],
             albums: [],

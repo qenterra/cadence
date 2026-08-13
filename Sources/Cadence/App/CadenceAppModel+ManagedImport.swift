@@ -68,6 +68,9 @@ extension CadenceAppModel {
                 )
             }
             let repository = try await importDestination.prepareRepository()
+            if let location = librarySession.location {
+                _ = try await repository.reconcileTrash(location: location)
+            }
             librarySession.store.attach(
                 repository: repository,
                 package: librarySession.location.map(

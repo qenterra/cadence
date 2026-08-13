@@ -25,8 +25,11 @@ struct LibraryUnavailableView: View {
         } actions: {
             HStack(spacing: 12) {
                 if canRetry {
-                    Button("Retry", action: retry)
-                        .buttonStyle(.borderedProminent)
+                    Button(
+                        failure.kind == .recoveryFailed ? "Repair" : "Retry",
+                        action: retry
+                    )
+                    .buttonStyle(.borderedProminent)
                 }
                 if let locate {
                     if canRetry {

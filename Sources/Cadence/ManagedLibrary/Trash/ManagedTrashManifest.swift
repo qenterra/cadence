@@ -1,11 +1,12 @@
 import Foundation
 
 struct ManagedTrashManifest: Codable, Sendable {
-    static let currentVersion = 4
+    static let currentVersion = 5
 
     let version: Int
     let operationID: UUID
     let targetKind: TrashTargetKind
+    var targetID: UUID?
     let createdAt: Date
     let artists: [TrashArtistSnapshot]
     let albums: [TrashAlbumSnapshot]

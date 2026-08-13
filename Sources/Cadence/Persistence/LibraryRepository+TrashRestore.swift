@@ -4,33 +4,78 @@ import SwiftData
 extension LibraryRepository {
     func restoreTrash(
         operationID: UUID,
-        location: ManagedLibraryLocation
+        location: ManagedLibraryLocation,
+        fileClient: TrashFileClient = .live
     ) throws {
         let manifest = try ManagedTrashManifestStore(location: location)
             .read(operationID: operationID)
         let operation = try trashOperationRecord(id: operationID)
-        let restoredFiles = try restoreFiles(
-            manifest: manifest,
-            location: location
-        )
+        var restoredFiles: [(restored: URL, trashed: URL)] = []
+        var phase = LibraryTrashTransactionPhase.restoreFiles
 
         do {
+            try restoreFiles(
+                manifest: manifest,
+                location: location,
+                fileClient: fileClient,
+                restored: &restoredFiles
+            )
+            phase = .restoreCatalog
             try restoreCatalog(from: manifest)
             modelContext.delete(operation)
             try modelContext.save()
-            removeRestoredOperationDirectory(
-                operationID: operationID,
-                location: location
-            )
         } catch {
             modelContext.rollback()
-            returnFilesToTrash(restoredFiles)
-            throw error
+            let compensationFailures = returnFilesToTrash(
+                restoredFiles,
+                fileClient: fileClient
+            )
+            throw LibraryTrashTransactionError(
+                operationID: operationID,
+                phase: phase,
+                primaryFailure: error.localizedDescription,
+                compensationFailures: compensationFailures,
+                recoveryDirectory: trashOperationDirectory(
+                    operationID: operationID,
+                    location: location
+                )
+            )
         }
+
+        try cleanupRestoredTrash(
+            operationID: operationID,
+            location: location,
+            fileClient: fileClient
+        )
     }
 }
 
 private extension LibraryRepository {
+    func cleanupRestoredTrash(
+        operationID: UUID,
+        location: ManagedLibraryLocation,
+        fileClient: TrashFileClient
+    ) throws {
+        do {
+            try removeTrashOperationDirectory(
+                operationID: operationID,
+                location: location,
+                fileClient: fileClient
+            )
+        } catch {
+            throw LibraryTrashTransactionError(
+                operationID: operationID,
+                phase: .cleanup,
+                primaryFailure: error.localizedDescription,
+                compensationFailures: [],
+                recoveryDirectory: trashOperationDirectory(
+                    operationID: operationID,
+                    location: location
+                )
+            )
+        }
+    }
+
     func trashOperationRecord(id: UUID) throws -> TrashOperationRecord {
         let predicate = #Predicate<TrashOperationRecord> { $0.id == id }
         var descriptor = FetchDescriptor(predicate: predicate)
@@ -43,61 +88,45 @@ private extension LibraryRepository {
 
     func restoreFiles(
         manifest: ManagedTrashManifest,
-        location: ManagedLibraryLocation
-    ) throws -> [(restored: URL, trashed: URL)] {
-        var moved: [(restored: URL, trashed: URL)] = []
-        do {
-            for path in manifest.originalRelativePaths {
-                let restored = try location.resolve(relativePath: path)
-                let trashed = try location.resolve(
-                    relativePath: "Trash/\(manifest.operationID)/\(path)"
-                )
-                guard
-                    !FileManager.default.fileExists(atPath: restored.path),
-                    FileManager.default.fileExists(atPath: trashed.path)
-                else {
-                    throw LibraryTrashError.destinationConflict
-                }
-                try FileManager.default.createDirectory(
-                    at: restored.deletingLastPathComponent(),
-                    withIntermediateDirectories: true
-                )
-                try FileManager.default.moveItem(at: trashed, to: restored)
-                moved.append((restored, trashed))
+        location: ManagedLibraryLocation,
+        fileClient: TrashFileClient,
+        restored: inout [(restored: URL, trashed: URL)]
+    ) throws {
+        for path in manifest.originalRelativePaths {
+            let restoredURL = try location.resolve(relativePath: path)
+            let trashedURL = try location.resolve(
+                relativePath: "Trash/\(manifest.operationID)/\(path)"
+            )
+            guard
+                !fileClient.fileExists(restoredURL),
+                fileClient.fileExists(trashedURL)
+            else {
+                throw LibraryTrashError.destinationConflict
             }
-            return moved
-        } catch {
-            returnFilesToTrash(moved)
-            throw error
+            try fileClient.createDirectory(
+                restoredURL.deletingLastPathComponent()
+            )
+            try fileClient.moveItem(trashedURL, restoredURL)
+            restored.append((restoredURL, trashedURL))
         }
     }
 
     func returnFilesToTrash(
-        _ files: [(restored: URL, trashed: URL)]
-    ) {
+        _ files: [(restored: URL, trashed: URL)],
+        fileClient: TrashFileClient
+    ) -> [String] {
+        var failures: [String] = []
         for file in files.reversed() {
-            try? FileManager.default.createDirectory(
-                at: file.trashed.deletingLastPathComponent(),
-                withIntermediateDirectories: true
-            )
-            try? FileManager.default.moveItem(
-                at: file.restored,
-                to: file.trashed
-            )
+            do {
+                try fileClient.createDirectory(
+                    file.trashed.deletingLastPathComponent()
+                )
+                try fileClient.moveItem(file.restored, file.trashed)
+            } catch {
+                failures.append(error.localizedDescription)
+            }
         }
-    }
-
-    func removeRestoredOperationDirectory(
-        operationID: UUID,
-        location: ManagedLibraryLocation
-    ) {
-        let directory = ManagedLibraryPackage(location: location)
-            .trashDirectoryURL
-            .appending(
-                path: operationID.uuidString,
-                directoryHint: .isDirectory
-            )
-        try? FileManager.default.removeItem(at: directory)
+        return failures
     }
 
     func restoreCatalog(from manifest: ManagedTrashManifest) throws {

@@ -74,9 +74,10 @@ actor ManagedLyricsService {
             }
             throw ManagedLyricsServiceError.unreadableManagedLyrics
         }
-        guard
-            let source = try? String(contentsOf: url, encoding: .utf8)
-        else {
+        let source: String
+        do {
+            source = try String(contentsOf: url, encoding: .utf8)
+        } catch {
             throw ManagedLyricsServiceError.unreadableManagedLyrics
         }
         let actualHash = try await hasher.sha256(of: url)
@@ -146,8 +147,19 @@ actor ManagedLyricsService {
                     recovered.append(manifest.operationID)
                 }
             } catch {
-                try? manifestStore.quarantine(manifest.operationID)
-                throw error
+                var compensationFailures: [String] = []
+                do {
+                    try manifestStore.quarantine(manifest.operationID)
+                } catch {
+                    compensationFailures.append(error.localizedDescription)
+                }
+                throw managedFileError(
+                    preserving: error,
+                    subsystem: .lyrics,
+                    operationID: manifest.operationID,
+                    compensationFailures: compensationFailures,
+                    recoveryDirectory: manifestStore.rootURL
+                )
             }
         }
         return ManagedLyricsRecoveryResult(
@@ -210,9 +222,28 @@ private extension ManagedLyricsService {
             try manifestStore.save(installed)
             return installed
         } catch {
-            try? rollbackFile(for: manifest)
-            try? manifestStore.remove(manifest.operationID)
-            throw error
+            var compensationFailures: [String] = []
+            do {
+                try rollbackFile(for: manifest)
+            } catch {
+                compensationFailures.append(error.localizedDescription)
+            }
+            if compensationFailures.isEmpty {
+                do {
+                    try manifestStore.remove(manifest.operationID)
+                } catch {
+                    compensationFailures.append(error.localizedDescription)
+                }
+            }
+            throw managedFileError(
+                preserving: error,
+                subsystem: .lyrics,
+                operationID: manifest.operationID,
+                compensationFailures: compensationFailures,
+                recoveryDirectory: manifestStore.operationURL(
+                    manifest.operationID
+                )
+            )
         }
     }
 
@@ -225,13 +256,32 @@ private extension ManagedLyricsService {
                 mutation: installed.mutation
             )
         } catch {
-            try? rollbackFile(for: installed)
-            try? manifestStore.remove(installed.operationID)
-            throw error
+            var compensationFailures: [String] = []
+            do {
+                try rollbackFile(for: installed)
+            } catch {
+                compensationFailures.append(error.localizedDescription)
+            }
+            if compensationFailures.isEmpty {
+                do {
+                    try manifestStore.remove(installed.operationID)
+                } catch {
+                    compensationFailures.append(error.localizedDescription)
+                }
+            }
+            throw managedFileError(
+                preserving: error,
+                subsystem: .lyrics,
+                operationID: installed.operationID,
+                compensationFailures: compensationFailures,
+                recoveryDirectory: manifestStore.operationURL(
+                    installed.operationID
+                )
+            )
         }
         let committed = installed.advancing(to: .metadataCommitted)
-        try? manifestStore.save(committed)
-        try? manifestStore.remove(installed.operationID)
+        try manifestStore.save(committed)
+        try manifestStore.remove(installed.operationID)
     }
 
     func prepare(
