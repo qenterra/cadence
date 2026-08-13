@@ -124,9 +124,11 @@ struct CadenceRootView: View {
                 ?? "Library Operation Failed",
             isPresented: storeOperationFailurePresented
         ) {
-            Button("Retry") {
-                Task {
-                    await model.librarySession.store.retryOperationFailure()
+            if model.librarySession.store.operationFailure?.isRetryable == true {
+                Button("Retry") {
+                    Task {
+                        await model.librarySession.store.retryOperationFailure()
+                    }
                 }
             }
             Button("Dismiss") {

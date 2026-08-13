@@ -4,11 +4,12 @@ struct ProductionArtistDetailView: View {
     @Bindable var model: CadenceAppModel
     @Bindable var store: LibraryStore
     let artistID: UUID
-
     @State private var artist: LibraryArtistProjection?
     @State private var releases = ArtistReleaseSections.empty
     @State private var tracks: [LibraryTrackProjection] = []
     @State private var isLoading = true
+    @State private var loadFailure: String?
+    @State private var loadGeneration = 0
     @State private var isRenamePresented = false
     @State private var renameDraft = ""
 
@@ -18,6 +19,7 @@ struct ProductionArtistDetailView: View {
                 ScrollView(.vertical) {
                     LazyVStack(alignment: .leading, spacing: 24) {
                         backButton
+                        refreshFailureNotice
                         header(artist)
                         favoriteTracksSection
                         releaseSection("Singles", releases.singles)
@@ -47,20 +49,44 @@ struct ProductionArtistDetailView: View {
             } else if isLoading {
                 ProgressView("Loading Artist")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if let loadFailure {
+                ContentUnavailableView {
+                    Label(
+                        "Couldn’t Load Artist",
+                        systemImage: "exclamationmark.triangle"
+                    )
+                } description: {
+                    Text(loadFailure)
+                } actions: {
+                    Button("Retry") {
+                        loadGeneration &+= 1
+                    }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 unavailableContent("Artist")
             }
         }
-        .task(id: artistID) {
+        .task(id: "\(artistID.uuidString)-\(loadGeneration)") {
             isLoading = true
-            async let loadedArtist = store.artist(id: artistID)
-            async let loadedReleases = store.artistReleaseSections(
-                artistID: artistID
-            )
-            async let loadedTracks = store.tracks(artistID: artistID)
-            artist = await loadedArtist
-            releases = await loadedReleases
-            tracks = await loadedTracks
+            do {
+                async let loadedArtist = store.artist(id: artistID)
+                async let loadedReleases = store.artistReleaseSections(
+                    artistID: artistID
+                )
+                async let loadedTracks = store.tracks(artistID: artistID)
+                let result = try await (
+                    artist: loadedArtist,
+                    releases: loadedReleases,
+                    tracks: loadedTracks
+                )
+                artist = result.artist
+                releases = result.releases
+                tracks = result.tracks
+                loadFailure = nil
+            } catch {
+                loadFailure = error.localizedDescription
+            }
             isLoading = false
         }
         .catalogRenameAlert(
@@ -82,6 +108,20 @@ struct ProductionArtistDetailView: View {
 }
 
 private extension ProductionArtistDetailView {
+    @ViewBuilder
+    var refreshFailureNotice: some View {
+        if let loadFailure {
+            HStack {
+                Label(loadFailure, systemImage: "exclamationmark.triangle")
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Button("Retry") {
+                    loadGeneration &+= 1
+                }
+            }
+        }
+    }
+
     @ViewBuilder
     private var favoriteTracksSection: some View {
         let favorites = tracks.filter(\.isFavorite)

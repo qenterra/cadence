@@ -16,10 +16,16 @@ extension CadenceAppModel {
             ?? .adHoc
         endExternalAudioSession()
         Task {
-            let trackIDs = if source == .allTracks {
-                await librarySession.store.allTrackIDs()
-            } else {
-                queueTracks.map(\.id)
+            let trackIDs: [UUID]
+            do {
+                trackIDs = if source == .allTracks {
+                    try await librarySession.store.allTrackIDs()
+                } else {
+                    queueTracks.map(\.id)
+                }
+            } catch {
+                libraryOperationError = error.localizedDescription
+                return
             }
             let didStart = await playbackCoordinator.startQueue(
                 source: source,
@@ -248,7 +254,14 @@ extension CadenceAppModel {
         guard !isCurrentPlaybackExternal else {
             return nil
         }
-        return try? await librarySession.store.lyricsDocument(trackID: track.id)
+        do {
+            return try await librarySession.store.lyricsDocument(
+                trackID: track.id
+            )
+        } catch {
+            libraryOperationError = error.localizedDescription
+            return nil
+        }
     }
 
     func updateProductionLyricLine(

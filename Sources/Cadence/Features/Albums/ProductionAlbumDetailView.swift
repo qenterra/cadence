@@ -9,6 +9,8 @@ struct ProductionAlbumDetailView: View {
     @State private var tracks: [LibraryTrackProjection] = []
     @State private var albumTags: [LibraryTagProjection] = []
     @State private var isLoading = true
+    @State private var loadFailure: String?
+    @State private var loadGeneration = 0
     @State private var isRenamePresented = false
     @State private var renameDraft = ""
 
@@ -18,6 +20,7 @@ struct ProductionAlbumDetailView: View {
                 ScrollView(.vertical) {
                     LazyVStack(alignment: .leading, spacing: 24) {
                         backButton
+                        refreshFailureNotice
                         header(album)
                         ProductionTrackList(
                             model: model,
@@ -36,6 +39,20 @@ struct ProductionAlbumDetailView: View {
             } else if isLoading {
                 ProgressView("Loading Album")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if let loadFailure {
+                ContentUnavailableView {
+                    Label(
+                        "Couldn’t Load Album",
+                        systemImage: "exclamationmark.triangle"
+                    )
+                } description: {
+                    Text(loadFailure)
+                } actions: {
+                    Button("Retry") {
+                        loadGeneration &+= 1
+                    }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 ContentUnavailableView(
                     "Album Unavailable",
@@ -66,15 +83,10 @@ struct ProductionAlbumDetailView: View {
                 }
             }
         }
-        .task(id: "\(albumID.uuidString)-\(store.tagRevision)") {
-            isLoading = true
-            async let loadedAlbum = store.album(id: albumID)
-            async let loadedTracks = store.tracks(albumID: albumID)
-            async let loadedTags = try? store.tags(albumID: albumID)
-            album = await loadedAlbum
-            tracks = await loadedTracks
-            albumTags = await loadedTags ?? []
-            isLoading = false
+        .task(
+            id: "\(albumID.uuidString)-\(store.tagRevision)-\(loadGeneration)"
+        ) {
+            await loadContent()
         }
     }
 
@@ -248,6 +260,41 @@ struct ProductionAlbumDetailView: View {
 }
 
 private extension ProductionAlbumDetailView {
+    @ViewBuilder
+    var refreshFailureNotice: some View {
+        if let loadFailure {
+            HStack {
+                Label(loadFailure, systemImage: "exclamationmark.triangle")
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Button("Retry") {
+                    loadGeneration &+= 1
+                }
+            }
+        }
+    }
+
+    func loadContent() async {
+        isLoading = true
+        do {
+            async let loadedAlbum = store.album(id: albumID)
+            async let loadedTracks = store.tracks(albumID: albumID)
+            async let loadedTags = store.tags(albumID: albumID)
+            let result = try await (
+                album: loadedAlbum,
+                tracks: loadedTracks,
+                tags: loadedTags
+            )
+            album = result.album
+            tracks = result.tracks
+            albumTags = result.tags
+            loadFailure = nil
+        } catch {
+            loadFailure = error.localizedDescription
+        }
+        isLoading = false
+    }
+
     func albumTitle(_ album: LibraryAlbumProjection) -> some View {
         Text(album.title)
             .font(.largeTitle.bold())

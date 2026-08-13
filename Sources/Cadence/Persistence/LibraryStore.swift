@@ -13,6 +13,27 @@ struct LibraryStoreFailure: Equatable, Sendable {
     let message: String
 }
 
+enum LibraryContentLoadState: Equatable, Sendable {
+    case idle
+    case loading
+    case ready
+    case failed(LibraryStoreFailure)
+
+    var isFailure: Bool {
+        if case .failed = self {
+            return true
+        }
+        return false
+    }
+
+    var failure: LibraryStoreFailure? {
+        if case let .failed(failure) = self {
+            return failure
+        }
+        return nil
+    }
+}
+
 private struct InitialLibrarySnapshot: Sendable {
     let tracks: LibraryPage<LibraryTrackProjection>
     let favoriteTracks: LibraryPage<LibraryTrackProjection>
@@ -75,6 +96,8 @@ final class LibraryStore {
     var catalogSearchGeneration = 0
     @ObservationIgnored var playbackQueueProjectionGeneration = 0
     @ObservationIgnored var trackPageLoader: LibraryTrackPageLoader?
+    @ObservationIgnored var playlistClient: LibraryPlaylistClient?
+    @ObservationIgnored var catalogLookupClient: LibraryCatalogLookupClient?
     @ObservationIgnored var allTracksWindow: LibraryTrackWindow?
     @ObservationIgnored let artworkAssetCache = ArtworkAssetCache()
     @ObservationIgnored var artworkDataLoads: [ArtworkAssetCache.Key: Task<Data?, Never>] = [:]
@@ -103,6 +126,7 @@ final class LibraryStore {
     var favoriteAlbums: [LibraryAlbumProjection] = []
     var tags: [LibraryTagProjection] = []
     var playlists: [LibraryPlaylistProjection] = []
+    var playlistListState = LibraryContentLoadState.idle
     var smartCollectionRuleData =
         ProductionSmartCollectionRuleData.empty
     var smartCollectionSummaries:
@@ -116,6 +140,7 @@ final class LibraryStore {
     var isLoadingSmartCollectionData = false
     var selectedPlaylistID: UUID?
     var selectedPlaylistTracks: [LibraryTrackProjection] = []
+    var selectedPlaylistTracksState = LibraryContentLoadState.idle
     var tagRevision = 0
     var trashOperations: [LibraryTrashProjection] = []
     private(set) var catalogCounts = LibraryCatalogCounts.empty
@@ -147,6 +172,10 @@ final class LibraryStore {
         if let container {
             let repository = LibraryRepository(modelContainer: container)
             self.repository = repository
+            playlistClient = LibraryPlaylistClient(repository: repository)
+            catalogLookupClient = LibraryCatalogLookupClient(
+                repository: repository
+            )
             trackPageLoader = { query, cursor in
                 try await repository.tracksPage(
                     query: query,
@@ -176,6 +205,8 @@ final class LibraryStore {
             configureLyricsSearch(package: package, repository: repository)
         } else {
             repository = nil
+            playlistClient = nil
+            catalogLookupClient = nil
             trackPageLoader = nil
             allTracksWindow = nil
             lyricsService = nil
@@ -187,8 +218,28 @@ final class LibraryStore {
 
     init(trackPageLoader: @escaping LibraryTrackPageLoader) {
         repository = nil
+        playlistClient = nil
+        catalogLookupClient = nil
         lyricsService = nil
         self.trackPageLoader = trackPageLoader
+        allTracksWindow = nil
+        availability = .ready
+    }
+
+    init(playlistClient: LibraryPlaylistClient) {
+        repository = nil
+        self.playlistClient = playlistClient
+        catalogLookupClient = nil
+        trackPageLoader = nil
+        allTracksWindow = nil
+        availability = .ready
+    }
+
+    init(catalogLookupClient: LibraryCatalogLookupClient) {
+        repository = nil
+        playlistClient = nil
+        self.catalogLookupClient = catalogLookupClient
+        trackPageLoader = nil
         allTracksWindow = nil
         availability = .ready
     }
@@ -214,6 +265,10 @@ final class LibraryStore {
         package: ManagedLibraryPackage? = nil
     ) {
         self.repository = repository
+        playlistClient = LibraryPlaylistClient(repository: repository)
+        catalogLookupClient = LibraryCatalogLookupClient(
+            repository: repository
+        )
         trackPageLoader = { query, cursor in
             try await repository.tracksPage(
                 query: query,
@@ -245,6 +300,8 @@ final class LibraryStore {
 
     func detach() {
         repository = nil
+        playlistClient = nil
+        catalogLookupClient = nil
         trackPageLoader = nil
         allTracksWindow = nil
         lyricsService = nil
@@ -438,8 +495,10 @@ private extension LibraryStore {
         favoriteAlbums = []
         tags = []
         playlists = []
+        playlistListState = .idle
         selectedPlaylistID = nil
         selectedPlaylistTracks = []
+        selectedPlaylistTracksState = .idle
         smartCollectionRuleData = .empty
         smartCollectionSummaries = [:]
         smartCollectionResults = [:]

@@ -110,6 +110,46 @@ struct PlaylistRepositoryTests {
         #expect(try await repository.allTrackIDs() == expected)
     }
 
+    @Test("A stale playlist identity never becomes a successful no-op")
+    func missingPlaylistFailsExplicitly() async throws {
+        let container = try makeContainer(titles: ["Track"])
+        let context = ModelContext(container)
+        let trackID = try #require(
+            try context.fetch(FetchDescriptor<TrackRecord>()).first?.id
+        )
+        let repository = LibraryRepository(modelContainer: container)
+        let missingID = UUID()
+        let expected = PlaylistRepositoryError.playlistNotFound(missingID)
+
+        await #expect(throws: expected) {
+            try await repository.playlistTracks(playlistID: missingID)
+        }
+        await #expect(throws: expected) {
+            try await repository.renamePlaylist(id: missingID, name: "Missing")
+        }
+        await #expect(throws: expected) {
+            try await repository.deletePlaylist(id: missingID)
+        }
+        await #expect(throws: expected) {
+            try await repository.addToPlaylist(
+                playlistID: missingID,
+                trackIDs: [trackID]
+            )
+        }
+        await #expect(throws: expected) {
+            try await repository.removeFromPlaylist(
+                playlistID: missingID,
+                trackIDs: [trackID]
+            )
+        }
+        await #expect(throws: expected) {
+            try await repository.reorderPlaylist(
+                playlistID: missingID,
+                orderedTrackIDs: [trackID]
+            )
+        }
+    }
+
     private func makeContainer(
         titles: [String]
     ) throws -> ModelContainer {

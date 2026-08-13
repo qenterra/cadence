@@ -83,7 +83,26 @@ private extension PlaylistsView {
                 .help("New Playlist")
             }
 
-            if store.playlists.isEmpty {
+            if store.playlistListState == .loading, store.playlists.isEmpty {
+                ProgressView("Loading Playlists")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if let failure = store.playlistListState.failure,
+                      store.playlists.isEmpty {
+                ContentUnavailableView {
+                    Label(
+                        "Couldn’t Load Playlists",
+                        systemImage: "exclamationmark.triangle"
+                    )
+                } description: {
+                    Text(failure.message)
+                } actions: {
+                    Button("Retry") {
+                        Task {
+                            await store.loadPlaylists()
+                        }
+                    }
+                }
+            } else if store.playlists.isEmpty {
                 ContentUnavailableView(
                     "No Playlists",
                     systemImage: "music.note.list",
@@ -112,7 +131,27 @@ private extension PlaylistsView {
             VStack(spacing: 0) {
                 playlistHeader(playlist)
 
-                if store.selectedPlaylistTracks.isEmpty {
+                if store.selectedPlaylistTracksState == .loading,
+                   store.selectedPlaylistTracks.isEmpty {
+                    ProgressView("Loading Playlist")
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else if let failure = store.selectedPlaylistTracksState.failure,
+                          store.selectedPlaylistTracks.isEmpty {
+                    ContentUnavailableView {
+                        Label(
+                            "Couldn’t Load Playlist",
+                            systemImage: "exclamationmark.triangle"
+                        )
+                    } description: {
+                        Text(failure.message)
+                    } actions: {
+                        Button("Retry") {
+                            Task {
+                                await store.loadSelectedPlaylistTracks()
+                            }
+                        }
+                    }
+                } else if store.selectedPlaylistTracks.isEmpty {
                     ContentUnavailableView(
                         "Empty Playlist",
                         systemImage: "music.note.list",

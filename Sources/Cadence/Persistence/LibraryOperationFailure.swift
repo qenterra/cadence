@@ -8,6 +8,14 @@ struct LibraryOperationFailure: Identifiable, Equatable, Sendable {
         case browserTracks
         case catalogSearch
         case favoriteCatalog
+        case playlistAdd
+        case playlistCreate
+        case playlistDelete
+        case playlistList
+        case playlistRemove
+        case playlistRename
+        case playlistReorder
+        case playlistTracks
         case smartCollections
         case tagPage
         case trackPage
@@ -34,12 +42,42 @@ struct LibraryOperationFailure: Identifiable, Equatable, Sendable {
             "Search Failed"
         case .favoriteCatalog:
             "Couldn’t Load Favorites"
+        case .playlistAdd:
+            "Couldn’t Add to Playlist"
+        case .playlistCreate:
+            "Couldn’t Create Playlist"
+        case .playlistDelete:
+            "Couldn’t Delete Playlist"
+        case .playlistList:
+            "Couldn’t Load Playlists"
+        case .playlistRemove:
+            "Couldn’t Remove from Playlist"
+        case .playlistRename:
+            "Couldn’t Rename Playlist"
+        case .playlistReorder:
+            "Couldn’t Reorder Playlist"
+        case .playlistTracks:
+            "Couldn’t Load Playlist Tracks"
         case .smartCollections:
             "Smart Collection Failed"
         case .tagPage:
             "Couldn’t Load Tags"
         case .trackPage:
             "Couldn’t Load Tracks"
+        }
+    }
+
+    var isRetryable: Bool {
+        switch operation {
+        case .playlistAdd,
+             .playlistCreate,
+             .playlistDelete,
+             .playlistRemove,
+             .playlistRename,
+             .playlistReorder:
+            false
+        default:
+            true
         }
     }
 }
@@ -79,10 +117,29 @@ extension LibraryStore {
             await searchCatalog(catalogSearchQuery)
         case .favoriteCatalog:
             await loadFavoriteCatalog()
+        case .playlistList, .playlistTracks:
+            await retryPlaylistLoad(failure.operation)
+        case .playlistAdd,
+             .playlistCreate,
+             .playlistDelete,
+             .playlistRemove,
+             .playlistRename,
+             .playlistReorder:
+            break
         case .smartCollections:
             await loadSmartCollectionRuleData()
         case .trackPage:
             await replaceTracks(query: trackQuery)
+        }
+    }
+
+    private func retryPlaylistLoad(
+        _ operation: LibraryOperationFailure.Operation
+    ) async {
+        if operation == .playlistList {
+            await loadPlaylists()
+        } else {
+            await loadSelectedPlaylistTracks()
         }
     }
 }

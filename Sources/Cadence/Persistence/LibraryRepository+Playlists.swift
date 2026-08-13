@@ -1,6 +1,17 @@
 import Foundation
 import SwiftData
 
+enum PlaylistRepositoryError: Error, Equatable, LocalizedError, Sendable {
+    case playlistNotFound(UUID)
+
+    var errorDescription: String? {
+        switch self {
+        case .playlistNotFound:
+            "The playlist is no longer in the library."
+        }
+    }
+}
+
 extension LibraryRepository {
     func playlists() throws -> [LibraryPlaylistProjection] {
         let records = try modelContext.fetch(
@@ -42,6 +53,7 @@ extension LibraryRepository {
     func playlistTracks(
         playlistID: UUID
     ) throws -> [LibraryTrackProjection] {
+        _ = try requiredPlaylistRecord(id: playlistID)
         let predicate = #Predicate<PlaylistEntryRecord> {
             $0.playlistID == playlistID
         }
@@ -82,9 +94,7 @@ extension LibraryRepository {
         id: UUID,
         name requestedName: String
     ) throws {
-        guard let playlist = try playlistRecord(id: id) else {
-            return
-        }
+        let playlist = try requiredPlaylistRecord(id: id)
         playlist.rename(to: validatedPlaylistName(requestedName))
         try modelContext.save()
     }
@@ -92,6 +102,7 @@ extension LibraryRepository {
     func deletePlaylist(
         id: UUID
     ) throws {
+        let playlist = try requiredPlaylistRecord(id: id)
         let entryPredicate = #Predicate<PlaylistEntryRecord> {
             $0.playlistID == id
         }
@@ -99,9 +110,7 @@ extension LibraryRepository {
             model: PlaylistEntryRecord.self,
             where: entryPredicate
         )
-        if let playlist = try playlistRecord(id: id) {
-            modelContext.delete(playlist)
-        }
+        modelContext.delete(playlist)
         try modelContext.save()
     }
 
@@ -109,12 +118,10 @@ extension LibraryRepository {
         playlistID: UUID,
         trackIDs requestedTrackIDs: [UUID]
     ) throws {
-        guard
-            !requestedTrackIDs.isEmpty,
-            let playlist = try playlistRecord(id: playlistID)
-        else {
+        guard !requestedTrackIDs.isEmpty else {
             return
         }
+        let playlist = try requiredPlaylistRecord(id: playlistID)
         let predicate = #Predicate<PlaylistEntryRecord> {
             $0.playlistID == playlistID
         }
@@ -149,6 +156,7 @@ extension LibraryRepository {
         guard !trackIDs.isEmpty else {
             return
         }
+        _ = try requiredPlaylistRecord(id: playlistID)
         let predicate = #Predicate<PlaylistEntryRecord> {
             $0.playlistID == playlistID
                 && trackIDs.contains($0.trackID)
@@ -164,6 +172,7 @@ extension LibraryRepository {
         playlistID: UUID,
         orderedTrackIDs: [UUID]
     ) throws {
+        _ = try requiredPlaylistRecord(id: playlistID)
         let predicate = #Predicate<PlaylistEntryRecord> {
             $0.playlistID == playlistID
         }
@@ -223,6 +232,15 @@ extension LibraryRepository {
 }
 
 private extension LibraryRepository {
+    func requiredPlaylistRecord(
+        id: UUID
+    ) throws -> PlaylistRecord {
+        guard let playlist = try playlistRecord(id: id) else {
+            throw PlaylistRepositoryError.playlistNotFound(id)
+        }
+        return playlist
+    }
+
     func playlistRecord(
         id: UUID
     ) throws -> PlaylistRecord? {

@@ -6,6 +6,8 @@ struct ProductionTagsView: View {
 
     @State private var taggedTracks: [LibraryTrackProjection] = []
     @State private var isLoadingTracks = false
+    @State private var trackLoadFailure: String?
+    @State private var trackLoadGeneration = 0
     @State private var tagDialog: ProductionTagDialog?
     @State private var newTagPath = ""
     @State private var isTrackPickerPresented = false
@@ -55,13 +57,22 @@ struct ProductionTagsView: View {
                 )
             }
         }
-        .task(id: "\(selectedTagID?.uuidString ?? "none")-\(store.tagRevision)") {
+        .task(
+            id: "\(selectedTagID?.uuidString ?? "none")-"
+                + "\(store.tagRevision)-\(trackLoadGeneration)"
+        ) {
             guard let selectedTagID else {
                 taggedTracks = []
+                trackLoadFailure = nil
                 return
             }
             isLoadingTracks = true
-            taggedTracks = await store.tracks(tagID: selectedTagID)
+            do {
+                taggedTracks = try await store.tracks(tagID: selectedTagID)
+                trackLoadFailure = nil
+            } catch {
+                trackLoadFailure = error.localizedDescription
+            }
             isLoadingTracks = false
         }
         .alert(
@@ -176,6 +187,20 @@ private extension ProductionTagsView {
                     )
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
+            } else if let trackLoadFailure, taggedTracks.isEmpty {
+                ContentUnavailableView {
+                    Label(
+                        "Couldn’t Load Tagged Tracks",
+                        systemImage: "exclamationmark.triangle"
+                    )
+                } description: {
+                    Text(trackLoadFailure)
+                } actions: {
+                    Button("Retry") {
+                        trackLoadGeneration &+= 1
+                    }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if taggedTracks.isEmpty {
                 ContentUnavailableView(
                     "No Matching Tracks",
@@ -186,12 +211,27 @@ private extension ProductionTagsView {
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
-                ProductionTrackList(
-                    model: model,
-                    tracks: taggedTracks,
-                    context: selectedTagID.map(TrackTableContext.tag)
-                        ?? .library
-                )
+                VStack(alignment: .leading, spacing: 12) {
+                    if let trackLoadFailure {
+                        HStack {
+                            Label(
+                                trackLoadFailure,
+                                systemImage: "exclamationmark.triangle"
+                            )
+                            .foregroundStyle(.secondary)
+                            Spacer()
+                            Button("Retry") {
+                                trackLoadGeneration &+= 1
+                            }
+                        }
+                    }
+                    ProductionTrackList(
+                        model: model,
+                        tracks: taggedTracks,
+                        context: selectedTagID.map(TrackTableContext.tag)
+                            ?? .library
+                    )
+                }
             }
         }
         .padding(WorkspaceLayout.pageInset)
