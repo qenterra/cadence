@@ -33,9 +33,10 @@ untouched, and puts playback, lyrics, tags, playlists, and smart collections in
 one native SwiftUI app. The library lives at `~/Music/Cadence.library`.
 
 > [!IMPORTANT]
-> Cadence 0.2.0 Beta 1 (2) is available as an ad-hoc signed Apple silicon
-> beta. It is not notarized, so macOS may show Gatekeeper friction on first
-> launch. It has not passed Apple review and is not an App Store release.
+> Cadence 0.2.0 Beta 1 (2) is an Apple silicon release candidate. No binary
+> from this branch is ready for publication until it is signed with Developer
+> ID, accepted by Apple's notary service, stapled, and passes the installation
+> acceptance checklist. It is not an App Store release.
 
 ## Interface
 
@@ -116,16 +117,11 @@ synthetic; the capture process cannot open the developer's music library.
 
 ### Install the beta
 
-Download
-[`Cadence-0.2.0-beta.1-arm64.dmg`](https://github.com/QenTerra/cadence/releases/download/v0.2.0-beta.1/Cadence-0.2.0-beta.1-arm64.dmg),
-open it, and drag Cadence to the visible **Applications** alias.
-
-This beta is ad-hoc signed and not notarized. If Gatekeeper blocks the first
-launch, Control-click Cadence in Applications and choose **Open**. If macOS
-still blocks it, review the named Cadence warning under **System Settings >
-Privacy & Security** and choose **Open Anyway** only if you downloaded the DMG
-from the official QenTerra release. Future Developer ID builds should not
-require this workaround.
+The public beta has not been published yet. When the signed and notarized
+[`Cadence-0.2.0-beta.1-arm64.dmg`](https://github.com/QenTerra/cadence/releases/tag/v0.2.0-beta.1)
+appears on the official release page, open it and drag Cadence to the visible
+**Applications** alias. Do not redistribute the ad-hoc artifact produced by
+the local packaging mode.
 
 ### Requirements
 
@@ -206,7 +202,9 @@ the [GitHub Wiki](https://github.com/QenTerra/cadence/wiki) for more detail.
 
 ## Current limitations
 
-- The first binary beta is Apple silicon only, ad-hoc signed, and not notarized.
+- The first binary beta is Apple silicon only; publication remains blocked
+  until Developer ID signing, notarization, stapling, and clean-machine
+  installation acceptance all pass.
 - Intel and universal binaries are not included in `0.2.0-beta.1`.
 - The complete Xcode 27 build and test gate remains local while the hosted
   GitHub runner provides an older toolchain.

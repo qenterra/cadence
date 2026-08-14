@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import shlex
 from pathlib import Path
@@ -102,9 +103,42 @@ def validate_product_surfaces(root: Path = ROOT) -> list[str]:
     return errors
 
 
+def validate_public_release_environment(
+    root: Path = ROOT,
+    environment: dict[str, str] | os._Environ[str] = os.environ,
+) -> list[str]:
+    """Return every condition that makes a public build unsafe to publish."""
+    data = load_manifest(root)
+    distribution = data.get("distribution", {})
+    errors: list[str] = []
+
+    required_environment = (
+        "CADENCE_DEVELOPER_ID_APPLICATION",
+        "CADENCE_DEVELOPMENT_TEAM",
+        "CADENCE_NOTARY_KEYCHAIN_PROFILE",
+    )
+    for key in required_environment:
+        if not environment.get(key, "").strip():
+            errors.append(f"{key} is required")
+
+    if distribution.get("signing") != "developer-id":
+        errors.append("distribution.signing must be developer-id")
+    if distribution.get("notarized") is not True:
+        errors.append("distribution.notarized must be true")
+    if distribution.get("gatekeeperDisclosure") is not False:
+        errors.append("distribution.gatekeeperDisclosure must be false")
+
+    return errors
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Cadence release surface validator")
-    parser.add_argument("command", choices=("check", "env"), nargs="?", default="check")
+    parser.add_argument(
+        "command",
+        choices=("check", "env", "public-preflight"),
+        nargs="?",
+        default="check",
+    )
     parser.add_argument("--root", type=Path, default=ROOT)
     arguments = parser.parse_args()
 
@@ -116,6 +150,8 @@ def main() -> int:
         return 0
 
     errors = validate_product_surfaces(arguments.root)
+    if arguments.command == "public-preflight":
+        errors.extend(validate_public_release_environment(arguments.root))
     if errors:
         for error in errors:
             print(f"- {error}")

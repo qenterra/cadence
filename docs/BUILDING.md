@@ -75,9 +75,23 @@ fixture:
 bash scripts/update_screenshots.sh
 ```
 
-The harness uses an in-memory SwiftData repository, synthetic metadata, a
-fixed 1080 × 876 point Dark appearance, and never opens `~/Music/Cadence.library`.
-Review the four PNG files under `docs/images/` before committing them.
+The harness uses an in-memory SwiftData repository, synthetic metadata, fixed
+window contracts, and never opens `~/Music/Cadence.library`. It writes a full
+System/Light/Dark viewport matrix to a sandbox candidate directory and promotes
+the set only after all captures succeed. Review every changed PNG under
+`docs/images/` before committing it.
+
+## Validate the installer locally
+
+```sh
+CADENCE_RELEASE_MODE=local bash scripts/prepare_release.sh
+```
+
+The local mode produces an ad-hoc signed DMG under `.build/releases/local` for
+layout and mount/copy/launch checks. It intentionally does not create a Sparkle
+archive, change `appcast.xml`, or produce anything suitable for publication.
+The public mode and its required Developer ID/notarization inputs are documented
+in [Software updates](UPDATES.md).
 
 GitHub Actions runs project generation, SwiftFormat, and SwiftLint. The hosted
 macOS image currently provides Xcode 26.6, which cannot build this Xcode 27

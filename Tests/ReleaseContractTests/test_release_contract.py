@@ -9,7 +9,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from release_contract import environment_values, validate_product_surfaces  # noqa: E402
+from release_contract import (  # noqa: E402
+    environment_values,
+    validate_product_surfaces,
+    validate_public_release_environment,
+)
 
 
 class CadenceReleaseContractTests(unittest.TestCase):
@@ -119,6 +123,76 @@ class CadenceReleaseContractTests(unittest.TestCase):
             "Cadence-0.2.0-beta.1-SHA256SUMS.txt",
         )
 
+    def test_public_release_rejects_missing_credentials(self) -> None:
+        errors = validate_public_release_environment(self.root, {})
+
+        self.assertIn("CADENCE_DEVELOPER_ID_APPLICATION is required", errors)
+        self.assertIn("CADENCE_DEVELOPMENT_TEAM is required", errors)
+        self.assertIn("CADENCE_NOTARY_KEYCHAIN_PROFILE is required", errors)
+
+    def test_public_release_rejects_ad_hoc_manifest(self) -> None:
+        environment = {
+            "CADENCE_DEVELOPER_ID_APPLICATION": "Developer ID Application: QenTerra",
+            "CADENCE_DEVELOPMENT_TEAM": "ABCDE12345",
+            "CADENCE_NOTARY_KEYCHAIN_PROFILE": "cadence-notary",
+        }
+
+        errors = validate_public_release_environment(self.root, environment)
+
+        self.assertIn("distribution.signing must be developer-id", errors)
+        self.assertIn("distribution.notarized must be true", errors)
+        self.assertIn("distribution.gatekeeperDisclosure must be false", errors)
+
+    def test_public_release_accepts_complete_distribution_contract(self) -> None:
+        manifest_path = self.root / "qds-release.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["distribution"] = {
+            "signing": "developer-id",
+            "notarized": True,
+            "gatekeeperDisclosure": False,
+        }
+        manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+        environment = {
+            "CADENCE_DEVELOPER_ID_APPLICATION": "Developer ID Application: QenTerra",
+            "CADENCE_DEVELOPMENT_TEAM": "ABCDE12345",
+            "CADENCE_NOTARY_KEYCHAIN_PROFILE": "cadence-notary",
+        }
+
+        self.assertEqual(
+            validate_public_release_environment(self.root, environment),
+            [],
+        )
+
+
+class ReleaseScriptContractTests(unittest.TestCase):
+    def test_public_mode_notarizes_and_validates_every_distribution(self) -> None:
+        script = (ROOT / "scripts" / "prepare_release.sh").read_text(encoding="utf-8")
+
+        self.assertIn('CADENCE_RELEASE_MODE', script)
+        self.assertIn('notarytool submit', script)
+        self.assertGreaterEqual(script.count('stapler staple'), 2)
+        self.assertGreaterEqual(script.count('stapler validate'), 2)
+        self.assertIn('spctl --assess', script)
+        self.assertIn('ENABLE_HARDENED_RUNTIME=YES', script)
+
+    def test_macos_27_disk_image_operations_use_diskutil(self) -> None:
+        script = (ROOT / "scripts" / "create_dmg.sh").read_text(encoding="utf-8")
+
+        self.assertIn('/usr/sbin/diskutil image info', script)
+        self.assertIn('/usr/sbin/diskutil image attach', script)
+        self.assertIn('/usr/sbin/diskutil image create blank', script)
+        self.assertIn('/usr/sbin/diskutil image create from', script)
+        self.assertIn('/usr/sbin/diskutil eject', script)
+        self.assertIn('legacy_hdiutil_', script)
+        modern_branch = script.split('if (( macos_major >= 27 ));', 1)[1]
+        self.assertIn('"$layout_writer"', modern_branch)
+
+    def test_screenshot_update_promotes_sandbox_candidates(self) -> None:
+        script = (ROOT / "scripts" / "update_screenshots.sh").read_text(encoding="utf-8")
+
+        self.assertIn('CadenceVisualRegression/update', script)
+        self.assertIn('candidate_count', script)
+        self.assertIn('cp -f "$candidate_dir"/*.png', script)
 
 if __name__ == "__main__":
     unittest.main()

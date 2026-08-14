@@ -21,9 +21,9 @@
     "architecture": "arm64"
   },
   "distribution": {
-    "signing": "ad-hoc",
-    "notarized": false,
-    "gatekeeperDisclosure": true
+    "signing": "developer-id",
+    "notarized": true,
+    "gatekeeperDisclosure": false
   },
   "installer": {
     "format": "dmg",

@@ -30,7 +30,10 @@ xcodegen generate --spec project.yml
 
 marker="$project_root/.build/update-screenshots"
 cadence_mode_marker="$project_root/.build/update-cadence-mode-screenshots"
+candidate_dir="$HOME/Library/Containers/com.qenterra.cadence/Data/tmp/CadenceVisualRegression/update"
 mkdir -p "$project_root/.build"
+mkdir -p "$candidate_dir"
+find "$candidate_dir" -maxdepth 1 -type f -name '*.png' -delete
 touch "$marker"
 touch "$cadence_mode_marker"
 
@@ -56,6 +59,15 @@ DEVELOPER_DIR="$developer_dir" xcodebuild \
     -parallel-testing-enabled NO \
     CODE_SIGN_ENTITLEMENTS= \
     test | xcbeautify
+
+# Documentation screenshot tests run inside the app sandbox. Promote the
+# complete candidate set only after the test process has exited successfully.
+candidate_count="$(find "$candidate_dir" -maxdepth 1 -type f -name '*.png' | wc -l | tr -d ' ')"
+if [[ "$candidate_count" != "76" ]]; then
+    echo "Expected 76 documentation screenshot candidates, found $candidate_count." >&2
+    exit 70
+fi
+cp -f "$candidate_dir"/*.png "$project_root/docs/images/"
 
 for image in "$project_root"/docs/images/cadence-{library,now-playing,tags}.png; do
     [[ -f "$image" ]]

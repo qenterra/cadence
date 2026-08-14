@@ -13,10 +13,11 @@ Updates**.
 - `SUPublicEDKey` in `project.yml` verifies every downloaded archive.
 - Cadence remains sandboxed. Sparkle's Installer XPC service is enabled with
   the two narrowly scoped Mach lookup exceptions documented by Sparkle.
-- The current distribution is ad-hoc signed because no Apple Developer ID is
-  available. macOS may therefore show Gatekeeper friction on the first manual
-  installation. EdDSA still protects subsequent Sparkle downloads, but it is
-  not a substitute for Apple notarization.
+- Public distributions must be Developer ID signed, accepted by Apple's
+  notary service, and stapled. Sparkle EdDSA protects update archives in
+  transit, but it is not a substitute for platform signing and notarization.
+- Ad-hoc signing exists only in the explicit `local` packaging mode. Its DMG is
+  a disposable acceptance artifact and must never be uploaded or announced.
 
 ## Preparing a release
 
@@ -30,17 +31,24 @@ later. It produces exactly:
 
 1. Make sure the release candidate passes `scripts/verify.sh` and focused live
    playback/library checks.
-2. Run `scripts/prepare_release.sh [release-notes.md]`. The script validates the
-   QDS contract, archives Cadence with the manifest version/build, creates the
-   update ZIP and styled DMG, signs the ZIP with the Keychain EdDSA key, updates
-   `appcast.xml`, and writes checksums.
-3. Inspect the mounted DMG, both archive payloads, appcast diff, release notes,
+2. Store notarization credentials once with `xcrun notarytool
+   store-credentials`, then set `CADENCE_DEVELOPER_ID_APPLICATION`,
+   `CADENCE_DEVELOPMENT_TEAM`, and `CADENCE_NOTARY_KEYCHAIN_PROFILE`.
+3. Run `CADENCE_RELEASE_MODE=public scripts/prepare_release.sh
+   [release-notes.md]`. The script validates the QDS contract, archives Cadence
+   with hardened runtime and Developer ID, notarizes and staples the app and
+   DMG, creates the Sparkle-signed update ZIP, updates `appcast.xml`, and writes
+   checksums. Any missing identity, profile, accepted submission, ticket, or
+   Gatekeeper assessment stops the process.
+4. Inspect the mounted DMG, both archive payloads, appcast diff, release notes,
    version/build values, signing output, and checksums.
-4. Create the manifest tag and GitHub prerelease and upload all three named
+5. Create the manifest tag and GitHub prerelease and upload all three named
    assets. Do not rename an asset after generating the appcast.
-5. Commit and publish the updated `appcast.xml`. Read the public release and
+6. Commit and publish the updated `appcast.xml`. Read the public release and
    enclosure URL back before announcing it.
 
-The first beta is ad-hoc signed and not notarized. Its release page and README
-must keep the Gatekeeper disclosure visible. Sparkle tags the appcast item with
-the `beta` channel, so stable users never receive it.
+For layout or mount/copy/launch testing without credentials, run
+`CADENCE_RELEASE_MODE=local scripts/prepare_release.sh`. This path creates only
+an ad-hoc DMG under `.build/releases/local`; it cannot mutate the appcast or
+produce public update assets. Sparkle tags the public appcast item with the
+`beta` channel, so stable users never receive it.
