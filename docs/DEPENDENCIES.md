@@ -1,7 +1,7 @@
 # Dependencies
 
 Cadence uses Apple platform frameworks and four pinned Swift packages at
-runtime, plus five Homebrew tools during development and release packaging.
+runtime, plus six Homebrew tools during development and release packaging.
 
 ## Runtime
 
@@ -16,7 +16,7 @@ runtime, plus five Homebrew tools during development and release packaging.
 | CoreImage | Active macOS SDK | Artwork processing | Apple |
 | MediaPlayer | Active macOS SDK | Now Playing and remote commands | Apple |
 | UniformTypeIdentifiers | Active macOS SDK | File and library package types | Apple |
-| QenTerraDesignTokens | QDS `4.1.0`, local sibling package | Semantic colors, radii, motion, and shared SwiftUI state contracts | QenTerra `design-system/packages/swift` |
+| QenTerraDesignTokens | QDS `4.2.0`, local sibling package | Semantic colors, radii, motion, and shared SwiftUI state contracts | QenTerra `design-system/packages/swift` |
 | GRDB.swift | Exactly `7.10.0` | Derived SQLite FTS5 index for lyrics search | [groue/GRDB.swift](https://github.com/groue/GRDB.swift) |
 | AppAuth | Exactly `2.1.0` | OAuth 2.0 authorization and token refresh for Google Drive | [openid/AppAuth-iOS](https://github.com/openid/AppAuth-iOS) |
 | Sparkle | Exactly `2.9.5` | Signed in-app software updates with stable and beta channels | [sparkle-project/Sparkle](https://github.com/sparkle-project/Sparkle) |
@@ -36,13 +36,16 @@ repository in the maintainer's Keychain.
 | `swiftformat` | Homebrew-resolved | Check Swift formatting | MIT |
 | `swiftlint` | Homebrew-resolved | Check Swift style and common mistakes | MIT |
 | `xcbeautify` | Homebrew-resolved | Format Xcode build output | MIT |
-| `python@3.14` | Homebrew-resolved | Run release tooling and the pinned `dmgbuild` package | Python-2.0 |
+| `python@3.14` | Homebrew-resolved | Run release-contract, Finder-layout, and image tests | Python-2.0 |
+| `periphery` | Homebrew cask | Reject newly unreachable Swift declarations | MIT |
 
 `Brewfile` declares these tools. The repository does not lock Homebrew formula
 versions, so a clean build is toolchain-reproducible by policy rather than by a
-complete binary lockfile. `release/requirements.txt` separately pins
-`dmgbuild` to `1.6.7`; the release script installs it into the ignored
-`.build/release-tools` virtual environment.
+complete binary lockfile. `release/requirements.txt` pins `ds_store` and
+`mac_alias` for the native macOS 27 Finder layout and retains `dmgbuild` only
+for the explicit pre-macOS-27 compatibility branch. The release script installs
+them into the ignored `.build/release-tools` virtual environment. macOS 27 uses
+`diskutil image`; it never invokes dmgbuild's deprecated `hdiutil` workflow.
 
 ## Evaluated alternatives
 
