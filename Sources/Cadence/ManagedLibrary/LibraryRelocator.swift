@@ -1,29 +1,6 @@
 import Foundation
 import SwiftData
 
-enum LibraryRelocationError: Error, Equatable, LocalizedError, Sendable {
-    case sourceUnavailable(URL)
-    case sameLocation
-    case destinationConflict(URL)
-    case verificationFailed(String)
-    case invalidDestination(String)
-
-    var errorDescription: String? {
-        switch self {
-        case let .sourceUnavailable(url):
-            "The active library is unavailable at \(url.path)."
-        case .sameLocation:
-            "The library is already stored in this folder."
-        case let .destinationConflict(url):
-            "A Cadence.library package already exists at \(url.path)."
-        case let .verificationFailed(path):
-            "The copied file failed verification: \(path)."
-        case let .invalidDestination(message):
-            "The copied library could not be opened: \(message)"
-        }
-    }
-}
-
 struct PreparedLibraryRelocation: Sendable {
     let source: ManagedLibraryLocation
     let destination: ManagedLibraryLocation
@@ -88,15 +65,18 @@ actor LibraryRelocator {
     private let fileManager: FileManager
     private let hasher: ContentHasher
     private let validate: Validator
+    private let manifestStore: LibraryRelocationManifestStore
 
     init(
         fileManager: FileManager = .default,
         hasher: ContentHasher = ContentHasher(),
-        validate: @escaping Validator = LibraryContainerFactory.persistent
+        validate: @escaping Validator = LibraryContainerFactory.persistent,
+        manifestStore: LibraryRelocationManifestStore = .live
     ) {
         self.fileManager = fileManager
         self.hasher = hasher
         self.validate = validate
+        self.manifestStore = manifestStore
     }
 
     func prepare(
@@ -262,17 +242,17 @@ actor LibraryRelocator {
     func finishSwitch(
         _ prepared: PreparedLibraryRelocation,
         progress: @escaping @Sendable (LibraryRelocationProgress) async -> Void = { _ in }
-    ) async -> Bool {
+    ) async throws {
         var manifest = prepared.manifest
         manifest.phase = .switched
-        try? persist(
+        try persistVerifiedForFinish(
             manifest,
             at: [prepared.manifestURL, prepared.sourceManifestURL]
         )
         await progress(.init(phase: .switched, completedCount: 0, totalCount: 0))
 
         manifest.phase = .sourceCleanup
-        try? persist(
+        try persistVerifiedForFinish(
             manifest,
             at: [prepared.manifestURL, prepared.sourceManifestURL]
         )
@@ -283,15 +263,22 @@ actor LibraryRelocator {
                 at: prepared.source.packageURL,
                 resultingItemURL: &trashedURL
             )
-            manifest.phase = .complete
-            try persist(manifest, at: prepared.manifestURL)
-            try? fileManager.removeItem(at: prepared.manifestURL)
-            try? fileManager.removeItem(at: prepared.sourceManifestURL)
-            await progress(.init(phase: .complete, completedCount: 0, totalCount: 0))
-            return true
         } catch {
-            return false
+            throw LibraryRelocationFinishError.sourceCleanupFailed(
+                packagePath: prepared.source.packageURL.path
+            )
         }
+
+        manifest.phase = .complete
+        try persistVerifiedForFinish(manifest, at: [prepared.manifestURL])
+        do {
+            try fileManager.removeItem(at: prepared.manifestURL)
+        } catch {
+            throw LibraryRelocationFinishError.completionRecordCleanupFailed(
+                manifestPath: prepared.manifestURL.path
+            )
+        }
+        await progress(.init(phase: .complete, completedCount: 0, totalCount: 0))
     }
 }
 
@@ -351,8 +338,7 @@ private extension LibraryRelocator {
         _ manifest: LibraryRelocationManifest,
         at url: URL
     ) throws {
-        let data = try JSONEncoder().encode(manifest)
-        try data.write(to: url, options: .atomic)
+        try manifestStore.write(manifest, url)
     }
 
     func persist(
@@ -365,6 +351,31 @@ private extension LibraryRelocator {
                 withIntermediateDirectories: true
             )
             try persist(manifest, at: url)
+        }
+    }
+
+    /// Source cleanup is destructive, so each recovery record is read back
+    /// before the package can be moved to Trash.
+    func persistVerifiedForFinish(
+        _ manifest: LibraryRelocationManifest,
+        at urls: [URL]
+    ) throws {
+        for url in urls {
+            do {
+                try persist(manifest, at: url)
+                let persisted = try JSONDecoder().decode(
+                    LibraryRelocationManifest.self,
+                    from: Data(contentsOf: url)
+                )
+                guard persisted == manifest else {
+                    throw CocoaError(.fileReadCorruptFile)
+                }
+            } catch {
+                throw LibraryRelocationFinishError.manifestPersistenceFailed(
+                    phase: manifest.phase,
+                    manifestPath: url.path
+                )
+            }
         }
     }
 }

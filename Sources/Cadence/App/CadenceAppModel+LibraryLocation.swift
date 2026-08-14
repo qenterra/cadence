@@ -225,14 +225,10 @@ private extension CadenceAppModel {
             location: prepared.destination,
             repository: prepared.repository
         )
-        let sourceCleaned = await libraryRelocator.finishSwitch(
+        try await libraryRelocator.finishSwitch(
             prepared,
             progress: updateLibraryRelocationProgress
         )
-        if !sourceCleaned {
-            libraryRelocationState.error = "The library is active in its new location, "
-                + "but the old package could not be moved to Trash."
-        }
     }
 
     var updateLibraryRelocationProgress: @Sendable (LibraryRelocationProgress) async -> Void {

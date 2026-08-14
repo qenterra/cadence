@@ -26,6 +26,18 @@ struct GoogleDriveProviderTests {
         #expect(await fixture.authorization.tokenRequests == 1)
     }
 
+    @Test("A 304 response requires a non-empty manifest revision")
+    func notModifiedRequiresRevision() async throws {
+        let fixture = GoogleDriveFixture()
+        GoogleDriveURLProtocolStub.install { request in
+            .response(request, status: 304)
+        }
+
+        await #expect(throws: RemoteProviderError.invalidRevision) {
+            try await fixture.provider.fetchManifest(ifNoneMatch: nil)
+        }
+    }
+
     @Test("Media reads resolve logical IDs and preserve Range")
     func rangeRead() async throws {
         let fixture = GoogleDriveFixture()
@@ -110,6 +122,21 @@ struct GoogleDriveProviderTests {
             try await fixture.provider.commitManifest(
                 fixture.manifest,
                 matching: "stale"
+            )
+        }
+    }
+
+    @Test("A manifest commit requires a non-empty new revision")
+    func manifestCommitRequiresRevision() async throws {
+        let fixture = GoogleDriveFixture()
+        GoogleDriveURLProtocolStub.install { request in
+            .response(request, status: 200, headers: ["ETag": "   "])
+        }
+
+        await #expect(throws: RemoteProviderError.invalidRevision) {
+            try await fixture.provider.commitManifest(
+                fixture.manifest,
+                matching: "previous"
             )
         }
     }

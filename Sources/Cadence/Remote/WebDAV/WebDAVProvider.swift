@@ -58,19 +58,18 @@ actor WebDAVProvider: RemoteLibraryProvider {
         }
         let (data, response) = try await perform(request)
         if response.statusCode == 304 {
-            return RemoteManifestResponse(
+            return try RemoteManifestResponse(
                 manifest: nil,
-                revision: response.etag ?? revision ?? ""
+                revision: RemoteRevision.notModified(
+                    response: response.etag,
+                    request: revision
+                ).rawValue
             )
         }
         guard response.statusCode == 200 else {
             throw mappedError(response, object: nil)
         }
-        guard let etag = response.etag else {
-            throw RemoteProviderError.serviceUnavailable(
-                "The WebDAV server omitted the manifest ETag."
-            )
-        }
+        let etag = try RemoteRevision(response.etag).rawValue
         let manifest: RemoteLibraryManifest
         do {
             manifest = try JSONDecoder().decode(
@@ -212,12 +211,7 @@ actor WebDAVProvider: RemoteLibraryProvider {
         guard Self.successStatuses.contains(response.statusCode) else {
             throw mappedError(response, object: nil)
         }
-        guard let etag = response.etag else {
-            throw RemoteProviderError.serviceUnavailable(
-                "The WebDAV server omitted the new manifest ETag."
-            )
-        }
-        return etag
+        return try RemoteRevision(response.etag).rawValue
     }
 
     func delete(

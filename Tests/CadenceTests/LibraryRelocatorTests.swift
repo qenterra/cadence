@@ -73,6 +73,60 @@ struct LibraryRelocatorTests {
         #expect(try Data(contentsOf: marker) == Data("keep".utf8))
     }
 
+    @Test("A failed source manifest write prevents source cleanup")
+    func sourceManifestFailurePreventsCleanup() async throws {
+        let fixture = try relocationFixture()
+        defer { try? FileManager.default.removeItem(at: fixture.root) }
+        let relocator = LibraryRelocator(
+            validate: { _ in try LibraryContainerFactory.inMemory() },
+            manifestStore: failingManifestStore(
+                phase: .switched,
+                location: .source
+            )
+        )
+        let prepared = try await relocator.prepare(
+            source: fixture.source,
+            destinationParent: fixture.destinationParent
+        )
+
+        await #expect(
+            throws: LibraryRelocationFinishError.manifestPersistenceFailed(
+                phase: .switched,
+                manifestPath: prepared.sourceManifestURL.path
+            )
+        ) {
+            try await relocator.finishSwitch(prepared)
+        }
+        #expect(FileManager.default.fileExists(atPath: fixture.source.packageURL.path))
+    }
+
+    @Test("A failed destination cleanup manifest write preserves the source")
+    func destinationManifestFailurePreventsCleanup() async throws {
+        let fixture = try relocationFixture()
+        defer { try? FileManager.default.removeItem(at: fixture.root) }
+        let relocator = LibraryRelocator(
+            validate: { _ in try LibraryContainerFactory.inMemory() },
+            manifestStore: failingManifestStore(
+                phase: .sourceCleanup,
+                location: .destination
+            )
+        )
+        let prepared = try await relocator.prepare(
+            source: fixture.source,
+            destinationParent: fixture.destinationParent
+        )
+
+        await #expect(
+            throws: LibraryRelocationFinishError.manifestPersistenceFailed(
+                phase: .sourceCleanup,
+                manifestPath: prepared.manifestURL.path
+            )
+        ) {
+            try await relocator.finishSwitch(prepared)
+        }
+        #expect(FileManager.default.fileExists(atPath: fixture.source.packageURL.path))
+    }
+
     @Test("Recovery reports a corrupt relocation manifest")
     func corruptRecoveryManifest() async throws {
         let root = try temporaryDirectory()
@@ -108,5 +162,54 @@ struct LibraryRelocatorTests {
         )
         try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         return url
+    }
+
+    private struct RelocationFixture {
+        let root: URL
+        let source: ManagedLibraryLocation
+        let destinationParent: URL
+    }
+
+    private func relocationFixture() throws -> RelocationFixture {
+        let root = try temporaryDirectory()
+        let sourceParent = root.appending(path: "Source", directoryHint: .isDirectory)
+        let destinationParent = root.appending(path: "Destination", directoryHint: .isDirectory)
+        try FileManager.default.createDirectory(at: sourceParent, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(at: destinationParent, withIntermediateDirectories: true)
+        let source = ManagedLibraryLocation(musicDirectory: sourceParent)
+        let package = ManagedLibraryPackage(location: source)
+        try package.bootstrapForConfirmedImport()
+        try package.writeIdentity(LibraryIdentity())
+        try Data("audio".utf8).write(
+            to: package.mediaDirectoryURL.appending(path: "track.flac")
+        )
+        return RelocationFixture(
+            root: root,
+            source: source,
+            destinationParent: destinationParent
+        )
+    }
+
+    private enum ManifestLocation: Equatable {
+        case source
+        case destination
+    }
+
+    private func failingManifestStore(
+        phase: LibraryRelocationPhase,
+        location: ManifestLocation
+    ) -> LibraryRelocationManifestStore {
+        LibraryRelocationManifestStore { manifest, url in
+            let isSource = url.path.contains("Cadence.library/Staging/Relocations")
+            let shouldFail = manifest.phase == phase && (location == .source ? isSource : !isSource)
+            if shouldFail {
+                throw CocoaError(.fileWriteNoPermission)
+            }
+            try FileManager.default.createDirectory(
+                at: url.deletingLastPathComponent(),
+                withIntermediateDirectories: true
+            )
+            try JSONEncoder().encode(manifest).write(to: url, options: .atomic)
+        }
     }
 }

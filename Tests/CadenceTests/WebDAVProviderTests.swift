@@ -44,6 +44,18 @@ struct WebDAVProviderTests {
         #expect(response.revision == "revision-2")
     }
 
+    @Test("A 304 response rejects a blank manifest revision")
+    func notModifiedRejectsBlankRevision() async throws {
+        let fixture = await WebDAVFixture()
+        WebDAVURLProtocolStub.install { request in
+            .response(request, status: 304)
+        }
+
+        await #expect(throws: RemoteProviderError.invalidRevision) {
+            try await fixture.provider.fetchManifest(ifNoneMatch: "   ")
+        }
+    }
+
     @Test("A range read requires a partial response")
     func rangeRead() async throws {
         let fixture = await WebDAVFixture()
@@ -93,6 +105,21 @@ struct WebDAVProviderTests {
             try await fixture.provider.commitManifest(
                 fixture.manifest,
                 matching: "stale"
+            )
+        }
+    }
+
+    @Test("A manifest commit requires a non-empty new revision")
+    func manifestCommitRequiresRevision() async throws {
+        let fixture = await WebDAVFixture()
+        WebDAVURLProtocolStub.install { request in
+            .response(request, status: 200, headers: ["ETag": "\t"])
+        }
+
+        await #expect(throws: RemoteProviderError.invalidRevision) {
+            try await fixture.provider.commitManifest(
+                fixture.manifest,
+                matching: "previous"
             )
         }
     }

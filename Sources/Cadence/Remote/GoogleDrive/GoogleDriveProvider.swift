@@ -47,19 +47,18 @@ actor GoogleDriveProvider: RemoteLibraryProvider {
         }
         let (data, response) = try await perform(request)
         if response.statusCode == 304 {
-            return RemoteManifestResponse(
+            return try RemoteManifestResponse(
                 manifest: nil,
-                revision: response.driveETag ?? revision ?? ""
+                revision: RemoteRevision.notModified(
+                    response: response.driveETag,
+                    request: revision
+                ).rawValue
             )
         }
         guard response.statusCode == 200 else {
             throw mappedError(response, object: nil)
         }
-        guard let etag = response.driveETag else {
-            throw RemoteProviderError.serviceUnavailable(
-                "Google Drive omitted the manifest ETag."
-            )
-        }
+        let etag = try RemoteRevision(response.driveETag).rawValue
         let manifest: RemoteLibraryManifest
         do {
             manifest = try JSONDecoder().decode(
@@ -190,12 +189,7 @@ actor GoogleDriveProvider: RemoteLibraryProvider {
         guard Self.successStatuses.contains(response.statusCode) else {
             throw mappedError(response, object: nil)
         }
-        guard let etag = response.driveETag else {
-            throw RemoteProviderError.serviceUnavailable(
-                "Google Drive omitted the new manifest ETag."
-            )
-        }
-        return etag
+        return try RemoteRevision(response.driveETag).rawValue
     }
 
     func delete(

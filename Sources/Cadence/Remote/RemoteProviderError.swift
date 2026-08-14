@@ -7,6 +7,7 @@ enum RemoteProviderError: Error, Equatable, LocalizedError, Sendable {
     case interrupted
     case invalidManifest(String)
     case invalidRange
+    case invalidRevision
     case objectNotFound(RemoteObjectID)
     case rangeNotSupported
     case serviceUnavailable(String)
@@ -25,6 +26,8 @@ enum RemoteProviderError: Error, Equatable, LocalizedError, Sendable {
             "The remote library manifest is invalid: \(reason)"
         case .invalidRange:
             "The requested byte range is invalid."
+        case .invalidRevision:
+            "The remote server returned an invalid library revision. Refresh and try again."
         case let .objectNotFound(object):
             "The remote object \(object.rawValue) is unavailable."
         case .rangeNotSupported:
