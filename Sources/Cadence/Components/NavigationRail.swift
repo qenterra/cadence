@@ -6,6 +6,30 @@ struct NavigationRailAccessibilityItem: Equatable, Sendable {
     let value: String
 }
 
+/// Describes disclosure without changing the rail's vertical geometry.
+struct NavigationRailPresentation: Equatable, Sendable {
+    let labelOpacity: Double
+    let sectionHeaderOpacity: Double
+    let sectionHeaderHeight: CGFloat
+    let rowContentInset: CGFloat
+
+    static func resolve(isExpanded: Bool) -> Self {
+        let compactRowOffset = (
+            NavigationRailMetrics.contentWidth(isExpanded: false)
+                - NavigationRailMetrics.rowWidth(isExpanded: false)
+        ) / 2
+
+        return Self(
+            labelOpacity: isExpanded ? 1 : 0,
+            sectionHeaderOpacity: isExpanded ? 1 : 0,
+            sectionHeaderHeight: NavigationRailMetrics.sectionHeaderHeight,
+            rowContentInset: isExpanded
+                ? NavigationRailMetrics.rowInset
+                : NavigationRailMetrics.rowInset - compactRowOffset
+        )
+    }
+}
+
 enum NavigationRailAccessibilityContract {
     static func items(
         sections: [NavigationRailSection],
@@ -106,15 +130,19 @@ struct NavigationRail: View {
     private func navigationSection(
         _ section: NavigationRailSection
     ) -> some View {
-        VStack(alignment: .leading, spacing: CadenceLayout.textStack) {
-            if isExpanded {
-                Text(section.group.title)
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.tertiary)
-                    .padding(.horizontal, NavigationRailMetrics.rowInset)
-                    .frame(height: NavigationRailMetrics.sectionHeaderHeight)
-                    .accessibilityAddTraits(.isHeader)
-            }
+        let presentation = NavigationRailPresentation.resolve(
+            isExpanded: isExpanded
+        )
+
+        return VStack(alignment: .leading, spacing: CadenceLayout.textStack) {
+            Text(section.group.title)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.tertiary)
+                .padding(.horizontal, NavigationRailMetrics.rowInset)
+                .frame(height: presentation.sectionHeaderHeight)
+                .opacity(presentation.sectionHeaderOpacity)
+                .accessibilityHidden(!isExpanded)
+                .accessibilityAddTraits(.isHeader)
 
             ForEach(section.destinations) { destination in
                 railButton(destination)
@@ -200,28 +228,24 @@ struct NavigationRail: View {
         title: String,
         animatesSymbolReplacement: Bool = false
     ) -> some View {
-        Group {
-            if isExpanded {
-                HStack(spacing: CadenceLayout.controlGap) {
-                    railIcon(
-                        systemName,
-                        animatesSymbolReplacement: animatesSymbolReplacement
-                    )
-                    Text(title)
-                        .font(.callout.weight(.medium))
-                        .lineLimit(1)
-                    Spacer(minLength: 0)
-                }
-                .padding(.horizontal, NavigationRailMetrics.rowInset)
-                .frame(maxWidth: .infinity, alignment: .leading)
-            } else {
-                railIcon(
-                    systemName,
-                    animatesSymbolReplacement: animatesSymbolReplacement
-                )
-                .frame(maxWidth: .infinity)
-            }
+        let presentation = NavigationRailPresentation.resolve(
+            isExpanded: isExpanded
+        )
+
+        return HStack(spacing: CadenceLayout.controlGap) {
+            railIcon(
+                systemName,
+                animatesSymbolReplacement: animatesSymbolReplacement
+            )
+            Text(title)
+                .font(.callout.weight(.medium))
+                .lineLimit(1)
+                .opacity(presentation.labelOpacity)
+                .accessibilityHidden(!isExpanded)
+            Spacer(minLength: 0)
         }
+        .padding(.horizontal, presentation.rowContentInset)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .frame(
             width: NavigationRailMetrics.rowWidth(isExpanded: isExpanded),
             height: NavigationRailMetrics.rowHeight
