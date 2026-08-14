@@ -1,9 +1,17 @@
 import Foundation
 
 struct ArtistCreditParser: Sendable {
-    private static let featuringExpression = try? NSRegularExpression(
-        pattern: #"(?i)\s+(?:feat(?:uring)?|ft)\.?\s+"#
-    )
+    private static let featuringExpression: NSRegularExpression = {
+        do {
+            return try NSRegularExpression(
+                pattern: #"(?i)\s+(?:feat(?:uring)?|ft)\.?\s+"#
+            )
+        } catch {
+            preconditionFailure(
+                "The built-in artist-credit expression must compile: \(error)"
+            )
+        }
+    }()
 
     func parse(
         values: [String],
@@ -14,12 +22,12 @@ struct ArtistCreditParser: Sendable {
 
         for value in values {
             let range = NSRange(value.startIndex ..< value.endIndex, in: value)
-            let normalizedSeparators = Self.featuringExpression?
+            let normalizedSeparators = Self.featuringExpression
                 .stringByReplacingMatches(
                     in: value,
                     range: range,
                     withTemplate: ";"
-                ) ?? value
+                )
             for component in normalizedSeparators.components(
                 separatedBy: CharacterSet(charactersIn: ",;")
             ) {

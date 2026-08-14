@@ -44,6 +44,21 @@ complete binary lockfile. `release/requirements.txt` separately pins
 `dmgbuild` to `1.6.7`; the release script installs it into the ignored
 `.build/release-tools` virtual environment.
 
+## Evaluated alternatives
+
+Dependencies are added only when they remove more product risk than they add.
+The following libraries were reviewed during the 0.2 beta audit and are not
+runtime dependencies:
+
+| Candidate | Decision | Rationale |
+| --- | --- | --- |
+| [SFBAudioEngine](https://github.com/sbooth/SFBAudioEngine) | Do not adopt for 0.2 | Its decoders, player, conversion, and writable metadata model are valuable for broader format support. Cadence currently targets formats supported by Apple's audio stack, so replacing the tested AVFoundation/AVFAudio path would expand the binary, licensing review, and playback surface without solving a confirmed beta defect. Re-evaluate only if a supported-format or gapless-playback acceptance test proves the native stack insufficient. |
+| [SnapshotTesting](https://github.com/pointfreeco/swift-snapshot-testing) | Keep as a later test-only option | It provides recording and image, text, and data snapshot strategies. Cadence's existing native RGBA comparator already gives deterministic macOS screenshot diffs and is integrated into the release gate. Consider a hybrid adoption when hierarchy or serialized-state snapshots become a concrete need; replacing the current image gate alone would add migration work without broader coverage. |
+
+These are deliberate boundaries, not fallback implementations. A future change
+must start with a failing product-level acceptance test, document licensing and
+binary-size impact, and retain one authoritative playback or snapshot path.
+
 ## Updating the toolchain
 
 1. Review the new macOS and Xcode requirement.

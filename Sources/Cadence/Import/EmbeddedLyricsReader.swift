@@ -21,30 +21,32 @@ struct EmbeddedLyricsReader: Sendable {
 
     func read(
         items: [AVMetadataItem]
-    ) async -> EmbeddedLyricsPayload? {
+    ) async throws -> EmbeddedLyricsPayload? {
         let resolver = MetadataValueResolver(items: items)
-        let synchronized = await resolver.strings(
+        let synchronized = try await resolver.strings(
             rawKeys: Self.synchronizedKeys
         )
-        let unsynchronized = await resolver.strings(
+        let unsynchronized = try await resolver.strings(
             rawKeys: Self.unsynchronizedKeys
         )
         let candidates = synchronized + unsynchronized
 
         for candidate in candidates {
-            guard
-                let document = try? LineLevelLRC.parse(
+            do {
+                let document = try LineLevelLRC.parse(
                     candidate,
                     trackID: 0
-                ),
-                let normalized = try? LineLevelLRC.generate(document)
-            else {
+                )
+                let normalized = try LineLevelLRC.generate(document)
+                return EmbeddedLyricsPayload(
+                    text: normalized,
+                    timingStatus: document.timingStatus
+                )
+            } catch {
+                // A malformed optional tag must not hide a later valid lyrics
+                // tag or make an otherwise playable audio file unimportable.
                 continue
             }
-            return EmbeddedLyricsPayload(
-                text: normalized,
-                timingStatus: document.timingStatus
-            )
         }
         return nil
     }

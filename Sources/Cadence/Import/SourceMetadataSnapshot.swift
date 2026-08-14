@@ -31,15 +31,15 @@ struct SourceMetadataSnapshot: Codable, Equatable, Sendable {
 
     static func capture(
         items: [AVMetadataItem]
-    ) async -> SourceMetadataSnapshot {
+    ) async throws -> SourceMetadataSnapshot {
         var captured: [SourceMetadataItem] = []
         captured.reserveCapacity(items.count)
 
         for item in items {
-            let stringValue = try? await item.load(.stringValue)
-            let numberValue = try? await item.load(.numberValue)
-            let dateValue = try? await item.load(.dateValue)
-            let dataValue = try? await item.load(.dataValue)
+            let stringValue = try await item.load(.stringValue)
+            let numberValue = try await item.load(.numberValue)
+            let dateValue = try await item.load(.dateValue)
+            let dataValue = try await item.load(.dataValue)
             let trimmedString = stringValue?.trimmingCharacters(
                 in: .whitespacesAndNewlines
             )

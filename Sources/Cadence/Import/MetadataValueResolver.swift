@@ -7,7 +7,7 @@ struct MetadataValueResolver {
     func strings(
         commonIdentifier: AVMetadataIdentifier? = nil,
         rawKeys: Set<String>
-    ) async -> [String] {
+    ) async throws -> [String] {
         var values: [String] = []
         for item in items {
             let matchesCommon = commonIdentifier.map {
@@ -15,7 +15,7 @@ struct MetadataValueResolver {
             } ?? false
             let matchesRaw = rawKeys.contains(Self.canonicalKey(of: item))
             guard matchesCommon || matchesRaw,
-                  let value = await stringValue(of: item)
+                  let value = try await stringValue(of: item)
             else {
                 continue
             }
@@ -27,17 +27,17 @@ struct MetadataValueResolver {
     func string(
         commonIdentifier: AVMetadataIdentifier? = nil,
         rawKeys: Set<String>
-    ) async -> String? {
+    ) async throws -> String? {
         if let commonIdentifier {
             for item in items where item.identifier == commonIdentifier {
-                if let value = await stringValue(of: item) {
+                if let value = try await stringValue(of: item) {
                     return value
                 }
             }
         }
 
         for item in items where rawKeys.contains(Self.canonicalKey(of: item)) {
-            if let value = await stringValue(of: item) {
+            if let value = try await stringValue(of: item) {
                 return value
             }
         }
@@ -46,8 +46,8 @@ struct MetadataValueResolver {
 
     func integer(
         rawKeys: Set<String>
-    ) async -> Int? {
-        guard let value = await string(rawKeys: rawKeys) else {
+    ) async throws -> Int? {
+        guard let value = try await string(rawKeys: rawKeys) else {
             return nil
         }
         let firstComponent = value.split(separator: "/", maxSplits: 1).first
@@ -64,17 +64,17 @@ struct MetadataValueResolver {
     func data(
         commonIdentifier: AVMetadataIdentifier? = nil,
         rawKeys: Set<String>
-    ) async -> Data? {
+    ) async throws -> Data? {
         if let commonIdentifier {
             for item in items where item.identifier == commonIdentifier {
-                if let value = try? await item.load(.dataValue),
+                if let value = try await item.load(.dataValue),
                    !value.isEmpty {
                     return value
                 }
             }
         }
         for item in items where rawKeys.contains(Self.canonicalKey(of: item)) {
-            if let value = try? await item.load(.dataValue),
+            if let value = try await item.load(.dataValue),
                !value.isEmpty {
                 return value
             }
@@ -84,8 +84,8 @@ struct MetadataValueResolver {
 
     private func stringValue(
         of item: AVMetadataItem
-    ) async -> String? {
-        guard let value = try? await item.load(.stringValue) else {
+    ) async throws -> String? {
+        guard let value = try await item.load(.stringValue) else {
             return nil
         }
         let trimmed = value.trimmingCharacters(

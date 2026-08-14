@@ -2,16 +2,35 @@ import AVFoundation
 import Foundation
 import ImageIO
 
+private enum FLACArtworkReadError: LocalizedError {
+    case invalidSignature
+    case truncatedBlockHeader
+    case truncatedBlock
+    case malformedPictureBlock
+
+    var errorDescription: String? {
+        switch self {
+        case .invalidSignature:
+            "The file does not contain a valid FLAC signature."
+        case .truncatedBlockHeader:
+            "The FLAC metadata block header is truncated."
+        case .truncatedBlock:
+            "A FLAC metadata block is truncated."
+        case .malformedPictureBlock:
+            "The FLAC picture block is malformed."
+        }
+    }
+}
+
 extension MetadataReader {
     func embeddedArtwork(
-        asset _: AVURLAsset,
         metadataItems: [AVMetadataItem],
         url: URL
-    ) async -> EmbeddedArtworkPayload? {
+    ) async throws -> EmbeddedArtworkPayload? {
         let data: Data? = if url.pathExtension.lowercased() == "flac" {
-            try? flacPictureData(url: url)
+            try flacPictureData(url: url)
         } else {
-            await MetadataValueResolver(items: metadataItems).data(
+            try await MetadataValueResolver(items: metadataItems).data(
                 commonIdentifier: .commonIdentifierArtwork,
                 rawKeys: ["APIC", "COVR", "PICTURE"]
             )
@@ -76,7 +95,7 @@ extension MetadataReader {
         let handle = try FileHandle(forReadingFrom: url)
         defer { try? handle.close() }
         guard try handle.read(upToCount: 4) == Data("fLaC".utf8) else {
-            return nil
+            throw FLACArtworkReadError.invalidSignature
         }
 
         var isLastBlock = false
@@ -85,7 +104,7 @@ extension MetadataReader {
                 let header = try handle.read(upToCount: 4),
                 header.count == 4
             else {
-                return nil
+                throw FLACArtworkReadError.truncatedBlockHeader
             }
             isLastBlock = header[0] & 0x80 != 0
             let type = header[0] & 0x7F
@@ -96,10 +115,13 @@ extension MetadataReader {
                 let block = try handle.read(upToCount: length),
                 block.count == length
             else {
-                return nil
+                throw FLACArtworkReadError.truncatedBlock
             }
             if type == 6 {
-                return flacPicturePayload(block)
+                guard let payload = flacPicturePayload(block) else {
+                    throw FLACArtworkReadError.malformedPictureBlock
+                }
+                return payload
             }
         }
         return nil

@@ -8,7 +8,7 @@ import Foundation
 /// both results tied to the exact URL and surface unreadable audio as an error.
 protocol AudioMetadataReading: Sendable {
     func read(url: URL) async throws -> ScannedAudioMetadata
-    func readEmbeddedArtwork(url: URL) async -> EmbeddedArtworkPayload?
+    func readEmbeddedArtwork(url: URL) async throws -> EmbeddedArtworkPayload?
 }
 
 struct EmbeddedArtworkMetadata: Codable, Equatable, Sendable {
@@ -99,6 +99,8 @@ struct ScannedAudioMetadata: Codable, Equatable, Sendable {
 enum MetadataReaderError: Error, LocalizedError, Sendable {
     case noAudioTrack(String)
     case unavailableAudioFormat(String)
+    case unreadableMetadata(String, detail: String)
+    case unreadableEmbeddedArtwork(String, detail: String)
 
     var errorDescription: String? {
         switch self {
@@ -106,6 +108,10 @@ enum MetadataReaderError: Error, LocalizedError, Sendable {
             "No audio track was found in \(path)."
         case let .unavailableAudioFormat(path):
             "Audio properties are unavailable for \(path)."
+        case let .unreadableMetadata(path, detail):
+            "Metadata could not be read from \(path): \(detail)"
+        case let .unreadableEmbeddedArtwork(path, detail):
+            "Embedded artwork could not be read from \(path): \(detail)"
         }
     }
 }
@@ -133,6 +139,23 @@ struct MetadataReader: Sendable {
     func read(
         url: URL
     ) async throws -> ScannedAudioMetadata {
+        do {
+            return try await readAsset(url: url)
+        } catch is CancellationError {
+            throw CancellationError()
+        } catch let error as MetadataReaderError {
+            throw error
+        } catch {
+            throw MetadataReaderError.unreadableMetadata(
+                url.lastPathComponent,
+                detail: error.localizedDescription
+            )
+        }
+    }
+
+    private func readAsset(
+        url: URL
+    ) async throws -> ScannedAudioMetadata {
         try Task.checkCancellation()
 
         let asset = AVURLAsset(url: url)
@@ -141,22 +164,21 @@ struct MetadataReader: Sendable {
         async let containerMetadata = asset.load(.metadata)
         let metadata = try await commonMetadata + containerMetadata
         let values = MetadataValueResolver(items: metadata)
-        let embeddedLyrics = await EmbeddedLyricsReader().read(
+        let embeddedLyrics = try await EmbeddedLyricsReader().read(
             items: metadata
         )
-        let sourceMetadata = await SourceMetadataSnapshot.capture(
+        let sourceMetadata = try await SourceMetadataSnapshot.capture(
             items: metadata
         )
         let properties = try await audioProperties(
             asset: asset,
             url: url
         )
-        let artwork = await embeddedArtwork(
-            asset: asset,
+        let artwork = try await embeddedArtwork(
             metadataItems: metadata,
             url: url
         )
-        let text = await textMetadata(values: values, url: url)
+        let text = try await textMetadata(values: values, url: url)
         return ScannedAudioMetadata(
             title: text.display.title,
             artist: text.artist,
@@ -183,9 +205,9 @@ struct MetadataReader: Sendable {
     private func textMetadata(
         values: MetadataValueResolver,
         url: URL
-    ) async -> TextMetadata {
-        let display = await displayMetadata(values: values, url: url)
-        let sourceArtistValues = await values.strings(
+    ) async throws -> TextMetadata {
+        let display = try await displayMetadata(values: values, url: url)
+        let sourceArtistValues = try await values.strings(
             commonIdentifier: .commonIdentifierArtist,
             rawKeys: ["ARTIST", "PERFORMER", "TPE1"]
         )
@@ -196,21 +218,21 @@ struct MetadataReader: Sendable {
             values: sourceArtistValues,
             fallback: display.artist
         )
-        let albumArtistValues = await values.strings(
+        let albumArtistValues = try await values.strings(
             rawKeys: ["ALBUMARTIST", "ALBUMARTISTS", "TPE2"]
         )
         let albumArtist = ArtistCreditParser().parse(
             values: albumArtistValues,
             fallback: artists[0]
         ).first
-        let date = await values.string(
+        let date = try await values.string(
             commonIdentifier: .commonIdentifierCreationDate,
             rawKeys: ["DATE", "YEAR", "TDRC", "TYER"]
         )
-        let trackNumber = await values.integer(
+        let trackNumber = try await values.integer(
             rawKeys: ["TRACK", "TRACKNUMBER", "TRCK"]
         )
-        let discNumber = await values.integer(
+        let discNumber = try await values.integer(
             rawKeys: ["DISC", "DISCNUMBER", "TPOS"]
         )
 
@@ -227,15 +249,32 @@ struct MetadataReader: Sendable {
 
     func readEmbeddedArtwork(
         url: URL
-    ) async -> EmbeddedArtworkPayload? {
-        let asset = AVURLAsset(url: url)
-        let common = await (try? asset.load(.commonMetadata)) ?? []
-        let container = await (try? asset.load(.metadata)) ?? []
-        return await embeddedArtwork(
-            asset: asset,
-            metadataItems: common + container,
-            url: url
-        )
+    ) async throws -> EmbeddedArtworkPayload? {
+        do {
+            if url.pathExtension.lowercased() == "flac" {
+                return try await embeddedArtwork(
+                    metadataItems: [],
+                    url: url
+                )
+            }
+            let asset = AVURLAsset(url: url)
+            async let common = asset.load(.commonMetadata)
+            async let container = asset.load(.metadata)
+            let metadata = try await common + container
+            return try await embeddedArtwork(
+                metadataItems: metadata,
+                url: url
+            )
+        } catch is CancellationError {
+            throw CancellationError()
+        } catch let error as MetadataReaderError {
+            throw error
+        } catch {
+            throw MetadataReaderError.unreadableEmbeddedArtwork(
+                url.lastPathComponent,
+                detail: error.localizedDescription
+            )
+        }
     }
 
     private func audioProperties(
@@ -258,12 +297,14 @@ struct MetadataReader: Sendable {
 
         let stream = pointer.pointee
         let channels = Int(stream.mChannelsPerFrame)
-        let estimatedDataRate = try? await track.load(.estimatedDataRate)
+        let estimatedDataRate = try await track.load(.estimatedDataRate)
         return AudioProperties(
             codec: fourCC(stream.mFormatID),
             sampleRate: stream.mSampleRate,
             channelCount: channels,
-            bitrate: estimatedDataRate.map { Int($0.rounded()) },
+            bitrate: estimatedDataRate > 0
+                ? Int(estimatedDataRate.rounded())
+                : nil,
             bitDepth: stream.mBitsPerChannel > 0
                 ? Int(stream.mBitsPerChannel)
                 : nil,
@@ -274,16 +315,16 @@ struct MetadataReader: Sendable {
     private func displayMetadata(
         values: MetadataValueResolver,
         url: URL
-    ) async -> AudioDisplayMetadata {
-        let title = await values.string(
+    ) async throws -> AudioDisplayMetadata {
+        let title = try await values.string(
             commonIdentifier: .commonIdentifierTitle,
             rawKeys: ["TITLE", "TIT2"]
         ) ?? url.deletingPathExtension().lastPathComponent
-        let artist = await values.string(
+        let artist = try await values.string(
             commonIdentifier: .commonIdentifierArtist,
             rawKeys: ["ARTIST", "PERFORMER", "TPE1"]
         ) ?? "Unknown Artist"
-        let album = await values.string(
+        let album = try await values.string(
             commonIdentifier: .commonIdentifierAlbumName,
             rawKeys: ["ALBUM", "TALB"]
         ) ?? "Unknown Album"

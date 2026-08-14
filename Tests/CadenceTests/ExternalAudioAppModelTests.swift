@@ -211,7 +211,7 @@ private actor ExternalAppModelMetadataReader: AudioMetadataReading {
         return metadata
     }
 
-    func readEmbeddedArtwork(url _: URL) async -> EmbeddedArtworkPayload? {
+    func readEmbeddedArtwork(url _: URL) async throws -> EmbeddedArtworkPayload? {
         nil
     }
 }

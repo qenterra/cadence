@@ -14,7 +14,7 @@ struct MetadataReaderTests {
         ]
 
         let payload = try #require(
-            await EmbeddedLyricsReader().read(items: items)
+            try await EmbeddedLyricsReader().read(items: items)
         )
 
         #expect(payload.timingStatus == .synchronized)
@@ -24,7 +24,7 @@ struct MetadataReaderTests {
     @Test("Embedded plain lyrics remain available without fake timestamps")
     func embeddedPlainLyrics() async throws {
         let payload = try #require(
-            await EmbeddedLyricsReader().read(
+            try await EmbeddedLyricsReader().read(
                 items: [metadataItem(key: "USLT", value: "First\nSecond")]
             )
         )
@@ -46,11 +46,11 @@ struct MetadataReaderTests {
         let resolver = MetadataValueResolver(items: items)
 
         #expect(
-            await resolver.strings(rawKeys: ["ARTIST"])
+            try await resolver.strings(rawKeys: ["ARTIST"])
                 == ["madkid", "темный принц"]
         )
 
-        let snapshot = await SourceMetadataSnapshot.capture(items: items)
+        let snapshot = try await SourceMetadataSnapshot.capture(items: items)
         #expect(snapshot.version == SourceMetadataSnapshot.currentVersion)
         #expect(
             snapshot.items.contains {
@@ -69,7 +69,7 @@ struct MetadataReaderTests {
     }
 
     @Test("Vorbis comments provide display and ordering metadata")
-    func vorbisMetadata() async {
+    func vorbisMetadata() async throws {
         let resolver = MetadataValueResolver(
             items: [
                 metadataItem(key: "TITLE", value: "BLUE"),
@@ -85,19 +85,19 @@ struct MetadataReaderTests {
         )
 
         #expect(
-            await resolver.string(rawKeys: ["TITLE"])
+            try await resolver.string(rawKeys: ["TITLE"])
                 == "BLUE"
         )
         #expect(
-            await resolver.string(rawKeys: ["ARTIST"])
+            try await resolver.string(rawKeys: ["ARTIST"])
                 == "Billie Eilish"
         )
         #expect(
-            await resolver.string(rawKeys: ["ALBUM"])
+            try await resolver.string(rawKeys: ["ALBUM"])
                 == "HIT ME HARD AND SOFT"
         )
-        #expect(await resolver.integer(rawKeys: ["TRACKNUMBER"]) == 10)
-        #expect(await resolver.integer(rawKeys: ["DISCNUMBER"]) == 1)
+        #expect(try await resolver.integer(rawKeys: ["TRACKNUMBER"]) == 10)
+        #expect(try await resolver.integer(rawKeys: ["DISCNUMBER"]) == 1)
     }
 
     @Test("A real WAV exposes technical properties and safe display fallbacks")
@@ -122,6 +122,39 @@ struct MetadataReaderTests {
         #expect(metadata.duration < 0.11)
     }
 
+    @Test("Missing metadata stays empty while asset read failures are typed")
+    func missingMetadataDiffersFromReadFailure() async throws {
+        let validURL = FileManager.default.temporaryDirectory.appending(
+            path: "Metadata-Absence-\(UUID().uuidString).wav"
+        )
+        try writeSilentWAV(to: validURL)
+        defer { try? FileManager.default.removeItem(at: validURL) }
+
+        let missingArtwork = try await MetadataReader()
+            .readEmbeddedArtwork(url: validURL)
+        #expect(missingArtwork == nil)
+
+        let unreadableURL = FileManager.default.temporaryDirectory.appending(
+            path: "Missing-Metadata-\(UUID().uuidString).flac"
+        )
+        await #expect(throws: MetadataReaderError.self) {
+            try await MetadataReader().readEmbeddedArtwork(url: unreadableURL)
+        }
+        await #expect(throws: MetadataReaderError.self) {
+            try await MetadataReader().read(url: unreadableURL)
+        }
+
+        let corruptURL = FileManager.default.temporaryDirectory.appending(
+            path: "Corrupt-Metadata-\(UUID().uuidString).flac"
+        )
+        try Data("not-flac".utf8).write(to: corruptURL)
+        defer { try? FileManager.default.removeItem(at: corruptURL) }
+
+        await #expect(throws: MetadataReaderError.self) {
+            try await MetadataReader().readEmbeddedArtwork(url: corruptURL)
+        }
+    }
+
     @Test("FLAC picture blocks expose validated embedded artwork")
     func flacEmbeddedArtwork() async throws {
         let png = try #require(
@@ -140,7 +173,7 @@ struct MetadataReaderTests {
         }
 
         let artwork = try #require(
-            await MetadataReader().readEmbeddedArtwork(url: url)
+            try await MetadataReader().readEmbeddedArtwork(url: url)
         )
 
         #expect(artwork.data == png)

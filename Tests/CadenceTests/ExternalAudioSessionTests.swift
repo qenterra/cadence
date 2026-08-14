@@ -121,7 +121,7 @@ private actor ExternalAudioMetadataReaderStub: AudioMetadataReading {
         return metadata
     }
 
-    func readEmbeddedArtwork(url: URL) async -> EmbeddedArtworkPayload? {
+    func readEmbeddedArtwork(url: URL) async throws -> EmbeddedArtworkPayload? {
         artworkRequests.append(url)
         return artworkByURL[url]
     }

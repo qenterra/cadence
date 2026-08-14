@@ -231,7 +231,7 @@ private func copyArtworkIfPresent(
         return
     }
     guard
-        let payload = await MetadataReader().readEmbeddedArtwork(
+        let payload = try await MetadataReader().readEmbeddedArtwork(
             url: URL(filePath: entry.sourceAudioPath)
         ),
         payload.metadata.contentHash == artwork.contentHash,

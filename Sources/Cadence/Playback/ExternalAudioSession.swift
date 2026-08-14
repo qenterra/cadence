@@ -72,7 +72,7 @@ final class ExternalAudioSession {
             let acquiredScope = securityScope.startAccessing(url)
             do {
                 let metadata = try await metadataReader.read(url: url)
-                let artworkPayload = await metadataReader.readEmbeddedArtwork(
+                let artworkPayload = try await metadataReader.readEmbeddedArtwork(
                     url: url
                 )
                 let item = makeItem(
