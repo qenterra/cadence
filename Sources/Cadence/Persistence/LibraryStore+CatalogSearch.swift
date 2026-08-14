@@ -5,7 +5,6 @@ extension LibraryStore {
         _ group: CatalogSearchGroup
     ) async {
         guard
-            let repository,
             !loadingCatalogSearchGroups.contains(group),
             let cursor = catalogSearchCursor(for: group)
         else {
@@ -18,6 +17,7 @@ extension LibraryStore {
             loadingCatalogSearchGroups.remove(group)
         }
         do {
+            let repository = try requireRepository()
             try await appendCatalogSearchPage(
                 group,
                 repository: repository,

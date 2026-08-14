@@ -40,7 +40,10 @@ struct DocumentationScreenshotTests {
         #expect(FileManager.default.fileExists(atPath: diff.path))
     }
 
-    @Test("Render public screenshots from production projections")
+    @Test(
+        "Render public screenshots from production projections",
+        .appKitExclusive
+    )
     func renderProductionScreenshots() async throws {
         let navigationPreferences = NavigationScreenshotPreferences()
         navigationPreferences.install()

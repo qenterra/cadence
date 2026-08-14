@@ -23,11 +23,12 @@ extension LibraryStore {
         browserTrackCursor = nil
         isLoadingNextBrowserTracks = false
 
-        guard let repository, let artistID else {
+        guard let artistID else {
             return
         }
 
         do {
+            let repository = try requireRepository()
             let page = try await repository.albumsPage(artistID: artistID)
             guard
                 generation == browserAlbumGeneration,
@@ -47,7 +48,6 @@ extension LibraryStore {
 
     func loadNextBrowserAlbums() async {
         guard
-            let repository,
             let artistID = browserArtistID,
             let cursor = browserAlbumCursor,
             !isLoadingNextBrowserAlbums
@@ -58,6 +58,7 @@ extension LibraryStore {
         let generation = browserAlbumGeneration
         isLoadingNextBrowserAlbums = true
         do {
+            let repository = try requireRepository()
             let page = try await repository.albumsPage(
                 artistID: artistID,
                 after: cursor
@@ -99,7 +100,7 @@ extension LibraryStore {
         browserTrackCursor = nil
         isLoadingNextBrowserTracks = false
 
-        guard let repository, let albumID else {
+        guard let albumID else {
             return
         }
 
@@ -108,6 +109,7 @@ extension LibraryStore {
             sort: browserTrackSort
         )
         do {
+            let repository = try requireRepository()
             let page = try await repository.tracksPage(query: query)
             guard
                 generation == browserTrackGeneration,
@@ -134,7 +136,6 @@ extension LibraryStore {
 
     func loadNextBrowserTracks() async {
         guard
-            let repository,
             let albumID = browserAlbumID,
             let cursor = browserTrackCursor,
             !isLoadingNextBrowserTracks
@@ -149,6 +150,7 @@ extension LibraryStore {
         )
         isLoadingNextBrowserTracks = true
         do {
+            let repository = try requireRepository()
             let page = try await repository.tracksPage(
                 query: query,
                 after: cursor

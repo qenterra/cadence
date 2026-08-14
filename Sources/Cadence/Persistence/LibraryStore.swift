@@ -62,9 +62,28 @@ enum LyricsSearchIndexState: Equatable, Sendable {
     case failed(String)
 }
 
+enum LibraryStoreMode: Equatable, Sendable {
+    case unavailable
+    case production
+    case trackPageFixture
+    case playlistFixture
+    case catalogLookupFixture
+}
+
+enum LibraryStoreAccessError: Error, Equatable, LocalizedError, Sendable {
+    case repositoryUnavailable
+
+    var errorDescription: String? {
+        String(
+            localized: "The managed library is unavailable. Import music or reopen the library, then try again."
+        )
+    }
+}
+
 @MainActor
 @Observable
 final class LibraryStore {
+    var mode: LibraryStoreMode
     var repository: LibraryRepository?
     var lyricsService: ManagedLyricsService?
     var artworkService: ManagedArtworkService?
@@ -81,7 +100,7 @@ final class LibraryStore {
     @ObservationIgnored var catalogLookupClient: LibraryCatalogLookupClient?
     @ObservationIgnored var allTracksWindow: LibraryTrackWindow?
     @ObservationIgnored let artworkAssetCache = ArtworkAssetCache()
-    @ObservationIgnored var artworkDataLoads: [ArtworkAssetCache.Key: Task<Data?, Never>] = [:]
+    @ObservationIgnored var artworkDataLoads: [ArtworkAssetCache.Key: Task<Data, Error>] = [:]
     var artistCursor: LibraryPageCursor?
     var albumCursor: LibraryPageCursor?
     var isLoadingNextArtists = false
@@ -151,6 +170,7 @@ final class LibraryStore {
         package: ManagedLibraryPackage? = nil
     ) {
         if let container {
+            mode = .production
             let repository = LibraryRepository(modelContainer: container)
             self.repository = repository
             playlistClient = LibraryPlaylistClient(repository: repository)
@@ -185,6 +205,7 @@ final class LibraryStore {
             availability = .ready
             configureLyricsSearch(package: package, repository: repository)
         } else {
+            mode = .unavailable
             repository = nil
             playlistClient = nil
             catalogLookupClient = nil
@@ -198,6 +219,7 @@ final class LibraryStore {
     }
 
     init(trackPageLoader: @escaping LibraryTrackPageLoader) {
+        mode = .trackPageFixture
         repository = nil
         playlistClient = nil
         catalogLookupClient = nil
@@ -208,6 +230,7 @@ final class LibraryStore {
     }
 
     init(playlistClient: LibraryPlaylistClient) {
+        mode = .playlistFixture
         repository = nil
         self.playlistClient = playlistClient
         catalogLookupClient = nil
@@ -217,6 +240,7 @@ final class LibraryStore {
     }
 
     init(catalogLookupClient: LibraryCatalogLookupClient) {
+        mode = .catalogLookupFixture
         repository = nil
         playlistClient = nil
         self.catalogLookupClient = catalogLookupClient
@@ -227,6 +251,15 @@ final class LibraryStore {
 
     var canLoadMoreTracks: Bool {
         trackCursor != nil
+    }
+
+    /// Repository-backed features use this boundary instead of interpreting
+    /// missing production dependencies as a successful empty result.
+    func requireRepository() throws -> LibraryRepository {
+        guard mode == .production, let repository else {
+            throw LibraryStoreAccessError.repositoryUnavailable
+        }
+        return repository
     }
 
     var canLoadMoreArtists: Bool {
@@ -246,11 +279,6 @@ final class LibraryStore {
         let generation = catalogSearchGeneration
         catalogSearchQuery = query
 
-        guard let repository else {
-            catalogSearchResults = .empty
-            isCatalogSearching = false
-            return
-        }
         guard !SearchNormalizer.normalize(query).isEmpty else {
             catalogSearchResults = .empty
             isCatalogSearching = false
@@ -259,6 +287,7 @@ final class LibraryStore {
 
         isCatalogSearching = true
         do {
+            let repository = try requireRepository()
             async let catalog = repository.catalogSearch(query: query)
             async let lyricMatches = lyricsCatalogResults(
                 query: query,
@@ -297,7 +326,7 @@ final class LibraryStore {
         isCatalogSearching = false
 
         guard
-            repository != nil,
+            mode == .production,
             !SearchNormalizer.normalize(query).isEmpty
         else {
             return

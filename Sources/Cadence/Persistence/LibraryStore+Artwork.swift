@@ -6,71 +6,50 @@ extension LibraryStore {
         location: ManagedLibraryLocation?,
         variant: ArtworkAssetVariant = .thumbnail
     ) async -> ArtworkAsset? {
-        guard let repository, let location else {
+        guard let location else {
             return nil
         }
-        guard let artwork = await artworkProjection(id: id, repository: repository) else {
-            return nil
-        }
-        if let cached = artworkAssetCache.asset(
-            id: id,
-            revision: artwork.revision,
-            variant: variant
-        ) {
-            return cached
-        }
-        guard let url = resolvedArtworkURL(
-            relativePath: artwork.relativePath,
-            location: location
-        ) else {
-            return nil
-        }
-        let key = ArtworkAssetCache.Key(
-            id: id,
-            revision: artwork.revision,
-            variant: variant
-        )
-        let data = await artworkData(
-            at: url,
-            key: key,
-            maximumPixelDimension: variant.maximumPixelDimension
-        )
-        guard let data, !data.isEmpty else {
-            return nil
-        }
-        let asset = ArtworkAsset(
-            id: artwork.id,
-            revision: artwork.revision,
-            data: data,
-            variant: variant,
-            scale: artwork.scale,
-            normalizedOffset: CGSize(
-                width: artwork.normalizedOffsetX,
-                height: artwork.normalizedOffsetY
+        do {
+            let repository = try requireRepository()
+            guard let artwork = try await repository.artwork(id: id) else {
+                return nil
+            }
+            if let cached = artworkAssetCache.asset(
+                id: id,
+                revision: artwork.revision,
+                variant: variant
+            ) {
+                return cached
+            }
+            let url = try location.resolve(relativePath: artwork.relativePath)
+            let key = ArtworkAssetCache.Key(
+                id: id,
+                revision: artwork.revision,
+                variant: variant
             )
-        )
-        artworkAssetCache.insert(asset, variant: variant)
-        return asset
-    }
-
-    private func artworkProjection(
-        id: UUID,
-        repository: LibraryRepository
-    ) async -> ManagedArtworkProjection? {
-        do {
-            return try await repository.artwork(id: id)
+            let data = try await artworkData(
+                at: url,
+                key: key,
+                maximumPixelDimension: variant.maximumPixelDimension
+            )
+            guard !data.isEmpty else {
+                throw CocoaError(.fileReadCorruptFile)
+            }
+            let asset = ArtworkAsset(
+                id: artwork.id,
+                revision: artwork.revision,
+                data: data,
+                variant: variant,
+                scale: artwork.scale,
+                normalizedOffset: CGSize(
+                    width: artwork.normalizedOffsetX,
+                    height: artwork.normalizedOffsetY
+                )
+            )
+            artworkAssetCache.insert(asset, variant: variant)
+            return asset
         } catch {
-            return nil
-        }
-    }
-
-    private func resolvedArtworkURL(
-        relativePath: String,
-        location: ManagedLibraryLocation
-    ) -> URL? {
-        do {
-            return try location.resolve(relativePath: relativePath)
-        } catch {
+            recordOperationFailure(.artworkLoad, error: error)
             return nil
         }
     }
@@ -79,18 +58,16 @@ extension LibraryStore {
         at url: URL,
         key: ArtworkAssetCache.Key,
         maximumPixelDimension: Int?
-    ) async -> Data? {
-        let dataLoad: Task<Data?, Never>
+    ) async throws -> Data {
+        let dataLoad: Task<Data, Error>
         if let existing = artworkDataLoads[key] {
             dataLoad = existing
         } else {
-            let created = Task.detached(priority: .utility) { () -> Data? in
-                guard let source = try? Data(
+            let created = Task.detached(priority: .utility) { () throws -> Data in
+                let source = try Data(
                     contentsOf: url,
                     options: [.mappedIfSafe]
-                ) else {
-                    return nil
-                }
+                )
                 guard let maximumPixelDimension else {
                     return source
                 }
@@ -102,8 +79,7 @@ extension LibraryStore {
             artworkDataLoads[key] = created
             dataLoad = created
         }
-        let data = await dataLoad.value
-        artworkDataLoads[key] = nil
-        return data
+        defer { artworkDataLoads[key] = nil }
+        return try await dataLoad.value
     }
 }

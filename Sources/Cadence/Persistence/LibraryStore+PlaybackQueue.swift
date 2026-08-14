@@ -29,16 +29,9 @@ extension LibraryStore {
         }
         playbackQueueProjectionError = nil
 
-        guard let repository else {
-            playbackQueueTracks = ids.map {
-                PlaybackQueueTrackProjection(id: $0, state: .unavailable)
-            }
-            isLoadingPlaybackQueueTracks = false
-            return
-        }
-
         isLoadingPlaybackQueueTracks = true
         do {
+            let repository = try requireRepository()
             let projections = try await repository.playbackQueueTracks(
                 ids: ids
             )

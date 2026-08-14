@@ -9,7 +9,7 @@ extension LibraryStore {
         guard let artworkService, location != nil else {
             throw ManagedArtworkEditError.unavailableLibrary
         }
-        let previousArtworkID = await currentArtworkID(
+        let previousArtworkID = try await currentArtworkID(
             ownerKind: request.ownerKind,
             ownerID: request.ownerID
         )
@@ -30,7 +30,7 @@ extension LibraryStore {
         guard let artworkService, location != nil else {
             throw ManagedArtworkEditError.unavailableLibrary
         }
-        let previousArtworkID = await currentArtworkID(
+        let previousArtworkID = try await currentArtworkID(
             ownerKind: ownerKind,
             ownerID: ownerID
         )
@@ -47,7 +47,7 @@ extension LibraryStore {
 
     func recoverArtworkEdits() async throws -> ManagedArtworkRecoveryResult {
         guard let artworkService else {
-            return .empty
+            throw ManagedArtworkEditError.unavailableLibrary
         }
         return try await artworkService.recover()
     }
@@ -55,7 +55,7 @@ extension LibraryStore {
     private func currentArtworkID(
         ownerKind: ArtworkOwnerKind,
         ownerID: UUID
-    ) async -> UUID? {
+    ) async throws -> UUID? {
         let cachedID: UUID? = switch ownerKind {
         case .artist:
             artists.first { $0.id == ownerID }?.customArtworkID
@@ -71,7 +71,8 @@ extension LibraryStore {
         if let cachedID {
             return cachedID
         }
-        return try? await repository?.artworkEditSnapshot(
+        let repository = try requireRepository()
+        return try await repository.artworkEditSnapshot(
             ownerKind: ownerKind,
             ownerID: ownerID
         )?.id

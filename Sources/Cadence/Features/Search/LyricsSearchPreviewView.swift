@@ -6,7 +6,8 @@ struct LyricsSearchPreviewView: View {
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var document: LyricDocument?
-    @State private var loadFailed = false
+    @State private var didLoad = false
+    @State private var loadError: String?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -18,10 +19,7 @@ struct LyricsSearchPreviewView: View {
         }
         .background(CadenceTheme.contentBackground)
         .task(id: target.id) {
-            document = try? await model.librarySession.store.lyricsDocument(
-                trackID: target.track.id
-            )
-            loadFailed = document == nil
+            await loadDocument()
         }
     }
 }
@@ -84,15 +82,41 @@ private extension LyricsSearchPreviewView {
     var content: some View {
         if let document {
             lyrics(document)
-        } else if loadFailed {
+        } else if let loadError {
+            VStack(spacing: CadenceLayout.contentGap) {
+                ContentUnavailableView(
+                    "Couldn’t Open Lyrics",
+                    systemImage: "exclamationmark.triangle",
+                    description: Text(loadError)
+                )
+                Button("Try Again") {
+                    Task { await loadDocument() }
+                }
+            }
+        } else if didLoad {
             ContentUnavailableView(
                 "Lyrics Unavailable",
                 systemImage: "text.quote",
-                description: Text("The matching lyric file could not be opened.")
+                description: Text("This track has no saved lyrics.")
             )
         } else {
             ProgressView("Loading Lyrics")
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+    }
+
+    @MainActor
+    func loadDocument() async {
+        document = nil
+        didLoad = false
+        loadError = nil
+        do {
+            document = try await model.librarySession.store.lyricsDocument(
+                trackID: target.track.id
+            )
+            didLoad = true
+        } catch {
+            loadError = error.localizedDescription
         }
     }
 

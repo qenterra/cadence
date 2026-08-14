@@ -58,6 +58,7 @@ final class DocumentationScreenshotReadinessTracker {
     private var loadedAlbumIDs: Set<UUID> = []
     private var loadedAlbumTrackIDs: Set<UUID> = []
     private var renderedAlbumIDs: Set<UUID> = []
+    private var renderedNowPlayingTrackIDs: Set<UUID> = []
 
     func didLoadAlbum(_ id: UUID) {
         loadedAlbumIDs.insert(id)
@@ -71,9 +72,16 @@ final class DocumentationScreenshotReadinessTracker {
         renderedAlbumIDs.insert(id)
     }
 
+    func didRenderNowPlaying(_ id: UUID) {
+        renderedNowPlayingTrackIDs.insert(id)
+    }
+
     func prepareForCapture(_ scene: DocumentationScreenshotScene) {
         if case let .album(id) = scene {
             renderedAlbumIDs.remove(id)
+        }
+        if case .nowPlaying = scene {
+            renderedNowPlayingTrackIDs.removeAll()
         }
     }
 
@@ -81,6 +89,10 @@ final class DocumentationScreenshotReadinessTracker {
         loadedAlbumIDs.contains(id)
             && loadedAlbumTrackIDs.contains(id)
             && renderedAlbumIDs.contains(id)
+    }
+
+    func isNowPlayingReady(_ id: UUID) -> Bool {
+        renderedNowPlayingTrackIDs.contains(id)
     }
 
     func albumDiagnostic(_ id: UUID) -> String {

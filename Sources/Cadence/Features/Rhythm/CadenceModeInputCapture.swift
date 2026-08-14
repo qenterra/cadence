@@ -7,16 +7,20 @@ struct CadenceModeInputCapture: View {
     var body: some View {
         RhythmKeyboardCapture(
             canActivateCadenceMode: model.hasCurrentPlaybackItem,
-            isCadenceModeActive: session.isActive
-        ) { lane in
-            handleKeyDown(lane)
-        } onKeyUp: { lane in
-            session.keyUp(lane: lane)
-        } onExitCadenceMode: {
-            session.deactivate()
-        } onReleaseAllKeys: {
-            session.releaseAllKeys()
-        }
+            isCadenceModeActive: { session.isActive },
+            onKeyDown: { lane in
+                handleKeyDown(lane)
+            },
+            onKeyUp: { lane in
+                session.keyUp(lane: lane)
+            },
+            onExitCadenceMode: {
+                session.deactivate()
+            },
+            onReleaseAllKeys: {
+                session.releaseAllKeys()
+            }
+        )
         .onChange(of: model.playbackWorkspace) { _, workspace in
             synchronizePresentation(with: workspace)
         }

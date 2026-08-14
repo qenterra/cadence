@@ -12,7 +12,7 @@ struct QuickTrackTagMenuItems: View {
                 ForEach(store.tags) { tag in
                     Button(tag.displayPath) {
                         Task {
-                            try? await store.assignTag(
+                            await store.assignTagReportingFailure(
                                 tag.id,
                                 trackIDs: trackIDs
                             )
@@ -36,7 +36,7 @@ struct QuickAlbumTagMenuItems: View {
                 ForEach(store.tags) { tag in
                     Button(tag.displayPath) {
                         Task {
-                            try? await store.assignTag(
+                            await store.assignTagReportingFailure(
                                 tag.id,
                                 albumID: albumID
                             )

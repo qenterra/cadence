@@ -19,13 +19,19 @@ final class ManagedPlaybackTrackResolver: PlaybackTrackResolving {
     func resolve(
         trackIDs: [UUID]
     ) async throws -> [ResolvedPlaybackTrack] {
-        guard
-            let repository = librarySession.store.repository,
-            let location = librarySession.location
-        else {
+        guard let location = librarySession.location else {
             throw PlaybackFailure(
                 trackID: trackIDs.first,
                 message: "The Cadence library is not available."
+            )
+        }
+        let repository: LibraryRepository
+        do {
+            repository = try librarySession.store.requireRepository()
+        } catch {
+            throw PlaybackFailure(
+                trackID: trackIDs.first,
+                message: error.localizedDescription
             )
         }
 

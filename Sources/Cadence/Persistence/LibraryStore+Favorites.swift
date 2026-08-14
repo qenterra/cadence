@@ -5,9 +5,7 @@ extension LibraryStore {
         id: UUID,
         isFavorite: Bool
     ) async throws -> LibraryTrackProjection {
-        guard let repository else {
-            throw LibraryFavoriteMutationError.unavailableLibrary
-        }
+        let repository = try requireRepository()
         let projection = try await repository.setTrackFavorite(
             id: id,
             isFavorite: isFavorite
@@ -20,9 +18,7 @@ extension LibraryStore {
         id: UUID,
         isFavorite: Bool
     ) async throws -> LibraryAlbumProjection {
-        guard let repository else {
-            throw LibraryFavoriteMutationError.unavailableLibrary
-        }
+        let repository = try requireRepository()
         let projection = try await repository.setAlbumFavorite(
             id: id,
             isFavorite: isFavorite
@@ -35,9 +31,7 @@ extension LibraryStore {
         id: UUID,
         isFavorite: Bool
     ) async throws -> LibraryArtistProjection {
-        guard let repository else {
-            throw LibraryFavoriteMutationError.unavailableLibrary
-        }
+        let repository = try requireRepository()
         let projection = try await repository.setArtistFavorite(
             id: id,
             isFavorite: isFavorite

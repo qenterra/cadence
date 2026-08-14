@@ -1433,6 +1433,16 @@
         }
       }
     },
+    "Couldn’t Add Tag": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не удалось добавить тег"
+          }
+        }
+      }
+    },
     "Couldn’t Add Tracks": {
       "localizations": {
         "ru": {
@@ -1759,6 +1769,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Не удалось выполнить поиск в медиатеке"
+          }
+        }
+      }
+    },
+    "Couldn’t Update Listening History": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не удалось обновить историю прослушивания"
           }
         }
       }
@@ -5319,12 +5339,12 @@
         }
       }
     },
-    "The matching lyric file could not be opened.": {
+    "The managed library is unavailable. Import music or reopen the library, then try again.": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Не удалось открыть подходящий файл текста песни."
+            "value": "Медиатека недоступна. Импортируйте музыку или откройте медиатеку снова, затем повторите попытку."
           }
         }
       }
@@ -5435,6 +5455,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Коллекция будет безвозвратно удалена из медиатеки."
+          }
+        }
+      }
+    },
+    "This track has no saved lyrics.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Для этого трека нет сохранённого текста."
           }
         }
       }

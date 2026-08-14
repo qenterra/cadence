@@ -1,11 +1,36 @@
 import SwiftUI
 
+final class NowPlayingReadinessObserver: Equatable, @unchecked Sendable {
+    private let notifyClosure: @MainActor @Sendable (UUID) -> Void
+
+    init(notify: @escaping @MainActor @Sendable (UUID) -> Void) {
+        notifyClosure = notify
+    }
+
+    @MainActor
+    func notify(_ trackID: UUID) {
+        notifyClosure(trackID)
+    }
+
+    static func == (
+        lhs: NowPlayingReadinessObserver,
+        rhs: NowPlayingReadinessObserver
+    ) -> Bool {
+        lhs === rhs
+    }
+}
+
+extension EnvironmentValues {
+    @Entry var nowPlayingReadinessObserver: NowPlayingReadinessObserver?
+}
+
 struct ProductionNowPlayingView: View {
     @Bindable var model: CadenceAppModel
     let track: PlaybackTrack
     @Bindable var cadenceModeSession: CadenceModeSession
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.nowPlayingReadinessObserver) private var readinessObserver
     @Environment(\.rhythmPulseVisualQAState)
     private var rhythmPulseVisualQAState
     @State var tagStates: [ProductionTrackTagState] = []
@@ -100,13 +125,14 @@ struct ProductionNowPlayingView: View {
         .task(id: "\(track.id)-\(model.librarySession.store.tagRevision)") {
             guard !model.isCurrentPlaybackExternal else {
                 tagStates = []
+                readinessObserver?.notify(track.id)
                 return
             }
-            tagStates = await (
-                try? model.librarySession.store.tagStates(
-                    trackID: track.id
-                )
-            ) ?? []
+            if let loadedStates = await model.librarySession.store
+                .tagStatesReportingFailure(trackID: track.id) {
+                tagStates = loadedStates
+            }
+            readinessObserver?.notify(track.id)
         }
         .task(id: rhythmArtworkTaskID) {
             if let rhythmPulseVisualQAState {

@@ -4,6 +4,7 @@ struct LibraryOperationFailure: Identifiable, Equatable, Sendable {
     enum Operation: String, Equatable, Sendable {
         case albumPage
         case artistPage
+        case artworkLoad
         case browserAlbums
         case browserTracks
         case catalogSearch
@@ -16,7 +17,10 @@ struct LibraryOperationFailure: Identifiable, Equatable, Sendable {
         case playlistRename
         case playlistReorder
         case playlistTracks
+        case recentPlayback
         case smartCollections
+        case tagLoad
+        case tagMutation
         case tagPage
         case trackPage
     }
@@ -34,6 +38,8 @@ struct LibraryOperationFailure: Identifiable, Equatable, Sendable {
             String(localized: "Couldn’t Load Albums")
         case .artistPage:
             String(localized: "Couldn’t Load Artists")
+        case .artworkLoad:
+            String(localized: "Couldn’t Open Artwork")
         case .browserAlbums:
             String(localized: "Couldn’t Load Artist Albums")
         case .browserTracks:
@@ -58,8 +64,14 @@ struct LibraryOperationFailure: Identifiable, Equatable, Sendable {
             String(localized: "Couldn’t Reorder Playlist")
         case .playlistTracks:
             String(localized: "Couldn’t Load Playlist Tracks")
+        case .recentPlayback:
+            String(localized: "Couldn’t Update Listening History")
         case .smartCollections:
             String(localized: "Couldn’t Load Smart Collections")
+        case .tagLoad:
+            String(localized: "Couldn’t Load Tags")
+        case .tagMutation:
+            String(localized: "Couldn’t Add Tag")
         case .tagPage:
             String(localized: "Couldn’t Load Tags")
         case .trackPage:
@@ -74,7 +86,11 @@ struct LibraryOperationFailure: Identifiable, Equatable, Sendable {
              .playlistDelete,
              .playlistRemove,
              .playlistRename,
-             .playlistReorder:
+             .playlistReorder,
+             .artworkLoad,
+             .recentPlayback,
+             .tagLoad,
+             .tagMutation:
             false
         default:
             true
@@ -124,7 +140,11 @@ extension LibraryStore {
              .playlistDelete,
              .playlistRemove,
              .playlistRename,
-             .playlistReorder:
+             .playlistReorder,
+             .artworkLoad,
+             .recentPlayback,
+             .tagLoad,
+             .tagMutation:
             break
         case .smartCollections:
             await loadSmartCollectionRuleData()

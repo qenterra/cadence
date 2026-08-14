@@ -4,7 +4,6 @@ extension LibraryStore {
     func loadNextTags() async {
         guard
             !isLoadingNextTags,
-            let repository,
             let tagCursor
         else {
             return
@@ -17,6 +16,7 @@ extension LibraryStore {
         }
 
         do {
+            let repository = try requireRepository()
             let page = try await repository.tagsPage(after: tagCursor)
             guard generation == tagGeneration else {
                 return
@@ -40,9 +40,7 @@ extension LibraryStore {
         after cursor: LibraryPageCursor? = nil,
         search: String? = nil
     ) async throws -> LibraryPage<LibraryTrackProjection> {
-        guard let repository else {
-            return LibraryPage(items: [], nextCursor: nil)
-        }
+        let repository = try requireRepository()
         return try await repository.tracksForTagPicker(
             after: cursor,
             search: search
@@ -53,9 +51,7 @@ extension LibraryStore {
     func createTag(
         displayPath: String
     ) async throws -> UUID? {
-        guard let repository else {
-            return nil
-        }
+        let repository = try requireRepository()
         let tagID = try await repository.createTag(
             displayPath: displayPath
         )
@@ -67,19 +63,26 @@ extension LibraryStore {
     func tags(
         albumID: UUID
     ) async throws -> [LibraryTagProjection] {
-        guard let repository else {
-            return []
-        }
+        let repository = try requireRepository()
         return try await repository.tags(albumID: albumID)
     }
 
     func tagStates(
         trackID: UUID
     ) async throws -> [ProductionTrackTagState] {
-        guard let repository else {
-            return []
-        }
+        let repository = try requireRepository()
         return try await repository.tagStates(trackID: trackID)
+    }
+
+    func tagStatesReportingFailure(
+        trackID: UUID
+    ) async -> [ProductionTrackTagState]? {
+        do {
+            return try await tagStates(trackID: trackID)
+        } catch {
+            recordOperationFailure(.tagLoad, error: error)
+            return nil
+        }
     }
 
     func setTag(
@@ -87,9 +90,7 @@ extension LibraryStore {
         assigned: Bool,
         trackID: UUID
     ) async throws {
-        guard let repository else {
-            return
-        }
+        let repository = try requireRepository()
         try await repository.setTag(
             tagID,
             assigned: assigned,
@@ -102,9 +103,7 @@ extension LibraryStore {
     func directlyAssignedTrackIDs(
         tagID: UUID
     ) async throws -> Set<UUID> {
-        guard let repository else {
-            return []
-        }
+        let repository = try requireRepository()
         return try await repository.directlyAssignedTrackIDs(tagID: tagID)
     }
 
@@ -112,12 +111,21 @@ extension LibraryStore {
         _ tagID: UUID,
         trackIDs: [UUID]
     ) async throws {
-        guard let repository else {
-            return
-        }
+        let repository = try requireRepository()
         try await repository.assignTag(tagID, trackIDs: trackIDs)
         tagRevision &+= 1
         await refreshTags()
+    }
+
+    func assignTagReportingFailure(
+        _ tagID: UUID,
+        trackIDs: [UUID]
+    ) async {
+        do {
+            try await assignTag(tagID, trackIDs: trackIDs)
+        } catch {
+            recordOperationFailure(.tagMutation, error: error)
+        }
     }
 
     @discardableResult
@@ -125,9 +133,7 @@ extension LibraryStore {
         displayPath: String,
         trackID: UUID
     ) async throws -> UUID? {
-        guard let repository else {
-            return nil
-        }
+        let repository = try requireRepository()
         let tagID = try await repository.createTagAndAssign(
             displayPath: displayPath,
             trackID: trackID
@@ -141,19 +147,26 @@ extension LibraryStore {
         _ tagID: UUID,
         albumID: UUID
     ) async throws {
-        guard let repository else {
-            return
-        }
+        let repository = try requireRepository()
         try await repository.assignTag(tagID, albumID: albumID)
         tagRevision &+= 1
         await refreshTags()
     }
 
-    private func refreshTags() async {
-        guard let repository else {
-            return
-        }
+    func assignTagReportingFailure(
+        _ tagID: UUID,
+        albumID: UUID
+    ) async {
         do {
+            try await assignTag(tagID, albumID: albumID)
+        } catch {
+            recordOperationFailure(.tagMutation, error: error)
+        }
+    }
+
+    private func refreshTags() async {
+        do {
+            let repository = try requireRepository()
             let page = try await repository.tagsPage()
             tags = page.items
             tagCursor = page.nextCursor

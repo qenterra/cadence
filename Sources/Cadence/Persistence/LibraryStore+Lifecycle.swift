@@ -24,6 +24,7 @@ extension LibraryStore {
         repository: LibraryRepository,
         package: ManagedLibraryPackage? = nil
     ) {
+        mode = .production
         self.repository = repository
         playlistClient = LibraryPlaylistClient(repository: repository)
         catalogLookupClient = LibraryCatalogLookupClient(
@@ -59,6 +60,7 @@ extension LibraryStore {
     }
 
     func detach() {
+        mode = .unavailable
         repository = nil
         playlistClient = nil
         catalogLookupClient = nil
@@ -74,13 +76,14 @@ extension LibraryStore {
     }
 
     func loadInitialLibrary() async {
-        guard let repository else {
+        guard mode == .production else {
             resetLibrary(availability: .empty)
             return
         }
 
         availability = .loading
         do {
+            let repository = try requireRepository()
             try await apply(initialSnapshot(from: repository))
             await synchronizeLyricsSearch()
         } catch {

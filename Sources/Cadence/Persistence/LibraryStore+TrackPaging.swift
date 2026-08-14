@@ -102,13 +102,11 @@ extension LibraryStore {
     func showImportedTracks(
         importID: UUID
     ) async {
-        guard let repository else {
-            return
-        }
         availability = .loading
         trackRequestGeneration += 1
         isLoadingNextTracks = false
         do {
+            let repository = try requireRepository()
             tracks = try await repository.importedTracks(
                 importID: importID
             )
@@ -127,10 +125,8 @@ extension LibraryStore {
         trackID: UUID,
         at date: Date = .now
     ) async -> Bool {
-        guard let repository else {
-            return false
-        }
         do {
+            let repository = try requireRepository()
             try await repository.recordRecentlyPlayed(
                 trackID: trackID,
                 at: date
@@ -142,6 +138,7 @@ extension LibraryStore {
             tracks = tracks.map { recentByID[$0.id] ?? $0 }
             return true
         } catch {
+            recordOperationFailure(.recentPlayback, error: error)
             return false
         }
     }

@@ -1,7 +1,6 @@
 extension LibraryStore {
     func loadNextAlbums() async {
         guard
-            let repository,
             let albumCursor,
             !isLoadingNextAlbums
         else {
@@ -12,6 +11,7 @@ extension LibraryStore {
         defer { isLoadingNextAlbums = false }
         availability = .loading
         do {
+            let repository = try requireRepository()
             let page = try await repository.albumsPage(
                 after: albumCursor
             )

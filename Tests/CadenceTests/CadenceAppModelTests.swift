@@ -132,7 +132,10 @@ struct CadenceAppModelTests {
         )
 
         #expect(updated == nil)
-        #expect(model.libraryOperationError == "The managed library is unavailable.")
+        #expect(
+            model.libraryOperationError
+                == "The managed library is unavailable. Import music or reopen the library, then try again."
+        )
     }
 
     @Test("Current production favorite action requires an active production track")

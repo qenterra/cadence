@@ -4,6 +4,82 @@ import Testing
 
 @MainActor
 struct LibraryOperationFailureTests {
+    @Test("Store modes make unavailable and production repositories explicit")
+    func repositoryModesAreExplicit() throws {
+        let unavailable = LibraryStore()
+        #expect(unavailable.mode == .unavailable)
+
+        let container = try LibraryContainerFactory.inMemory()
+        let production = LibraryStore(container: container)
+        #expect(production.mode == .production)
+    }
+
+    @Test("Unavailable tag operations fail instead of returning empty success")
+    func unavailableTagOperationsFail() async {
+        let store = LibraryStore()
+        let tagID = UUID()
+        let trackID = UUID()
+
+        await #expect(throws: LibraryStoreAccessError.repositoryUnavailable) {
+            try await store.tracksForTagPicker()
+        }
+        await #expect(throws: LibraryStoreAccessError.repositoryUnavailable) {
+            try await store.tagStates(trackID: trackID)
+        }
+        await #expect(throws: LibraryStoreAccessError.repositoryUnavailable) {
+            try await store.assignTag(tagID, trackIDs: [trackID])
+        }
+    }
+
+    @Test("Quick tag and Now Playing helpers publish operation failures")
+    func tagPresentationFailuresArePublished() async {
+        let store = LibraryStore()
+        let tagID = UUID()
+        let trackID = UUID()
+
+        await store.assignTagReportingFailure(tagID, trackIDs: [trackID])
+        #expect(store.operationFailure?.operation == .tagMutation)
+
+        store.dismissOperationFailure()
+        let states = await store.tagStatesReportingFailure(trackID: trackID)
+        #expect(states == nil)
+        #expect(store.operationFailure?.operation == .tagLoad)
+    }
+
+    @Test("Lyrics absence and service failure remain distinct")
+    func unavailableLyricsServiceThrows() async {
+        let store = LibraryStore()
+
+        await #expect(throws: ManagedLyricsServiceError.unavailable) {
+            try await store.lyricsDocument(trackID: UUID())
+        }
+    }
+
+    @Test("Artwork editing cannot hide a failed owner snapshot")
+    func artworkSnapshotFailurePropagates() async throws {
+        let container = try LibraryContainerFactory.inMemory()
+        let repository = LibraryRepository(modelContainer: container)
+        let location = ManagedLibraryLocation(
+            musicDirectory: FileManager.default.temporaryDirectory
+        )
+        let store = LibraryStore()
+        store.artworkService = ManagedArtworkService(
+            package: ManagedLibraryPackage(location: location),
+            repository: repository
+        )
+        let request = ManagedArtworkEditRequest(
+            ownerKind: .album,
+            ownerID: UUID(),
+            data: Data(),
+            scale: 1,
+            normalizedOffset: .zero
+        )
+
+        await #expect(throws: LibraryStoreAccessError.repositoryUnavailable) {
+            try await store.setArtwork(request, location: location)
+        }
+    }
+
     @Test("A failed replacement keeps the last valid track page")
     func failedTrackReplacementPreservesData() async {
         let seededTrack = LibraryTrackProjection(

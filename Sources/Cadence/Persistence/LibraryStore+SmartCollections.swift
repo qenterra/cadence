@@ -1,19 +1,9 @@
 import Foundation
 
-private enum SmartCollectionStoreError: LocalizedError {
-    case libraryUnavailable
-
-    var errorDescription: String? {
-        "The managed library is not available. Import music before saving Smart Collections."
-    }
-}
-
 extension LibraryStore {
     func persistedSmartCollections() async -> [SmartCollectionPreview]? {
-        guard let repository else {
-            return []
-        }
         do {
+            let repository = try requireRepository()
             return try await repository.smartCollections()
         } catch {
             recordOperationFailure(.smartCollections, error: error)
@@ -24,14 +14,8 @@ extension LibraryStore {
     func savePersistedSmartCollection(
         _ collection: SmartCollectionPreview
     ) async -> Bool {
-        guard let repository else {
-            recordOperationFailure(
-                .smartCollections,
-                error: SmartCollectionStoreError.libraryUnavailable
-            )
-            return false
-        }
         do {
+            let repository = try requireRepository()
             try await repository.saveSmartCollection(collection)
             return true
         } catch {
@@ -41,14 +25,8 @@ extension LibraryStore {
     }
 
     func deletePersistedSmartCollection(id: UUID) async -> Bool {
-        guard let repository else {
-            recordOperationFailure(
-                .smartCollections,
-                error: SmartCollectionStoreError.libraryUnavailable
-            )
-            return false
-        }
         do {
+            let repository = try requireRepository()
             try await repository.deleteSmartCollection(id: id)
             return true
         } catch {
@@ -58,10 +36,6 @@ extension LibraryStore {
     }
 
     func loadSmartCollectionRuleData() async {
-        guard let repository else {
-            smartCollectionRuleData = .empty
-            return
-        }
         smartCollectionRuleDataGeneration &+= 1
         let generation = smartCollectionRuleDataGeneration
         isLoadingSmartCollectionData = true
@@ -69,6 +43,7 @@ extension LibraryStore {
             isLoadingSmartCollectionData = false
         }
         do {
+            let repository = try requireRepository()
             let data = try await repository
                 .productionSmartCollectionRuleData()
             guard generation == smartCollectionRuleDataGeneration else {
@@ -86,17 +61,14 @@ extension LibraryStore {
     func loadSmartCollectionSummaries(
         rules: [SmartCollectionRuleGroup]
     ) async {
-        guard let repository else {
-            smartCollectionSummaries = [:]
-            return
-        }
         smartCollectionSummaryGeneration &+= 1
         let generation = smartCollectionSummaryGeneration
         var summaries: [
             SmartCollectionRuleGroup: ProductionSmartCollectionSummary
         ] = [:]
-        for rule in Set(rules) {
-            do {
+        do {
+            let repository = try requireRepository()
+            for rule in Set(rules) {
                 let evaluation = try await repository
                     .evaluateProductionSmartCollection(root: rule)
                 guard generation == smartCollectionSummaryGeneration else {
@@ -106,10 +78,10 @@ extension LibraryStore {
                     count: evaluation.count,
                     totalDuration: evaluation.totalDuration
                 )
-            } catch {
-                recordOperationFailure(.smartCollections, error: error)
-                return
             }
+        } catch {
+            recordOperationFailure(.smartCollections, error: error)
+            return
         }
         smartCollectionSummaries = summaries
     }
@@ -117,13 +89,10 @@ extension LibraryStore {
     func loadSmartCollectionResult(
         rule: SmartCollectionRuleGroup
     ) async {
-        guard let repository else {
-            smartCollectionResults[rule] = nil
-            return
-        }
         smartCollectionResultGeneration &+= 1
         let generation = smartCollectionResultGeneration
         do {
+            let repository = try requireRepository()
             let evaluation = try await repository
                 .evaluateProductionSmartCollection(root: rule)
             let page = try await repository
@@ -157,7 +126,6 @@ extension LibraryStore {
     ) async {
         guard
             !isLoadingNextSmartCollectionResult,
-            let repository,
             var result = smartCollectionResults[rule],
             let offset = result.nextOffset
         else {
@@ -169,6 +137,7 @@ extension LibraryStore {
             isLoadingNextSmartCollectionResult = false
         }
         do {
+            let repository = try requireRepository()
             let page = try await repository
                 .productionSmartCollectionTrackPage(
                     orderedIDs: result.evaluation.orderedTrackIDs,
@@ -205,10 +174,8 @@ extension LibraryStore {
     func completeSmartCollectionTracks(
         for rule: SmartCollectionRuleGroup
     ) async -> [LibraryTrackProjection] {
-        guard let repository else {
-            return []
-        }
         do {
+            let repository = try requireRepository()
             let evaluation = try await repository
                 .evaluateProductionSmartCollection(root: rule)
             return try await completeSmartCollectionTracks(

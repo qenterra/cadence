@@ -46,8 +46,11 @@ extension DocumentationScreenshotFixture {
             return model.selectedProductionAlbumID == albumID
                 && readinessTracker.isAlbumReady(albumID)
         case .nowPlaying:
+            guard let trackID = model.currentPlaybackTrack?.id else {
+                return false
+            }
             return model.playbackWorkspace == .nowPlaying
-                && model.currentPlaybackTrack != nil
+                && readinessTracker.isNowPlayingReady(trackID)
         case .importReview:
             return model.selectedDestination == .importMusic
                 && model.importPreviewStage == .review

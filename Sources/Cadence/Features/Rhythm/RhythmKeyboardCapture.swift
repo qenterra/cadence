@@ -66,7 +66,7 @@ enum RhythmKeyDecision {
 
 struct RhythmKeyboardCapture: NSViewRepresentable {
     let canActivateCadenceMode: Bool
-    let isCadenceModeActive: Bool
+    let isCadenceModeActive: @MainActor () -> Bool
     let onKeyDown: @MainActor (RhythmLane) -> Void
     let onKeyUp: @MainActor (RhythmLane) -> Void
     let onExitCadenceMode: @MainActor () -> Void
@@ -74,7 +74,7 @@ struct RhythmKeyboardCapture: NSViewRepresentable {
 
     init(
         canActivateCadenceMode: Bool = true,
-        isCadenceModeActive: Bool = false,
+        isCadenceModeActive: @escaping @MainActor () -> Bool = { false },
         onKeyDown: @escaping @MainActor (RhythmLane) -> Void,
         onKeyUp: @escaping @MainActor (RhythmLane) -> Void = { _ in },
         onExitCadenceMode: @escaping @MainActor () -> Void = {},
@@ -123,7 +123,7 @@ struct RhythmKeyboardCapture: NSViewRepresentable {
     @MainActor
     final class Coordinator: NSObject {
         var canActivateCadenceMode: Bool
-        var isCadenceModeActive: Bool
+        var isCadenceModeActive: @MainActor () -> Bool
         var onKeyDown: @MainActor (RhythmLane) -> Void
         var onKeyUp: @MainActor (RhythmLane) -> Void
         var onExitCadenceMode: @MainActor () -> Void
@@ -134,7 +134,7 @@ struct RhythmKeyboardCapture: NSViewRepresentable {
 
         init(
             canActivateCadenceMode: Bool,
-            isCadenceModeActive: Bool,
+            isCadenceModeActive: @escaping @MainActor () -> Bool,
             onKeyDown: @escaping @MainActor (RhythmLane) -> Void,
             onKeyUp: @escaping @MainActor (RhythmLane) -> Void,
             onExitCadenceMode: @escaping @MainActor () -> Void,
@@ -190,7 +190,8 @@ struct RhythmKeyboardCapture: NSViewRepresentable {
         private func handle(_ event: NSEvent) -> NSEvent? {
             guard
                 let captureWindow = captureView?.window,
-                event.windowNumber == captureWindow.windowNumber
+                event.windowNumber == captureWindow.windowNumber,
+                event.window == nil || event.window === captureWindow
             else {
                 return event
             }
@@ -226,7 +227,7 @@ struct RhythmKeyboardCapture: NSViewRepresentable {
                 keyCode: event.keyCode,
                 canActivateCadenceMode: canActivateCadenceMode,
                 isNowPlayingVisible: true,
-                isCadenceModeActive: isCadenceModeActive,
+                isCadenceModeActive: isCadenceModeActive(),
                 hasEditableFirstResponder: hasEditableFirstResponder,
                 isBlockedByModal: isBlockedByModal
             ) else {

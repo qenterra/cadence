@@ -12,27 +12,36 @@ final class DocumentationScreenshotFixture {
     let artistID: UUID
     let tagID: UUID
     let readinessTracker: DocumentationScreenshotReadinessTracker
+    private let temporaryMusicDirectory: URL
 
     init(
         model: CadenceAppModel,
         albumID: UUID,
         artistID: UUID,
         tagID: UUID,
-        readinessTracker: DocumentationScreenshotReadinessTracker
+        readinessTracker: DocumentationScreenshotReadinessTracker,
+        temporaryMusicDirectory: URL
     ) {
         self.model = model
         self.albumID = albumID
         self.artistID = artistID
         self.tagID = tagID
         self.readinessTracker = readinessTracker
+        self.temporaryMusicDirectory = temporaryMusicDirectory
+    }
+
+    deinit {
+        try? FileManager.default.removeItem(at: temporaryMusicDirectory)
     }
 
     static func make() async throws -> DocumentationScreenshotFixture {
         let container = try LibraryContainerFactory.inMemory()
         let seeded = try seed(container)
         let repository = LibraryRepository(modelContainer: container)
-        let session = LibrarySession.preview()
-        await session.activate(repository: repository)
+        let library = try await DocumentationScreenshotLibrary.make(
+            repository: repository
+        )
+        let session = library.session
         let readinessTracker = DocumentationScreenshotReadinessTracker()
         session.store.catalogLookupClient = trackedCatalogClient(
             repository: repository,
@@ -73,15 +82,18 @@ final class DocumentationScreenshotFixture {
             albumID: seeded.albumID,
             artistID: seeded.artistID,
             tagID: seeded.tagID,
-            readinessTracker: readinessTracker
+            readinessTracker: readinessTracker,
+            temporaryMusicDirectory: library.temporaryMusicDirectory
         )
     }
 
     static func makeEmpty() async throws -> DocumentationScreenshotFixture {
         let container = try LibraryContainerFactory.inMemory()
         let repository = LibraryRepository(modelContainer: container)
-        let session = LibrarySession.preview()
-        await session.activate(repository: repository)
+        let library = try await DocumentationScreenshotLibrary.make(
+            repository: repository
+        )
+        let session = library.session
         let readinessTracker = DocumentationScreenshotReadinessTracker()
         let model = CadenceAppModel(
             runtimeEnvironment: .preview(CadencePreviewFixture()),
@@ -97,7 +109,8 @@ final class DocumentationScreenshotFixture {
             albumID: UUID(),
             artistID: UUID(),
             tagID: UUID(),
-            readinessTracker: readinessTracker
+            readinessTracker: readinessTracker,
+            temporaryMusicDirectory: library.temporaryMusicDirectory
         )
     }
 
@@ -164,27 +177,11 @@ final class DocumentationScreenshotFixture {
         rhythmPulseVisualQAState: RhythmPulseVisualQAState? = nil
     ) async throws {
         readinessTracker.prepareForCapture(scene)
-        let rootView = rootView
-            .frame(width: contentSize.width, height: contentSize.height)
-            .transaction { transaction in
-                transaction.animation = nil
-                transaction.disablesAnimations = true
-            }
-            .environment(
-                \.rhythmPulseVisualQAState,
-                rhythmPulseVisualQAState
-            )
-            .environment(
-                \.albumDetailReadinessObserver,
-                AlbumDetailReadinessObserver(
-                    notify: readinessTracker.didRenderAlbum
-                )
-            )
-            .environment(
-                \.visualRegressionUsesStableSystemControls,
-                true
-            )
-            .tint(CadenceTheme.primaryAccent)
+        let rootView = preparedRootView(
+            rootView,
+            contentSize: contentSize,
+            rhythmPulseVisualQAState: rhythmPulseVisualQAState
+        )
 
         let hostingView = NSHostingView(rootView: rootView)
         let window = NSWindow(
@@ -218,6 +215,40 @@ final class DocumentationScreenshotFixture {
         window.close()
     }
 
+    private func preparedRootView(
+        _ rootView: some View,
+        contentSize: NSSize,
+        rhythmPulseVisualQAState: RhythmPulseVisualQAState?
+    ) -> some View {
+        rootView
+            .frame(width: contentSize.width, height: contentSize.height)
+            .transaction { transaction in
+                transaction.animation = nil
+                transaction.disablesAnimations = true
+            }
+            .environment(
+                \.rhythmPulseVisualQAState,
+                rhythmPulseVisualQAState
+            )
+            .environment(
+                \.albumDetailReadinessObserver,
+                AlbumDetailReadinessObserver(
+                    notify: readinessTracker.didRenderAlbum
+                )
+            )
+            .environment(
+                \.nowPlayingReadinessObserver,
+                NowPlayingReadinessObserver(
+                    notify: readinessTracker.didRenderNowPlaying
+                )
+            )
+            .environment(
+                \.visualRegressionUsesStableSystemControls,
+                true
+            )
+            .tint(CadenceTheme.primaryAccent)
+    }
+
     private func pngData(
         for window: NSWindow
     ) throws -> Data {
@@ -238,7 +269,42 @@ final class DocumentationScreenshotFixture {
         }
         return data
     }
+}
 
+private struct DocumentationScreenshotLibrary {
+    let session: LibrarySession
+    let temporaryMusicDirectory: URL
+
+    @MainActor
+    static func make(
+        repository: LibraryRepository
+    ) async throws -> DocumentationScreenshotLibrary {
+        let directory = FileManager.default.temporaryDirectory.appending(
+            path: "Cadence-Screenshot-\(UUID().uuidString)",
+            directoryHint: .isDirectory
+        )
+        try FileManager.default.createDirectory(
+            at: directory,
+            withIntermediateDirectories: true
+        )
+        let location = ManagedLibraryLocation(musicDirectory: directory)
+        let package = ManagedLibraryPackage(location: location)
+        try package.bootstrapForConfirmedImport()
+
+        let session = LibrarySession.preview()
+        await session.activate(repository: repository)
+        // Screenshot fixtures exercise production lyrics without exposing a
+        // real library location to startup repair tasks in CadenceRootView.
+        session.store.attach(repository: repository, package: package)
+        return DocumentationScreenshotLibrary(
+            session: session,
+            temporaryMusicDirectory: directory
+        )
+    }
+}
+
+@MainActor
+extension DocumentationScreenshotFixture {
     static var projectRoot: URL {
         URL(filePath: #filePath)
             .deletingLastPathComponent()

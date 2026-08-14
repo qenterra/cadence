@@ -10,10 +10,8 @@ extension LibraryStore {
     }
 
     func loadFavoriteCatalog() async {
-        guard let repository else {
-            return
-        }
         do {
+            let repository = try requireRepository()
             async let tracks = repository.favoriteTracksPage()
             async let trackIDs = repository.favoriteTrackIDs()
             async let albums = repository.favoriteAlbumsPage()
@@ -34,7 +32,6 @@ extension LibraryStore {
     func loadNextFavoriteTracks() async {
         guard
             !isLoadingNextFavoriteTracks,
-            let repository,
             let cursor = favoriteTrackCursor
         else {
             return
@@ -42,6 +39,7 @@ extension LibraryStore {
         isLoadingNextFavoriteTracks = true
         defer { isLoadingNextFavoriteTracks = false }
         do {
+            let repository = try requireRepository()
             let page = try await repository.favoriteTracksPage(after: cursor)
             favoriteTracks.appendUnique(contentsOf: page.items)
             favoriteTrackCursor = page.nextCursor
@@ -53,7 +51,6 @@ extension LibraryStore {
     func loadNextFavoriteAlbums() async {
         guard
             !isLoadingNextFavoriteAlbums,
-            let repository,
             let cursor = favoriteAlbumCursor
         else {
             return
@@ -61,6 +58,7 @@ extension LibraryStore {
         isLoadingNextFavoriteAlbums = true
         defer { isLoadingNextFavoriteAlbums = false }
         do {
+            let repository = try requireRepository()
             let page = try await repository.favoriteAlbumsPage(after: cursor)
             favoriteAlbums.appendUnique(contentsOf: page.items)
             favoriteAlbumCursor = page.nextCursor
@@ -72,7 +70,6 @@ extension LibraryStore {
     func loadNextFavoriteArtists() async {
         guard
             !isLoadingNextFavoriteArtists,
-            let repository,
             let cursor = favoriteArtistCursor
         else {
             return
@@ -80,6 +77,7 @@ extension LibraryStore {
         isLoadingNextFavoriteArtists = true
         defer { isLoadingNextFavoriteArtists = false }
         do {
+            let repository = try requireRepository()
             let page = try await repository.favoriteArtistsPage(after: cursor)
             favoriteArtists.appendUnique(contentsOf: page.items)
             favoriteArtistCursor = page.nextCursor

@@ -32,10 +32,11 @@ extension LibraryStore {
         query: String,
         limit: Int
     ) async -> [LyricsCatalogSearchResult] {
-        guard let lyricsSearchIndexer, let repository else {
+        guard let lyricsSearchIndexer else {
             return []
         }
         do {
+            let repository = try requireRepository()
             let matches = try await lyricsSearchIndexer.search(
                 query: query,
                 limit: limit
@@ -53,6 +54,7 @@ extension LibraryStore {
             }
         } catch {
             lyricsSearchIndexState = .failed(error.localizedDescription)
+            recordOperationFailure(.catalogSearch, error: error)
             return []
         }
     }

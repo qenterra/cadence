@@ -1,7 +1,6 @@
 extension LibraryStore {
     func loadNextArtists() async {
         guard
-            let repository,
             let artistCursor,
             !isLoadingNextArtists
         else {
@@ -12,6 +11,7 @@ extension LibraryStore {
         defer { isLoadingNextArtists = false }
         availability = .loading
         do {
+            let repository = try requireRepository()
             let page = try await repository.artistsPage(
                 after: artistCursor
             )

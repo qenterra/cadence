@@ -4,13 +4,13 @@ extension CadenceAppModel {
     func repairImportedMetadataIfNeeded() async {
         guard
             librarySession.availability == .ready,
-            let location = librarySession.location,
-            let repository = librarySession.store.repository
+            let location = librarySession.location
         else {
             return
         }
 
         do {
+            let repository = try librarySession.store.requireRepository()
             let repairedCount = try await ManagedMetadataRepairService(
                 location: location,
                 repository: repository

@@ -5,9 +5,10 @@ extension LibraryStore {
         trackIDs: [UUID],
         location: ManagedLibraryLocation?
     ) async throws {
-        guard let repository, let location else {
+        guard let location else {
             throw LibraryTrashError.unavailableLibrary
         }
+        let repository = try requireRepository()
         _ = try await repository.trashTracks(
             targetIDs: trackIDs,
             location: location
@@ -20,9 +21,10 @@ extension LibraryStore {
         targetID: UUID,
         location: ManagedLibraryLocation?
     ) async throws {
-        guard let repository, let location else {
+        guard let location else {
             throw LibraryTrashError.unavailableLibrary
         }
+        let repository = try requireRepository()
         _ = try await repository.trash(
             targetKind: targetKind,
             targetID: targetID,
@@ -35,9 +37,10 @@ extension LibraryStore {
         operationIDs: Set<UUID>? = nil,
         location: ManagedLibraryLocation?
     ) async throws {
-        guard let repository, let location else {
+        guard let location else {
             throw LibraryTrashError.unavailableLibrary
         }
+        let repository = try requireRepository()
         try await repository.emptyTrash(
             operationIDs: operationIDs,
             location: location
@@ -49,9 +52,10 @@ extension LibraryStore {
         operationID: UUID,
         location: ManagedLibraryLocation?
     ) async throws {
-        guard let repository, let location else {
+        guard let location else {
             throw LibraryTrashError.unavailableLibrary
         }
+        let repository = try requireRepository()
         try await repository.restoreTrash(
             operationID: operationID,
             location: location

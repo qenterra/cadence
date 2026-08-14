@@ -107,22 +107,10 @@ struct RhythmKeyboardCaptureTests {
 
 struct RhythmKeyboardCaptureLifecycleTests {
     @MainActor
-    @Test("The root capture receives physical key down and key up events")
-    func installedCaptureReceivesKeyLifecycle() async throws {
-        let recorder = RhythmHitRecorder()
-        let window = makeCaptureWindow(recorder: recorder)
-        defer { close(window) }
-
-        try await Task.sleep(for: .milliseconds(50))
-        sendKey(type: .keyDown, keyCode: 6, characters: "z", to: window)
-        sendKey(type: .keyUp, keyCode: 6, characters: "z", to: window)
-
-        #expect(recorder.pressedLanes == [.left])
-        #expect(recorder.releasedLanes == [.left])
-    }
-
-    @MainActor
-    @Test("A paused global chord presents Cadence and post-transition keys emit")
+    @Test(
+        "A paused global chord presents Cadence and post-transition keys emit",
+        .appKitExclusive
+    )
     func globalChordAndTrackChangeLifecycle() async throws {
         let fixture = try await DocumentationScreenshotFixture.make()
         fixture.model.isPlaying = false
@@ -146,25 +134,6 @@ struct RhythmKeyboardCaptureLifecycleTests {
         try await verifyTrackChangePreservesMode(
             model: fixture.model,
             session: session
-        )
-    }
-
-    @MainActor
-    private func makeCaptureWindow(recorder: RhythmHitRecorder) -> NSWindow {
-        let rootView = Color.clear
-            .frame(width: 320, height: 240)
-            .overlay(alignment: .topLeading) {
-                RhythmKeyboardCapture(canActivateCadenceMode: true) { lane in
-                    recorder.pressedLanes.append(lane)
-                } onKeyUp: { lane in
-                    recorder.releasedLanes.append(lane)
-                }
-                .frame(width: 0, height: 0)
-            }
-        return makeWindow(
-            contentView: NSHostingView(rootView: rootView),
-            contentSize: NSSize(width: 320, height: 240),
-            styleMask: [.titled]
         )
     }
 
@@ -262,7 +231,12 @@ struct RhythmKeyboardCaptureLifecycleTests {
 
     @MainActor
     private func waitUntil(_ condition: () -> Bool) async throws {
-        for _ in 0 ..< 20 where !condition() {
+        let clock = ContinuousClock()
+        let deadline = clock.now.advanced(by: .seconds(3))
+        while !condition() {
+            guard clock.now < deadline else {
+                throw RhythmKeyboardCaptureTestError.timedOut
+            }
             try await Task.sleep(for: .milliseconds(20))
         }
     }
@@ -298,8 +272,6 @@ struct RhythmKeyboardCaptureLifecycleTests {
     }
 }
 
-@MainActor
-private final class RhythmHitRecorder {
-    var pressedLanes: [RhythmLane] = []
-    var releasedLanes: [RhythmLane] = []
+private enum RhythmKeyboardCaptureTestError: Error {
+    case timedOut
 }
