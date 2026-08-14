@@ -17,7 +17,7 @@ struct LyricsEditorView: View {
             } else if model.lyricDraft == nil {
                 ContentUnavailableView {
                     Label(
-                        "Lyrics Could Not Be Opened",
+                        "Couldn’t Open Lyrics",
                         systemImage: "exclamationmark.triangle"
                     )
                 } description: {
@@ -63,7 +63,7 @@ struct LyricsEditorView: View {
             model.requestCloseLyricsEditor()
         }
         .alert(
-            "Lyrics Could Not Be Saved",
+            "Couldn’t Save Lyrics",
             isPresented: Binding(
                 get: {
                     model.lyricDraft != nil
@@ -86,8 +86,12 @@ struct LyricsEditorView: View {
             }
         } message: {
             Text(
-                model.lyricPersistenceError
-                    ?? "Cadence could not save these lyrics. Your draft remains open."
+                ProductErrorMessage(
+                    detail: model.lyricPersistenceError
+                        ?? String(localized: "Cadence could not save these lyrics."),
+                    preservedState: String(localized: "Your draft remains open."),
+                    recoveryAction: String(localized: "Retry or cancel saving.")
+                ).text
             )
         }
     }

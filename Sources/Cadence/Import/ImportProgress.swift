@@ -10,15 +10,15 @@ enum ImportProgressPhase: String, Equatable, Sendable {
     var title: String {
         switch self {
         case .discovering:
-            "Discovering Files"
+            String(localized: "Discovering Files")
         case .scanning:
-            "Scanning Music"
+            String(localized: "Scanning Music")
         case .copying:
-            "Copying Music"
+            String(localized: "Copying Music")
         case .verifying:
-            "Verifying Copies"
+            String(localized: "Verifying Copies")
         case .saving:
-            "Saving Library"
+            String(localized: "Saving Library")
         }
     }
 }
@@ -58,7 +58,9 @@ struct ImportProgress: Equatable, Sendable {
         guard totalCount > 0 else {
             return phase.title
         }
-        return "\(min(completedCount, totalCount)) of \(totalCount)"
+        return String(
+            localized: "\(min(completedCount, totalCount)) of \(totalCount)"
+        )
     }
 
     var isCommitting: Bool {

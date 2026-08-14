@@ -14,15 +14,15 @@ enum ImportPreviewStage: String, CaseIterable, Identifiable, Sendable {
     var title: String {
         switch self {
         case .empty:
-            "Empty"
+            String(localized: "Empty")
         case .scanning:
-            "Scanning"
+            String(localized: "Scanning")
         case .review:
-            "Review"
+            String(localized: "Review")
         case .importing:
-            "Importing"
+            String(localized: "Importing")
         case .complete:
-            "Complete"
+            String(localized: "Complete")
         }
     }
 }
@@ -39,11 +39,11 @@ enum ImportReviewCategory: String, CaseIterable, Identifiable, Sendable {
     var title: String {
         switch self {
         case .ready:
-            "Ready"
+            String(localized: "Ready")
         case .duplicates:
-            "Duplicates"
+            String(localized: "Duplicates")
         case .issues:
-            "Issues"
+            String(localized: "Issues")
         }
     }
 }
@@ -57,13 +57,13 @@ enum ImportLyricStatus: String, Hashable, Sendable {
     var title: String {
         switch self {
         case .linked:
-            "LRC linked"
+            String(localized: "LRC linked")
         case .unavailable:
-            "No lyrics"
+            String(localized: "No lyrics")
         case .malformed:
-            "Invalid LRC"
+            String(localized: "Invalid LRC")
         case .ambiguous:
-            "LRC conflict"
+            String(localized: "LRC conflict")
         }
     }
 
@@ -90,13 +90,13 @@ enum ImportPreviewIssue: String, Hashable, Sendable {
     var title: String {
         switch self {
         case .unsupportedFormat:
-            "Unsupported format"
+            String(localized: "Unsupported format")
         case .unreadableSource:
-            "File unavailable"
+            String(localized: "File unavailable")
         case .malformedLyrics:
-            "Lyrics will be skipped"
+            String(localized: "Lyrics will be skipped")
         case .ambiguousLyrics:
-            "Choose lyrics later"
+            String(localized: "Choose lyrics later")
         }
     }
 
@@ -145,11 +145,11 @@ enum ImportCandidateClassification: Hashable, Sendable {
     var title: String {
         switch self {
         case .ready:
-            "Ready"
+            String(localized: "Ready")
         case .exactDuplicate:
-            "Already in Library"
+            String(localized: "Already in Library")
         case .possibleDuplicate:
-            "Possible Duplicate"
+            String(localized: "Possible Duplicate")
         case let .issue(issue):
             issue.title
         }

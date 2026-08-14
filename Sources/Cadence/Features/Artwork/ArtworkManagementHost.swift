@@ -26,7 +26,7 @@ private struct ArtworkManagementModifier: ViewModifier {
                 )
             }
             .alert(
-                "Artwork Could Not Be Opened",
+                "Couldn’t Open Artwork",
                 isPresented: Binding(
                     get: { model.artworkImportError != nil },
                     set: {
@@ -41,8 +41,12 @@ private struct ArtworkManagementModifier: ViewModifier {
                 }
             } message: {
                 Text(
-                    model.artworkImportError
-                        ?? "Choose a different image."
+                    ProductErrorMessage(
+                        detail: model.artworkImportError
+                            ?? String(localized: "The selected image could not be read."),
+                        preservedState: String(localized: "The current artwork is unchanged."),
+                        recoveryAction: String(localized: "Choose a different image.")
+                    ).text
                 )
             }
     }

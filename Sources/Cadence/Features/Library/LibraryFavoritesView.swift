@@ -86,8 +86,8 @@ struct LibraryFavoritesView: View {
     private var favoriteSongs: some View {
         if store.favoriteTracks.isEmpty {
             emptyState(
-                title: "No Favorite Songs",
-                description: "Songs you favorite will appear here."
+                title: "No Favorite Tracks",
+                description: "Tracks you favorite will appear here."
             )
         } else {
             ProductionTrackTable(

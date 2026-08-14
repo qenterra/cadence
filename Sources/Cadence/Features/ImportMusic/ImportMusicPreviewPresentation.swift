@@ -36,8 +36,8 @@ struct ImportMusicPreviewStageContent: View {
             case .empty:
                 ImportMusicEmptyState(
                     supportingText: """
-                    A future import will copy supported audio into \
-                    ~/Music/Cadence.library after Review.
+                    A future import will copy supported audio only after \
+                    you review the selection.
                     """,
                     footnote: "This build only previews the workflow.",
                     startScanning: model.chooseImportFolder
@@ -60,7 +60,7 @@ struct ImportMusicPreviewStageContent: View {
                     summary: model.importPreviewSummary,
                     title: "Preview Import Complete",
                     message: "No files were copied in this design build.",
-                    sizeSummary: "\(model.importPreviewSummary.importedSizeText) selected for Cadence.library",
+                    sizeSummary: "\(model.importPreviewSummary.importedSizeText) selected",
                     importMore: model.importMorePreviewMusic,
                     viewImportedTracks: model.viewImportedPreviewTracks
                 )

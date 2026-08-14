@@ -2,7 +2,7 @@
 import Testing
 
 struct TrackTableColumnTests {
-    @Test("Track tables default to Song, Album, Year, and Time")
+    @Test("Track tables default to Track, Album, Year, and Time")
     func defaultColumns() {
         #expect(
             TrackTableColumn.defaultVisible == [.album, .year, .time]

@@ -50,13 +50,13 @@ struct LyricValidationIssue: Identifiable, Hashable, Sendable {
     var message: String {
         switch kind {
         case .negative:
-            "Time cannot be negative."
+            String(localized: "Time cannot be negative.")
         case .nonFinite:
-            "Enter a valid time."
+            String(localized: "Enter a valid time.")
         case .exceedsTrackDuration:
-            "Time exceeds the track duration."
+            String(localized: "Time exceeds the track duration.")
         case .decreasing:
-            "Time must not precede the previous lyric."
+            String(localized: "Time must not precede the previous lyric.")
         }
     }
 }

@@ -60,7 +60,7 @@ struct LyricLineTable: View {
             LyricsExportPreview(source: exportPreview ?? "")
         }
         .alert(
-            "LRC Could Not Be Imported",
+            "Couldn’t Import LRC",
             isPresented: $importFailed
         ) {
             Button("OK") {}

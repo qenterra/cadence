@@ -15,13 +15,13 @@ enum CadenceSettingsTab: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .general: "General"
-        case .library: "Library"
-        case .sidebar: "Sidebar"
-        case .remote: "Remote Media"
-        case .shortcuts: "Shortcuts"
-        case .updates: "Updates"
-        case .about: "About"
+        case .general: String(localized: "General")
+        case .library: String(localized: "Library")
+        case .sidebar: String(localized: "Sidebar")
+        case .remote: String(localized: "Remote Media")
+        case .shortcuts: String(localized: "Shortcuts")
+        case .updates: String(localized: "Updates")
+        case .about: String(localized: "About")
         }
     }
 
@@ -73,7 +73,7 @@ struct ProductionSettingsView: View {
         }
         .background(CadenceTheme.contentBackground)
         .alert(
-            "Library Move Failed",
+            "Couldn’t Move Library",
             isPresented: Binding(
                 get: { model.libraryRelocationError != nil },
                 set: {
@@ -88,8 +88,12 @@ struct ProductionSettingsView: View {
             }
         } message: {
             Text(
-                model.libraryRelocationError
-                    ?? "Cadence could not move the library. The original library remains in place."
+                ProductErrorMessage(
+                    detail: model.libraryRelocationError
+                        ?? String(localized: "Cadence could not move the library."),
+                    preservedState: String(localized: "The original library remains in place."),
+                    recoveryAction: String(localized: "Choose another location and try again.")
+                ).text
             )
         }
         .confirmationDialog(

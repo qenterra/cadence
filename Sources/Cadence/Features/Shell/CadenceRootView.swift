@@ -109,7 +109,7 @@ struct CadenceRootView: View {
             )
         }
         .alert(
-            "Library Operation Failed",
+            "Couldn’t Complete Library Operation",
             isPresented: libraryOperationErrorPresented
         ) {
             Button("Dismiss", role: .cancel) {
@@ -117,13 +117,17 @@ struct CadenceRootView: View {
             }
         } message: {
             Text(
-                model.libraryOperationError
-                    ?? "Cadence could not complete the library operation."
+                ProductErrorMessage(
+                    detail: model.libraryOperationError
+                        ?? String(localized: "Cadence could not complete the library operation."),
+                    preservedState: String(localized: "Cadence kept the last confirmed library state."),
+                    recoveryAction: String(localized: "Try the action again or dismiss this message.")
+                ).text
             )
         }
         .alert(
             model.librarySession.store.operationFailure?.title
-                ?? "Library Operation Failed",
+                ?? "Couldn’t Complete Library Operation",
             isPresented: storeOperationFailurePresented
         ) {
             if model.librarySession.store.operationFailure?.isRetryable == true {
@@ -138,8 +142,14 @@ struct CadenceRootView: View {
             }
         } message: {
             Text(
-                model.librarySession.store.operationFailure?.message
-                    ?? "Cadence could not complete the library operation."
+                ProductErrorMessage(
+                    detail: model.librarySession.store.operationFailure?.message
+                        ?? String(localized: "Cadence could not complete the library operation."),
+                    preservedState: String(localized: "Cadence kept the last confirmed library state."),
+                    recoveryAction: model.librarySession.store.operationFailure?.isRetryable == true
+                        ? String(localized: "Retry or dismiss this message.")
+                        : String(localized: "Try the action again or dismiss this message.")
+                ).text
             )
         }
         .alert(
@@ -151,8 +161,12 @@ struct CadenceRootView: View {
             }
         } message: {
             Text(
-                model.externalAudioOpenError
-                    ?? "Cadence could not open the selected audio file."
+                ProductErrorMessage(
+                    detail: model.externalAudioOpenError
+                        ?? String(localized: "Cadence could not open the selected audio file."),
+                    preservedState: String(localized: "The current queue is unchanged."),
+                    recoveryAction: String(localized: "Choose another file or dismiss this message.")
+                ).text
             )
         }
         .alert(

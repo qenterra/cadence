@@ -99,7 +99,7 @@ struct ImportPreviewAppModelTests {
         )
     }
 
-    @Test("View Imported Tracks returns to Library")
+    @Test("View Imported Tracks returns to Browse")
     func viewImportedTracks() {
         let model = CadenceAppModel.testFixture()
         model.requestNavigationDestination(.importMusic)

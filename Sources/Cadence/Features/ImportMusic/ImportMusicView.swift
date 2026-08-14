@@ -61,7 +61,14 @@ struct ImportMusicView: View {
                 model.clearImportScanError()
             }
         } message: {
-            Text(model.importScanError ?? "The source could not be read.")
+            Text(
+                ProductErrorMessage(
+                    detail: model.importScanError
+                        ?? String(localized: "The source could not be read."),
+                    preservedState: String(localized: "Nothing was imported."),
+                    recoveryAction: String(localized: "Choose another folder or try again.")
+                ).text
+            )
         }
         .alert(
             "Couldn’t Import Music",
@@ -79,8 +86,12 @@ struct ImportMusicView: View {
             }
         } message: {
             Text(
-                model.importOperationError
-                    ?? "The selected music could not be imported."
+                ProductErrorMessage(
+                    detail: model.importOperationError
+                        ?? String(localized: "The selected music could not be imported."),
+                    preservedState: String(localized: "Your existing library is unchanged."),
+                    recoveryAction: String(localized: "Review the selection and try again.")
+                ).text
             )
         }
     }
@@ -131,7 +142,7 @@ struct ImportMusicView: View {
         switch model.importPreviewStage {
         case .empty:
             ImportMusicEmptyState(
-                supportingText: "Cadence will copy included audio into ~/Music/Cadence.library only after Review.",
+                supportingText: "Cadence copies included audio only after you review the selection.",
                 footnote: nil,
                 startScanning: model.chooseImportFolder
             )
@@ -152,8 +163,8 @@ struct ImportMusicView: View {
             ImportMusicCompleteState(
                 summary: model.importPreviewSummary,
                 title: "Import Complete",
-                message: "Your music is ready in Cadence.library.",
-                sizeSummary: "\(model.importPreviewSummary.importedSizeText) added to Cadence.library",
+                message: "Your music is ready in Cadence.",
+                sizeSummary: "\(model.importPreviewSummary.importedSizeText) added",
                 importMore: model.importMorePreviewMusic,
                 viewImportedTracks: model.viewImportedPreviewTracks
             )
@@ -173,7 +184,7 @@ struct ImportMusicView: View {
 
     private var productionImportProgressText: LocalizedStringKey {
         guard let progress = model.managedImportProgress else {
-            return "Preparing Cadence.library…"
+            return "Preparing import…"
         }
         if progress.isCommitting {
             return LocalizedStringKey(progress.phase.title)
@@ -184,30 +195,30 @@ struct ImportMusicView: View {
     private var pageTitle: String {
         switch model.importPreviewStage {
         case .empty:
-            "Import Music"
+            String(localized: "Import Music")
         case .scanning:
-            "Scanning Music"
+            String(localized: "Scanning Music")
         case .review:
-            "Import Review"
+            String(localized: "Import Review")
         case .importing:
-            "Importing Music"
+            String(localized: "Importing Music")
         case .complete:
-            "Import Complete"
+            String(localized: "Import Complete")
         }
     }
 
     private var pageSubtitle: String {
         switch model.importPreviewStage {
         case .empty:
-            "Add a folder or drop music into Cadence"
+            String(localized: "Add a folder or drop music into Cadence")
         case .scanning:
-            "Reading metadata without changing the source"
+            String(localized: "Reading metadata without changing the source")
         case .review:
-            "Choose exactly what belongs in Cadence.library"
+            String(localized: "Choose exactly what to import")
         case .importing:
-            "Copying the approved selection into Cadence.library"
+            String(localized: "Copying your approved selection")
         case .complete:
-            "The import report is ready"
+            String(localized: "The import report is ready")
         }
     }
 }

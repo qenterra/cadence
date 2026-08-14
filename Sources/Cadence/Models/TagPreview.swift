@@ -49,9 +49,9 @@ enum TagPathValidationError: Hashable, Sendable {
     var message: String {
         switch self {
         case .empty:
-            "Enter a tag path."
+            String(localized: "Enter a tag path.")
         case .emptyComponent:
-            "Tag paths cannot start, end, or contain an empty component."
+            String(localized: "Tag paths cannot start, end, or contain an empty component.")
         }
     }
 }
@@ -83,11 +83,11 @@ enum TagGroupID: Hashable, Sendable {
     var title: String {
         switch self {
         case .all:
-            "All Tags"
+            String(localized: "All Tags")
         case let .hierarchy(name):
             name.localizedCapitalized
         case .standalone:
-            "Standalone"
+            String(localized: "Standalone")
         }
     }
 }
@@ -127,9 +127,9 @@ enum TagResultScope: String, CaseIterable, Identifiable, Sendable {
     var title: String {
         switch self {
         case .tracks:
-            "Tracks"
+            String(localized: "Tracks")
         case .albums:
-            "Albums"
+            String(localized: "Albums")
         }
     }
 }
@@ -141,9 +141,9 @@ enum TrackTagMatchSource: String, Hashable, Sendable {
     var title: String {
         switch self {
         case .direct:
-            "Direct track tag"
+            String(localized: "Direct track tag")
         case .inherited:
-            "Inherited from album"
+            String(localized: "Inherited from album")
         }
     }
 }
@@ -164,9 +164,9 @@ enum AlbumTagMatchSource: String, Hashable, Sendable {
     var title: String {
         switch self {
         case .album:
-            "Album assignment"
+            String(localized: "Album assignment")
         case .track:
-            "Matching tagged track"
+            String(localized: "Matching tagged track")
         }
     }
 }

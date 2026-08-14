@@ -31,39 +31,39 @@ struct LibraryOperationFailure: Identifiable, Equatable, Sendable {
     var title: String {
         switch operation {
         case .albumPage:
-            "Couldn’t Load Albums"
+            String(localized: "Couldn’t Load Albums")
         case .artistPage:
-            "Couldn’t Load Artists"
+            String(localized: "Couldn’t Load Artists")
         case .browserAlbums:
-            "Couldn’t Load Artist Albums"
+            String(localized: "Couldn’t Load Artist Albums")
         case .browserTracks:
-            "Couldn’t Load Album Tracks"
+            String(localized: "Couldn’t Load Album Tracks")
         case .catalogSearch:
-            "Search Failed"
+            String(localized: "Couldn’t Search Library")
         case .favoriteCatalog:
-            "Couldn’t Load Favorites"
+            String(localized: "Couldn’t Load Favorites")
         case .playlistAdd:
-            "Couldn’t Add to Playlist"
+            String(localized: "Couldn’t Add to Playlist")
         case .playlistCreate:
-            "Couldn’t Create Playlist"
+            String(localized: "Couldn’t Create Playlist")
         case .playlistDelete:
-            "Couldn’t Delete Playlist"
+            String(localized: "Couldn’t Delete Playlist")
         case .playlistList:
-            "Couldn’t Load Playlists"
+            String(localized: "Couldn’t Load Playlists")
         case .playlistRemove:
-            "Couldn’t Remove from Playlist"
+            String(localized: "Couldn’t Remove from Playlist")
         case .playlistRename:
-            "Couldn’t Rename Playlist"
+            String(localized: "Couldn’t Rename Playlist")
         case .playlistReorder:
-            "Couldn’t Reorder Playlist"
+            String(localized: "Couldn’t Reorder Playlist")
         case .playlistTracks:
-            "Couldn’t Load Playlist Tracks"
+            String(localized: "Couldn’t Load Playlist Tracks")
         case .smartCollections:
-            "Smart Collection Failed"
+            String(localized: "Couldn’t Load Smart Collections")
         case .tagPage:
-            "Couldn’t Load Tags"
+            String(localized: "Couldn’t Load Tags")
         case .trackPage:
-            "Couldn’t Load Tracks"
+            String(localized: "Couldn’t Load Tracks")
         }
     }
 

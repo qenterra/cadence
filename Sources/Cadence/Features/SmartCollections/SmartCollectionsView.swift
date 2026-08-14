@@ -125,7 +125,7 @@ struct SmartCollectionsView: View {
                 model.cancelDeleteSmartCollection()
             }
         } message: {
-            Text("This permanently removes the collection definition from Cadence.library.")
+            Text("This permanently removes the collection from your library.")
         }
     }
 

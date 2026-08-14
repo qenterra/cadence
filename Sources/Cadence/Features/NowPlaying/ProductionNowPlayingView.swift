@@ -15,6 +15,7 @@ struct ProductionNowPlayingView: View {
     @State private var renamedTrackTitle: String?
     @State private var isRenamePresented = false
     @State private var renameDraft = ""
+    @State private var isAudioDetailsPresented = false
     @State private var cadenceModeLyricDocument: LyricDocument?
     @Namespace private var cadenceModeNamespace
 
@@ -185,7 +186,7 @@ private extension ProductionNowPlayingView {
             } else {
                 trackTags
             }
-            audioPath
+            audioQuality
             playbackFailure
             Spacer(minLength: 8)
             CadenceModeHint()
@@ -542,40 +543,24 @@ private extension ProductionNowPlayingView {
     }
 
     @ViewBuilder
-    private var audioPath: some View {
+    private var audioQuality: some View {
         if let path = model.playbackCoordinator?.state.audioPath {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Audio Path")
-                    .font(.caption.weight(.semibold))
+            let presentation = AudioQualityPresentation(path: path)
+            Button {
+                isAudioDetailsPresented.toggle()
+            } label: {
+                Label(presentation.badge, systemImage: "waveform")
+                    .font(.caption.weight(.medium))
                     .foregroundStyle(.secondary)
-                    .textCase(.uppercase)
-
-                Text(
-                    "\(path.codec.uppercased()) · "
-                        + "\(sampleRateText(path.sourceSampleRate)) · "
-                        + "\(path.sourceChannelCount) ch"
-                )
-                .font(.subheadline)
-
-                Text(
-                    "\(path.backend.rawValue.uppercased()) · "
-                        + path.outputRoute.name
-                )
-                .font(.caption)
-                .foregroundStyle(.secondary)
-
-                if path.nextTransitionIsGapless {
-                    Label(
-                        "Next transition is gapless-capable",
-                        systemImage: "arrow.left.and.right"
-                    )
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-
-                    Text(sourcePresentation(path.sourceSpatialFormat))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
+                    .padding(.horizontal, 10)
+                    .frame(height: 28)
+                    .background(CadenceTheme.subduedFill, in: Capsule())
+            }
+            .buttonStyle(.plain)
+            .help("Show Audio Details")
+            .accessibilityHint("Shows format, renderer, and output details")
+            .popover(isPresented: $isAudioDetailsPresented, arrowEdge: .bottom) {
+                AudioDetailsPopover(presentation: presentation)
             }
         }
     }
@@ -612,29 +597,5 @@ private extension ProductionNowPlayingView {
             }
         }
         .frame(maxHeight: .infinity, alignment: .top)
-    }
-
-    private func sampleRateText(
-        _ sampleRate: Double
-    ) -> String {
-        let kilohertz = sampleRate / 1000
-        return kilohertz.formatted(
-            .number.precision(.fractionLength(0 ... 1))
-        ) + " kHz"
-    }
-
-    private func sourcePresentation(
-        _ format: StoredSpatialFormat
-    ) -> String {
-        switch format {
-        case .dolbyAtmos:
-            "Dolby Atmos source"
-        case .multichannel:
-            "Multichannel source"
-        case .stereo:
-            "Stereo source"
-        case .unknown:
-            "Source presentation unknown"
-        }
     }
 }

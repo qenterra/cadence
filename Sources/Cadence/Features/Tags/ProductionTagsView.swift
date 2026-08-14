@@ -348,9 +348,9 @@ private enum ProductionTagDialog {
     var title: String {
         switch self {
         case .create:
-            "New Tag"
+            String(localized: "New Tag")
         case .error:
-            "Couldn’t Create Tag"
+            String(localized: "Couldn’t Create Tag")
         }
     }
 }

@@ -429,18 +429,18 @@ private enum PlaylistNameOperation {
     var title: String {
         switch self {
         case .create:
-            "New Playlist"
+            String(localized: "New Playlist")
         case .rename:
-            "Rename Playlist"
+            String(localized: "Rename Playlist")
         }
     }
 
     var actionTitle: String {
         switch self {
         case .create:
-            "Create"
+            String(localized: "Create")
         case .rename:
-            "Rename"
+            String(localized: "Rename")
         }
     }
 }

@@ -56,23 +56,23 @@ struct LibraryUnavailableView: View {
     private var summary: String {
         switch failure.kind {
         case .locationUnavailable:
-            "Cadence could not access the saved library location."
+            String(localized: "Cadence could not access the saved library location.")
         case .configurationUnavailable:
-            "Cadence could not read the saved library location settings."
+            String(localized: "Cadence could not read the saved library location settings.")
         case .staleBookmark:
-            "Cadence needs permission to access the library again."
+            String(localized: "Cadence needs permission to access the library again.")
         case .identityMismatch:
-            "The selected folder contains a different Cadence library."
+            String(localized: "The selected folder contains a different Cadence library.")
         case .blockingPackageFile:
-            "A file is blocking the Cadence.library package."
+            String(localized: "A file is blocking the Cadence.library package.")
         case .missingMetadataStore:
-            "Cadence.library is missing its metadata store."
+            String(localized: "Cadence.library is missing its metadata store.")
         case .unreadableIdentity:
-            "Cadence.library has an unreadable identity record."
+            String(localized: "Cadence.library has an unreadable identity record.")
         case .openFailed:
-            "Cadence could not open the managed library."
+            String(localized: "Cadence could not open the managed library.")
         case .recoveryFailed:
-            "Cadence could not finish recovering the managed library."
+            String(localized: "Cadence could not finish recovering the managed library.")
         }
     }
 

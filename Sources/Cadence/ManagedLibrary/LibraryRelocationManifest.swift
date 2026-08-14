@@ -38,21 +38,21 @@ struct LibraryRelocationProgress: Equatable, Sendable {
 
     var label: String {
         guard totalCount > 0 else { return phase.title }
-        return "\(completedCount) of \(totalCount)"
+        return String(localized: "\(completedCount) of \(totalCount)")
     }
 }
 
 extension LibraryRelocationPhase {
     var title: String {
         switch self {
-        case .preflight: "Checking Destination"
-        case .copying: "Copying Library"
-        case .verifying: "Verifying Library"
-        case .finalized: "Finalizing Package"
-        case .destinationValidated: "Opening Destination"
-        case .switched: "Switching Library"
-        case .sourceCleanup: "Cleaning Up Source"
-        case .complete: "Library Moved"
+        case .preflight: String(localized: "Checking Destination")
+        case .copying: String(localized: "Copying Library")
+        case .verifying: String(localized: "Verifying Library")
+        case .finalized: String(localized: "Finalizing Package")
+        case .destinationValidated: String(localized: "Opening Destination")
+        case .switched: String(localized: "Switching Library")
+        case .sourceCleanup: String(localized: "Cleaning Up Source")
+        case .complete: String(localized: "Library Moved")
         }
     }
 }

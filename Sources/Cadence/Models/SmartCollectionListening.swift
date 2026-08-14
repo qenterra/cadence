@@ -21,12 +21,12 @@ enum SmartCollectionSortField: String, CaseIterable, Hashable, Identifiable, Sen
     var title: String {
         switch self {
         case .canonical: "#"
-        case .title: "Title"
-        case .artist: "Artist"
-        case .album: "Album"
-        case .year: "Year"
-        case .format: "Format"
-        case .duration: "Time"
+        case .title: String(localized: "Title")
+        case .artist: String(localized: "Artist")
+        case .album: String(localized: "Album")
+        case .year: String(localized: "Year")
+        case .format: String(localized: "Format")
+        case .duration: String(localized: "Time")
         }
     }
 }

@@ -24,7 +24,7 @@ enum AlbumShelfKind: String, CaseIterable, Hashable, Identifiable, Sendable {
     var title: String {
         switch self {
         case .favorites:
-            "Favorites"
+            String(localized: "Favorites")
         }
     }
 }
@@ -52,13 +52,13 @@ enum AlbumSortField: String, CaseIterable, Hashable, Identifiable, Sendable {
     var title: String {
         switch self {
         case .artist:
-            "Artist"
+            String(localized: "Artist")
         case .title:
-            "Album Title"
+            String(localized: "Album Title")
         case .releaseYear:
-            "Release Year"
+            String(localized: "Release Year")
         case .favoriteDate:
-            "Recently Favorited"
+            String(localized: "Recently Favorited")
         }
     }
 }
@@ -109,11 +109,11 @@ enum AlbumTrackTagSource: Hashable, Sendable {
     var title: String {
         switch self {
         case .direct:
-            "Direct track tag"
+            String(localized: "Direct track tag")
         case .inherited:
-            "Inherited from album"
+            String(localized: "Inherited from album")
         case .excluded:
-            "Excluded from track"
+            String(localized: "Excluded from track")
         }
     }
 }

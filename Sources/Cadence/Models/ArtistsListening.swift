@@ -24,9 +24,9 @@ enum ArtistShelfKind: String, CaseIterable, Hashable, Identifiable, Sendable {
     var title: String {
         switch self {
         case .recentlyPlayed:
-            "Recently Played"
+            String(localized: "Recently Played")
         case .favorites:
-            "Favorites"
+            String(localized: "Favorites")
         }
     }
 }
@@ -56,15 +56,15 @@ enum ArtistSortField: String, CaseIterable, Hashable, Identifiable, Sendable {
     var title: String {
         switch self {
         case .name:
-            "Artist Name"
+            String(localized: "Artist Name")
         case .recentlyPlayed:
-            "Recently Played"
+            String(localized: "Recently Played")
         case .albumCount:
-            "Album Count"
+            String(localized: "Album Count")
         case .trackCount:
-            "Track Count"
+            String(localized: "Track Count")
         case .favoriteDate:
-            "Recently Favorited"
+            String(localized: "Recently Favorited")
         }
     }
 }

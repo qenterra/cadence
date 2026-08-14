@@ -9,9 +9,9 @@ enum TrackTableColumn: String, CaseIterable, Identifiable, Codable, Sendable {
 
     var title: String {
         switch self {
-        case .album: "Album"
-        case .year: "Year"
-        case .time: "Time"
+        case .album: String(localized: "Album")
+        case .year: String(localized: "Year")
+        case .time: String(localized: "Time")
         }
     }
 

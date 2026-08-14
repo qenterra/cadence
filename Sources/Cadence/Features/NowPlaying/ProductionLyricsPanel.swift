@@ -229,13 +229,13 @@ private extension LyricTimingStatus {
     var title: String {
         switch self {
         case .missing:
-            "No Lyrics"
+            String(localized: "No Lyrics")
         case .unsynchronized:
-            "Static Lyrics"
+            String(localized: "Static Lyrics")
         case .partiallySynchronized:
-            "Partially Synchronized"
+            String(localized: "Partially Synchronized")
         case .synchronized:
-            "Synchronized Lyrics"
+            String(localized: "Synchronized Lyrics")
         }
     }
 }

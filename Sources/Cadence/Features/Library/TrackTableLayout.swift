@@ -9,10 +9,10 @@ enum TrackTableSortField: String, CaseIterable, Codable, Sendable {
 
     var title: String {
         switch self {
-        case .song: "Song"
-        case .album: "Album"
-        case .year: "Year"
-        case .time: "Time"
+        case .song: String(localized: "Track")
+        case .album: String(localized: "Album")
+        case .year: String(localized: "Year")
+        case .time: String(localized: "Time")
         }
     }
 }

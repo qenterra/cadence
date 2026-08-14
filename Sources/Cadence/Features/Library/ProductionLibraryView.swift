@@ -13,10 +13,25 @@ struct ProductionLibraryView: View {
             switch store.availability {
             case let .failed(failure):
                 ContentUnavailableView(
-                    "Library Could Not Be Loaded",
+                    "Couldn’t Load Library",
                     systemImage: "exclamationmark.triangle",
-                    description: Text(failure.message)
+                    description: Text(
+                        ProductErrorMessage(
+                            detail: failure.message,
+                            preservedState: String(localized: "Your library is unchanged."),
+                            recoveryAction: String(localized: "Try again.")
+                        ).text
+                    )
                 )
+                .overlay(alignment: .bottom) {
+                    Button("Try Again") {
+                        Task {
+                            await store.loadInitialLibrary()
+                        }
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .padding(.bottom, 32)
+                }
             case .loading where store.artists.isEmpty:
                 ProgressView("Loading Library")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)

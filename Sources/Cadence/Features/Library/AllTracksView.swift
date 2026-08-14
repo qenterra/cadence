@@ -61,9 +61,15 @@ struct AllTracksView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         case let .failed(message):
             ContentUnavailableView(
-                "Tracks Could Not Be Loaded",
+                "Couldn’t Load Tracks",
                 systemImage: "exclamationmark.triangle",
-                description: Text(message)
+                description: Text(
+                    ProductErrorMessage(
+                        detail: message,
+                        preservedState: String(localized: "Your library is unchanged."),
+                        recoveryAction: String(localized: "Try again.")
+                    ).text
+                )
             )
             .overlay(alignment: .bottom) {
                 Button("Try Again") {
@@ -96,7 +102,7 @@ struct AllTracksView: View {
 
     private var header: some View {
         CadencePageHeader(
-            "All Tracks",
+            "Tracks",
             subtitle: "\(store.catalogCounts.liveTrackCount) tracks"
         ) {
             Button("Shuffle", systemImage: "shuffle") {

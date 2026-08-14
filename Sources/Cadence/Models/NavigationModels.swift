@@ -120,8 +120,8 @@ enum LibrarySearchScope: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .currentAlbum: "Album"
-        case .library: "Library"
+        case .currentAlbum: String(localized: "Album")
+        case .library: String(localized: "Library")
         }
     }
 }
@@ -137,9 +137,9 @@ enum FavoriteCatalogSection: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .songs: "Songs"
-        case .albums: "Albums"
-        case .artists: "Artists"
+        case .songs: String(localized: "Tracks")
+        case .albums: String(localized: "Albums")
+        case .artists: String(localized: "Artists")
         }
     }
 

@@ -10,8 +10,8 @@ enum SmartCollectionRuleCombinator: String, CaseIterable, Codable, Identifiable,
 
     var title: String {
         switch self {
-        case .all: "All"
-        case .any: "Any"
+        case .all: String(localized: "All")
+        case .any: String(localized: "Any")
         }
     }
 }
@@ -30,7 +30,15 @@ enum SmartCollectionRuleField: String, CaseIterable, Codable, Identifiable, Hash
     }
 
     var title: String {
-        rawValue.localizedCapitalized
+        switch self {
+        case .tag: String(localized: "Tag")
+        case .artist: String(localized: "Artist")
+        case .album: String(localized: "Album")
+        case .year: String(localized: "Year")
+        case .format: String(localized: "Format")
+        case .rating: String(localized: "Rating")
+        case .favorite: String(localized: "Favorite")
+        }
     }
 
     static var productionCases: [Self] {
@@ -62,11 +70,11 @@ enum SmartCollectionRuleOperator: String, CaseIterable, Codable, Identifiable, H
 
     var title: String {
         switch self {
-        case .is: "is"
-        case .contains: "contains"
-        case .greaterThan: "greater than"
-        case .lessThan: "less than"
-        case .between: "between"
+        case .is: String(localized: "is")
+        case .contains: String(localized: "contains")
+        case .greaterThan: String(localized: "greater than")
+        case .lessThan: String(localized: "less than")
+        case .between: String(localized: "between")
         }
     }
 }
@@ -81,8 +89,8 @@ enum SmartCollectionTagScope: String, CaseIterable, Codable, Identifiable, Hasha
 
     var title: String {
         switch self {
-        case .exact: "Exact"
-        case .includeSubtags: "Include Subtags"
+        case .exact: String(localized: "Exact")
+        case .includeSubtags: String(localized: "Include Subtags")
         }
     }
 }

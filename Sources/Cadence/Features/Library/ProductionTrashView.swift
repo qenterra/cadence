@@ -146,9 +146,9 @@ struct ProductionTrashView: View {
 private extension TrashTargetKind {
     var title: String {
         switch self {
-        case .track: "Removed Track"
-        case .album: "Removed Album"
-        case .artist: "Removed Artist"
+        case .track: String(localized: "Removed Track")
+        case .album: String(localized: "Removed Album")
+        case .artist: String(localized: "Removed Artist")
         }
     }
 

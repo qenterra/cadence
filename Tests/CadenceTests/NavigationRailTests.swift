@@ -148,7 +148,7 @@ struct NavigationRailTests {
             .importMusic,
         ])
         #expect(FavoriteCatalogSection.allCases.map(\.title) == [
-            "Songs",
+            "Tracks",
             "Albums",
             "Artists",
         ])
