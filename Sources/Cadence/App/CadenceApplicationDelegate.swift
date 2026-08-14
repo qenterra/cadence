@@ -8,6 +8,8 @@ final class CadenceApplicationDelegate: NSObject, NSApplicationDelegate {
     private var pendingBatches: [[URL]] = []
     private var terminationHandler: (() -> Void)?
 
+    /// AppKit supplies document URLs as one ordered batch. Cadence preserves
+    /// that batch so Finder selections become one transient playback queue.
     func application(
         _: NSApplication,
         open urls: [URL]
@@ -19,17 +21,6 @@ final class CadenceApplicationDelegate: NSObject, NSApplicationDelegate {
         terminationHandler?()
     }
 
-    func receiveOpenURLs(_ urls: [URL]) {
-        guard !urls.isEmpty else {
-            return
-        }
-        guard let openHandler else {
-            pendingBatches.append(urls)
-            return
-        }
-        openHandler(urls)
-    }
-
     func connect(_ handler: @escaping OpenHandler) {
         openHandler = handler
         let batches = pendingBatches
@@ -39,5 +30,16 @@ final class CadenceApplicationDelegate: NSObject, NSApplicationDelegate {
 
     func onTermination(_ handler: @escaping () -> Void) {
         terminationHandler = handler
+    }
+
+    private func receiveOpenURLs(_ urls: [URL]) {
+        guard !urls.isEmpty else {
+            return
+        }
+        guard let openHandler else {
+            pendingBatches.append(urls)
+            return
+        }
+        openHandler(urls)
     }
 }

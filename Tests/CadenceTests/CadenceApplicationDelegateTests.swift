@@ -1,21 +1,37 @@
+import AppKit
 @testable import Cadence
 import Foundation
 import Testing
 
 @MainActor
 struct CadenceApplicationDelegateTests {
-    @Test("Startup open batches are buffered and preserve URL order")
+    @Test("AppKit delivers one ordered URL batch for document events")
+    func documentEventSelector() {
+        let delegate = CadenceApplicationDelegate()
+
+        #expect(
+            delegate.responds(
+                to: NSSelectorFromString("application:openURLs:")
+            )
+        )
+        #expect(
+            !delegate.responds(
+                to: NSSelectorFromString("application:openFiles:")
+            )
+        )
+    }
+
+    @Test("Startup open batches are buffered and preserve Finder order")
     func startupBuffering() {
         let delegate = CadenceApplicationDelegate()
         let first = URL(filePath: "/tmp/First.flac")
         let second = URL(filePath: "/tmp/Second.mp3")
         var batches: [[URL]] = []
 
-        delegate.receiveOpenURLs([second, first])
+        delegate.application(.shared, open: [second, first])
         delegate.connect { batches.append($0) }
-        delegate.receiveOpenURLs([first])
 
-        #expect(batches == [[second, first], [first]])
+        #expect(batches == [[second, first]])
     }
 
     @Test("An empty open callback is ignored")
@@ -24,7 +40,7 @@ struct CadenceApplicationDelegateTests {
         var batches: [[URL]] = []
         delegate.connect { batches.append($0) }
 
-        delegate.receiveOpenURLs([])
+        delegate.application(.shared, open: [])
 
         #expect(batches.isEmpty)
     }

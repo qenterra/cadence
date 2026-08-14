@@ -158,7 +158,7 @@ actor ManagedLibraryImporter {
             selectedBytes / 20
         )
         let available = try availableCapacity(
-            destination.package.location.musicDirectory
+            capacityProbeURL()
         )
         guard selectedBytes + reserve <= available else {
             throw ManagedLibraryImportError.insufficientCapacity(
@@ -185,6 +185,23 @@ actor ManagedLibraryImporter {
                 throw ManagedLibraryImportError.changedSource(url.path)
             }
         }
+    }
+
+    /// Capacity metadata is available only for existing filesystem entries.
+    /// A first confirmed import may legitimately target a not-yet-created
+    /// Music directory, so probe its nearest existing ancestor on that volume.
+    private func capacityProbeURL(
+        fileManager: FileManager = .default
+    ) throws -> URL {
+        var candidate = destination.package.location.musicDirectory
+        while !fileManager.fileExists(atPath: candidate.path) {
+            let parent = candidate.deletingLastPathComponent()
+            guard parent.path != candidate.path else {
+                throw ManagedLibraryError.musicDirectoryUnavailable
+            }
+            candidate = parent
+        }
+        return candidate
     }
 
     private func makeManifest(

@@ -16,6 +16,9 @@ extension CadenceAppModel {
 
     func openExternalAudio(urls: [URL]) async {
         guard let externalAudioSession, let playbackCoordinator else {
+            externalAudioOpenError = String(
+                localized: "Cadence could not open the selected audio file."
+            )
             return
         }
 

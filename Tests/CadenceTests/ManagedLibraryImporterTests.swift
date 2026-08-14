@@ -151,6 +151,46 @@ struct ManagedLibraryImporterTests {
         )
     }
 
+    @Test("Confirmed import creates a missing Music directory")
+    func createsMissingMusicDirectory() async throws {
+        let fixture = try ImportFixture()
+        defer { fixture.remove() }
+        let audioURL = try fixture.writeSource(
+            name: "First Import.flac",
+            data: Data("audio".utf8)
+        )
+        let candidate = try await fixture.candidate(audioURL: audioURL)
+        let musicDirectory = fixture.package.location.musicDirectory
+        try FileManager.default.removeItem(at: musicDirectory)
+        let existingCapacityProbe = fixture.rootURL
+        let destination = ManagedLibraryImportDestination(
+            package: fixture.package,
+            repository: nil
+        )
+        let importer = ManagedLibraryImporter(
+            destination: destination,
+            availableCapacity: { url in
+                guard url == existingCapacityProbe else {
+                    throw CocoaError(.fileNoSuchFile)
+                }
+                return .max
+            }
+        )
+
+        let completion = try await importer.importCandidates(
+            [candidate],
+            includedIDs: [candidate.id],
+            sourceDisplayName: "First Import"
+        )
+
+        #expect(completion.importedTrackIDs == [candidate.id])
+        #expect(
+            FileManager.default.fileExists(
+                atPath: fixture.package.packageURL.path
+            )
+        )
+    }
+
     @Test("Recovery is idempotent after every durable import boundary")
     func recoversEveryFailurePoint() async throws {
         for point in ManagedImportFailurePoint.allCases {

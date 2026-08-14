@@ -4,6 +4,20 @@ import Testing
 
 @MainActor
 struct ExternalAudioAppModelTests {
+    @Test("Missing playback runtime reports an explicit open failure")
+    func unavailablePlaybackRuntimeFailsExplicitly() async {
+        let model = CadenceAppModel.preview()
+
+        await model.openExternalAudio(
+            urls: [URL(filePath: "/tmp/Unavailable.flac")]
+        )
+
+        #expect(
+            model.externalAudioOpenError
+                == "Cadence could not open the selected audio file."
+        )
+    }
+
     @Test("Opening files starts one ordered memory-only queue")
     func orderedAutoplay() async throws {
         let files = try ExternalAppModelFiles(names: ["One.flac", "Two.mp3"])

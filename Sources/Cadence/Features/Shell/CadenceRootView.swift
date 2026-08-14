@@ -186,13 +186,7 @@ struct CadenceRootView: View {
             model.activateSystemMediaSession()
             await model.recoverManagedLibraryIfNeeded()
             await model.repairImportedMetadataIfNeeded()
-            let needsInitialLoad = model.librarySession.availability == .ready
-                && model.librarySession.store.tracks.isEmpty
-            if needsInitialLoad {
-                await model.librarySession.store.loadInitialLibrary()
-            }
-            await model.loadPersistedSmartCollections()
-            await model.librarySession.store.loadPlaylists()
+            await model.loadInitialPersistentFeatures()
         }
         .task(id: model.currentPlaybackTrack?.id) {
             guard !usesStableSystemControls,
