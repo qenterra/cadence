@@ -27,11 +27,14 @@ extension ProductionPlaybackQueuePanel {
     func queueSection(
         title: String,
         ids: [UUID],
-        kind: ProductionQueueSectionKind
+        kind: ProductionQueueSectionKind,
+        showsTitle: Bool = true
     ) -> some View {
-        queueSectionHeader(
-            ids.isEmpty ? title : "\(title) · \(ids.count.formatted())"
-        )
+        if showsTitle {
+            queueSectionHeader(
+                ids.isEmpty ? title : "\(title) · \(ids.count.formatted())"
+            )
+        }
 
         if ids.isEmpty {
             Text(emptyMessage(for: kind))
@@ -112,7 +115,9 @@ private extension ProductionPlaybackQueuePanel {
                 queueSection(
                     title: "Up Next",
                     ids: PlaybackQueuePresentation.upNextTrackIDs(for: queue),
-                    kind: .upNext
+                    kind: .upNext,
+                    showsTitle: NowPlayingPanelPresentation
+                        .showsUpNextSectionTitle
                 )
             }
             .padding(.horizontal, 16)

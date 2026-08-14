@@ -4,6 +4,8 @@ struct ImportMusicView: View {
     @Bindable var model: CadenceAppModel
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.visualRegressionHidesPreviewChrome)
+    private var hidesPreviewChrome
     @FocusState private var isKeyboardTarget
 
     var body: some View {
@@ -110,7 +112,10 @@ struct ImportMusicView: View {
 
             Spacer(minLength: CadenceLayout.contentGap)
 
-            if model.runtimeEnvironment.previewFixture != nil {
+            if ImportMusicHeaderPresentation.showsPreviewControls(
+                hasPreviewFixture: model.runtimeEnvironment.previewFixture != nil,
+                hidesPreviewChrome: hidesPreviewChrome
+            ) {
                 ImportMusicPreviewHeaderControls(model: model)
             }
         }
@@ -220,5 +225,14 @@ struct ImportMusicView: View {
         case .complete:
             String(localized: "The import report is ready")
         }
+    }
+}
+
+enum ImportMusicHeaderPresentation {
+    static func showsPreviewControls(
+        hasPreviewFixture: Bool,
+        hidesPreviewChrome: Bool
+    ) -> Bool {
+        hasPreviewFixture && !hidesPreviewChrome
     }
 }

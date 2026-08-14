@@ -1,5 +1,12 @@
 import SwiftUI
 
+enum SettingsLayoutMetrics {
+    static let sectionSpacing = CadenceLayout.contentGap
+    static let cardInset = CadenceLayout.contentGap
+    static let cardContentSpacing = CadenceLayout.controlGap
+    static let maximumContentWidth: CGFloat = 640
+}
+
 enum CadenceSettingsTab: String, CaseIterable, Identifiable {
     case general
     case library
@@ -64,8 +71,8 @@ struct ProductionSettingsView: View {
 
     var body: some View {
         CadencePageScrollView(
-            maxContentWidth: CadenceLayout.readableContentWidth,
-            sectionSpacing: CadenceLayout.panelInset
+            maxContentWidth: SettingsLayoutMetrics.maximumContentWidth,
+            sectionSpacing: SettingsLayoutMetrics.sectionSpacing
         ) {
             tabContent
         }
@@ -271,17 +278,20 @@ struct SettingsCard<Content: View>: View {
     @ViewBuilder let content: Content
 
     var body: some View {
-        VStack(alignment: .leading, spacing: CadenceLayout.contentGap) {
+        VStack(
+            alignment: .leading,
+            spacing: SettingsLayoutMetrics.cardContentSpacing
+        ) {
             Label(title, systemImage: symbol)
                 .font(.headline)
             content
         }
-        .padding(CadenceLayout.panelInset)
+        .padding(SettingsLayoutMetrics.cardInset)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(CadenceTheme.secondarySurface)
-        .clipShape(RoundedRectangle(cornerRadius: CadenceTheme.radiusPanel))
+        .clipShape(RoundedRectangle(cornerRadius: CadenceTheme.radiusGroup))
         .overlay {
-            RoundedRectangle(cornerRadius: CadenceTheme.radiusPanel)
+            RoundedRectangle(cornerRadius: CadenceTheme.radiusGroup)
                 .strokeBorder(CadenceTheme.separator, lineWidth: 0.5)
         }
     }

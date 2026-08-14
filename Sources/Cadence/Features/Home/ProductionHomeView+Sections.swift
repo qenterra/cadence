@@ -3,22 +3,47 @@ import SwiftUI
 extension ProductionHomeView {
     @ViewBuilder
     var favorites: some View {
+        let recentTrackIDs = Set(
+            HomeListeningSelection.recentItems(
+                store.recentlyPlayedTracks,
+                excludingID: model.currentPlaybackTrack?.id,
+                limit: 6
+            ).map(\.id)
+        )
+        let excludedTrackIDs = recentTrackIDs.union(
+            [model.currentPlaybackTrack?.id].compactMap(\.self)
+        )
+        let candidateTracks = HomeListeningSelection.items(
+            store.favoriteTracks,
+            excludingIDs: excludedTrackIDs,
+            limit: store.favoriteTracks.count
+        )
+        let candidateAlbums = HomeListeningSelection.items(
+            store.favoriteAlbums,
+            excludingIDs: Set(pinnedAlbums.map(\.id)),
+            limit: store.favoriteAlbums.count
+        )
+        let candidateArtists = HomeListeningSelection.items(
+            store.favoriteArtists,
+            excludingIDs: Set(pinnedArtists.map(\.id)),
+            limit: store.favoriteArtists.count
+        )
         let budget = HomeFavoritesPreviewBudget.resolve(
-            trackCount: store.favoriteTracks.count,
-            albumCount: store.favoriteAlbums.count,
-            artistCount: store.favoriteArtists.count,
+            trackCount: candidateTracks.count,
+            albumCount: candidateAlbums.count,
+            artistCount: candidateArtists.count,
             limit: 6
         )
         let tracks = HomeListeningSelection.items(
-            store.favoriteTracks,
+            candidateTracks,
             limit: budget.trackLimit
         )
         let albums = HomeListeningSelection.items(
-            store.favoriteAlbums,
+            candidateAlbums,
             limit: budget.albumLimit
         )
         let artists = HomeListeningSelection.items(
-            store.favoriteArtists,
+            candidateArtists,
             limit: budget.artistLimit
         )
 

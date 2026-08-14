@@ -192,7 +192,11 @@ struct ImportMusicReview: View {
                 }
                 .buttonStyle(.bordered)
 
-                Button("Import \(model.importSelectedCount) Tracks") {
+                Button(
+                    ImportReviewCopy.importAction(
+                        count: model.importSelectedCount
+                    )
+                ) {
                     model.beginImportPreview()
                 }
                 .buttonStyle(.borderedProminent)
@@ -206,8 +210,10 @@ struct ImportMusicReview: View {
     }
 
     private var selectionSummary: String {
-        "\(model.importSelectedCount) total included · "
-            + "\(model.importSelectedSizeText)"
+        ImportReviewCopy.selectionSummary(
+            count: model.importSelectedCount,
+            size: model.importSelectedSizeText
+        )
     }
 
     private var determinateImportProgress: ManagedImportProgress? {

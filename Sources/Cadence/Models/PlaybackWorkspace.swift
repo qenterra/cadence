@@ -18,7 +18,7 @@ enum NowPlayingPanel: String, CaseIterable, Identifiable, Sendable {
     var title: String {
         switch self {
         case .lyrics: String(localized: "Lyrics")
-        case .queue: String(localized: "Queue")
+        case .queue: String(localized: "Up Next")
         }
     }
 }

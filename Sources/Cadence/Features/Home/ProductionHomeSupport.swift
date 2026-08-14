@@ -23,6 +23,21 @@ enum HomeListeningSelection {
         Array(items.prefix(max(limit, 0)))
     }
 
+    /// A higher-priority Home shelf owns an identity for that render pass.
+    /// Lower shelves skip it instead of repeating the same shortcut or track.
+    static func items<Item: Identifiable>(
+        _ items: [Item],
+        excludingIDs: Set<Item.ID>,
+        limit: Int
+    ) -> [Item] where Item.ID: Hashable {
+        guard limit > 0 else {
+            return []
+        }
+        return Array(
+            items.lazy.filter { !excludingIDs.contains($0.id) }.prefix(limit)
+        )
+    }
+
     static func recentItems<Item: Identifiable>(
         _ items: [Item],
         excludingID: Item.ID?,

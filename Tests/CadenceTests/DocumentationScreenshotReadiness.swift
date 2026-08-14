@@ -36,6 +36,10 @@ extension DocumentationScreenshotFixture {
             let destinationIsReady = if destination == .allTracks {
                 model.librarySession.store.allTracksWindow?.firstPageState
                     == .ready
+            } else if destination == .library {
+                model.librarySession.store.browserAlbumsState == .ready
+                    && model.librarySession.store.browserTracksState == .ready
+                    && model.librarySession.store.browserAlbumID != nil
             } else {
                 true
             }
@@ -72,6 +76,11 @@ extension DocumentationScreenshotFixture {
         case .library(.allTracks):
             "destination=\(model.selectedDestination), firstPage="
                 + "\(String(describing: model.librarySession.store.allTracksWindow?.firstPageState))"
+        case .library(.library):
+            "destination=\(model.selectedDestination), albums="
+                + "\(model.librarySession.store.browserAlbumsState), tracks="
+                + "\(model.librarySession.store.browserTracksState), albumID="
+                + "\(String(describing: model.librarySession.store.browserAlbumID))"
         default:
             "destination=\(model.selectedDestination), workspace=\(model.playbackWorkspace)"
         }
@@ -137,7 +146,15 @@ extension DocumentationScreenshotFixture {
         )
         let marker = projectRoot.appending(path: ".build/update-screenshots")
         if FileManager.default.fileExists(atPath: marker.path) {
-            try data.write(to: baseline, options: .atomic)
+            // The hosted test app is sandboxed and cannot write into the
+            // checkout. Emit a complete candidate set in its own container;
+            // the developer-side update command promotes it after the run.
+            let candidate = workspace.appending(path: "update/\(filename)")
+            try FileManager.default.createDirectory(
+                at: candidate.deletingLastPathComponent(),
+                withIntermediateDirectories: true
+            )
+            try data.write(to: candidate, options: .atomic)
             return
         }
 

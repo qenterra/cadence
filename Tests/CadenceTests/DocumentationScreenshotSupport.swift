@@ -110,16 +110,6 @@ final class DocumentationScreenshotFixture {
         )
     }
 
-    /// Tears down storage in dependency order: close SQLite, detach the model,
-    /// then remove the temporary managed-library package.
-    func cleanup() async throws {
-        if let searchIndexer = model.librarySession.store.lyricsSearchIndexer {
-            try await searchIndexer.close()
-        }
-        model.librarySession.store.detach()
-        try FileManager.default.removeItem(at: temporaryMusicDirectory)
-    }
-
     func capture(
         _ filename: String,
         contentSize: NSSize = .minimum,
@@ -253,9 +243,10 @@ final class DocumentationScreenshotFixture {
                 true
             )
             .environment(
-                \.visualRegressionDisablesInteractiveHighlights,
+                \.visualRegressionFreezesHighlights,
                 true
             )
+            .environment(\.visualRegressionHidesPreviewChrome, true)
             .tint(CadenceTheme.primaryAccent)
     }
 
@@ -278,6 +269,18 @@ final class DocumentationScreenshotFixture {
             throw DocumentationScreenshotError.encodingFailed
         }
         return data
+    }
+}
+
+extension DocumentationScreenshotFixture {
+    /// Tears down storage in dependency order: close SQLite, detach the model,
+    /// then remove the temporary managed-library package.
+    func cleanup() async throws {
+        if let searchIndexer = model.librarySession.store.lyricsSearchIndexer {
+            try await searchIndexer.close()
+        }
+        model.librarySession.store.detach()
+        try FileManager.default.removeItem(at: temporaryMusicDirectory)
     }
 }
 

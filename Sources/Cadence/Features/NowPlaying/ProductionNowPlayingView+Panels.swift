@@ -1,5 +1,10 @@
 import SwiftUI
 
+enum NowPlayingPanelPresentation {
+    static let showsRedundantHeaderTitle = false
+    static let showsUpNextSectionTitle = false
+}
+
 extension ProductionNowPlayingView {
     @ViewBuilder
     var playbackFailure: some View {
@@ -61,8 +66,6 @@ extension ProductionNowPlayingView {
                 .labelStyle(.titleAndIcon)
                 .keyboardShortcut("[", modifiers: .command)
 
-                Text(model.selectedNowPlayingPanel.title)
-                    .font(.title2.weight(.semibold))
                 Spacer()
                 NowPlayingPanelPicker(model: model)
             }

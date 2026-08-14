@@ -14,12 +14,14 @@ extension LibraryStore {
         let generation = browserAlbumGeneration
         browserArtistID = artistID
         browserAlbums = []
+        browserAlbumsState = artistID == nil ? .idle : .loading
         browserAlbumCursor = nil
         isLoadingNextBrowserAlbums = false
 
         browserTrackGeneration += 1
         browserAlbumID = nil
         browserTracks = []
+        browserTracksState = .idle
         browserTrackCursor = nil
         isLoadingNextBrowserTracks = false
 
@@ -38,10 +40,14 @@ extension LibraryStore {
             }
             browserAlbums = deduplicatedAlbums(page.items)
             browserAlbumCursor = page.nextCursor
+            browserAlbumsState = .ready
         } catch {
             guard generation == browserAlbumGeneration else {
                 return
             }
+            browserAlbumsState = .failed(
+                LibraryStoreFailure(message: error.localizedDescription)
+            )
             recordOperationFailure(.browserAlbums, error: error)
         }
     }
@@ -97,6 +103,7 @@ extension LibraryStore {
             browserTrackSort = sort
         }
         browserTracks = []
+        browserTracksState = albumID == nil ? .idle : .loading
         browserTrackCursor = nil
         isLoadingNextBrowserTracks = false
 
@@ -119,10 +126,14 @@ extension LibraryStore {
             }
             browserTracks = deduplicatedBrowserTracks(page.items)
             browserTrackCursor = page.nextCursor
+            browserTracksState = .ready
         } catch {
             guard generation == browserTrackGeneration else {
                 return
             }
+            browserTracksState = .failed(
+                LibraryStoreFailure(message: error.localizedDescription)
+            )
             recordOperationFailure(.browserTracks, error: error)
         }
     }

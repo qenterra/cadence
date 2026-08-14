@@ -242,8 +242,10 @@ private extension LibraryStore {
     func resetBrowser() {
         browserArtistID = nil
         browserAlbums = []
+        browserAlbumsState = .idle
         browserAlbumID = nil
         browserTracks = []
+        browserTracksState = .idle
         browserAlbumCursor = nil
         browserTrackCursor = nil
         browserAlbumGeneration &+= 1

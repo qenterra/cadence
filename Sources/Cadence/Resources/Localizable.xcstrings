@@ -2619,16 +2619,6 @@
         }
       }
     },
-    "Import %lld Tracks": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Импортировать треки: %lld"
-          }
-        }
-      }
-    },
     "Import Complete": {
       "localizations": {
         "ru": {
@@ -6061,6 +6051,76 @@
           "stringUnit": {
             "state": "translated",
             "value": "до"
+          }
+        }
+      }
+    },
+    "Choose an album to see its tracks.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выберите альбом, чтобы увидеть его треки."
+          }
+        }
+      }
+    },
+    "No Tracks": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нет треков"
+          }
+        }
+      }
+    },
+    "Select an Album": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выберите альбом"
+          }
+        }
+      }
+    },
+    "This album has no available tracks.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "В этом альбоме нет доступных треков."
+          }
+        }
+      }
+    },
+    "Up Next": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Далее"
+          }
+        }
+      }
+    },
+    "track selected": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "трек выбран"
+          }
+        }
+      }
+    },
+    "tracks selected": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "треков выбрано"
           }
         }
       }

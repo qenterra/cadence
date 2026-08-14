@@ -108,22 +108,7 @@ struct ProductionLibraryView: View {
                         detail: visibleTracks.count.formatted()
                     )
 
-                    ProductionTrackTable(
-                        model: model,
-                        tracks: visibleTracks,
-                        context: selectedAlbumID.map(TrackTableContext.album)
-                            ?? .library,
-                        showsHeader: false,
-                        compact: true,
-                        onReachEnd: {
-                            await store.loadNextBrowserTracks()
-                        },
-                        repositorySortAction: { sort in
-                            await store.sortBrowserTracks(sort)
-                        }
-                    )
-                    .padding(.horizontal, 14)
-                    .padding(.bottom, 16)
+                    trackColumnContent
                 }
                 .frame(width: widths.tracks)
             }
@@ -142,6 +127,64 @@ struct ProductionLibraryView: View {
             return []
         }
         return store.browserTracks
+    }
+
+    @ViewBuilder
+    private var trackColumnContent: some View {
+        switch LibraryBrowserColumnPresentation.resolve(
+            hasSelection: selectedAlbumID != nil,
+            loadState: store.browserTracksState,
+            itemCount: visibleTracks.count
+        ) {
+        case .selectionRequired:
+            ContentUnavailableView(
+                "Select an Album",
+                systemImage: "rectangle.stack",
+                description: Text("Choose an album to see its tracks.")
+            )
+        case .loading:
+            ProgressView("Loading Tracks")
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        case .empty:
+            ContentUnavailableView(
+                "No Tracks",
+                systemImage: "music.note.list",
+                description: Text("This album has no available tracks.")
+            )
+        case let .failed(message):
+            ContentUnavailableView {
+                Label("Couldn’t Load Tracks", systemImage: "exclamationmark.triangle")
+            } description: {
+                Text(message)
+            } actions: {
+                Button("Try Again") {
+                    Task {
+                        await store.browseTracks(
+                            albumID: selectedAlbumID,
+                            sort: store.browserTrackSort
+                        )
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+            }
+        case .content:
+            ProductionTrackTable(
+                model: model,
+                tracks: visibleTracks,
+                context: selectedAlbumID.map(TrackTableContext.album)
+                    ?? .library,
+                showsHeader: false,
+                compact: true,
+                onReachEnd: {
+                    await store.loadNextBrowserTracks()
+                },
+                repositorySortAction: { sort in
+                    await store.sortBrowserTracks(sort)
+                }
+            )
+            .padding(.horizontal, 14)
+            .padding(.bottom, 16)
+        }
     }
 
     private func projectionColumn(

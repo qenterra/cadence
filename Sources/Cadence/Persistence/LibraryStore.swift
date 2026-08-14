@@ -155,8 +155,10 @@ final class LibraryStore {
     var isLoadingNextTracks = false
     var browserArtistID: UUID?
     var browserAlbums: [LibraryAlbumProjection] = []
+    var browserAlbumsState = LibraryContentLoadState.idle
     var browserAlbumID: UUID?
     var browserTracks: [LibraryTrackProjection] = []
+    var browserTracksState = LibraryContentLoadState.idle
     var browserTrackSort = LibraryTrackSort.titleAscending
     var isLoadingNextBrowserAlbums = false
     var isLoadingNextBrowserTracks = false
