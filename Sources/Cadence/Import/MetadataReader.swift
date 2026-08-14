@@ -2,6 +2,10 @@ import AVFoundation
 import CoreMedia
 import Foundation
 
+/// Reads source metadata without mutating the selected audio file.
+///
+/// Metadata and artwork calls may run independently. Implementations must keep
+/// both results tied to the exact URL and surface unreadable audio as an error.
 protocol AudioMetadataReading: Sendable {
     func read(url: URL) async throws -> ScannedAudioMetadata
     func readEmbeddedArtwork(url: URL) async -> EmbeddedArtworkPayload?

@@ -3,6 +3,11 @@ import Foundation
 import Observation
 import UniformTypeIdentifiers
 
+/// Reads and changes Launch Services ownership for each supported audio type.
+///
+/// Setting Cadence as the default is an explicit user action. Implementations
+/// must attempt the requested type and surface failures instead of claiming that
+/// all formats were reassigned.
 @MainActor
 protocol DefaultAudioApplicationWorkspace: AnyObject {
     func defaultApplicationURL(for contentType: UTType) -> URL?

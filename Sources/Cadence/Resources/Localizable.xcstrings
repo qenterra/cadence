@@ -4403,6 +4403,36 @@
         }
       }
     },
+    "Repeat All": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Повторять всё"
+          }
+        }
+      }
+    },
+    "Repeat Off": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Повтор выключен"
+          }
+        }
+      }
+    },
+    "Repeat One": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Повторять трек"
+          }
+        }
+      }
+    },
     "Removed Album": {
       "localizations": {
         "ru": {
@@ -4895,6 +4925,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Показать правила коллекции"
+          }
+        }
+      }
+    },
+    "Shows navigation as icons only": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Показывает в боковой панели только значки"
+          }
+        }
+      }
+    },
+    "Shows navigation icons and labels": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Показывает в боковой панели значки и подписи"
           }
         }
       }

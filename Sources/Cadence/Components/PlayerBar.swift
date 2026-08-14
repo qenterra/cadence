@@ -56,8 +56,8 @@ private struct PlaybackProgressControl: View {
                 commitSeekWhenNeeded(isEditing: isEditing)
             }
             .tint(.primary)
-            .accessibilityLabel("Playback progress")
-            .disabled(!model.hasCurrentPlaybackItem)
+            .accessibilityLabel(accessibility.label)
+            .disabled(!accessibility.isEnabled)
             Text(durationText)
         }
         .frame(minWidth: 220, idealWidth: 300, maxWidth: 360)
@@ -81,6 +81,15 @@ private struct PlaybackProgressControl: View {
             return "0:00"
         }
         return TrackPreview.timeText(model.playbackDuration)
+    }
+
+    private var accessibility: PlayerBarAccessibilityControl {
+        PlayerBarAccessibilityContract.control(
+            .progress,
+            hasPlaybackItem: model.hasCurrentPlaybackItem,
+            isPlaying: model.isPlaying,
+            repeatMode: model.repeatMode
+        )
     }
 
     private var progressBinding: Binding<Double> {
@@ -191,17 +200,17 @@ private extension PlayerBar {
             HStack(spacing: PlayerBarLayoutMetrics.transportSpacing) {
                 controlButton(
                     symbol: "shuffle",
-                    label: "Shuffle",
+                    label: accessibility(for: .shuffle).label,
                     isActive: model.isShuffleEnabled,
-                    isEnabled: hasPlaybackItem
+                    isEnabled: accessibility(for: .shuffle).isEnabled
                 ) {
                     model.isShuffleEnabled.toggle()
                 }
 
                 controlButton(
                     symbol: "backward.fill",
-                    label: "Previous",
-                    isEnabled: hasPlaybackItem
+                    label: accessibility(for: .previous).label,
+                    isEnabled: accessibility(for: .previous).isEnabled
                 ) {
                     model.selectPreviousTrack()
                 }
@@ -217,22 +226,23 @@ private extension PlayerBar {
                         .background(primaryControlFill, in: Circle())
                 }
                 .buttonStyle(CadenceRowButtonStyle())
-                .help(model.isPlaying ? "Pause" : "Play")
-                .disabled(!hasPlaybackItem)
+                .help(accessibility(for: .playPause).label)
+                .accessibilityLabel(accessibility(for: .playPause).label)
+                .disabled(!accessibility(for: .playPause).isEnabled)
 
                 controlButton(
                     symbol: "forward.fill",
-                    label: "Next",
-                    isEnabled: hasPlaybackItem
+                    label: accessibility(for: .next).label,
+                    isEnabled: accessibility(for: .next).isEnabled
                 ) {
                     model.selectNextTrack()
                 }
 
                 controlButton(
                     symbol: model.repeatMode.symbolName,
-                    label: repeatLabel,
+                    label: accessibility(for: .repeatMode).label,
                     isActive: model.repeatMode != .off,
-                    isEnabled: hasPlaybackItem
+                    isEnabled: accessibility(for: .repeatMode).isEnabled
                 ) {
                     model.cycleRepeatMode()
                 }
@@ -271,9 +281,9 @@ private extension PlayerBar {
             audioOutputMenu
             controlButton(
                 symbol: "list.bullet",
-                label: "Queue",
+                label: accessibility(for: .queue).label,
                 isActive: isQueuePresented,
-                isEnabled: hasPlaybackItem
+                isEnabled: accessibility(for: .queue).isEnabled
             ) {
                 model.presentPlaybackQueue()
             }
@@ -288,14 +298,6 @@ private extension PlayerBar {
         CadenceTheme.playerControl(
             hasPlaybackItem ? .active : .disabled
         )
-    }
-
-    private var repeatLabel: String {
-        switch model.repeatMode {
-        case .off: "Repeat Off"
-        case .all: "Repeat All"
-        case .one: "Repeat One"
-        }
     }
 
     private var volumeSymbol: String {
@@ -320,6 +322,17 @@ private extension PlayerBar {
         Binding(
             get: { model.volume },
             set: { model.volume = $0 }
+        )
+    }
+
+    private func accessibility(
+        for control: PlayerTransportControl
+    ) -> PlayerBarAccessibilityControl {
+        PlayerBarAccessibilityContract.control(
+            control,
+            hasPlaybackItem: hasPlaybackItem,
+            isPlaying: model.isPlaying,
+            repeatMode: model.repeatMode
         )
     }
 

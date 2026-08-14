@@ -33,6 +33,10 @@ enum LibraryLocationResolution: Equatable, Sendable {
     case identityMismatch(expected: LibraryIdentity, actual: LibraryIdentity)
 }
 
+/// Persists the bookmark and identity of an explicitly selected library.
+///
+/// A missing record means the standard Music location; corrupt records throw
+/// so startup can present configuration recovery instead of silently resetting.
 @MainActor
 protocol LibraryLocationStoring: AnyObject {
     func load() throws -> LibraryLocationRecord?
@@ -73,6 +77,10 @@ struct ResolvedLibraryBookmark: Sendable {
     let isStale: Bool
 }
 
+/// Creates and resolves security-scoped bookmarks for a library parent folder.
+///
+/// The controller balances every successful `startAccessing` call with one
+/// `stopAccessing` call when the location is replaced or released.
 @MainActor
 protocol LibraryBookmarkResolving {
     func makeBookmark(for parentURL: URL) throws -> Data

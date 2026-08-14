@@ -11,6 +11,10 @@ enum SystemMediaCommand: Equatable, Sendable {
     case toggle
 }
 
+/// Bridges system media controls and Now Playing metadata to the coordinator.
+///
+/// The bridge forwards commands but owns no playback state. `shutdown` must
+/// remove command handlers so a discarded coordinator cannot receive events.
 @MainActor
 protocol SystemMediaSessionControlling: AnyObject {
     func activate(

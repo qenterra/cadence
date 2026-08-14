@@ -61,6 +61,10 @@ enum RhythmReusableLayer {
     }
 }
 
+/// AppKit/Core Animation renderer for published rhythm snapshots.
+///
+/// All layer-tree mutation stays on the main actor and inside disabled implicit
+/// transactions; the display server owns interpolation after layers are updated.
 @MainActor
 final class RhythmPulseCompositorView: NSView {
     let effectLayer = CALayer()

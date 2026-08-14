@@ -36,6 +36,10 @@ struct RemoteLibrarySettingsRecord: Codable, Equatable, Sendable {
     var cacheBudgetBytes: Int64
 }
 
+/// Persists remote-provider configuration, never credentials or access tokens.
+///
+/// Credential material belongs in the provider-specific Keychain store. A
+/// corrupt settings record throws and becomes an explicit unavailable state.
 @MainActor
 protocol RemoteLibrarySettingsStoring: AnyObject {
     func load() throws -> RemoteLibrarySettingsRecord?

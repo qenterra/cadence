@@ -1,5 +1,16 @@
 import SwiftUI
 
+enum CadenceGlassSurfacePresentation: Equatable, Sendable {
+    case material
+    case opaque
+
+    static func resolve(
+        reduceTransparency: Bool
+    ) -> Self {
+        reduceTransparency ? .opaque : .material
+    }
+}
+
 extension View {
     func cadenceGlassSurface(cornerRadius: CGFloat) -> some View {
         modifier(CadenceGlassSurfaceModifier(cornerRadius: cornerRadius))
@@ -12,7 +23,9 @@ private struct CadenceGlassSurfaceModifier: ViewModifier {
     let cornerRadius: CGFloat
 
     func body(content: Content) -> some View {
-        if reduceTransparency {
+        if CadenceGlassSurfacePresentation.resolve(
+            reduceTransparency: reduceTransparency
+        ) == .opaque {
             content.background(
                 CadenceTheme.opaqueSurface,
                 in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)

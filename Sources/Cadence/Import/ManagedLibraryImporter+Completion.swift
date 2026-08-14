@@ -1,5 +1,26 @@
 import Foundation
 
+enum ManagedImportRecoveryPolicy {
+    static func recover(
+        primaryError: any Error,
+        importID: UUID,
+        recoveryDirectory: URL,
+        action: @Sendable () async throws -> ManagedImportRecoveryResult
+    ) async throws -> ManagedImportRecoveryResult {
+        do {
+            return try await action()
+        } catch {
+            throw managedFileError(
+                preserving: primaryError,
+                subsystem: .importMusic,
+                operationID: importID,
+                compensationFailures: [error.localizedDescription],
+                recoveryDirectory: recoveryDirectory
+            )
+        }
+    }
+}
+
 extension ManagedLibraryImporter {
     func executePreparedImport(
         manifest initialManifest: ManagedImportManifest,
@@ -12,6 +33,9 @@ extension ManagedLibraryImporter {
     ) async throws -> ManagedImportCompletion {
         var manifest = initialManifest
         do {
+            // Each manifest transition is persisted before the next irreversible
+            // boundary. Launch recovery therefore knows whether it may discard
+            // staging, must commit SwiftData, or only needs final cleanup.
             let copiedEntries = try await copyToStaging(
                 manifest: manifest,
                 progress: progress
@@ -119,11 +143,18 @@ extension ManagedLibraryImporter {
         candidates: [ImportInspectionCandidate],
         selected: [ImportInspectionCandidate]
     ) async throws -> ManagedImportCompletion {
-        let recovery = ManagedLibraryImportRecovery(
-            destination: destination
-        )
-        let result = try? await recovery.recover()
-        if result?.recoveredImportIDs.contains(manifest.importID) == true {
+        let result = try await ManagedImportRecoveryPolicy.recover(
+            primaryError: error,
+            importID: manifest.importID,
+            recoveryDirectory: manifestStore.package.stagingURL(
+                importID: manifest.importID
+            )
+        ) {
+            try await ManagedLibraryImportRecovery(
+                destination: destination
+            ).recover()
+        }
+        if result.recoveredImportIDs.contains(manifest.importID) {
             return recoveredCompletion(
                 manifest: manifest,
                 candidates: candidates,

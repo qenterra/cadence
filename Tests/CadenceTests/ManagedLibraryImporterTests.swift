@@ -3,6 +3,32 @@ import Foundation
 import Testing
 
 struct ManagedLibraryImporterTests {
+    @Test("Failed import recovery preserves the primary and compensation errors")
+    func failedRecoveryPreservesBothFailures() async throws {
+        let importID = UUID()
+        let recoveryDirectory = URL(filePath: "/tmp/import-recovery-(importID)")
+
+        do {
+            _ = try await ManagedImportRecoveryPolicy.recover(
+                primaryError: NSError(
+                    domain: "primary",
+                    code: 1
+                ),
+                importID: importID,
+                recoveryDirectory: recoveryDirectory
+            ) {
+                throw NSError(domain: "compensation", code: 2)
+            }
+            Issue.record("Recovery failure should remain visible.")
+        } catch let error as ManagedFileTransactionError {
+            #expect(error.subsystem == .importMusic)
+            #expect(error.operationID == importID)
+            #expect(error.primaryFailure.contains("primary"))
+            #expect(error.compensationFailures[0].contains("compensation"))
+            #expect(error.recoveryDirectory == recoveryDirectory)
+        }
+    }
+
     @Test("Confirmed import copies UUID assets, commits metadata, and preserves sources")
     func importsManagedAssets() async throws {
         let fixture = try ImportFixture()

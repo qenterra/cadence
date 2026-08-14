@@ -6,6 +6,9 @@ struct PlaybackRoutingRequest: Sendable {
 }
 
 enum PlaybackRoutingPolicy {
+    /// Native routing is mandatory when the system owns transport or spatial
+    /// rendering. PCM is selected only for channel layouts and containers the
+    /// AVAudioEngine backend can represent without inventing capabilities.
     static func backend(
         for request: PlaybackRoutingRequest
     ) -> PlaybackBackendKind {

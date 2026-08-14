@@ -1,5 +1,9 @@
 import Foundation
 
+/// Produces the read-only Scan/Review evidence for one selected audio file.
+///
+/// Inspection may classify a file as unreadable, but must not create the
+/// managed package, copy assets, or write SwiftData records.
 protocol ImportFileInspecting: Sendable {
     func inspect(
         audio: ScannedSourceFile,

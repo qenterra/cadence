@@ -1,5 +1,8 @@
 import Foundation
 
+/// One identity-stable playback sequence split by `currentIndex` into history,
+/// the current item, and Up Next. Mutations never move or remove history and
+/// never duplicate an identity, so coordinator events can address exact tracks.
 struct PlaybackQueueState: Equatable, Sendable {
     let source: PlaybackQueueSource
     private(set) var orderedTrackIDs: [UUID]
@@ -119,6 +122,8 @@ struct PlaybackQueueState: Equatable, Sendable {
             return
         }
         if shuffled {
+            // Only Up Next is randomized. History and the current identity stay
+            // fixed so enabling shuffle cannot rewrite what already happened.
             let history = previouslyPlayedTrackIDs
             let upcoming = upNextTrackIDs.shuffled(using: &generator)
             orderedTrackIDs = history + [currentTrackID] + upcoming

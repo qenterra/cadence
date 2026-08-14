@@ -29,6 +29,11 @@ enum PlaybackStartObservation: Equatable, Sendable {
     case failed(PlaybackStartFailure)
 }
 
+/// A concrete audio renderer controlled exclusively by ``PlaybackCoordinator``.
+///
+/// Backends must emit state changes through ``onEvent`` and must not advance the
+/// queue themselves. `load` replaces the currently prepared item, while
+/// `prepareNext` is only a scheduling hint for a coordinator-owned successor.
 @MainActor
 protocol PlaybackBackend: AnyObject {
     var kind: PlaybackBackendKind { get }
@@ -55,6 +60,10 @@ extension PlaybackBackend {
     ) async {}
 }
 
+/// Resolves stable catalog or transient queue identities into playable media.
+///
+/// Implementations preserve request order and omit identities that no longer
+/// resolve; they never reorder or synthesize queue entries.
 @MainActor
 protocol PlaybackTrackResolving: AnyObject {
     func resolve(trackIDs: [UUID]) async throws -> [ResolvedPlaybackTrack]

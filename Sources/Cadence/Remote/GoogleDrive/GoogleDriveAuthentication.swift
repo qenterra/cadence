@@ -3,12 +3,20 @@ import AppKit
 import Foundation
 import Security
 
+/// Supplies short-lived Google Drive access tokens to the provider.
+///
+/// Implementations persist the authorization state in Keychain-backed storage
+/// and remove it on sign-out; callers never receive refresh credentials.
 protocol GoogleDriveAuthorizing: Sendable {
     func restoreSession() async throws
     func accessToken() async throws -> String
     func signOut() async throws
 }
 
+/// Stores an opaque OAuth authorization archive under a provider-scoped key.
+///
+/// A missing key is a normal signed-out state. Decode, Keychain, and deletion
+/// failures throw so authentication state is never reported inaccurately.
 protocol OAuthStateStoring: Sendable {
     func load(key: String) async throws -> Data?
     func save(

@@ -4,6 +4,10 @@ import Foundation
 typealias AudioRouteChangeHandler =
     @MainActor @Sendable (AudioRouteSnapshot) -> Void
 
+/// Publishes the current system output route without polling.
+///
+/// Monitoring has one active handler. Implementations replace that handler on
+/// repeated starts and release all Core Audio listeners in `stopMonitoring()`.
 @MainActor
 protocol AudioRouteProviding: AnyObject {
     func currentRoute() -> AudioRouteSnapshot

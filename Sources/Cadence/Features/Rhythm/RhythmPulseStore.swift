@@ -1,6 +1,9 @@
 import Observation
 import SwiftUI
 
+/// Main-actor owner of Cadence Mode's deterministic simulations and compositor.
+/// Palette extraction may suspend offscreen, so its asset key is rechecked
+/// before publication to prevent an older artwork task replacing newer state.
 @MainActor
 @Observable
 final class RhythmPulseStore {
@@ -150,6 +153,8 @@ final class RhythmPulseStore {
     }
 
     private func scheduleCleanup() {
+        // One cleanup task represents the latest hit deadline. Replacing it is
+        // required: independent timers could clear effects created by a newer hit.
         cleanupTask?.cancel()
         cleanupTask = Task { @MainActor [weak self] in
             try? await Task.sleep(

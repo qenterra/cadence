@@ -1,5 +1,8 @@
 import SwiftData
 
+/// Released schema models are an append-only compatibility contract. Never edit
+/// a historical model to match the current one; add a new version and migration
+/// so an on-disk store created by every prior Cadence version remains readable.
 enum CadenceSchemaV1: VersionedSchema {
     static let versionIdentifier = Schema.Version(1, 0, 0)
 
@@ -98,6 +101,8 @@ enum CadenceSchemaV5: VersionedSchema {
 }
 
 enum CadenceMigrationPlan: SchemaMigrationPlan {
+    /// Keep every intermediate edge explicit. Skipping a version would make the
+    /// result depend on which historical Cadence build last opened the library.
     static let schemas: [any VersionedSchema.Type] = [
         CadenceSchemaV1.self,
         CadenceSchemaV2.self,

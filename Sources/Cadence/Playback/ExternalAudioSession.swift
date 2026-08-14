@@ -13,6 +13,10 @@ struct ExternalAudioOpenResult: Sendable {
     let failures: [String]
 }
 
+/// Owns security-scoped access acquired for Finder-opened audio files.
+///
+/// Access begins while a request is prepared and ends when that request is
+/// rejected, replaced, or the transient playback session finishes.
 @MainActor
 protocol SecurityScopedResourceAccessing: AnyObject {
     func startAccessing(_ url: URL) -> Bool

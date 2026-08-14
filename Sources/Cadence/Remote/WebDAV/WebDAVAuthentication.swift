@@ -6,6 +6,10 @@ struct WebDAVCredentials: Codable, Equatable, Sendable {
     let password: String
 }
 
+/// Stores WebDAV credentials in a provider-scoped secure store.
+///
+/// A missing key means signed out. Reads, writes, and deletions throw on any
+/// Keychain failure rather than substituting empty credentials.
 protocol WebDAVCredentialStoring: Sendable {
     func load(key: String) async throws -> WebDAVCredentials?
     func save(

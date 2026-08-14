@@ -155,6 +155,10 @@ enum ResolvedArtworkSource: Hashable, Sendable {
     case placeholder(ArtworkPlaceholder)
 }
 
+/// Owns user-selected artwork independently from catalog-derived placeholders.
+///
+/// Mutations are synchronous at this boundary so the presentation can update
+/// atomically; durable implementations persist before returning.
 @MainActor
 protocol ArtworkRepository: AnyObject {
     func asset(for target: ArtworkTarget) -> ArtworkAsset?

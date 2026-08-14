@@ -2,6 +2,7 @@ import Foundation
 
 enum ManagedFileTransactionSubsystem: String, Sendable {
     case artwork
+    case importMusic = "import"
     case lyrics
 }
 

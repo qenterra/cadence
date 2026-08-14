@@ -1,6 +1,9 @@
 import Foundation
 import OSLog
 
+/// A content-addressed cache whose JSON index is the durable ownership record.
+/// Downloads enter Staging, pass byte-count and SHA-256 checks, move to Objects,
+/// and only then become visible through an atomically persisted index entry.
 actor RemoteMediaCache {
     private let rootURL: URL
     private let objectsURL: URL
@@ -330,6 +333,9 @@ private extension RemoteMediaCache {
         guard !evictedEntries.isEmpty else {
             return
         }
+        // Commit the ownership change before deleting bytes. A deletion failure
+        // may leave reclaimable data, but can never leave an index pointing at
+        // an object already removed by eviction.
         try persist(updatedIndex)
         index = updatedIndex
         for entry in evictedEntries {

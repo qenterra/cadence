@@ -1,5 +1,46 @@
 import SwiftUI
 
+struct NavigationRailAccessibilityItem: Equatable, Sendable {
+    let label: String
+    let hint: String
+    let value: String
+}
+
+enum NavigationRailAccessibilityContract {
+    static func items(
+        sections: [NavigationRailSection],
+        isExpanded: Bool,
+        selected: NavigationDestination
+    ) -> [NavigationRailAccessibilityItem] {
+        let expansion = NavigationRailAccessibilityItem(
+            label: isExpanded
+                ? String(localized: "Collapse Sidebar")
+                : String(localized: "Expand Sidebar"),
+            hint: isExpanded
+                ? String(localized: "Shows navigation as icons only")
+                : String(localized: "Shows navigation icons and labels"),
+            value: ""
+        )
+        let destinations = sections
+            .flatMap(\.destinations)
+            .map { item(for: $0, selected: selected) }
+        return [expansion] + destinations + [item(for: .trash, selected: selected)]
+    }
+
+    static func item(
+        for destination: NavigationDestination,
+        selected: NavigationDestination?
+    ) -> NavigationRailAccessibilityItem {
+        NavigationRailAccessibilityItem(
+            label: destination.title,
+            hint: destination.accessibilityDescription,
+            value: selected == destination
+                ? String(localized: "Selected")
+                : ""
+        )
+    }
+}
+
 struct NavigationRail: View {
     @Binding var selection: NavigationDestination
 
@@ -85,7 +126,13 @@ struct NavigationRail: View {
     }
 
     private var expansionButton: some View {
-        Button {
+        let accessibility = NavigationRailAccessibilityContract.items(
+            sections: primarySections,
+            isExpanded: isExpanded,
+            selected: selection
+        )[0]
+
+        return Button {
             if reduceMotion {
                 isExpanded.toggle()
             } else {
@@ -104,13 +151,16 @@ struct NavigationRail: View {
         }
         .buttonStyle(CadenceRowButtonStyle())
         .help(isExpanded ? "Collapse Sidebar" : "Expand Sidebar")
-        .accessibilityLabel(
-            isExpanded ? "Collapse Sidebar" : "Expand Sidebar"
-        )
+        .accessibilityLabel(accessibility.label)
+        .accessibilityHint(accessibility.hint)
     }
 
     private func railButton(_ destination: NavigationDestination) -> some View {
         let isSelected = !suppressesSelection && selection == destination
+        let accessibility = NavigationRailAccessibilityContract.item(
+            for: destination,
+            selected: isSelected ? destination : nil
+        )
 
         return Button {
             selection = destination
@@ -134,9 +184,9 @@ struct NavigationRail: View {
             hoveredDestination = isInside ? destination : nil
         }
         .help(destination.title)
-        .accessibilityLabel(destination.title)
-        .accessibilityHint(destination.accessibilityDescription)
-        .accessibilityValue(isSelected ? "Selected" : "")
+        .accessibilityLabel(accessibility.label)
+        .accessibilityHint(accessibility.hint)
+        .accessibilityValue(accessibility.value)
         .frame(
             width: NavigationRailMetrics.contentWidth(
                 isExpanded: isExpanded
