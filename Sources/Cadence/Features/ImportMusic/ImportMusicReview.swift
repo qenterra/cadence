@@ -1,4 +1,3 @@
-import AppKit
 import SwiftUI
 
 enum ImportMusicReviewLayout {
@@ -52,7 +51,7 @@ struct ImportMusicReview: View {
             Divider()
 
             ScrollView(.vertical) {
-                LazyVStack(spacing: 2) {
+                LazyVStack(spacing: CadenceLayout.textStack) {
                     ForEach(model.visibleImportCandidates) { candidate in
                         ImportMusicCandidateRow(
                             model: model,
@@ -62,8 +61,8 @@ struct ImportMusicReview: View {
                         )
                     }
                 }
-                .padding(.horizontal, 14)
-                .padding(.vertical, 8)
+                .padding(.horizontal, CadenceLayout.contentGap)
+                .padding(.vertical, CadenceLayout.compactGap)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
@@ -73,19 +72,19 @@ struct ImportMusicReview: View {
     }
 
     private var reviewTabs: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: CadenceLayout.compactGap) {
             ForEach(ImportReviewCategory.allCases) { category in
                 Button {
                     model.selectImportReviewCategory(category)
                 } label: {
-                    HStack(spacing: 7) {
+                    HStack(spacing: CadenceLayout.compactGap) {
                         Text(category.title)
                         Text(model.importCandidateCount(in: category).formatted())
                             .foregroundStyle(.secondary)
                             .monospacedDigit()
                     }
                     .font(.callout.weight(.medium))
-                    .padding(.horizontal, 12)
+                    .padding(.horizontal, CadenceLayout.controlGap)
                     .frame(height: 32)
                     .background {
                         BrowserRowSurface(
@@ -117,14 +116,14 @@ struct ImportMusicReview: View {
                     .foregroundStyle(.tertiary)
             }
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 10)
+        .padding(.horizontal, CadenceLayout.panelInset)
+        .padding(.vertical, CadenceLayout.compactGap)
     }
 
     private func tableHeader(
         layoutMode: ImportMusicReviewLayout.Mode
     ) -> some View {
-        HStack(spacing: 10) {
+        HStack(spacing: CadenceLayout.compactGap) {
             Text("")
                 .frame(width: 34)
             Text("Title")
@@ -149,13 +148,13 @@ struct ImportMusicReview: View {
         }
         .font(.caption.weight(.medium))
         .foregroundStyle(.tertiary)
-        .padding(.horizontal, 22)
-        .padding(.vertical, 7)
+        .padding(.horizontal, CadenceLayout.panelInset)
+        .padding(.vertical, CadenceLayout.compactGap)
     }
 
     private var footer: some View {
-        HStack(spacing: 14) {
-            VStack(alignment: .leading, spacing: 3) {
+        HStack(spacing: CadenceLayout.contentGap) {
+            VStack(alignment: .leading, spacing: CadenceLayout.textStack) {
                 Text(selectionSummary)
                     .font(.callout.weight(.medium))
 
@@ -200,8 +199,8 @@ struct ImportMusicReview: View {
                 .keyboardShortcut(.defaultAction)
             }
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 14)
+        .padding(.horizontal, CadenceLayout.panelInset)
+        .padding(.vertical, CadenceLayout.controlGap)
         .background(CadenceTheme.secondarySurface)
     }
 
@@ -237,7 +236,7 @@ private struct ImportMusicCandidateRow: View {
 
             Button {
                 model.updateImportCandidateSelection(
-                    currentImportSelectionIntent(),
+                    ImportCandidateSelectionIntent.currentKeyboardIntent(),
                     candidateID: candidate.id
                 )
             } label: {
@@ -248,7 +247,7 @@ private struct ImportMusicCandidateRow: View {
             .focused($isFocused)
             .disabled(isDisabled)
         }
-        .padding(.horizontal, 8)
+        .padding(.horizontal, CadenceLayout.compactGap)
         .background {
             BrowserRowSurface(
                 isSelected: model.isImportCandidateSelected(candidate.id),
@@ -285,8 +284,8 @@ private struct ImportMusicCandidateRow: View {
     }
 
     private var rowContent: some View {
-        HStack(spacing: 10) {
-            VStack(alignment: .leading, spacing: 2) {
+        HStack(spacing: CadenceLayout.compactGap) {
+            VStack(alignment: .leading, spacing: CadenceLayout.textStack) {
                 Text(candidate.title)
                     .font(.callout.weight(.medium))
                     .foregroundStyle(.primary)
@@ -300,7 +299,7 @@ private struct ImportMusicCandidateRow: View {
             .frame(minWidth: 150, maxWidth: .infinity, alignment: .leading)
 
             if layoutMode == .compact {
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: CadenceLayout.textStack) {
                     Text(candidate.artist)
                     Text(candidate.album)
                         .foregroundStyle(.tertiary)
@@ -308,7 +307,7 @@ private struct ImportMusicCandidateRow: View {
                 .lineLimit(1)
                 .frame(width: 180, alignment: .leading)
 
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: CadenceLayout.textStack) {
                     statusLabel(
                         candidate.classification.title,
                         symbolName: candidate.classification.symbolName
@@ -389,15 +388,4 @@ private struct ImportMusicCandidateRow: View {
             : "Excluded"
         return "\(candidate.classification.title), \(inclusion)"
     }
-}
-
-private func currentImportSelectionIntent() -> ImportCandidateSelectionIntent {
-    let modifiers = NSEvent.modifierFlags
-    if modifiers.contains(.shift) {
-        return .range
-    }
-    if modifiers.contains(.command) {
-        return .toggle
-    }
-    return .replace
 }

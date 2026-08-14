@@ -53,6 +53,7 @@ struct DocumentationScreenshotTests {
 
         fixture.model.selectedDestination = .home
         try await fixture.captureMatrix(prefix: "home")
+        try await captureLongLocalizedHome()
         try await captureEmptyHome()
 
         fixture.model.selectedDestination = .library
@@ -100,6 +101,17 @@ struct DocumentationScreenshotTests {
                 appearance: appearance
             )
         }
+    }
+
+    private func captureLongLocalizedHome() async throws {
+        let fixture = try await DocumentationScreenshotFixture.make()
+        let preferences = HomeScreenshotPreferences(fixture: fixture)
+        preferences.install()
+        defer { preferences.restore() }
+
+        fixture.installLongLocalizedHomeMetadata()
+        fixture.model.selectedDestination = .home
+        try await fixture.capture("qa-home-min-long-copy-dark.png")
     }
 
     private static func imageURL(_ name: String) -> URL {
@@ -562,6 +574,28 @@ private extension DocumentationScreenshotFixture {
         let tagID: UUID
     }
 
+    func installLongLocalizedHomeMetadata() {
+        let store = model.librarySession.store
+        let recentTracks = store.recentlyPlayedTracks.enumerated()
+        store.recentlyPlayedTracks = recentTracks.map { index, track in
+            track.replacingHomeMetadata(
+                title: index.isMultiple(of: 2)
+                    ? "Сигналы, которые остаются после полуночи"
+                    : "Путешествие сквозь очень тихий зимний город",
+                artist: "Северный экспериментальный ансамбль"
+            )
+        }
+        let favoriteTracks = store.favoriteTracks.enumerated()
+        store.favoriteTracks = favoriteTracks.map { index, track in
+            track.replacingHomeMetadata(
+                title: index.isMultiple(of: 2)
+                    ? "Архитектура исчезающего света"
+                    : "Возвращение к дальним спутникам",
+                artist: "Оркестр стеклянного района"
+            )
+        }
+    }
+
     static func seed(
         _ container: ModelContainer
     ) throws -> SeededLibrary {
@@ -711,6 +745,35 @@ private extension DocumentationScreenshotFixture {
                 totalDuration: 900
             ),
         ]
+    }
+}
+
+private extension LibraryTrackProjection {
+    func replacingHomeMetadata(
+        title: String,
+        artist: String
+    ) -> LibraryTrackProjection {
+        LibraryTrackProjection(
+            id: id,
+            title: title,
+            artistID: artistID,
+            artist: artist,
+            albumID: albumID,
+            album: album,
+            duration: duration,
+            year: year,
+            codec: codec,
+            sampleRate: sampleRate,
+            channelCount: channelCount,
+            bitDepth: bitDepth,
+            isFavorite: isFavorite,
+            isExplicit: isExplicit,
+            customArtworkID: customArtworkID,
+            artworkID: artworkID,
+            relativeMediaPath: relativeMediaPath,
+            lastPlayedAt: lastPlayedAt,
+            hasSynchronizedLyrics: hasSynchronizedLyrics
+        )
     }
 }
 

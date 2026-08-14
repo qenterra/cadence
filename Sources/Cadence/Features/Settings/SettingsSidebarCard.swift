@@ -197,7 +197,7 @@ private struct SettingsSidebarRow: View {
     let moveDown: () -> Void
 
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: CadenceLayout.controlGap) {
             Toggle(isOn: $isVisible) {
                 Label(
                     destination.title,
@@ -205,7 +205,7 @@ private struct SettingsSidebarRow: View {
                 )
             }
 
-            Spacer(minLength: 8)
+            Spacer(minLength: CadenceLayout.compactGap)
 
             Image(systemName: "line.3.horizontal")
                 .font(.system(size: 13, weight: .semibold))
@@ -213,8 +213,8 @@ private struct SettingsSidebarRow: View {
                 .frame(width: 24, height: 24)
                 .help("Drag to Reorder")
         }
-        .padding(.horizontal, 12)
-        .frame(minHeight: 46)
+        .padding(.horizontal, CadenceLayout.controlGap)
+        .frame(minHeight: CadenceLayout.rowHeight)
         .contentShape(Rectangle())
         .background {
             if isDropTarget {
@@ -247,8 +247,8 @@ private struct SettingsSidebarDragPreview: View {
             systemImage: destination.symbolName
         )
         .font(.body.weight(.medium))
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
+        .padding(.horizontal, CadenceLayout.contentGap)
+        .padding(.vertical, CadenceLayout.compactGap)
         .background(CadenceTheme.opaqueSurface)
         .clipShape(RoundedRectangle(cornerRadius: CadenceTheme.radiusGroup))
         .overlay {

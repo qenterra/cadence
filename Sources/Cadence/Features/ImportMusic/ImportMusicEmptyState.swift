@@ -6,16 +6,16 @@ struct ImportMusicEmptyState: View {
     let startScanning: () -> Void
 
     var body: some View {
-        VStack(spacing: 22) {
-            Spacer(minLength: 28)
+        VStack(spacing: CadenceLayout.panelInset) {
+            Spacer(minLength: CadenceLayout.pageInset)
 
-            VStack(spacing: 16) {
+            VStack(spacing: CadenceLayout.contentGap) {
                 Image(systemName: "square.and.arrow.down")
                     .font(.system(size: 36, weight: .light))
                     .foregroundStyle(.secondary)
                     .accessibilityHidden(true)
 
-                VStack(spacing: 6) {
+                VStack(spacing: CadenceLayout.compactGap) {
                     Text("Drop Music Here")
                         .font(.title3.weight(.semibold))
 
@@ -41,7 +41,7 @@ struct ImportMusicEmptyState: View {
                     )
             }
 
-            VStack(spacing: 6) {
+            VStack(spacing: CadenceLayout.compactGap) {
                 Label(
                     "Original files stay untouched",
                     systemImage: "doc.on.doc"
@@ -61,9 +61,9 @@ struct ImportMusicEmptyState: View {
             }
             .frame(maxWidth: 540)
 
-            Spacer(minLength: 28)
+            Spacer(minLength: CadenceLayout.pageInset)
         }
-        .padding(32)
+        .padding(CadenceLayout.sectionGap)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }

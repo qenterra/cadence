@@ -63,15 +63,12 @@ struct ProductionSettingsView: View {
     }
 
     var body: some View {
-        ScrollView(.vertical) {
-            VStack(alignment: .leading, spacing: 20) {
-                tabContent
-            }
-            .frame(maxWidth: 760, alignment: .leading)
-            .padding(32)
-            .frame(maxWidth: .infinity, alignment: .topLeading)
+        CadencePageScrollView(
+            maxContentWidth: CadenceLayout.readableContentWidth,
+            sectionSpacing: CadenceLayout.panelInset
+        ) {
+            tabContent
         }
-        .background(CadenceTheme.contentBackground)
         .alert(
             "Couldn’t Move Library",
             isPresented: Binding(
@@ -206,8 +203,8 @@ struct ProductionSettingsView: View {
             title: "Audio Files",
             symbol: "doc.badge.play"
         ) {
-            HStack(spacing: 12) {
-                VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: CadenceLayout.controlGap) {
+                VStack(alignment: .leading, spacing: CadenceLayout.textStack) {
                     Text(
                         defaultAudioApplication.isDefaultForAllSupportedAudio
                             ? "Cadence is the default audio player"
@@ -223,7 +220,7 @@ struct ProductionSettingsView: View {
                     .foregroundStyle(.secondary)
                 }
 
-                Spacer(minLength: 16)
+                Spacer(minLength: CadenceLayout.contentGap)
 
                 Button(
                     defaultAudioApplication.isDefaultForAllSupportedAudio
@@ -274,12 +271,12 @@ struct SettingsCard<Content: View>: View {
     @ViewBuilder let content: Content
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: CadenceLayout.contentGap) {
             Label(title, systemImage: symbol)
                 .font(.headline)
             content
         }
-        .padding(20)
+        .padding(CadenceLayout.panelInset)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(CadenceTheme.secondarySurface)
         .clipShape(RoundedRectangle(cornerRadius: CadenceTheme.radiusPanel))

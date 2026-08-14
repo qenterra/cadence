@@ -3,11 +3,11 @@ import SwiftUI
 enum WorkspaceLayout {
     static let paneMinimumWidth: CGFloat = 230
     static let paneMaximumWidth: CGFloat = 420
-    static let paneHeaderHeight: CGFloat = 68
-    static let paneHeaderInset: CGFloat = 18
-    static let listInset: CGFloat = 10
-    static let rowHeight: CGFloat = 52
-    static let pageInset: CGFloat = 28
+    static let paneHeaderHeight: CGFloat = 64
+    static let paneHeaderInset = CadenceLayout.contentGap
+    static let listInset = CadenceLayout.compactGap
+    static let rowHeight = CadenceLayout.rowHeight
+    static let pageInset = CadenceLayout.pageInset
 }
 
 struct WorkspacePaneHeader<Trailing: View>: View {

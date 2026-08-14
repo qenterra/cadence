@@ -84,6 +84,10 @@ for appearance in system light dark; do
     [[ "$(sips -g pixelWidth "$image" | tail -n 1 | awk '{print $2}')" == "2160" ]]
 done
 
+long_copy_home_image="$project_root/docs/images/qa-home-min-long-copy-dark.png"
+[[ -f "$long_copy_home_image" ]]
+[[ "$(sips -g pixelWidth "$long_copy_home_image" | tail -n 1 | awk '{print $2}')" == "2160" ]]
+
 settings_image="$project_root/docs/images/cadence-settings.png"
 [[ -f "$settings_image" ]]
 [[ "$(sips -g pixelWidth "$settings_image" | tail -n 1 | awk '{print $2}')" == "1520" ]]

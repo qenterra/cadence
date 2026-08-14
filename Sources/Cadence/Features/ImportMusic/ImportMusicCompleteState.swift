@@ -9,15 +9,15 @@ struct ImportMusicCompleteState: View {
     let viewImportedTracks: () -> Void
 
     var body: some View {
-        VStack(spacing: 24) {
-            Spacer(minLength: 24)
+        VStack(spacing: CadenceLayout.pageInset) {
+            Spacer(minLength: CadenceLayout.pageInset)
 
             Image(systemName: "checkmark.circle")
                 .font(.system(size: 46, weight: .light))
                 .foregroundStyle(.primary)
                 .accessibilityHidden(true)
 
-            VStack(spacing: 6) {
+            VStack(spacing: CadenceLayout.compactGap) {
                 Text(title)
                     .font(.title2.weight(.semibold))
 
@@ -48,7 +48,7 @@ struct ImportMusicCompleteState: View {
                 )
             }
             .frame(maxWidth: 650)
-            .padding(.vertical, 18)
+            .padding(.vertical, CadenceLayout.contentGap)
             .background(CadenceTheme.secondarySurface)
             .clipShape(RoundedRectangle(cornerRadius: CadenceTheme.radiusGroup, style: .continuous))
 
@@ -56,7 +56,7 @@ struct ImportMusicCompleteState: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
-            HStack(spacing: 10) {
+            HStack(spacing: CadenceLayout.compactGap) {
                 Button("Import More", action: importMore)
                     .buttonStyle(.bordered)
 
@@ -65,9 +65,9 @@ struct ImportMusicCompleteState: View {
                     .keyboardShortcut(.defaultAction)
             }
 
-            Spacer(minLength: 24)
+            Spacer(minLength: CadenceLayout.pageInset)
         }
-        .padding(32)
+        .padding(CadenceLayout.sectionGap)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
@@ -75,7 +75,7 @@ struct ImportMusicCompleteState: View {
         value: String,
         label: String
     ) -> some View {
-        VStack(spacing: 4) {
+        VStack(spacing: CadenceLayout.textStack) {
             Text(value)
                 .font(.title3.weight(.semibold))
                 .monospacedDigit()

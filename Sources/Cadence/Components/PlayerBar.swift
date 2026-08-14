@@ -1,5 +1,14 @@
 import SwiftUI
 
+enum PlayerBarLayoutMetrics {
+    static let height: CGFloat = 96
+    static let horizontalInset = CadenceLayout.panelInset
+    static let regionSpacing = CadenceLayout.pageInset
+    static let controlSpacing = CadenceLayout.contentGap
+    static let transportSpacing = CadenceLayout.controlGap
+    static let metadataSpacing = CadenceLayout.textStack
+}
+
 struct PlayerBar: View {
     @Environment(\.visualRegressionUsesStableSystemControls)
     var usesStableSystemControls
@@ -9,7 +18,7 @@ struct PlayerBar: View {
     @State private var isArtworkHovered = false
 
     var body: some View {
-        HStack(spacing: 24) {
+        HStack(spacing: PlayerBarLayoutMetrics.regionSpacing) {
             nowPlaying
                 .frame(width: 244, alignment: .leading)
 
@@ -20,8 +29,8 @@ struct PlayerBar: View {
             outputControls
                 .frame(width: 244, alignment: .trailing)
         }
-        .padding(.horizontal, 20)
-        .frame(height: 96)
+        .padding(.horizontal, PlayerBarLayoutMetrics.horizontalInset)
+        .frame(height: PlayerBarLayoutMetrics.height)
         .cadenceGlassSurface(cornerRadius: CadenceTheme.radiusNone)
     }
 }
@@ -32,7 +41,7 @@ private struct PlaybackProgressControl: View {
     let suspendsProgressAnimation: Bool
 
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: CadenceLayout.compactGap) {
             if suspendsProgressAnimation {
                 Text(elapsedText)
             } else {
@@ -112,7 +121,7 @@ private extension PlayerBar {
     @ViewBuilder
     private var nowPlaying: some View {
         if let track = model.currentPlaybackTrack {
-            HStack(spacing: 11) {
+            HStack(spacing: CadenceLayout.controlGap) {
                 Button {
                     model.presentNowPlaying()
                 } label: {
@@ -178,8 +187,8 @@ private extension PlayerBar {
     }
 
     private var transport: some View {
-        HStack(spacing: 18) {
-            HStack(spacing: 16) {
+        HStack(spacing: PlayerBarLayoutMetrics.controlSpacing) {
+            HStack(spacing: PlayerBarLayoutMetrics.transportSpacing) {
                 controlButton(
                     symbol: "shuffle",
                     label: "Shuffle",
@@ -238,7 +247,7 @@ private extension PlayerBar {
     }
 
     private var outputControls: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: CadenceLayout.controlGap) {
             playbackFailureMenu
 
             Button {
@@ -350,7 +359,7 @@ private extension PlayerBar {
         title: String,
         artist: String
     ) -> some View {
-        VStack(alignment: .leading, spacing: 3) {
+        VStack(alignment: .leading, spacing: PlayerBarLayoutMetrics.metadataSpacing) {
             Text(title)
                 .font(.subheadline.weight(.medium))
                 .foregroundStyle(CadenceTheme.playerControl(.normal))

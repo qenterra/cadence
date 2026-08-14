@@ -35,8 +35,8 @@ struct AllTracksView: View {
                     },
                     selection: $selection
                 )
-                .padding(.horizontal, 28)
-                .padding(.bottom, 24)
+                .padding(.horizontal, CadenceLayout.pageInset)
+                .padding(.bottom, CadenceLayout.pageInset)
             }
         }
         .frame(
@@ -78,7 +78,7 @@ struct AllTracksView: View {
                     }
                 }
                 .buttonStyle(.borderedProminent)
-                .padding(.bottom, 32)
+                .padding(.bottom, CadenceLayout.sectionGap)
             }
         case .ready:
             NativeAllTracksTable(
@@ -89,8 +89,8 @@ struct AllTracksView: View {
                 },
                 selection: $selection
             )
-            .padding(.horizontal, 28)
-            .padding(.bottom, 24)
+            .padding(.horizontal, CadenceLayout.pageInset)
+            .padding(.bottom, CadenceLayout.pageInset)
         }
     }
 
@@ -130,8 +130,8 @@ struct AllTracksView: View {
             .buttonStyle(.borderedProminent)
             .disabled(store.tracks.isEmpty)
         }
-        .padding(.horizontal, 28)
-        .padding(.top, 24)
-        .padding(.bottom, 18)
+        .padding(.horizontal, CadenceLayout.pageInset)
+        .padding(.top, CadenceLayout.pageInset)
+        .padding(.bottom, CadenceLayout.contentGap)
     }
 }

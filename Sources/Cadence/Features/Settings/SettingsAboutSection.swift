@@ -2,15 +2,15 @@ import SwiftUI
 
 struct SettingsAboutSection: View {
     private let columns = [
-        GridItem(.flexible(), spacing: 10),
-        GridItem(.flexible(), spacing: 10),
+        GridItem(.flexible(), spacing: CadenceLayout.compactGap),
+        GridItem(.flexible(), spacing: CadenceLayout.compactGap),
     ]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: CadenceLayout.compactGap) {
             creatorCard
 
-            LazyVGrid(columns: columns, spacing: 10) {
+            LazyVGrid(columns: columns, spacing: CadenceLayout.compactGap) {
                 SettingsAboutLinkTile(
                     title: "GitHub Profile",
                     subtitle:
@@ -54,10 +54,10 @@ struct SettingsAboutSection: View {
 
     private var creatorCard: some View {
         Link(destination: AppConfiguration.creatorURL) {
-            HStack(spacing: 14) {
+            HStack(spacing: CadenceLayout.contentGap) {
                 SettingsAboutSymbol(symbol: "person.crop.circle")
 
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: CadenceLayout.textStack) {
                     Text("Created by \(AppConfiguration.creatorName)")
                         .font(.body.weight(.medium))
                         .foregroundStyle(.primary)
@@ -72,7 +72,7 @@ struct SettingsAboutSection: View {
                     .font(.callout.weight(.medium))
                     .foregroundStyle(.secondary)
             }
-            .padding(.horizontal, 16)
+            .padding(.horizontal, CadenceLayout.contentGap)
             .frame(minHeight: 76)
             .background(CadenceTheme.secondarySurface)
             .clipShape(RoundedRectangle(cornerRadius: CadenceTheme.radiusPanel))
@@ -102,10 +102,10 @@ private struct SettingsAboutLinkTile: View {
 
     var body: some View {
         Link(destination: destination) {
-            HStack(spacing: 12) {
+            HStack(spacing: CadenceLayout.controlGap) {
                 SettingsAboutSymbol(symbol: symbol)
 
-                VStack(alignment: .leading, spacing: 3) {
+                VStack(alignment: .leading, spacing: CadenceLayout.textStack) {
                     Text(title)
                         .font(.body.weight(.medium))
                         .foregroundStyle(.primary)
@@ -115,13 +115,13 @@ private struct SettingsAboutLinkTile: View {
                         .lineLimit(2)
                 }
 
-                Spacer(minLength: 8)
+                Spacer(minLength: CadenceLayout.compactGap)
 
                 Image(systemName: "arrow.up.right")
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(.secondary)
             }
-            .padding(.horizontal, 14)
+            .padding(.horizontal, CadenceLayout.contentGap)
             .frame(maxWidth: .infinity, minHeight: 76)
             .background(
                 isHovered

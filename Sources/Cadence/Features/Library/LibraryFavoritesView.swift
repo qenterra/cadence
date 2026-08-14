@@ -51,9 +51,9 @@ struct LibraryFavoritesView: View {
                 .buttonStyle(.borderedProminent)
             }
         }
-        .padding(.horizontal, 28)
-        .padding(.top, 24)
-        .padding(.bottom, 16)
+        .padding(.horizontal, CadenceLayout.pageInset)
+        .padding(.top, CadenceLayout.pageInset)
+        .padding(.bottom, CadenceLayout.contentGap)
     }
 
     private var sectionPicker: some View {
@@ -65,8 +65,8 @@ struct LibraryFavoritesView: View {
         }
         .pickerStyle(.segmented)
         .frame(maxWidth: 420)
-        .padding(.horizontal, 28)
-        .padding(.bottom, 18)
+        .padding(.horizontal, CadenceLayout.pageInset)
+        .padding(.bottom, CadenceLayout.contentGap)
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
@@ -99,8 +99,8 @@ struct LibraryFavoritesView: View {
                 },
                 selection: $selection
             )
-            .padding(.horizontal, 28)
-            .padding(.bottom, 24)
+            .padding(.horizontal, CadenceLayout.pageInset)
+            .padding(.bottom, CadenceLayout.pageInset)
         }
     }
 
@@ -130,8 +130,8 @@ struct LibraryFavoritesView: View {
                             }
                     }
                 }
-                .padding(.horizontal, 28)
-                .padding(.bottom, 24)
+                .padding(.horizontal, CadenceLayout.pageInset)
+                .padding(.bottom, CadenceLayout.pageInset)
             }
         }
     }
@@ -162,8 +162,8 @@ struct LibraryFavoritesView: View {
                             }
                     }
                 }
-                .padding(.horizontal, 28)
-                .padding(.bottom, 24)
+                .padding(.horizontal, CadenceLayout.pageInset)
+                .padding(.bottom, CadenceLayout.pageInset)
             }
         }
     }

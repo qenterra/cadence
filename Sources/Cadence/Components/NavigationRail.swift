@@ -16,10 +16,10 @@ struct NavigationRail: View {
     private var hiddenRawValue = ""
 
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: CadenceLayout.compactGap) {
             primaryNavigation
 
-            Spacer(minLength: 12)
+            Spacer(minLength: CadenceLayout.controlGap)
 
             Divider()
                 .padding(.horizontal, NavigationRailMetrics.rowInset)
@@ -47,7 +47,7 @@ struct NavigationRail: View {
     private var primaryNavigation: some View {
         VStack(spacing: 0) {
             expansionButton
-                .padding(.bottom, 12)
+                .padding(.bottom, CadenceLayout.controlGap)
 
             ForEach(primarySections) { section in
                 navigationSection(section)
@@ -65,7 +65,7 @@ struct NavigationRail: View {
     private func navigationSection(
         _ section: NavigationRailSection
     ) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: CadenceLayout.textStack) {
             if isExpanded {
                 Text(section.group.title)
                     .font(.caption.weight(.semibold))
@@ -152,7 +152,7 @@ struct NavigationRail: View {
     ) -> some View {
         Group {
             if isExpanded {
-                HStack(spacing: 12) {
+                HStack(spacing: CadenceLayout.controlGap) {
                     railIcon(
                         systemName,
                         animatesSymbolReplacement: animatesSymbolReplacement
@@ -201,15 +201,15 @@ struct NavigationRail: View {
 }
 
 enum NavigationRailMetrics {
-    static let collapsedWidth: CGFloat = 72
-    static let expandedWidth: CGFloat = 220
-    static let horizontalInset: CGFloat = 10
-    static let verticalInset: CGFloat = 14
-    static let rowInset: CGFloat = 10
-    static let rowHeight: CGFloat = 42
+    static let collapsedWidth: CGFloat = 64
+    static let expandedWidth: CGFloat = 216
+    static let horizontalInset = CadenceLayout.compactGap
+    static let verticalInset = CadenceLayout.controlGap
+    static let rowInset = CadenceLayout.compactGap
+    static let rowHeight = CadenceLayout.rowHeight
     static let iconSlotWidth: CGFloat = 32
     static let sectionHeaderHeight: CGFloat = 20
-    static let sectionSpacing: CGFloat = 12
+    static let sectionSpacing = CadenceLayout.controlGap
 
     static func totalWidth(isExpanded: Bool) -> CGFloat {
         isExpanded ? expandedWidth : collapsedWidth

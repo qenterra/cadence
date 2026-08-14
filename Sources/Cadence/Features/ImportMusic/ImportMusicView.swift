@@ -97,8 +97,8 @@ struct ImportMusicView: View {
     }
 
     private var header: some View {
-        HStack(alignment: .center, spacing: 20) {
-            VStack(alignment: .leading, spacing: 5) {
+        HStack(alignment: .center, spacing: CadenceLayout.panelInset) {
+            VStack(alignment: .leading, spacing: CadenceLayout.textStack) {
                 Text(pageTitle)
                     .font(.title2.weight(.semibold))
 
@@ -108,14 +108,14 @@ struct ImportMusicView: View {
                     .lineLimit(1)
             }
 
-            Spacer(minLength: 16)
+            Spacer(minLength: CadenceLayout.contentGap)
 
             if model.runtimeEnvironment.previewFixture != nil {
                 ImportMusicPreviewHeaderControls(model: model)
             }
         }
-        .padding(.horizontal, 24)
-        .padding(.vertical, 16)
+        .padding(.horizontal, CadenceLayout.pageInset)
+        .padding(.vertical, CadenceLayout.contentGap)
     }
 
     @ViewBuilder

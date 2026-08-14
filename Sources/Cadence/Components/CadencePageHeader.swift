@@ -16,8 +16,8 @@ struct CadencePageHeader<Actions: View>: View {
     }
 
     var body: some View {
-        HStack(alignment: .bottom, spacing: 20) {
-            VStack(alignment: .leading, spacing: 4) {
+        HStack(alignment: .bottom, spacing: CadenceLayout.panelInset) {
+            VStack(alignment: .leading, spacing: CadenceLayout.textStack) {
                 Text(title)
                     .font(.largeTitle.bold())
                 if let subtitle {
@@ -27,7 +27,7 @@ struct CadencePageHeader<Actions: View>: View {
                 }
             }
 
-            Spacer(minLength: 24)
+            Spacer(minLength: CadenceLayout.pageInset)
             actions
         }
         .frame(maxWidth: .infinity, alignment: .leading)

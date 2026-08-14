@@ -7,11 +7,11 @@ enum TrackTableLayoutMode: Equatable, Sendable {
 
 enum TrackTableColumnPolicy {
     static let compactThreshold = 720.0
-    static let horizontalInset: CGFloat = 28
-    static let columnSpacing: CGFloat = 14
+    static let horizontalInset = CadenceLayout.pageInset
+    static let columnSpacing = CadenceLayout.controlGap
     static let actionWidth: CGFloat = 28
     static let favoriteControlWidth = CatalogTileFavoriteLayout.controlSize
-    static let songContentSpacing: CGFloat = 8
+    static let songContentSpacing = CadenceLayout.compactGap
 
     static func rowChromeWidth(
         columnCount: Int

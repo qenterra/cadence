@@ -9,10 +9,10 @@ struct ImportMusicScanningState: View {
     let cancel: () -> Void
 
     var body: some View {
-        VStack(spacing: 22) {
-            Spacer(minLength: 24)
+        VStack(spacing: CadenceLayout.panelInset) {
+            Spacer(minLength: CadenceLayout.pageInset)
 
-            VStack(spacing: 12) {
+            VStack(spacing: CadenceLayout.controlGap) {
                 if progress.totalCount == 0, sampleCandidates == nil {
                     ProgressView()
                         .controlSize(.large)
@@ -30,7 +30,7 @@ struct ImportMusicScanningState: View {
                     .foregroundStyle(.secondary)
             }
 
-            VStack(spacing: 8) {
+            VStack(spacing: CadenceLayout.compactGap) {
                 ProgressView(value: displayedProgress)
                     .progressViewStyle(.linear)
                     .accessibilityLabel("Scan progress")
@@ -46,12 +46,12 @@ struct ImportMusicScanningState: View {
             if let sampleCandidates {
                 VStack(spacing: 0) {
                     ForEach(sampleCandidates.prefix(4)) { candidate in
-                        HStack(spacing: 12) {
+                        HStack(spacing: CadenceLayout.controlGap) {
                             Image(systemName: "waveform")
                                 .foregroundStyle(.tertiary)
                                 .frame(width: 18)
 
-                            VStack(alignment: .leading, spacing: 2) {
+                            VStack(alignment: .leading, spacing: CadenceLayout.textStack) {
                                 Text(candidate.sourceFilename)
                                     .font(.callout)
                                     .lineLimit(1)
@@ -64,14 +64,14 @@ struct ImportMusicScanningState: View {
                                 .foregroundStyle(.secondary)
                             }
 
-                            Spacer(minLength: 12)
+                            Spacer(minLength: CadenceLayout.controlGap)
 
                             Image(systemName: candidate.lyricStatus.symbolName)
                                 .foregroundStyle(.secondary)
                                 .accessibilityLabel(candidate.lyricStatus.title)
                         }
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 10)
+                        .padding(.horizontal, CadenceLayout.contentGap)
+                        .padding(.vertical, CadenceLayout.compactGap)
 
                         if candidate.id != sampleCandidates.prefix(4).last?.id {
                             Divider()
@@ -90,9 +90,9 @@ struct ImportMusicScanningState: View {
                 .buttonStyle(.bordered)
                 .keyboardShortcut(.cancelAction)
 
-            Spacer(minLength: 24)
+            Spacer(minLength: CadenceLayout.pageInset)
         }
-        .padding(32)
+        .padding(CadenceLayout.sectionGap)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }

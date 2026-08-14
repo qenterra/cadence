@@ -6,36 +6,30 @@ struct ProductionHomeView: View {
     @AppStorage("home.pins.revision") var pinRevision = 0
 
     var body: some View {
-        ScrollView(.vertical) {
-            LazyVStack(alignment: .leading, spacing: 30) {
-                CadencePageHeader(
-                    "Home",
-                    subtitle: "\(store.catalogCounts.liveTrackCount) tracks"
-                )
+        CadencePageScrollView {
+            CadencePageHeader(
+                "Home",
+                subtitle: "\(store.catalogCounts.liveTrackCount) tracks"
+            )
 
-                if store.availability == .loading,
-                   store.catalogCounts.liveTrackCount == 0 {
-                    ProgressView("Loading Home")
-                        .frame(maxWidth: .infinity, minHeight: 240)
-                } else if store.catalogCounts.liveTrackCount == 0 {
-                    EmptyLibraryView(
-                        title: "No Music Yet",
-                        description: "Import music to start building your library."
-                    ) {
-                        model.requestNavigationDestination(.importMusic)
-                    }
-                } else {
-                    pinnedItems
-                    recentlyPlayed
-                    favorites
-                    personalizationEmptyState
+            if store.availability == .loading,
+               store.catalogCounts.liveTrackCount == 0 {
+                ProgressView("Loading Home")
+                    .frame(maxWidth: .infinity, minHeight: 240)
+            } else if store.catalogCounts.liveTrackCount == 0 {
+                EmptyLibraryView(
+                    title: "No Music Yet",
+                    description: "Import music to start building your library."
+                ) {
+                    model.requestNavigationDestination(.importMusic)
                 }
+            } else {
+                pinnedItems
+                recentlyPlayed
+                favorites
+                personalizationEmptyState
             }
-            .padding(.horizontal, 28)
-            .padding(.vertical, 24)
-            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .background(CadenceTheme.contentBackground)
     }
 
     @ViewBuilder
@@ -73,7 +67,7 @@ struct ProductionHomeView: View {
                 }
                 .buttonStyle(.borderedProminent)
             }
-            .frame(maxWidth: .infinity, minHeight: 260)
+            .frame(maxWidth: .infinity, minHeight: 264)
         }
     }
 

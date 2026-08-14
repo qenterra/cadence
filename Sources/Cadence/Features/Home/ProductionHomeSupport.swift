@@ -1,5 +1,23 @@
 import SwiftUI
 
+enum HomeTilePresentation: Equatable, Sendable {
+    case artworkCard
+    case textRow
+
+    static func resolve(hasArtwork: Bool) -> Self {
+        hasArtwork ? .artworkCard : .textRow
+    }
+}
+
+enum HomeLayoutMetrics {
+    static let minimumCardWidth: CGFloat = 176
+    static let maximumCardWidth: CGFloat = 220
+    static let artworkCardHeight: CGFloat = 264
+    static let textRowHeight = CadenceLayout.comfortableRowHeight
+    static let titleLineLimit = 2
+    static let subtitleLineLimit = 1
+}
+
 enum HomeListeningSelection {
     static func items<Item>(_ items: [Item], limit: Int) -> [Item] {
         Array(items.prefix(max(limit, 0)))
@@ -88,9 +106,9 @@ struct HomeShelf<Content: View>: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack(alignment: .bottom, spacing: 16) {
-                VStack(alignment: .leading, spacing: 3) {
+        VStack(alignment: .leading, spacing: CadenceLayout.contentGap) {
+            HStack(alignment: .bottom, spacing: CadenceLayout.contentGap) {
+                VStack(alignment: .leading, spacing: CadenceLayout.textStack) {
                     Text(title)
                         .font(.title2.bold())
                     if let subtitle {
@@ -104,7 +122,7 @@ struct HomeShelf<Content: View>: View {
 
                 if let actionTitle, let action {
                     Button(action: action) {
-                        HStack(spacing: 5) {
+                        HStack(spacing: CadenceLayout.textStack) {
                             Text(actionTitle)
                             Image(systemName: "chevron.right")
                                 .font(.caption.weight(.semibold))
@@ -126,10 +144,16 @@ struct HomeTrackGrid: View {
     var body: some View {
         LazyVGrid(
             columns: [
-                GridItem(.adaptive(minimum: 260, maximum: 380), spacing: 12),
+                GridItem(
+                    .adaptive(
+                        minimum: HomeLayoutMetrics.minimumCardWidth,
+                        maximum: HomeLayoutMetrics.maximumCardWidth
+                    ),
+                    spacing: CadenceLayout.contentGap
+                ),
             ],
             alignment: .leading,
-            spacing: 12
+            spacing: CadenceLayout.contentGap
         ) {
             ForEach(tracks) { track in
                 HomeTrackTile(
@@ -148,162 +172,88 @@ struct HomeTrackTile: View {
     let track: LibraryTrackProjection
     let queue: [LibraryTrackProjection]
     let queueSource: PlaybackQueueSource
-    @State private var isHovered = false
-
     var body: some View {
-        Button {
+        HomeMediaTile(
+            model: model,
+            title: track.title,
+            subtitle: track.artist,
+            artworkID: track.artworkID,
+            placeholder: .track,
+            accessorySymbol: "play.fill",
+            accessibilityLabel: "Play \(track.title) by \(track.artist)"
+        ) {
             model.playProductionTrack(
                 track,
                 within: queue,
                 source: queueSource
             )
-        } label: {
-            HStack(spacing: 12) {
-                ProductionArtworkView(
-                    model: model,
-                    artworkID: track.artworkID,
-                    title: track.title,
-                    placeholder: .track,
-                    cornerRadius: CadenceTheme.radiusControl
-                )
-                .frame(width: 56, height: 56)
-
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(track.title)
-                        .font(.headline)
-                        .foregroundStyle(.primary)
-                        .lineLimit(1)
-                    Text(track.artist)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                }
-
-                Spacer(minLength: 8)
-
-                Image(systemName: "play.fill")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(
-                        isHovered ? CadenceTheme.primaryAccent : .secondary
-                    )
-                    .frame(width: 28, height: 28)
-            }
-            .padding(8)
-            .frame(maxWidth: .infinity, minHeight: 72, alignment: .leading)
-            .background(
-                isHovered ? CadenceTheme.hoverFill : CadenceTheme.subduedFill,
-                in: RoundedRectangle(
-                    cornerRadius: CadenceTheme.radiusGroup,
-                    style: .continuous
-                )
-            )
         }
-        .buttonStyle(CadenceRowButtonStyle())
-        .onHover { isHovered = $0 }
-        .animation(
-            .easeOut(duration: CadenceTheme.motionHover),
-            value: isHovered
-        )
-        .accessibilityLabel("Play \(track.title) by \(track.artist)")
     }
 }
 
 struct HomeAlbumTile: View {
     @Bindable var model: CadenceAppModel
     let album: LibraryAlbumProjection
-    @State private var isHovered = false
-
     var body: some View {
-        Button {
+        HomeMediaTile(
+            model: model,
+            title: album.title,
+            subtitle: album.artist.isEmpty ? "Album" : album.artist,
+            artworkID: album.customArtworkID,
+            placeholder: .album,
+            accessorySymbol: "chevron.right",
+            accessibilityLabel: "Open \(album.title) by \(album.artist)"
+        ) {
             model.requestOpenProductionAlbumContextually(id: album.id)
-        } label: {
-            HStack(spacing: 12) {
-                ProductionArtworkView(
-                    model: model,
-                    artworkID: album.customArtworkID,
-                    title: album.title,
-                    placeholder: .album,
-                    cornerRadius: CadenceTheme.radiusControl
-                )
-                .frame(width: 56, height: 56)
-
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(album.title)
-                        .font(.headline)
-                        .foregroundStyle(.primary)
-                        .lineLimit(1)
-                    Text(album.artist.isEmpty ? "Album" : album.artist)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                }
-
-                Spacer(minLength: 8)
-
-                Image(systemName: "chevron.right")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.tertiary)
-            }
-            .padding(8)
-            .frame(maxWidth: .infinity, minHeight: 72, alignment: .leading)
-            .background(
-                isHovered ? CadenceTheme.hoverFill : CadenceTheme.subduedFill,
-                in: RoundedRectangle(
-                    cornerRadius: CadenceTheme.radiusGroup,
-                    style: .continuous
-                )
-            )
         }
-        .buttonStyle(CadenceRowButtonStyle())
-        .onHover { isHovered = $0 }
-        .animation(
-            .easeOut(duration: CadenceTheme.motionHover),
-            value: isHovered
-        )
-        .accessibilityLabel("Open \(album.title) by \(album.artist)")
     }
 }
 
 struct HomeDestinationTile: View {
+    @Bindable var model: CadenceAppModel
     let title: String
     let subtitle: String
-    let symbol: String
+    let artworkID: UUID?
+    let placeholder: ArtworkPlaceholder
+    let action: () -> Void
+
+    var body: some View {
+        HomeMediaTile(
+            model: model,
+            title: title,
+            subtitle: subtitle,
+            artworkID: artworkID,
+            placeholder: placeholder,
+            accessorySymbol: "chevron.right",
+            accessibilityLabel: "Open \(title), \(subtitle)",
+            action: action
+        )
+    }
+}
+
+private struct HomeMediaTile: View {
+    @Bindable var model: CadenceAppModel
+    let title: String
+    let subtitle: String
+    let artworkID: UUID?
+    let placeholder: ArtworkPlaceholder
+    let accessorySymbol: String
+    let accessibilityLabel: LocalizedStringKey
     let action: () -> Void
     @State private var isHovered = false
 
+    private var presentation: HomeTilePresentation {
+        HomeTilePresentation.resolve(hasArtwork: artworkID != nil)
+    }
+
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 12) {
-                Image(systemName: symbol)
-                    .font(.title3)
-                    .foregroundStyle(CadenceTheme.primaryAccent)
-                    .frame(width: 56, height: 56)
-                    .background(CadenceTheme.subduedFill, in: Circle())
-
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(title)
-                        .font(.headline)
-                    Text(subtitle)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                }
-
-                Spacer(minLength: 8)
-
-                Image(systemName: "chevron.right")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.tertiary)
+            switch presentation {
+            case .artworkCard:
+                artworkCard
+            case .textRow:
+                textRow
             }
-            .padding(8)
-            .frame(maxWidth: .infinity, minHeight: 72, alignment: .leading)
-            .background(
-                isHovered ? CadenceTheme.hoverFill : CadenceTheme.subduedFill,
-                in: RoundedRectangle(
-                    cornerRadius: CadenceTheme.radiusGroup,
-                    style: .continuous
-                )
-            )
         }
         .buttonStyle(CadenceRowButtonStyle())
         .onHover { isHovered = $0 }
@@ -311,7 +261,75 @@ struct HomeDestinationTile: View {
             .easeOut(duration: CadenceTheme.motionHover),
             value: isHovered
         )
-        .accessibilityLabel("Open \(title), \(subtitle)")
+        .accessibilityLabel(accessibilityLabel)
+    }
+
+    private var artworkCard: some View {
+        VStack(alignment: .leading, spacing: CadenceLayout.compactGap) {
+            ProductionArtworkView(
+                model: model,
+                artworkID: artworkID,
+                title: title,
+                placeholder: placeholder,
+                cornerRadius: CadenceTheme.radiusGroup
+            )
+            .aspectRatio(1, contentMode: .fit)
+            .frame(maxWidth: .infinity)
+
+            labels
+        }
+        .padding(CadenceLayout.compactGap)
+        .frame(
+            maxWidth: .infinity,
+            minHeight: HomeLayoutMetrics.artworkCardHeight,
+            alignment: .topLeading
+        )
+        .background(
+            isHovered ? CadenceTheme.hoverFill : .clear,
+            in: RoundedRectangle(
+                cornerRadius: CadenceTheme.radiusGroup,
+                style: .continuous
+            )
+        )
+    }
+
+    private var textRow: some View {
+        labels
+            .padding(.horizontal, CadenceLayout.controlGap)
+            .frame(
+                maxWidth: .infinity,
+                minHeight: HomeLayoutMetrics.textRowHeight,
+                alignment: .leading
+            )
+            .background(
+                isHovered ? CadenceTheme.hoverFill : CadenceTheme.subduedFill,
+                in: RoundedRectangle(
+                    cornerRadius: CadenceTheme.radiusGroup,
+                    style: .continuous
+                )
+            )
+    }
+
+    private var labels: some View {
+        HStack(alignment: .top, spacing: CadenceLayout.compactGap) {
+            VStack(alignment: .leading, spacing: CadenceLayout.textStack) {
+                Text(title)
+                    .font(.headline)
+                    .foregroundStyle(.primary)
+                    .lineLimit(HomeLayoutMetrics.titleLineLimit)
+                Text(subtitle)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(HomeLayoutMetrics.subtitleLineLimit)
+            }
+
+            Spacer(minLength: CadenceLayout.textStack)
+
+            Image(systemName: accessorySymbol)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(isHovered ? .primary : .tertiary)
+                .frame(width: 24, height: 24)
+        }
     }
 }
 
@@ -321,10 +339,16 @@ struct HomeCompactGrid<Content: View>: View {
     var body: some View {
         LazyVGrid(
             columns: [
-                GridItem(.adaptive(minimum: 260, maximum: 380), spacing: 12),
+                GridItem(
+                    .adaptive(
+                        minimum: HomeLayoutMetrics.minimumCardWidth,
+                        maximum: HomeLayoutMetrics.maximumCardWidth
+                    ),
+                    spacing: CadenceLayout.contentGap
+                ),
             ],
             alignment: .leading,
-            spacing: 12
+            spacing: CadenceLayout.contentGap
         ) {
             content
         }

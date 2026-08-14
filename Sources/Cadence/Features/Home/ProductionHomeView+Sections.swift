@@ -44,9 +44,11 @@ extension ProductionHomeView {
 
                     ForEach(artists) { artist in
                         HomeDestinationTile(
+                            model: model,
                             title: artist.name,
                             subtitle: "Artist",
-                            symbol: "music.mic"
+                            artworkID: artist.customArtworkID,
+                            placeholder: .artist
                         ) {
                             model.requestOpenProductionArtistContextually(
                                 id: artist.id
@@ -79,9 +81,11 @@ extension ProductionHomeView {
                     }
                     ForEach(artists) { artist in
                         HomeDestinationTile(
+                            model: model,
                             title: artist.name,
                             subtitle: "Artist",
-                            symbol: "music.mic"
+                            artworkID: artist.customArtworkID,
+                            placeholder: .artist
                         ) {
                             model.requestOpenProductionArtistContextually(
                                 id: artist.id
@@ -90,9 +94,11 @@ extension ProductionHomeView {
                     }
                     ForEach(playlists) { playlist in
                         HomeDestinationTile(
+                            model: model,
                             title: playlist.name,
                             subtitle: "\(playlist.trackCount) tracks",
-                            symbol: "music.note.list"
+                            artworkID: playlist.customArtworkID,
+                            placeholder: .playlist
                         ) {
                             model.requestNavigationDestination(.playlists)
                             Task { await store.selectPlaylist(playlist.id) }
@@ -100,9 +106,11 @@ extension ProductionHomeView {
                     }
                     ForEach(smartCollections) { collection in
                         HomeDestinationTile(
+                            model: model,
                             title: collection.name,
                             subtitle: "Smart Collection",
-                            symbol: "slider.horizontal.3"
+                            artworkID: collection.customArtworkID,
+                            placeholder: .smartCollection
                         ) {
                             model.requestNavigationDestination(.smartCollections)
                             model.requestSelectSmartCollection(collection.id)

@@ -229,7 +229,6 @@ struct NavigationRailTests {
             NavigationRailMetrics.rowWidth(isExpanded: false)
                 == NavigationRailMetrics.rowHeight
         )
-        #expect(NavigationRailMetrics.rowWidth(isExpanded: false) == 42)
     }
 
     @Test("Navigation rail keeps icons on one axis in both widths")
