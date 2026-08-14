@@ -30,10 +30,6 @@ final class DocumentationScreenshotFixture {
         self.temporaryMusicDirectory = temporaryMusicDirectory
     }
 
-    deinit {
-        try? FileManager.default.removeItem(at: temporaryMusicDirectory)
-    }
-
     static func make() async throws -> DocumentationScreenshotFixture {
         let container = try LibraryContainerFactory.inMemory()
         let seeded = try seed(container)
@@ -112,6 +108,16 @@ final class DocumentationScreenshotFixture {
             readinessTracker: readinessTracker,
             temporaryMusicDirectory: library.temporaryMusicDirectory
         )
+    }
+
+    /// Tears down storage in dependency order: close SQLite, detach the model,
+    /// then remove the temporary managed-library package.
+    func cleanup() async throws {
+        if let searchIndexer = model.librarySession.store.lyricsSearchIndexer {
+            try await searchIndexer.close()
+        }
+        model.librarySession.store.detach()
+        try FileManager.default.removeItem(at: temporaryMusicDirectory)
     }
 
     func capture(
@@ -244,6 +250,10 @@ final class DocumentationScreenshotFixture {
             )
             .environment(
                 \.visualRegressionUsesStableSystemControls,
+                true
+            )
+            .environment(
+                \.visualRegressionDisablesInteractiveHighlights,
                 true
             )
             .tint(CadenceTheme.primaryAccent)

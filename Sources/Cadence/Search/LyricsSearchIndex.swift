@@ -150,8 +150,15 @@ actor LyricsSearchIndex {
         }
     }
 
+    /// Closes the derived search database before its managed-library package
+    /// is moved or deleted. GRDB otherwise keeps WAL descriptors alive after
+    /// the package path has disappeared, which SQLite treats as an API error.
+    func close() throws {
+        try database.close()
+    }
+
     private func recoverDatabase() throws {
-        try? database.close()
+        try database.close()
         try Self.removeDatabaseFiles(at: databaseURL)
         database = try Self.makeDatabase(at: databaseURL)
         needsRebuild = true

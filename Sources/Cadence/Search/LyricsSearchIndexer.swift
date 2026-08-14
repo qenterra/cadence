@@ -62,6 +62,11 @@ actor LyricsSearchIndexer {
     ) async throws -> [LyricsSearchMatch] {
         try await index.search(query: query, limit: limit)
     }
+
+    /// Releases the derived SQLite store while its package still exists.
+    func close() async throws {
+        try await index.close()
+    }
 }
 
 private extension LyricsSearchIndexer {

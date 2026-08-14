@@ -6,6 +6,8 @@ struct MediaMetadataLink: View {
     let action: () -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.visualRegressionDisablesInteractiveHighlights)
+    private var disablesInteractiveHighlights
     @FocusState private var isFocused: Bool
     @State private var isHovered = false
 
@@ -40,6 +42,6 @@ struct MediaMetadataLink: View {
     }
 
     private var isHighlighted: Bool {
-        isHovered || isFocused
+        !disablesInteractiveHighlights && (isHovered || isFocused)
     }
 }

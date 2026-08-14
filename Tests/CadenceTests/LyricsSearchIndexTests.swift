@@ -74,6 +74,16 @@ struct LyricsSearchIndexTests {
         #expect(try await fixture.index.search(query: "\" OR *", limit: 10).isEmpty)
     }
 
+    @Test("Closing the index releases its database before library deletion")
+    func closeReleasesDatabase() async throws {
+        let fixture = try LyricsSearchIndexFixture()
+
+        try await fixture.index.close()
+        try FileManager.default.removeItem(at: fixture.root)
+
+        #expect(!FileManager.default.fileExists(atPath: fixture.root.path))
+    }
+
     private func document(
         trackID: UUID,
         line: Int = 0,

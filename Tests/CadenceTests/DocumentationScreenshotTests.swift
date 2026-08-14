@@ -19,6 +19,7 @@ struct DocumentationScreenshotTests {
                 timeout: .milliseconds(50)
             )
         }
+        try await fixture.cleanup()
     }
 
     @Test("A visual mismatch produces a deterministic diff artifact")
@@ -93,6 +94,11 @@ struct DocumentationScreenshotTests {
         fixture.model.selectedDestination = .tags
         fixture.model.selectedProductionTagID = fixture.tagID
         try await fixture.capture("cadence-tags.png")
+
+        try await importFixture.cleanup()
+        try await albumFixture.cleanup()
+        try await nowPlayingFixture.cleanup()
+        try await fixture.cleanup()
     }
 
     private func captureEmptyHome() async throws {
@@ -104,6 +110,7 @@ struct DocumentationScreenshotTests {
                 appearance: appearance
             )
         }
+        try await fixture.cleanup()
     }
 
     private func captureLongLocalizedHome() async throws {
@@ -115,6 +122,7 @@ struct DocumentationScreenshotTests {
         fixture.installLongLocalizedHomeMetadata()
         fixture.model.selectedDestination = .home
         try await fixture.capture("qa-home-min-long-copy-dark.png")
+        try await fixture.cleanup()
     }
 
     private static func imageURL(_ name: String) -> URL {
