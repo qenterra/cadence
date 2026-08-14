@@ -1,3 +1,5 @@
+import Foundation
+
 enum NavigationDestination: String, CaseIterable, Hashable, Identifiable, Sendable {
     case home
     case library
@@ -17,17 +19,41 @@ enum NavigationDestination: String, CaseIterable, Hashable, Identifiable, Sendab
 
     var title: String {
         switch self {
-        case .home: "Home"
-        case .library: "Library"
-        case .allTracks: "All Tracks"
-        case .albums: "Albums"
-        case .artists: "Artists"
-        case .favorites: "Favorites"
-        case .tags: "Tags"
-        case .smartCollections: "Smart Collections"
-        case .playlists: "Playlists"
-        case .importMusic: "Import Music"
-        case .trash: "Trash"
+        case .home: String(localized: "Home")
+        case .library: String(localized: "Browse")
+        case .allTracks: String(localized: "Tracks")
+        case .albums: String(localized: "Albums")
+        case .artists: String(localized: "Artists")
+        case .favorites: String(localized: "Favorites")
+        case .tags: String(localized: "Tags")
+        case .smartCollections: String(localized: "Smart Collections")
+        case .playlists: String(localized: "Playlists")
+        case .importMusic: String(localized: "Import Music")
+        case .trash: String(localized: "Trash")
+        }
+    }
+
+    /// Describes the destination's job when its visible label alone is ambiguous.
+    var accessibilityDescription: String {
+        switch self {
+        case .library:
+            String(localized: "Browse artists, albums, and tracks")
+        case .allTracks:
+            String(localized: "View every track in the library")
+        default: title
+        }
+    }
+
+    var navigationGroup: NavigationRailGroup? {
+        switch self {
+        case .home, .favorites:
+            .listen
+        case .library, .allTracks, .albums, .artists:
+            .library
+        case .playlists, .smartCollections, .tags, .importMusic:
+            .organize
+        case .trash:
+            nil
         }
     }
 
@@ -44,6 +70,24 @@ enum NavigationDestination: String, CaseIterable, Hashable, Identifiable, Sendab
         case .playlists: "music.note.list"
         case .importMusic: "folder.badge.plus"
         case .trash: "trash"
+        }
+    }
+}
+
+enum NavigationRailGroup: String, CaseIterable, Hashable, Identifiable, Sendable {
+    case listen
+    case library
+    case organize
+
+    var id: Self {
+        self
+    }
+
+    var title: String {
+        switch self {
+        case .listen: String(localized: "Listen")
+        case .library: String(localized: "Library")
+        case .organize: String(localized: "Organize")
         }
     }
 }

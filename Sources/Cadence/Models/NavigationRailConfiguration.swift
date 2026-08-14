@@ -5,14 +5,14 @@ enum NavigationRailConfiguration {
 
     static let configurableDestinations: [NavigationDestination] = [
         .home,
+        .favorites,
         .library,
         .allTracks,
         .albums,
         .artists,
-        .favorites,
-        .tags,
-        .smartCollections,
         .playlists,
+        .smartCollections,
+        .tags,
         .importMusic,
     ]
 
@@ -62,6 +62,28 @@ enum NavigationRailConfiguration {
         }
     }
 
+    static func visibleSections(
+        orderRawValue: String,
+        hiddenRawValue: String
+    ) -> [NavigationRailSection] {
+        let visible = visibleDestinations(
+            orderRawValue: orderRawValue,
+            hiddenRawValue: hiddenRawValue
+        )
+        return NavigationRailGroup.allCases.compactMap { group in
+            let destinations = visible.filter {
+                $0.navigationGroup == group
+            }
+            guard !destinations.isEmpty else {
+                return nil
+            }
+            return NavigationRailSection(
+                group: group,
+                destinations: destinations
+            )
+        }
+    }
+
     static func moving(
         _ source: NavigationDestination,
         to target: NavigationDestination,
@@ -69,6 +91,7 @@ enum NavigationRailConfiguration {
     ) -> [NavigationDestination] {
         guard
             source != target,
+            source.navigationGroup == target.navigationGroup,
             let sourceIndex = destinations.firstIndex(of: source),
             let targetIndex = destinations.firstIndex(of: target)
         else {
@@ -88,5 +111,14 @@ enum NavigationRailConfiguration {
         _ destinations: some Sequence<NavigationDestination>
     ) -> String {
         destinations.map(\.rawValue).joined(separator: ",")
+    }
+}
+
+struct NavigationRailSection: Equatable, Identifiable, Sendable {
+    let group: NavigationRailGroup
+    let destinations: [NavigationDestination]
+
+    var id: NavigationRailGroup {
+        group
     }
 }

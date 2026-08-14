@@ -149,6 +149,9 @@
     "Album Unavailable" : {
 
     },
+    "Albums" : {
+
+    },
     "All Results" : {
 
     },
@@ -177,6 +180,9 @@
 
     },
     "Artist Name" : {
+
+    },
+    "Artists" : {
 
     },
     "Artwork Could Not Be Opened" : {
@@ -218,10 +224,16 @@
     "Back to Search" : {
 
     },
+    "Browse" : {
+
+    },
     "Browse All Tracks" : {
 
     },
     "Browse a tag or use the editor to assign one." : {
+
+    },
+    "Browse artists, albums, and tracks" : {
 
     },
     "Build a live track view from tags and metadata." : {
@@ -539,6 +551,9 @@
     "Favorite Type" : {
 
     },
+    "Favorites" : {
+
+    },
     "Field" : {
 
     },
@@ -556,6 +571,9 @@
       }
     },
     "Group logic" : {
+
+    },
+    "Home" : {
 
     },
     "Image Unavailable" : {
@@ -643,6 +661,9 @@
 
     },
     "Library Size" : {
+
+    },
+    "Listen" : {
 
     },
     "Loading Album" : {
@@ -912,6 +933,9 @@
     "Order" : {
 
     },
+    "Organize" : {
+
+    },
     "Original files stay untouched" : {
 
     },
@@ -986,6 +1010,9 @@
 
     },
     "Playlist Name" : {
+
+    },
+    "Playlists" : {
 
     },
     "Preparing Cadence.library…" : {
@@ -1286,6 +1313,9 @@
     "Track Name" : {
 
     },
+    "Tracks" : {
+
+    },
     "Tracks Could Not Be Loaded" : {
 
     },
@@ -1357,6 +1387,9 @@
       }
     },
     "View Imported Tracks" : {
+
+    },
+    "View every track in the library" : {
 
     },
     "Volume" : {

@@ -21,6 +21,9 @@ struct NavigationRail: View {
 
             Spacer(minLength: 12)
 
+            Divider()
+                .padding(.horizontal, NavigationRailMetrics.rowInset)
+
             railButton(.trash)
         }
         .frame(
@@ -42,20 +45,43 @@ struct NavigationRail: View {
     }
 
     private var primaryNavigation: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 0) {
             expansionButton
+                .padding(.bottom, 12)
 
-            ForEach(primaryDestinations) { destination in
-                railButton(destination)
+            ForEach(primarySections) { section in
+                navigationSection(section)
             }
         }
     }
 
-    private var primaryDestinations: [NavigationDestination] {
-        NavigationRailConfiguration.visibleDestinations(
+    private var primarySections: [NavigationRailSection] {
+        NavigationRailConfiguration.visibleSections(
             orderRawValue: orderRawValue,
             hiddenRawValue: hiddenRawValue
         )
+    }
+
+    private func navigationSection(
+        _ section: NavigationRailSection
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            if isExpanded {
+                Text(section.group.title)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+                    .padding(.horizontal, NavigationRailMetrics.rowInset)
+                    .frame(height: NavigationRailMetrics.sectionHeaderHeight)
+                    .accessibilityAddTraits(.isHeader)
+            }
+
+            ForEach(section.destinations) { destination in
+                railButton(destination)
+            }
+        }
+        .padding(.bottom, NavigationRailMetrics.sectionSpacing)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(section.group.title)
     }
 
     private var expansionButton: some View {
@@ -78,6 +104,9 @@ struct NavigationRail: View {
         }
         .buttonStyle(CadenceRowButtonStyle())
         .help(isExpanded ? "Collapse Sidebar" : "Expand Sidebar")
+        .accessibilityLabel(
+            isExpanded ? "Collapse Sidebar" : "Expand Sidebar"
+        )
     }
 
     private func railButton(_ destination: NavigationDestination) -> some View {
@@ -106,6 +135,7 @@ struct NavigationRail: View {
         }
         .help(destination.title)
         .accessibilityLabel(destination.title)
+        .accessibilityHint(destination.accessibilityDescription)
         .accessibilityValue(isSelected ? "Selected" : "")
         .frame(
             width: NavigationRailMetrics.contentWidth(
@@ -178,6 +208,8 @@ enum NavigationRailMetrics {
     static let rowInset: CGFloat = 10
     static let rowHeight: CGFloat = 42
     static let iconSlotWidth: CGFloat = 32
+    static let sectionHeaderHeight: CGFloat = 20
+    static let sectionSpacing: CGFloat = 12
 
     static func totalWidth(isExpanded: Bool) -> CGFloat {
         isExpanded ? expandedWidth : collapsedWidth
