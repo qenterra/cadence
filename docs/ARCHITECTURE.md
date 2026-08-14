@@ -13,7 +13,7 @@ flowchart LR
     Repository --> SwiftData["SwiftData store"]
     Model --> Import["ImportCoordinator"]
     Import --> Inspector["Inspection and duplicate review"]
-    Import --> Managed["Cadence.library"]
+    Import --> Managed["Cadence folder"]
     Model --> Playback["PlaybackCoordinator"]
     OpenFile["Finder Open File"] --> External["ExternalAudioSession<br/>memory only"]
     External --> Playback
@@ -54,14 +54,14 @@ and Trash metadata.
 
 ## Managed library
 
-The default package is:
+The default folder is:
 
 ```text
-~/Music/Cadence.library
+~/Music/Cadence
 ```
 
 ```text
-Cadence.library/
+Cadence/
   Media/
   Lyrics/
   Artwork/

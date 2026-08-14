@@ -13,10 +13,10 @@ Cadence can read audio, artwork, metadata, and LRC files you select or drop into
 the app. After you confirm an import, it copies managed media into:
 
 ```text
-~/Music/Cadence.library
+~/Music/Cadence
 ```
 
-The managed package can contain audio, artwork, lyrics, import manifests,
+The managed folder can contain audio, artwork, lyrics, import manifests,
 SwiftData records, and recoverable Trash data. Cadence also stores interface and
 playback preferences through macOS preferences.
 
@@ -70,7 +70,7 @@ You can:
 
 - delete or restore managed items from Cadence Trash;
 - empty Cadence Trash;
-- remove `~/Music/Cadence.library` after quitting the app to delete the managed
+- remove `~/Music/Cadence` after quitting the app to delete the managed
   library;
 - reset Cadence preferences through macOS or by removing the app's preference
   data;
@@ -79,7 +79,7 @@ You can:
 - delete the local Remote Media cache after quitting Cadence when you no longer
   want downloaded remote audio on the Mac.
 
-Back up music you care about before deleting a library package. Cadence's
+Back up music you care about before deleting the library folder. Cadence's
 managed library is not a substitute for a backup.
 
 ## Changes

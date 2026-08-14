@@ -75,24 +75,25 @@ final class HomeScreenshotPreferences {
 /// Isolates captures from navigation preferences mutated by other test suites.
 final class NavigationScreenshotPreferences {
     private let defaults = UserDefaults.standard
-    private let values: [String: Any] = [
-        "navigationRail.expanded": true,
-        "navigationRail.order": NavigationRailConfiguration.defaultOrderRawValue,
-        "navigationRail.hidden": "",
-        "trackTable.visibleColumns": TrackTableColumn.defaultRawValue,
-        "trackTable.columnDefaultsVersion": 2,
-        "trackTable.sortField": TrackTableSortField.song.rawValue,
-        "trackTable.sortDirection": TrackTableSortDirection.ascending.rawValue,
-        "trackTable.songWidth": TrackTableWidth.song.defaultValue,
-        "trackTable.albumWidth": TrackTableWidth.album.defaultValue,
-        "trackTable.yearWidth": TrackTableWidth.year.defaultValue,
-        "trackTable.timeWidth": TrackTableWidth.time.defaultValue,
-        "tags.sidebarWidth": 300.0,
-        "tags.inspectorWidth": 330.0,
-    ]
+    private let values: [String: Any]
     private let previousValues: [String: Any]
 
-    init() {
+    init(isExpanded: Bool = true) {
+        values = [
+            "navigationRail.expanded": isExpanded,
+            "navigationRail.order": NavigationRailConfiguration.defaultOrderRawValue,
+            "navigationRail.hidden": "",
+            "trackTable.visibleColumns": TrackTableColumn.defaultRawValue,
+            "trackTable.columnDefaultsVersion": 2,
+            "trackTable.sortField": TrackTableSortField.song.rawValue,
+            "trackTable.sortDirection": TrackTableSortDirection.ascending.rawValue,
+            "trackTable.songWidth": TrackTableWidth.song.defaultValue,
+            "trackTable.albumWidth": TrackTableWidth.album.defaultValue,
+            "trackTable.yearWidth": TrackTableWidth.year.defaultValue,
+            "trackTable.timeWidth": TrackTableWidth.time.defaultValue,
+            "tags.sidebarWidth": 300.0,
+            "tags.inspectorWidth": 330.0,
+        ]
         let keys = [
             "navigationRail.expanded",
             "navigationRail.order",

@@ -101,7 +101,7 @@ struct ProductionSettingsView: View {
             )
         }
         .confirmationDialog(
-            "Cadence.library Already Exists",
+            "Cadence Folder Already Exists",
             isPresented: Binding(
                 get: { model.pendingLibraryConflictParent != nil },
                 set: {
@@ -119,7 +119,7 @@ struct ProductionSettingsView: View {
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("Cadence will never merge with or overwrite an existing library package.")
+            Text("Cadence will never merge with or overwrite an existing library folder.")
         }
     }
 

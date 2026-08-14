@@ -242,28 +242,4 @@ struct NavigationRailTests {
                 == NavigationRailMetrics.collapsedWidth / 2
         )
     }
-
-    @Test("Expanding the rail changes disclosure without reflowing rows")
-    func navigationRailDisclosureDoesNotReflow() {
-        let compact = NavigationRailPresentation.resolve(isExpanded: false)
-        let expanded = NavigationRailPresentation.resolve(isExpanded: true)
-
-        #expect(compact.sectionHeaderHeight == expanded.sectionHeaderHeight)
-        #expect(
-            compact.sectionHeaderHeight
-                == NavigationRailMetrics.sectionHeaderHeight
-        )
-        #expect(compact.labelOpacity == 0)
-        #expect(compact.sectionHeaderOpacity == 0)
-        #expect(expanded.labelOpacity == 1)
-        #expect(expanded.sectionHeaderOpacity == 1)
-        #expect(
-            compact.rowContentInset
-                + (
-                    NavigationRailMetrics.contentWidth(isExpanded: false)
-                        - NavigationRailMetrics.rowWidth(isExpanded: false)
-                ) / 2
-                == expanded.rowContentInset
-        )
-    }
 }

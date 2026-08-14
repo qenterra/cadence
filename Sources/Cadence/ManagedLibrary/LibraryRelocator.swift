@@ -6,6 +6,7 @@ struct PreparedLibraryRelocation: Sendable {
     let destination: ManagedLibraryLocation
     let manifestURL: URL
     let sourceManifestURL: URL
+    let destinationManifestURL: URL
     let manifest: LibraryRelocationManifest
     let repository: LibraryRepository
 }
@@ -17,10 +18,15 @@ private struct RelocationContext: Sendable {
     let stagingURL: URL
     let manifestURL: URL
     let sourceManifestURL: URL
+    let destinationManifestURL: URL
     let manifest: LibraryRelocationManifest
 
     var manifestURLs: [URL] {
         [manifestURL, sourceManifestURL]
+    }
+
+    var finalizedManifestURLs: [URL] {
+        [manifestURL, sourceManifestURL, destinationManifestURL]
     }
 
     init(
@@ -41,6 +47,12 @@ private struct RelocationContext: Sendable {
             directoryHint: .notDirectory
         )
         sourceManifestURL = sourcePackage.stagingDirectoryURL
+            .appending(path: "Relocations", directoryHint: .isDirectory)
+            .appending(
+                path: "\(operationID.uuidString).json",
+                directoryHint: .notDirectory
+            )
+        destinationManifestURL = destinationPackage.stagingDirectoryURL
             .appending(path: "Relocations", directoryHint: .isDirectory)
             .appending(
                 path: "\(operationID.uuidString).json",
@@ -132,18 +144,19 @@ actor LibraryRelocator {
 
         try finalize(context: context)
         manifest.phase = .finalized
-        try persist(manifest, at: context.manifestURLs)
+        try persist(manifest, at: context.finalizedManifestURLs)
         await progress(.init(phase: .finalized, completedCount: 0, totalCount: 0))
 
         let repository = try validatedRepository(package: context.destinationPackage)
         manifest.phase = .destinationValidated
-        try persist(manifest, at: context.manifestURLs)
+        try persist(manifest, at: context.finalizedManifestURLs)
         await progress(.init(phase: .destinationValidated, completedCount: 0, totalCount: 0))
         return PreparedLibraryRelocation(
             source: source,
             destination: context.destination,
             manifestURL: context.manifestURL,
             sourceManifestURL: context.sourceManifestURL,
+            destinationManifestURL: context.destinationManifestURL,
             manifest: manifest,
             repository: repository
         )
@@ -247,14 +260,22 @@ actor LibraryRelocator {
         manifest.phase = .switched
         try persistVerifiedForFinish(
             manifest,
-            at: [prepared.manifestURL, prepared.sourceManifestURL]
+            at: [
+                prepared.manifestURL,
+                prepared.sourceManifestURL,
+                prepared.destinationManifestURL,
+            ]
         )
         await progress(.init(phase: .switched, completedCount: 0, totalCount: 0))
 
         manifest.phase = .sourceCleanup
         try persistVerifiedForFinish(
             manifest,
-            at: [prepared.manifestURL, prepared.sourceManifestURL]
+            at: [
+                prepared.manifestURL,
+                prepared.sourceManifestURL,
+                prepared.destinationManifestURL,
+            ]
         )
         await progress(.init(phase: .sourceCleanup, completedCount: 0, totalCount: 0))
         do {
@@ -270,9 +291,13 @@ actor LibraryRelocator {
         }
 
         manifest.phase = .complete
-        try persistVerifiedForFinish(manifest, at: [prepared.manifestURL])
+        try persistVerifiedForFinish(
+            manifest,
+            at: [prepared.manifestURL, prepared.destinationManifestURL]
+        )
         do {
             try fileManager.removeItem(at: prepared.manifestURL)
+            try fileManager.removeItem(at: prepared.destinationManifestURL)
         } catch {
             throw LibraryRelocationFinishError.completionRecordCleanupFailed(
                 manifestPath: prepared.manifestURL.path

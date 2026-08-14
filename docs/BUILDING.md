@@ -76,7 +76,7 @@ bash scripts/update_screenshots.sh
 ```
 
 The harness uses an in-memory SwiftData repository, synthetic metadata, fixed
-window contracts, and never opens `~/Music/Cadence.library`. It writes a full
+window contracts, and never opens `~/Music/Cadence`. It writes a full
 System/Light/Dark viewport matrix to a sandbox candidate directory and promotes
 the set only after all captures succeed. Review every changed PNG under
 `docs/images/` before committing it.
@@ -105,5 +105,5 @@ Do not commit:
 - `.build/`, DerivedData, or other build output;
 - `xcuserdata` or user schemes;
 - certificates, profiles, private keys, or signing exports;
-- `~/Music/Cadence.library` or any imported audio, artwork, or lyrics;
+- `~/Music/Cadence` or any imported audio, artwork, or lyrics;
 - screenshots containing a real library or personal filesystem paths.

@@ -14,7 +14,7 @@ enum LibraryRelocationError: Error, Equatable, LocalizedError, Sendable {
         case .sameLocation:
             "The library is already stored in this folder."
         case let .destinationConflict(url):
-            "A Cadence.library package already exists at \(url.path)."
+            "A Cadence folder already exists at \(url.path)."
         case let .verificationFailed(path):
             "The copied file failed verification: \(path)."
         case let .invalidDestination(message):
@@ -85,7 +85,7 @@ enum LibraryRelocationFinishError: Error, Equatable, LocalizedError, Sendable {
                     + "The original library was left in place."
             }
         case let .sourceCleanupFailed(packagePath):
-            "The library is active in its new location, but the original package at "
+            "The library is active in its new location, but the original folder at "
                 + "\(packagePath) could not be moved to Trash."
         case let .completionRecordCleanupFailed(manifestPath):
             "The library was moved, but Cadence could not remove the completed recovery "

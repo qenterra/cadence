@@ -5,7 +5,7 @@ import Testing
 
 @MainActor
 struct CadenceAppModelFactoryTests {
-    @Test("Production starts empty without creating Cadence.library")
+    @Test("Production starts empty without creating the Cadence folder")
     func productionStartsEmpty() throws {
         try withTemporaryDirectory { musicDirectory in
             let location = ManagedLibraryLocation(
@@ -129,7 +129,7 @@ extension CadenceAppModelFactoryTests {
         let controller = RemoteLibraryController(
             source: RemotePlaybackSource(),
             identityExpectation: .unavailable(
-                "Cadence.library has an unreadable library identity."
+                "The Cadence folder has an unreadable library identity."
             )
         )
 
@@ -196,7 +196,7 @@ extension CadenceAppModelFactoryTests {
         }
     }
 
-    @Test("Production Scan reaches Review without creating Cadence.library")
+    @Test("Production Scan reaches Review without creating the Cadence folder")
     func productionScanIsReadOnly() async throws {
         let musicDirectory = FileManager.default.temporaryDirectory
             .appending(

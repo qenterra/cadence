@@ -168,6 +168,12 @@ final class LibraryLocationController {
         let location = ManagedLibraryLocation(
             musicDirectory: resolved.parentURL
         )
+        do {
+            try location.migrateLegacyPackageIfNeeded()
+        } catch {
+            releaseAccess(to: resolved.parentURL)
+            return .configurationUnavailable(error.localizedDescription)
+        }
         guard let actualIdentity = try? ManagedLibraryPackage(
             location: location
         ).readIdentity() else {
@@ -214,6 +220,7 @@ final class LibraryLocationController {
             throw ManagedLibraryError.musicDirectoryUnavailable
         }
         let location = ManagedLibraryLocation(musicDirectory: parentURL)
+        try location.migrateLegacyPackageIfNeeded()
         let actual = try ManagedLibraryPackage(location: location).readIdentity()
         guard actual == expected else {
             throw LibraryRelocationError.invalidDestination(

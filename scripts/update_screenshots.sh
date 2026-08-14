@@ -55,6 +55,7 @@ DEVELOPER_DIR="$developer_dir" xcodebuild \
     -derivedDataPath "$project_root/.build/ScreenshotDerivedData" \
     -destination 'platform=macOS' \
     -only-testing:CadenceTests/DocumentationScreenshotTests \
+    -only-testing:CadenceTests/CollapsedNavigationScreenshotTests \
     -only-testing:CadenceTests/CadenceModeScreenshotTests \
     -parallel-testing-enabled NO \
     CODE_SIGN_ENTITLEMENTS= \
@@ -63,8 +64,8 @@ DEVELOPER_DIR="$developer_dir" xcodebuild \
 # Documentation screenshot tests run inside the app sandbox. Promote the
 # complete candidate set only after the test process has exited successfully.
 candidate_count="$(find "$candidate_dir" -maxdepth 1 -type f -name '*.png' | wc -l | tr -d ' ')"
-if [[ "$candidate_count" != "76" ]]; then
-    echo "Expected 76 documentation screenshot candidates, found $candidate_count." >&2
+if [[ "$candidate_count" != "78" ]]; then
+    echo "Expected 78 documentation screenshot candidates, found $candidate_count." >&2
     exit 70
 fi
 cp -f "$candidate_dir"/*.png "$project_root/docs/images/"
@@ -88,6 +89,14 @@ for scene in home library album now-playing import-review; do
             [[ "$(sips -g pixelWidth "$image" | tail -n 1 | awk '{print $2}')" == "$expected_width" ]]
         done
     done
+done
+
+for image in \
+    "$project_root/docs/images/qa-library-collapsed-min-dark.png" \
+    "$project_root/docs/images/qa-now-playing-collapsed-min-dark.png"; do
+    [[ -f "$image" ]]
+    [[ "$(sips -g pixelWidth "$image" | tail -n 1 | awk '{print $2}')" == "2160" ]]
+    is_supported_minimum_height "$(sips -g pixelHeight "$image" | tail -n 1 | awk '{print $2}')"
 done
 
 for appearance in system light dark; do

@@ -23,7 +23,7 @@ extension CadenceAppModel {
         panel.title = librarySession.location.map { _ in
             "Move Cadence Library"
         } ?? "Choose Library Location"
-        panel.message = "Choose a folder for Cadence.library. Local disks, external drives, "
+        panel.message = "Choose where to store the Cadence folder. Local disks, external drives, "
             + "iCloud Drive, and File Provider folders are supported."
         panel.prompt = "Choose"
         panel.canChooseDirectories = true
@@ -43,7 +43,7 @@ extension CadenceAppModel {
         }
         let panel = NSOpenPanel()
         panel.title = "Locate Cadence Library"
-        panel.message = "Choose the folder that contains your existing Cadence.library package."
+        panel.message = "Choose the folder that contains your existing Cadence library."
         panel.prompt = "Reconnect"
         panel.canChooseDirectories = true
         panel.canChooseFiles = false

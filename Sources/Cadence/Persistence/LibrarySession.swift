@@ -89,6 +89,19 @@ final class LibrarySession {
         fileManager: FileManager = .default,
         locationController: LibraryLocationController? = nil
     ) -> LibrarySession {
+        do {
+            try location.migrateLegacyPackageIfNeeded(
+                fileManager: fileManager
+            )
+        } catch {
+            return failed(
+                location: location,
+                kind: .openFailed,
+                message: error.localizedDescription,
+                revealURL: location.musicDirectory,
+                locationController: locationController
+            )
+        }
         let package = ManagedLibraryPackage(location: location)
         switch inspectExistingPackage(package, fileManager: fileManager) {
         case .absent:
@@ -261,7 +274,7 @@ private extension LibrarySession {
             return .failed(
                 LibrarySessionFailure(
                     kind: .missingMetadataStore,
-                    message: "Cadence.library is missing its metadata store.",
+                    message: "The Cadence folder is missing its metadata store.",
                     revealURL: package.packageURL
                 )
             )
@@ -273,7 +286,7 @@ private extension LibrarySession {
             return .failed(
                 LibrarySessionFailure(
                     kind: .unreadableIdentity,
-                    message: "Cadence.library has an unreadable library identity.",
+                    message: "The Cadence folder has an unreadable library identity.",
                     revealURL: package.identityURL
                 )
             )

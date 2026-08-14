@@ -35,7 +35,7 @@ struct ManagedLibrarySettingsCard: View {
         } message: {
             Text(
                 "Cadence will stop playback, replace the current library with an empty one, "
-                    + "and move the original Cadence.library package to Trash."
+                    + "and move the original Cadence folder to Trash."
             )
         }
         .alert(
@@ -109,7 +109,7 @@ struct ManagedLibrarySettingsCard: View {
                     || model.isResettingLibrary
             )
 
-            Text("The original package is moved to the system Trash and can be recovered there.")
+            Text("The original folder is moved to the system Trash and can be recovered there.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
@@ -138,6 +138,6 @@ struct ManagedLibrarySettingsCard: View {
 
     private var libraryPath: String {
         model.librarySession.location?.packageURL.path
-            ?? "~/Music/Cadence.library"
+            ?? "~/Music/Cadence"
     }
 }

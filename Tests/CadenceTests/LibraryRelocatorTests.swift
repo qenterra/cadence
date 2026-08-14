@@ -30,10 +30,15 @@ struct LibraryRelocatorTests {
             destinationParent: destinationParent
         )
 
-        #expect(prepared.destination.packageURL.lastPathComponent == "Cadence.library")
+        #expect(prepared.destination.packageURL.lastPathComponent == "Cadence")
         #expect(FileManager.default.fileExists(atPath: prepared.destination.packageURL.path))
         #expect(FileManager.default.fileExists(atPath: source.packageURL.path))
         #expect(prepared.manifest.phase == .destinationValidated)
+        #expect(
+            FileManager.default.fileExists(
+                atPath: prepared.destinationManifestURL.path
+            )
+        )
         #expect(!prepared.manifest.files.isEmpty)
         #expect(
             !prepared.manifest.files.contains {
@@ -200,7 +205,7 @@ struct LibraryRelocatorTests {
         location: ManifestLocation
     ) -> LibraryRelocationManifestStore {
         LibraryRelocationManifestStore { manifest, url in
-            let isSource = url.path.contains("Cadence.library/Staging/Relocations")
+            let isSource = url.path.contains("Cadence/Staging/Relocations")
             let shouldFail = manifest.phase == phase && (location == .source ? isSource : !isSource)
             if shouldFail {
                 throw CocoaError(.fileWriteNoPermission)
@@ -211,5 +216,63 @@ struct LibraryRelocatorTests {
             )
             try JSONEncoder().encode(manifest).write(to: url, options: .atomic)
         }
+    }
+
+    @Test("Recovery ignores an inaccessible parent when no library exists")
+    func emptyLibraryRecoveryDoesNotInspectParent() async throws {
+        let root = try temporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let blockedParent = root.appending(path: "Music", directoryHint: .notDirectory)
+        try Data("not a directory".utf8).write(to: blockedParent)
+        let location = ManagedLibraryLocation(musicDirectory: blockedParent)
+
+        try await LibraryRelocationRecovery().recover(
+            activeLocation: location
+        )
+    }
+
+    @Test("Recovery accepts a legacy journal after the library folder is renamed")
+    func legacyJournalUsesMigratedActiveLocation() async throws {
+        let root = try temporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let location = ManagedLibraryLocation(musicDirectory: root)
+        let package = ManagedLibraryPackage(location: location)
+        try package.bootstrapForConfirmedImport()
+        let identity = LibraryIdentity()
+        try package.writeIdentity(identity)
+
+        let operationID = UUID()
+        let relocationDirectory = package.stagingDirectoryURL.appending(
+            path: "Relocations",
+            directoryHint: .isDirectory
+        )
+        try FileManager.default.createDirectory(
+            at: relocationDirectory,
+            withIntermediateDirectories: true
+        )
+        let manifestURL = relocationDirectory.appending(
+            path: "\(operationID.uuidString).json"
+        )
+        let legacySource = location.legacyPackageURL
+        let destination = root.appending(
+            path: "Moved/Cadence",
+            directoryHint: .isDirectory
+        )
+        let manifest = LibraryRelocationManifest(
+            operationID: operationID,
+            libraryIdentity: identity,
+            sourcePackagePath: legacySource.path,
+            destinationPackagePath: destination.path,
+            phase: .copying,
+            files: []
+        )
+        try JSONEncoder().encode(manifest).write(to: manifestURL)
+
+        try await LibraryRelocationRecovery().recover(
+            activeLocation: location
+        )
+
+        #expect(!FileManager.default.fileExists(atPath: manifestURL.path))
+        #expect(FileManager.default.fileExists(atPath: location.packageURL.path))
     }
 }

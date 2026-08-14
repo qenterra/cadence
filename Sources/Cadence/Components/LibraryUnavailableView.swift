@@ -64,11 +64,11 @@ struct LibraryUnavailableView: View {
         case .identityMismatch:
             String(localized: "The selected folder contains a different Cadence library.")
         case .blockingPackageFile:
-            String(localized: "A file is blocking the Cadence.library package.")
+            String(localized: "A file is blocking the Cadence folder.")
         case .missingMetadataStore:
-            String(localized: "Cadence.library is missing its metadata store.")
+            String(localized: "The Cadence folder is missing its metadata store.")
         case .unreadableIdentity:
-            String(localized: "Cadence.library has an unreadable identity record.")
+            String(localized: "The Cadence folder has an unreadable identity record.")
         case .openFailed:
             String(localized: "Cadence could not open the managed library.")
         case .recoveryFailed:

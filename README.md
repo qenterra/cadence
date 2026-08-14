@@ -30,7 +30,7 @@
 
 Cadence imports local audio into a managed library, keeps the source files
 untouched, and puts playback, lyrics, tags, playlists, and smart collections in
-one native SwiftUI app. The library lives at `~/Music/Cadence.library`.
+one native SwiftUI app. The library lives in `~/Music/Cadence`.
 
 > [!IMPORTANT]
 > Cadence 0.2.0 Beta 1 (2) is an Apple silicon release candidate. No binary
@@ -189,7 +189,7 @@ Sources/Cadence/
   Features/        Library, playback, tags, playlists, import, and settings
   Foundation/      App configuration and shared infrastructure
   Import/          Scan, review, copy, manifest, and recovery pipeline
-  ManagedLibrary/  Cadence.library paths and package operations
+  ManagedLibrary/  Cadence folder paths and managed operations
   Models/          Domain and presentation values
   Persistence/     SwiftData schema, repository, and paged store
   Playback/        Coordinator, audio backends, routing, and media controls

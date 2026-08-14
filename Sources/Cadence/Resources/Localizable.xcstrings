@@ -162,23 +162,12 @@
         }
       }
     },
-    "A file is blocking the Cadence.library package.": {
+    "A file is blocking the Cadence folder.": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Файл мешает открыть пакет Cadence.library."
-          }
-        }
-      }
-    },
-    "A future import will copy supported audio into ~/Music/Cadence.library after Review.": {
-      "extractionState": "stale",
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "В будущей версии поддерживаемые аудиофайлы будут копироваться только после проверки."
+            "value": "Файл мешает открыть папку Cadence."
           }
         }
       }
@@ -993,12 +982,12 @@
         }
       }
     },
-    "Cadence will never merge with or overwrite an existing library package.": {
+    "Cadence will never merge with or overwrite an existing library folder.": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cadence никогда не объединит и не перезапишет существующий пакет медиатеки."
+            "value": "Cadence никогда не объединит и не перезапишет существующую папку медиатеки."
           }
         }
       }
@@ -1023,32 +1012,32 @@
         }
       }
     },
-    "Cadence.library Already Exists": {
+    "Cadence Folder Already Exists": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cadence.library уже существует"
+            "value": "Папка Cadence уже существует"
           }
         }
       }
     },
-    "Cadence.library has an unreadable identity record.": {
+    "The Cadence folder has an unreadable identity record.": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "В Cadence.library повреждена запись идентификатора."
+            "value": "В папке Cadence повреждена запись идентификатора."
           }
         }
       }
     },
-    "Cadence.library is missing its metadata store.": {
+    "The Cadence folder is missing its metadata store.": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "В Cadence.library отсутствует хранилище метаданных."
+            "value": "В папке Cadence отсутствует хранилище метаданных."
           }
         }
       }
@@ -3747,12 +3736,12 @@
         }
       }
     },
-    "Opening Cadence.library…": {
+    "Opening Cadence Library…": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Открытие Cadence.library…"
+            "value": "Открытие медиатеки Cadence…"
           }
         }
       }
@@ -5349,12 +5338,12 @@
         }
       }
     },
-    "The original package is moved to the system Trash and can be recovered there.": {
+    "The original folder is moved to the system Trash and can be recovered there.": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Исходный пакет перемещается в системную корзину, откуда его можно восстановить."
+            "value": "Исходная папка перемещается в системную корзину, откуда её можно восстановить."
           }
         }
       }

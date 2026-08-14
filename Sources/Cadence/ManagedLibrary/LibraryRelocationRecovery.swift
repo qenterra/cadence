@@ -33,6 +33,14 @@ actor LibraryRelocationRecovery {
     func recover(
         activeLocation: ManagedLibraryLocation
     ) throws {
+        // Without an active library there is no authoritative side of a move.
+        // Avoid probing its parent, which may be a sandbox redirect or offline
+        // provider folder during a clean launch.
+        guard fileManager.fileExists(
+            atPath: activeLocation.packageURL.path
+        ) else {
+            return
+        }
         let manifestURLs = try candidateManifestURLs(
             activeLocation: activeLocation
         )
@@ -74,8 +82,14 @@ actor LibraryRelocationRecovery {
         activeLocation: ManagedLibraryLocation
     ) throws {
         let activePath = canonicalPath(activeLocation.packageURL)
-        let sourceURL = URL(filePath: manifest.sourcePackagePath)
-        let destinationURL = URL(filePath: manifest.destinationPackagePath)
+        let sourceURL = migratedActiveURL(
+            for: URL(filePath: manifest.sourcePackagePath),
+            activeLocation: activeLocation
+        )
+        let destinationURL = migratedActiveURL(
+            for: URL(filePath: manifest.destinationPackagePath),
+            activeLocation: activeLocation
+        )
         let sourcePath = canonicalPath(sourceURL)
         let destinationPath = canonicalPath(destinationURL)
         let destinationParent = destinationURL.deletingLastPathComponent()
@@ -83,10 +97,13 @@ actor LibraryRelocationRecovery {
             path: ".Cadence-relocation-\(manifest.operationID.uuidString)",
             directoryHint: .isDirectory
         )
-        let destinationManifestURL = destinationParent.appending(
+        let parentManifestURL = destinationParent.appending(
             path: ".Cadence-relocation-\(manifest.operationID.uuidString).json"
         )
         let sourceManifestURL = sourceURL
+            .appending(path: "Staging/Relocations", directoryHint: .isDirectory)
+            .appending(path: "\(manifest.operationID.uuidString).json")
+        let destinationManifestURL = destinationURL
             .appending(path: "Staging/Relocations", directoryHint: .isDirectory)
             .appending(path: "\(manifest.operationID.uuidString).json")
 
@@ -106,11 +123,15 @@ actor LibraryRelocationRecovery {
             try trash(cleanupTarget, operationID: manifest.operationID)
         }
         try removeItemIfPresent(
-            at: destinationManifestURL,
+            at: parentManifestURL,
             operationID: manifest.operationID
         )
         try removeItemIfPresent(
             at: sourceManifestURL,
+            operationID: manifest.operationID
+        )
+        try removeItemIfPresent(
+            at: destinationManifestURL,
             operationID: manifest.operationID
         )
     }
@@ -155,16 +176,9 @@ actor LibraryRelocationRecovery {
             path: "Relocations",
             directoryHint: .isDirectory
         )
-        let sourceManifests = try contentsIfPresent(
+        return try contentsIfPresent(
             of: sourceDirectory
         )
-        let parentManifests = try contentsIfPresent(
-            of: activeLocation.musicDirectory
-        ).filter {
-            $0.lastPathComponent.hasPrefix(".Cadence-relocation-")
-                && $0.pathExtension == "json"
-        }
-        return sourceManifests + parentManifests
     }
 
     private func contentsIfPresent(of directory: URL) throws -> [URL] {
@@ -210,5 +224,24 @@ actor LibraryRelocationRecovery {
         _ url: URL
     ) -> String {
         url.standardizedFileURL.resolvingSymlinksInPath().path
+    }
+
+    /// A relocation interrupted before the folder-name migration still names
+    /// `Cadence.library`. Only reinterpret that path when it is the legacy
+    /// sibling of the active `Cadence` folder; unrelated move endpoints remain
+    /// untouched.
+    private func migratedActiveURL(
+        for recordedURL: URL,
+        activeLocation: ManagedLibraryLocation
+    ) -> URL {
+        guard
+            recordedURL.lastPathComponent
+            == ManagedLibraryLocation.legacyPackageFilename,
+            canonicalPath(recordedURL.deletingLastPathComponent())
+            == canonicalPath(activeLocation.musicDirectory)
+        else {
+            return recordedURL
+        }
+        return activeLocation.packageURL
     }
 }

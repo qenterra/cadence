@@ -16,10 +16,55 @@ struct ManagedLibraryLocationTests {
         #expect(
             location.packageURL
                 == musicDirectory.appending(
-                    path: "Cadence.library",
+                    path: "Cadence",
                     directoryHint: .isDirectory
                 )
         )
+    }
+
+    @Test("Legacy package is renamed to the plain Cadence folder")
+    func legacyPackageMigration() throws {
+        try withTemporaryDirectory { musicDirectory in
+            let location = ManagedLibraryLocation(
+                musicDirectory: musicDirectory
+            )
+            try FileManager.default.createDirectory(
+                at: location.legacyPackageURL,
+                withIntermediateDirectories: true
+            )
+            let marker = location.legacyPackageURL.appending(path: "keep.txt")
+            try Data("library".utf8).write(to: marker)
+
+            #expect(try location.migrateLegacyPackageIfNeeded())
+            #expect(!FileManager.default.fileExists(atPath: location.legacyPackageURL.path))
+            #expect(
+                try Data(contentsOf: location.packageURL.appending(path: "keep.txt"))
+                    == Data("library".utf8)
+            )
+        }
+    }
+
+    @Test("Migration never overwrites an existing Cadence folder")
+    func legacyPackageMigrationConflict() throws {
+        try withTemporaryDirectory { musicDirectory in
+            let location = ManagedLibraryLocation(
+                musicDirectory: musicDirectory
+            )
+            try FileManager.default.createDirectory(
+                at: location.legacyPackageURL,
+                withIntermediateDirectories: true
+            )
+            try FileManager.default.createDirectory(
+                at: location.packageURL,
+                withIntermediateDirectories: true
+            )
+
+            #expect(throws: ManagedLibraryError.self) {
+                try location.migrateLegacyPackageIfNeeded()
+            }
+            #expect(FileManager.default.fileExists(atPath: location.legacyPackageURL.path))
+            #expect(FileManager.default.fileExists(atPath: location.packageURL.path))
+        }
     }
 
     @Test("Constructing a managed library location has no filesystem side effects")

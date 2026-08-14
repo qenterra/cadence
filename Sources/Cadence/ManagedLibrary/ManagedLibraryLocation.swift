@@ -6,6 +6,8 @@ enum ManagedLibraryError: Error, Equatable, LocalizedError, Sendable {
     case pathEscapesPackage(String)
     case unsupportedAudioFileExtension(String)
     case layoutCollision(String)
+    case legacyMigrationConflict(URL, URL)
+    case legacyMigrationFailed(String)
 
     var errorDescription: String? {
         switch self {
@@ -14,17 +16,23 @@ enum ManagedLibraryError: Error, Equatable, LocalizedError, Sendable {
         case let .invalidRelativePath(path):
             "The managed library path is invalid: \(path)"
         case let .pathEscapesPackage(path):
-            "The managed library path leaves Cadence.library: \(path)"
+            "The managed library path leaves the Cadence folder: \(path)"
         case let .unsupportedAudioFileExtension(fileExtension):
             "Cadence cannot manage the audio extension: \(fileExtension)"
         case let .layoutCollision(path):
             "A file blocks a required managed library directory: \(path)"
+        case let .legacyMigrationConflict(legacyURL, currentURL):
+            "Cadence found libraries at both \(legacyURL.path) and \(currentURL.path). "
+                + "Neither folder was changed."
+        case let .legacyMigrationFailed(message):
+            "Cadence could not rename the legacy library folder: \(message)"
         }
     }
 }
 
 struct ManagedLibraryLocation: Equatable, Sendable {
-    static let packageFilename = "Cadence.library"
+    static let packageFilename = "Cadence"
+    static let legacyPackageFilename = "Cadence.library"
 
     let musicDirectory: URL
 
@@ -49,6 +57,38 @@ struct ManagedLibraryLocation: Equatable, Sendable {
             path: Self.packageFilename,
             directoryHint: .isDirectory
         )
+    }
+
+    var legacyPackageURL: URL {
+        musicDirectory.appending(
+            path: Self.legacyPackageFilename,
+            directoryHint: .isDirectory
+        )
+    }
+
+    /// Renames the former Finder package to the normal Cadence folder.
+    /// The move is atomic on one volume and never replaces an existing folder.
+    @discardableResult
+    func migrateLegacyPackageIfNeeded(
+        fileManager: FileManager = .default
+    ) throws -> Bool {
+        guard fileManager.fileExists(atPath: legacyPackageURL.path) else {
+            return false
+        }
+        guard !fileManager.fileExists(atPath: packageURL.path) else {
+            throw ManagedLibraryError.legacyMigrationConflict(
+                legacyPackageURL,
+                packageURL
+            )
+        }
+        do {
+            try fileManager.moveItem(at: legacyPackageURL, to: packageURL)
+            return true
+        } catch {
+            throw ManagedLibraryError.legacyMigrationFailed(
+                error.localizedDescription
+            )
+        }
     }
 
     func resolve(

@@ -44,8 +44,8 @@ struct ProductLanguageTests {
         #expect(TrackTableSortField.song.title == "Track")
     }
 
-    @Test("Cadence.library appears only in file management and recovery UI")
-    func packageNameIsRestrictedToFileManagement() throws {
+    @Test("The legacy .library name never appears in product flows")
+    func legacyPackageNameIsAbsentFromProductFlows() throws {
         let projectRoot = Self.projectRoot
         let productFlowFiles = [
             "Sources/Cadence/Features/ImportMusic",

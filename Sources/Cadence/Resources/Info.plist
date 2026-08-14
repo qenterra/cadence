@@ -74,25 +74,5 @@
 	<string>7/3AjNwmfbQhlvGOgMuXxlu2cWV/pb009DPVu6AuSN0=</string>
 	<key>SUScheduledCheckInterval</key>
 	<integer>86400</integer>
-	<key>UTExportedTypeDeclarations</key>
-	<array>
-		<dict>
-			<key>UTTypeConformsTo</key>
-			<array>
-				<string>com.apple.package</string>
-			</array>
-			<key>UTTypeDescription</key>
-			<string>Cadence Library</string>
-			<key>UTTypeIdentifier</key>
-			<string>com.qenterra.cadence.library</string>
-			<key>UTTypeTagSpecification</key>
-			<dict>
-				<key>public.filename-extension</key>
-				<array>
-					<string>library</string>
-				</array>
-			</dict>
-		</dict>
-	</array>
 </dict>
 </plist>

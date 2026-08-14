@@ -30,7 +30,7 @@ Cadence:
 - runs inside App Sandbox;
 - copies confirmed imports into a managed package;
 - uses staged import and manifests so interrupted work can recover or roll back;
-- resolves managed paths inside `Cadence.library`;
+- resolves managed paths inside the `Cadence` library folder;
 - keeps Trash restore information with the deleted managed item;
 - connects to WebDAV or Google Drive only after explicit Remote Media setup;
 - keeps WebDAV credentials and Google OAuth state in Keychain; and

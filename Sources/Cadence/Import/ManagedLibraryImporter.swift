@@ -17,7 +17,7 @@ enum ManagedLibraryImportError: Error, Equatable, LocalizedError, Sendable {
         case let .changedSource(path):
             "The source changed after Scan: \(path)"
         case let .insufficientCapacity(required, available):
-            "Cadence.library needs \(required) bytes, but only \(available) are available."
+            "The Cadence folder needs \(required) bytes, but only \(available) are available."
         case let .targetCollision(path):
             "A managed destination already exists: \(path)"
         case let .stagedHashMismatch(path):

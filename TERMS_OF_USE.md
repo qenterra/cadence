@@ -14,7 +14,7 @@ metadata, or lyrics.
 
 ## Managed copies
 
-Cadence can copy selected files into `~/Music/Cadence.library`. It leaves the
+Cadence can copy selected files into `~/Music/Cadence`. It leaves the
 source files unchanged, but actions inside Cadence can modify or delete managed
 copies and related metadata. Keep independent backups.
 

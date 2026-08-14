@@ -133,3 +133,33 @@ struct DocumentationScreenshotTests {
             .appending(path: "docs/images/\(name)")
     }
 }
+
+@MainActor
+struct CollapsedNavigationScreenshotTests {
+    @Test(
+        "Collapsed navigation preserves library and playback chrome",
+        .appKitExclusive
+    )
+    func renderCollapsedNavigation() async throws {
+        let navigationPreferences = NavigationScreenshotPreferences(
+            isExpanded: false
+        )
+        navigationPreferences.install()
+        defer { navigationPreferences.restore() }
+
+        let libraryFixture = try await DocumentationScreenshotFixture.make()
+        libraryFixture.model.selectedDestination = .library
+        try await libraryFixture.capture(
+            "qa-library-collapsed-min-dark.png"
+        )
+
+        let nowPlayingFixture = try await DocumentationScreenshotFixture.make()
+        nowPlayingFixture.model.presentNowPlaying()
+        try await nowPlayingFixture.capture(
+            "qa-now-playing-collapsed-min-dark.png"
+        )
+
+        try await nowPlayingFixture.cleanup()
+        try await libraryFixture.cleanup()
+    }
+}

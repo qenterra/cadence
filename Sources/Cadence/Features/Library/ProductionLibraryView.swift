@@ -87,6 +87,7 @@ struct ProductionLibraryView: View {
                     }
                 }
                 .frame(width: widths.artists)
+                .clipped()
 
                 productionDivider
 
@@ -99,6 +100,7 @@ struct ProductionLibraryView: View {
                     }
                 }
                 .frame(width: widths.albums)
+                .clipped()
 
                 productionDivider
 
@@ -111,7 +113,14 @@ struct ProductionLibraryView: View {
                     trackColumnContent
                 }
                 .frame(width: widths.tracks)
+                .clipped()
             }
+            .frame(
+                width: geometry.size.width,
+                height: geometry.size.height,
+                alignment: .topLeading
+            )
+            .clipped()
         }
     }
 
@@ -278,6 +287,7 @@ private extension ProductionLibraryView {
         }
         .padding(.horizontal, 12)
         .frame(height: 64)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .background {
             BrowserRowSurface(
                 isSelected: selectedArtistID == artist.id,
@@ -316,6 +326,7 @@ private extension ProductionLibraryView {
         }
         .padding(.horizontal, 12)
         .frame(height: 96)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .background {
             BrowserRowSurface(
                 isSelected: selectedAlbumID == album.id,

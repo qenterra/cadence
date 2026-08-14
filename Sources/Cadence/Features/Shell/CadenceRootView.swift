@@ -297,7 +297,7 @@ private extension CadenceRootView {
     @ViewBuilder
     private var destinationContent: some View {
         if model.librarySession.availability == .recovering {
-            ProgressView("Opening Cadence.library…")
+            ProgressView("Opening Cadence Library…")
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else if case let .failed(failure) = model.librarySession.availability {
             LibraryUnavailableView(failure: failure) {

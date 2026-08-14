@@ -119,7 +119,7 @@ struct ManagedLibraryImporterTests {
         )
     }
 
-    @Test("Capacity is checked before Cadence.library is created")
+    @Test("Capacity is checked before the Cadence folder is created")
     func capacityFailureDoesNotCreateLibrary() async throws {
         let fixture = try ImportFixture()
         defer { fixture.remove() }

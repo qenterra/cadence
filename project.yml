@@ -73,14 +73,6 @@ targets:
         SUFeedURL: https://raw.githubusercontent.com/QenTerra/cadence/main/appcast.xml
         SUPublicEDKey: 7/3AjNwmfbQhlvGOgMuXxlu2cWV/pb009DPVu6AuSN0=
         SUScheduledCheckInterval: 86400
-        UTExportedTypeDeclarations:
-          - UTTypeConformsTo:
-              - com.apple.package
-            UTTypeDescription: Cadence Library
-            UTTypeIdentifier: com.qenterra.cadence.library
-            UTTypeTagSpecification:
-              public.filename-extension:
-                - library
     entitlements:
       path: Sources/Cadence/Resources/Cadence.entitlements
       properties:
