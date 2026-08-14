@@ -59,6 +59,32 @@ struct CadenceAppModelFactoryTests {
         #expect(model.favoriteArtistDates.isEmpty)
         #expect(model.importCandidates.isEmpty)
     }
+
+    @Test("Production has no preview fixture or implicit artwork repository")
+    func productionCannotEnterPreview() throws {
+        try withTemporaryDirectory { musicDirectory in
+            let model = CadenceAppModel.production(
+                librarySession: .startup(
+                    location: ManagedLibraryLocation(
+                        musicDirectory: musicDirectory
+                    )
+                )
+            )
+
+            #expect(model.runtimeEnvironment.previewFixture == nil)
+            #expect(model.customArtistImages.isEmpty)
+            model.showImportPreviewStage(.complete)
+            #expect(model.importPreviewStage == .empty)
+        }
+    }
+
+    @Test("Preview dependencies exist only inside an explicit fixture")
+    func previewDependenciesAreExplicit() {
+        let model = CadenceAppModel.preview()
+
+        #expect(model.runtimeEnvironment.previewFixture != nil)
+        #expect(model.runtimeMode == .preview)
+    }
 }
 
 @MainActor

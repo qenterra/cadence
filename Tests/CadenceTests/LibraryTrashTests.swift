@@ -107,18 +107,9 @@ struct LibraryTrashTests {
         defer { fixture.remove() }
         await fixture.session.store.loadInitialLibrary()
         let model = CadenceAppModel(
-            runtimeMode: .production,
+            runtimeEnvironment: .production,
             importRuntimeAvailability: .unavailable("Not used by this test."),
-            librarySession: fixture.session,
-            tracks: [],
-            tags: [],
-            tagAssignments: [],
-            tagExclusions: [],
-            smartCollections: [],
-            lyricDocuments: [:],
-            favoriteAlbumDates: [:],
-            favoriteArtistDates: [:],
-            importCandidates: []
+            librarySession: fixture.session
         )
         model.requestLibraryDeletion(
             kind: .album,

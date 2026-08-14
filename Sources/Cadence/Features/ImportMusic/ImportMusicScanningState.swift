@@ -1,9 +1,11 @@
 import SwiftUI
 
 struct ImportMusicScanningState: View {
-    let candidates: [ImportCandidatePreview]
-    let isPreview: Bool
+    let sampleCandidates: [ImportCandidatePreview]?
+    let title: LocalizedStringKey
     let progress: ImportInspectionProgress
+    let displayedProgress: Double
+    let progressLabel: String
     let cancel: () -> Void
 
     var body: some View {
@@ -11,7 +13,7 @@ struct ImportMusicScanningState: View {
             Spacer(minLength: 24)
 
             VStack(spacing: 12) {
-                if progress.totalCount == 0, !isPreview {
+                if progress.totalCount == 0, sampleCandidates == nil {
                     ProgressView()
                         .controlSize(.large)
                 } else {
@@ -20,7 +22,7 @@ struct ImportMusicScanningState: View {
                         .foregroundStyle(CadenceTheme.primaryAccent)
                 }
 
-                Text(isPreview ? "Scanning Demo Library" : progress.phase.title)
+                Text(title)
                     .font(.title3.weight(.semibold))
 
                 Text("Reading metadata, checking duplicates, and matching LRC files…")
@@ -41,9 +43,9 @@ struct ImportMusicScanningState: View {
             }
             .frame(maxWidth: 520)
 
-            if isPreview {
+            if let sampleCandidates {
                 VStack(spacing: 0) {
-                    ForEach(candidates.prefix(4)) { candidate in
+                    ForEach(sampleCandidates.prefix(4)) { candidate in
                         HStack(spacing: 12) {
                             Image(systemName: "waveform")
                                 .foregroundStyle(.tertiary)
@@ -71,7 +73,7 @@ struct ImportMusicScanningState: View {
                         .padding(.horizontal, 14)
                         .padding(.vertical, 10)
 
-                        if candidate.id != candidates.prefix(4).last?.id {
+                        if candidate.id != sampleCandidates.prefix(4).last?.id {
                             Divider()
                                 .padding(.leading, 44)
                         }
@@ -92,13 +94,5 @@ struct ImportMusicScanningState: View {
         }
         .padding(32)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-
-    private var displayedProgress: Double {
-        isPreview ? 0.62 : progress.fractionCompleted
-    }
-
-    private var progressLabel: String {
-        isPreview ? "62 of 100" : progress.primaryLabel
     }
 }

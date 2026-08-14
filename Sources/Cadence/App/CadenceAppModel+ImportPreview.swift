@@ -306,15 +306,6 @@ extension CadenceAppModel {
         isImportDropTargeted = isTargeted
     }
 
-    func acceptImportPreviewDrop() {
-        guard isImportPreviewMode else {
-            return
-        }
-        isImportDropTargeted = false
-        requestNavigationDestination(.importMusic)
-        startImportPreview()
-    }
-
     func acceptImportDrop(urls: [URL]) {
         isImportDropTargeted = false
         requestNavigationDestination(.importMusic)

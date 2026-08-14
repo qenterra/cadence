@@ -3,6 +3,9 @@ import Foundation
 extension CadenceAppModel {
     var customArtistImages: [ArtistPreview.ID: ArtworkAsset] {
         _ = artworkRevision
+        guard let artworkRepository = previewArtworkRepository else {
+            return [:]
+        }
         return Dictionary(
             uniqueKeysWithValues: artists.compactMap { artist in
                 artworkRepository.asset(for: .artist(artist.id))
@@ -13,7 +16,8 @@ extension CadenceAppModel {
 
     func customArtwork(for target: ArtworkTarget) -> ArtworkAsset? {
         _ = artworkRevision
-        guard !target.isManaged else {
+        guard !target.isManaged,
+              let artworkRepository = previewArtworkRepository else {
             return nil
         }
         return artworkRepository.asset(for: target)
@@ -83,6 +87,9 @@ extension CadenceAppModel {
             }
             return
         }
+        guard let artworkRepository = previewArtworkRepository else {
+            return
+        }
         let asset: ArtworkAsset = if let existing = artworkRepository.asset(for: target) {
             existing.replacingCrop(
                 data: data,
@@ -119,7 +126,8 @@ extension CadenceAppModel {
             }
             return
         }
-        guard artworkRepository.asset(for: target) != nil else {
+        guard let artworkRepository = previewArtworkRepository,
+              artworkRepository.asset(for: target) != nil else {
             return
         }
         artworkRepository.removeAsset(for: target)
@@ -189,7 +197,8 @@ extension CadenceAppModel {
         _ asset: ArtistImageAsset,
         for artist: ArtistPreview
     ) {
-        guard artists.contains(where: { $0.id == artist.id }) else {
+        guard artists.contains(where: { $0.id == artist.id }),
+              let artworkRepository = previewArtworkRepository else {
             return
         }
         artworkRepository.setAsset(asset, for: .artist(artist.id))
@@ -218,6 +227,10 @@ extension CadenceAppModel {
              .managedPlaylist, .managedSmartCollection:
             false
         }
+    }
+
+    private var previewArtworkRepository: (any ArtworkRepository)? {
+        runtimeEnvironment.previewFixture?.artworkRepository
     }
 
     private func artworkDescriptor(

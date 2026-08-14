@@ -28,18 +28,9 @@ struct ProductionPlaybackAppModelTests {
             backends: [PlaybackTestBackend(kind: .pcm)]
         )
         let model = CadenceAppModel(
-            runtimeMode: .production,
+            runtimeEnvironment: .production,
             importRuntimeAvailability: .unavailable("Not used by this test."),
             librarySession: .preview(),
-            tracks: [],
-            tags: [],
-            tagAssignments: [],
-            tagExclusions: [],
-            smartCollections: [],
-            lyricDocuments: [:],
-            favoriteAlbumDates: [:],
-            favoriteArtistDates: [:],
-            importCandidates: [],
             playbackCoordinator: coordinator
         )
 
@@ -73,18 +64,9 @@ struct ProductionPlaybackAppModelTests {
             backends: [backend]
         )
         let model = CadenceAppModel(
-            runtimeMode: .production,
+            runtimeEnvironment: .production,
             importRuntimeAvailability: .unavailable("Not used by this test."),
             librarySession: .preview(),
-            tracks: [],
-            tags: [],
-            tagAssignments: [],
-            tagExclusions: [],
-            smartCollections: [],
-            lyricDocuments: [:],
-            favoriteAlbumDates: [:],
-            favoriteArtistDates: [:],
-            importCandidates: [],
             playbackCoordinator: coordinator
         )
         await coordinator.startQueue(
@@ -109,18 +91,9 @@ struct ProductionPlaybackAppModelTests {
             backends: [PlaybackTestBackend(kind: .pcm)]
         )
         let model = CadenceAppModel(
-            runtimeMode: .production,
+            runtimeEnvironment: .production,
             importRuntimeAvailability: .unavailable("Not used by this test."),
             librarySession: .preview(),
-            tracks: [],
-            tags: [],
-            tagAssignments: [],
-            tagExclusions: [],
-            smartCollections: [],
-            lyricDocuments: [:],
-            favoriteAlbumDates: [:],
-            favoriteArtistDates: [:],
-            importCandidates: [],
             playbackCoordinator: coordinator
         )
         let ids = resolved.map(\.track.id)
@@ -275,18 +248,9 @@ private struct ProductionLyricsFixture {
             backends: [PlaybackTestBackend(kind: .pcm)]
         )
         model = CadenceAppModel(
-            runtimeMode: .production,
+            runtimeEnvironment: .production,
             importRuntimeAvailability: .unavailable("Not used by this test."),
             librarySession: session,
-            tracks: [],
-            tags: [],
-            tagAssignments: [],
-            tagExclusions: [],
-            smartCollections: [],
-            lyricDocuments: [:],
-            favoriteAlbumDates: [:],
-            favoriteArtistDates: [:],
-            importCandidates: [],
             playbackCoordinator: coordinator
         )
     }

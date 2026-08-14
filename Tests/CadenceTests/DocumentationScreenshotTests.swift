@@ -156,18 +156,13 @@ final class DocumentationScreenshotFixture {
             backends: [PlaybackTestBackend(kind: .pcm)]
         )
         let model = CadenceAppModel(
-            runtimeMode: .preview,
+            runtimeEnvironment: .preview(
+                CadencePreviewFixture(
+                    importCandidates: .mockImportCandidates
+                )
+            ),
             importRuntimeAvailability: .preview,
             librarySession: session,
-            tracks: [],
-            tags: [],
-            tagAssignments: [],
-            tagExclusions: [],
-            smartCollections: [],
-            lyricDocuments: [:],
-            favoriteAlbumDates: [:],
-            favoriteArtistDates: [:],
-            importCandidates: .mockImportCandidates,
             playbackCoordinator: coordinator
         )
         let trackIDs = resolved.map(\.track.id)
@@ -195,18 +190,9 @@ final class DocumentationScreenshotFixture {
         await session.activate(repository: repository)
         let readinessTracker = DocumentationScreenshotReadinessTracker()
         let model = CadenceAppModel(
-            runtimeMode: .preview,
+            runtimeEnvironment: .preview(CadencePreviewFixture()),
             importRuntimeAvailability: .preview,
             librarySession: session,
-            tracks: [],
-            tags: [],
-            tagAssignments: [],
-            tagExclusions: [],
-            smartCollections: [],
-            lyricDocuments: [:],
-            favoriteAlbumDates: [:],
-            favoriteArtistDates: [:],
-            importCandidates: [],
             playbackCoordinator: makePlaybackCoordinator(
                 resolver: PlaybackTestResolver(tracks: []),
                 backends: [PlaybackTestBackend(kind: .pcm)]

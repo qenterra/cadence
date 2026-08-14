@@ -61,7 +61,7 @@ struct PendingLibraryDeletion: Equatable, Sendable {
 @MainActor
 @Observable
 final class CadenceAppModel {
-    let runtimeMode: CadenceRuntimeMode
+    let runtimeEnvironment: CadenceRuntimeEnvironment
     let importRuntimeAvailability: ImportRuntimeAvailability
     let librarySession: LibrarySession
     let tracks: [TrackPreview]
@@ -134,7 +134,6 @@ final class CadenceAppModel {
     var artistGridScrollAnchors: [ArtistShelfKind: ArtistBrowseAnchor] = [:]
     var artistsFocusedArtistID: ArtistPreview.ID?
     var favoriteArtistDates: [ArtistPreview.ID: Date]
-    let artworkRepository: any ArtworkRepository
     var artworkRevision = 0
     var pendingArtworkImportTarget: ArtworkTarget?
     var isArtworkImporterPresented = false
@@ -169,19 +168,14 @@ final class CadenceAppModel {
     let libraryResetter: ManagedLibraryResetter
     let remoteLibraryController: RemoteLibraryController?
 
+    var runtimeMode: CadenceRuntimeMode {
+        runtimeEnvironment.mode
+    }
+
     init(
-        runtimeMode: CadenceRuntimeMode,
+        runtimeEnvironment: CadenceRuntimeEnvironment,
         importRuntimeAvailability: ImportRuntimeAvailability,
         librarySession: LibrarySession,
-        tracks: [TrackPreview],
-        tags: [TagPreview],
-        tagAssignments: Set<TagAssignmentPreview>,
-        tagExclusions: Set<TagExclusionPreview>,
-        smartCollections: [SmartCollectionPreview],
-        lyricDocuments: [TrackPreview.ID: LyricDocument],
-        favoriteAlbumDates: [AlbumPreview.ID: Date],
-        favoriteArtistDates: [ArtistPreview.ID: Date],
-        importCandidates: [ImportCandidatePreview],
         importCoordinator: ImportCoordinator? = nil,
         importDestination: ManagedLibraryImportDestination? = nil,
         importRecovery: ManagedLibraryImportRecovery? = nil,
@@ -189,23 +183,26 @@ final class CadenceAppModel {
         externalAudioSession: ExternalAudioSession? = nil,
         remoteLibraryController: RemoteLibraryController? = nil,
         libraryRelocator: LibraryRelocator = LibraryRelocator(),
-        libraryResetter: ManagedLibraryResetter = ManagedLibraryResetter(),
-        artworkRepository: any ArtworkRepository = InMemoryArtworkRepository()
+        libraryResetter: ManagedLibraryResetter = ManagedLibraryResetter()
     ) {
-        self.runtimeMode = runtimeMode
+        let fixture = runtimeEnvironment.previewFixture
+        let initialTracks = fixture?.tracks ?? []
+        let initialTags = fixture?.tags ?? []
+        let initialImportCandidates = fixture?.importCandidates ?? []
+        self.runtimeEnvironment = runtimeEnvironment
         self.importRuntimeAvailability = importRuntimeAvailability
         self.librarySession = librarySession
-        self.tracks = tracks
-        self.tags = tags
-        self.tagAssignments = tagAssignments
-        self.tagExclusions = tagExclusions
-        self.smartCollections = smartCollections
-        self.lyricDocuments = lyricDocuments
-        self.favoriteAlbumDates = favoriteAlbumDates
-        self.favoriteArtistDates = favoriteArtistDates
-        self.importCandidates = importCandidates
+        tracks = initialTracks
+        tags = initialTags
+        tagAssignments = fixture?.tagAssignments ?? []
+        tagExclusions = fixture?.tagExclusions ?? []
+        smartCollections = fixture?.smartCollections ?? []
+        lyricDocuments = fixture?.lyricDocuments ?? [:]
+        favoriteAlbumDates = fixture?.favoriteAlbumDates ?? [:]
+        favoriteArtistDates = fixture?.favoriteArtistDates ?? [:]
+        importCandidates = initialImportCandidates
         importWorkspaceState = ImportWorkspaceState(
-            initialCandidates: importCandidates
+            initialCandidates: initialImportCandidates
         )
         self.importCoordinator = importCoordinator
         self.importDestination = importDestination
@@ -215,17 +212,16 @@ final class CadenceAppModel {
         self.remoteLibraryController = remoteLibraryController
         self.libraryRelocator = libraryRelocator
         self.libraryResetter = libraryResetter
-        self.artworkRepository = artworkRepository
-        selectedArtistID = tracks.first?.artistID
-        selectedAlbumID = tracks.first?.albumID
-        selectedTrackID = tracks.first?.id
-        let orderedTags = tags.sorted {
+        selectedArtistID = initialTracks.first?.artistID
+        selectedAlbumID = initialTracks.first?.albumID
+        selectedTrackID = initialTracks.first?.id
+        let orderedTags = initialTags.sorted {
             $0.displayPath.localizedStandardCompare($1.displayPath) == .orderedAscending
         }
         selectedTagID = orderedTags.first { $0.id == "genre/ambient" }?.id
             ?? orderedTags.first?.id
-        currentTrackID = tracks.first?.id
-        favoriteTrackIDs = Set(tracks.filter(\.isFavorite).map(\.id))
+        currentTrackID = initialTracks.first?.id
+        favoriteTrackIDs = Set(initialTracks.filter(\.isFavorite).map(\.id))
         prepareInitialSmartCollection()
         resetImportPreviewCandidates()
         importCoordinator?.onStateChange = { [weak self] state in

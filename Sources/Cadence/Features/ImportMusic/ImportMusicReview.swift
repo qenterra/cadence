@@ -28,6 +28,10 @@ struct ImportMusicReview: View {
     @Bindable var model: CadenceAppModel
 
     let isImporting: Bool
+    let importingStatusLabel: LocalizedStringKey
+    let importProgressText: LocalizedStringKey
+    let canCancelImport: Bool
+    let cancelImport: () -> Void
 
     var body: some View {
         GeometryReader { geometry in
@@ -102,9 +106,7 @@ struct ImportMusicReview: View {
 
             if isImporting {
                 Label(
-                    model.isImportPreviewMode
-                        ? "Preview import in progress"
-                        : "Import in progress",
+                    importingStatusLabel,
                     systemImage: "arrow.down.circle"
                 )
                 .font(.caption.weight(.medium))
@@ -167,11 +169,7 @@ struct ImportMusicReview: View {
             if isImporting {
                 if canCancelImport {
                     Button("Cancel") {
-                        if model.isImportPreviewMode {
-                            model.importMorePreviewMusic()
-                        } else {
-                            model.cancelManagedImport()
-                        }
+                        cancelImport()
                     }
                     .buttonStyle(.bordered)
                 }
@@ -210,24 +208,6 @@ struct ImportMusicReview: View {
     private var selectionSummary: String {
         "\(model.importSelectedCount) total included · "
             + "\(model.importSelectedSizeText)"
-    }
-
-    private var importProgressText: String {
-        guard !model.isImportPreviewMode else {
-            return "Simulating the managed-library copy…"
-        }
-        guard let progress = model.managedImportProgress else {
-            return "Preparing Cadence.library…"
-        }
-        if progress.isCommitting {
-            return progress.phase.title
-        }
-        return "\(progress.phase.title) · \(progress.primaryLabel)"
-    }
-
-    private var canCancelImport: Bool {
-        model.isImportPreviewMode
-            || model.managedImportProgress?.isCommitting == false
     }
 
     private var determinateImportProgress: ManagedImportProgress? {

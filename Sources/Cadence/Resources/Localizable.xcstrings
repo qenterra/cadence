@@ -65,6 +65,9 @@
     "+%lld" : {
 
     },
+    "A future import will copy supported audio into ~/Music/Cadence.library after Review." : {
+
+    },
     "ALBUM" : {
 
     },
@@ -231,6 +234,9 @@
 
     },
     "Cadence is the default audio player" : {
+
+    },
+    "Cadence will copy included audio into ~/Music/Cadence.library only after Review." : {
 
     },
     "Cadence will install stable releases only." : {
@@ -982,6 +988,9 @@
     "Playlist Name" : {
 
     },
+    "Preparing Cadence.library…" : {
+
+    },
     "Preview Import Complete" : {
 
     },
@@ -1123,6 +1132,9 @@
     "Scan progress" : {
 
     },
+    "Scanning Demo Library" : {
+
+    },
     "Search Tracks" : {
 
     },
@@ -1167,6 +1179,9 @@
 
     },
     "Shuffle" : {
+
+    },
+    "Simulating the managed-library copy…" : {
 
     },
     "Size" : {

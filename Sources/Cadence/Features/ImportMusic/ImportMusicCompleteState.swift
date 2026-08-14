@@ -2,7 +2,9 @@ import SwiftUI
 
 struct ImportMusicCompleteState: View {
     let summary: ImportPreviewSummary
-    let isPreview: Bool
+    let title: LocalizedStringKey
+    let message: LocalizedStringKey
+    let sizeSummary: LocalizedStringKey
     let importMore: () -> Void
     let viewImportedTracks: () -> Void
 
@@ -16,16 +18,12 @@ struct ImportMusicCompleteState: View {
                 .accessibilityHidden(true)
 
             VStack(spacing: 6) {
-                Text(isPreview ? "Preview Import Complete" : "Import Complete")
+                Text(title)
                     .font(.title2.weight(.semibold))
 
-                Text(
-                    isPreview
-                        ? "No files were copied in this design build."
-                        : "Your music is ready in Cadence.library."
-                )
-                .font(.callout)
-                .foregroundStyle(.secondary)
+                Text(message)
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
             }
 
             HStack(spacing: 0) {
@@ -54,13 +52,9 @@ struct ImportMusicCompleteState: View {
             .background(CadenceTheme.secondarySurface)
             .clipShape(RoundedRectangle(cornerRadius: CadenceTheme.radiusGroup, style: .continuous))
 
-            Text(
-                isPreview
-                    ? "\(summary.importedSizeText) selected for Cadence.library"
-                    : "\(summary.importedSizeText) added to Cadence.library"
-            )
-            .font(.caption)
-            .foregroundStyle(.secondary)
+            Text(sizeSummary)
+                .font(.caption)
+                .foregroundStyle(.secondary)
 
             HStack(spacing: 10) {
                 Button("Import More", action: importMore)

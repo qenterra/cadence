@@ -46,9 +46,6 @@ struct ImportMusicView: View {
             model.toggleSelectedImportCandidateInclusion()
             return .handled
         }
-        .task(id: model.importPreviewStage) {
-            await advanceTransientPreviewStage()
-        }
         .alert(
             "Couldn’t Scan Music",
             isPresented: Binding(
@@ -102,29 +99,8 @@ struct ImportMusicView: View {
 
             Spacer(minLength: 16)
 
-            if model.isImportPreviewMode {
-                Label("Design Preview · No files are copied", systemImage: "eye")
-                    .font(.caption.weight(.medium))
-                    .foregroundStyle(.secondary)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 6)
-                    .background(CadenceTheme.subduedFill, in: Capsule())
-                    .accessibilityLabel(
-                        "Design preview. No files are copied."
-                    )
-
-                Menu {
-                    ForEach(ImportPreviewStage.allCases) { stage in
-                        Button(stage.title) {
-                            model.showImportPreviewStage(stage)
-                        }
-                    }
-                } label: {
-                    Label("Preview State", systemImage: "switch.2")
-                }
-                .menuStyle(.borderlessButton)
-                .fixedSize()
-                .help("Inspect each mock import state")
+            if model.runtimeEnvironment.previewFixture != nil {
+                ImportMusicPreviewHeaderControls(model: model)
             }
         }
         .padding(.horizontal, 24)
@@ -143,38 +119,66 @@ struct ImportMusicView: View {
                 Text(message)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else if model.runtimeEnvironment.previewFixture != nil {
+            ImportMusicPreviewStageContent(model: model)
         } else {
-            importStageContent
+            productionImportStageContent
         }
     }
 
     @ViewBuilder
-    private var importStageContent: some View {
+    private var productionImportStageContent: some View {
         switch model.importPreviewStage {
         case .empty:
             ImportMusicEmptyState(
-                isPreview: model.isImportPreviewMode,
+                supportingText: "Cadence will copy included audio into ~/Music/Cadence.library only after Review.",
+                footnote: nil,
                 startScanning: model.chooseImportFolder
             )
         case .scanning:
             ImportMusicScanningState(
-                candidates: model.importCandidates,
-                isPreview: model.isImportPreviewMode,
+                sampleCandidates: nil,
+                title: LocalizedStringKey(model.importScanProgress.phase.title),
                 progress: model.importScanProgress,
+                displayedProgress: model.importScanProgress.fractionCompleted,
+                progressLabel: model.importScanProgress.primaryLabel,
                 cancel: model.cancelImportPreviewScan
             )
         case .review:
-            ImportMusicReview(model: model, isImporting: false)
+            productionReview(isImporting: false)
         case .importing:
-            ImportMusicReview(model: model, isImporting: true)
+            productionReview(isImporting: true)
         case .complete:
             ImportMusicCompleteState(
                 summary: model.importPreviewSummary,
-                isPreview: model.isImportPreviewMode,
+                title: "Import Complete",
+                message: "Your music is ready in Cadence.library.",
+                sizeSummary: "\(model.importPreviewSummary.importedSizeText) added to Cadence.library",
                 importMore: model.importMorePreviewMusic,
                 viewImportedTracks: model.viewImportedPreviewTracks
             )
         }
+    }
+
+    private func productionReview(isImporting: Bool) -> some View {
+        ImportMusicReview(
+            model: model,
+            isImporting: isImporting,
+            importingStatusLabel: "Import in progress",
+            importProgressText: productionImportProgressText,
+            canCancelImport: model.managedImportProgress?.isCommitting == false,
+            cancelImport: model.cancelManagedImport
+        )
+    }
+
+    private var productionImportProgressText: LocalizedStringKey {
+        guard let progress = model.managedImportProgress else {
+            return "Preparing Cadence.library…"
+        }
+        if progress.isCommitting {
+            return LocalizedStringKey(progress.phase.title)
+        }
+        return "\(progress.phase.title) · \(progress.primaryLabel)"
     }
 
     private var pageTitle: String {
@@ -197,44 +201,13 @@ struct ImportMusicView: View {
         case .empty:
             "Add a folder or drop music into Cadence"
         case .scanning:
-            if model.isImportPreviewMode {
-                "Reading Demo Library without changing the source"
-            } else {
-                "Reading metadata without changing the source"
-            }
+            "Reading metadata without changing the source"
         case .review:
             "Choose exactly what belongs in Cadence.library"
         case .importing:
             "Copying the approved selection into Cadence.library"
         case .complete:
             "The import report is ready"
-        }
-    }
-
-    private func advanceTransientPreviewStage() async {
-        guard model.isImportPreviewMode else {
-            return
-        }
-        let startingStage = model.importPreviewStage
-        guard
-            model.isImportPreviewAutoAdvanceEnabled,
-            startingStage == .scanning || startingStage == .importing
-        else {
-            return
-        }
-
-        try? await Task.sleep(for: .milliseconds(900))
-        guard !Task.isCancelled, model.importPreviewStage == startingStage else {
-            return
-        }
-
-        switch startingStage {
-        case .scanning:
-            model.completeImportPreviewScan()
-        case .importing:
-            model.completeImportPreview()
-        case .empty, .review, .complete:
-            break
         }
     }
 }

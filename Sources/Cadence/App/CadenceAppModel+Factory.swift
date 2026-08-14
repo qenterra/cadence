@@ -34,18 +34,9 @@ extension CadenceAppModel {
             audioRouteProvider: SystemAudioRouteProvider()
         )
         let model = CadenceAppModel(
-            runtimeMode: .production,
+            runtimeEnvironment: .production,
             importRuntimeAvailability: importRuntime.availability,
             librarySession: librarySession,
-            tracks: [],
-            tags: [],
-            tagAssignments: [],
-            tagExclusions: [],
-            smartCollections: [],
-            lyricDocuments: [:],
-            favoriteAlbumDates: [:],
-            favoriteArtistDates: [:],
-            importCandidates: [],
             importCoordinator: importRuntime.coordinator,
             importDestination: importRuntime.destination,
             importRecovery: importRuntime.destination.map {
@@ -74,19 +65,22 @@ extension CadenceAppModel {
         artworkRepository: any ArtworkRepository = InMemoryArtworkRepository()
     ) -> CadenceAppModel {
         CadenceAppModel(
-            runtimeMode: .preview,
+            runtimeEnvironment: .preview(
+                CadencePreviewFixture(
+                    tracks: tracks,
+                    tags: tags,
+                    tagAssignments: tagAssignments,
+                    tagExclusions: tagExclusions,
+                    smartCollections: smartCollections,
+                    lyricDocuments: lyricDocuments,
+                    favoriteAlbumDates: favoriteAlbumDates,
+                    favoriteArtistDates: favoriteArtistDates,
+                    importCandidates: importCandidates,
+                    artworkRepository: artworkRepository
+                )
+            ),
             importRuntimeAvailability: .preview,
-            librarySession: .preview(),
-            tracks: tracks,
-            tags: tags,
-            tagAssignments: tagAssignments,
-            tagExclusions: tagExclusions,
-            smartCollections: smartCollections,
-            lyricDocuments: lyricDocuments,
-            favoriteAlbumDates: favoriteAlbumDates,
-            favoriteArtistDates: favoriteArtistDates,
-            importCandidates: importCandidates,
-            artworkRepository: artworkRepository
+            librarySession: .preview()
         )
     }
 }

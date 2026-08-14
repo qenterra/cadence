@@ -160,18 +160,9 @@ private func externalModelHarness(
         backends: [PlaybackTestBackend(kind: .pcm)]
     )
     let model = CadenceAppModel(
-        runtimeMode: .production,
+        runtimeEnvironment: .production,
         importRuntimeAvailability: .available,
         librarySession: .preview(),
-        tracks: [],
-        tags: [],
-        tagAssignments: [],
-        tagExclusions: [],
-        smartCollections: [],
-        lyricDocuments: [:],
-        favoriteAlbumDates: [:],
-        favoriteArtistDates: [:],
-        importCandidates: [],
         importCoordinator: importCoordinator,
         playbackCoordinator: coordinator,
         externalAudioSession: externalSession

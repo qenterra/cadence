@@ -1,7 +1,8 @@
 import SwiftUI
 
 struct ImportMusicEmptyState: View {
-    let isPreview: Bool
+    let supportingText: LocalizedStringKey
+    let footnote: LocalizedStringKey?
     let startScanning: () -> Void
 
     var body: some View {
@@ -47,19 +48,13 @@ struct ImportMusicEmptyState: View {
                 )
                 .font(.callout.weight(.medium))
 
-                Text(
-                    isPreview
-                        ? "A future import will copy supported audio into "
-                        + "~/Music/Cadence.library after Review."
-                        : "Cadence will copy included audio into "
-                        + "~/Music/Cadence.library only after Review."
-                )
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
+                Text(supportingText)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
 
-                if isPreview {
-                    Text("This build only previews the workflow.")
+                if let footnote {
+                    Text(footnote)
                         .font(.caption)
                         .foregroundStyle(.tertiary)
                 }

@@ -1,4 +1,5 @@
 @testable import Cadence
+import Foundation
 import Testing
 
 @MainActor
@@ -129,7 +130,9 @@ struct ImportPreviewAppModelTests {
         let model = CadenceAppModel.testFixture()
         model.setImportDropTargeted(true)
 
-        model.acceptImportPreviewDrop()
+        model.acceptImportDrop(
+            urls: [URL(fileURLWithPath: "/DesignPreview/Track.flac")]
+        )
 
         #expect(!model.isImportDropTargeted)
         #expect(model.selectedDestination == .importMusic)
