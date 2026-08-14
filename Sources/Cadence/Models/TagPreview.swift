@@ -45,15 +45,6 @@ struct TagPreview: Identifiable, Hashable, Sendable {
 enum TagPathValidationError: Hashable, Sendable {
     case empty
     case emptyComponent
-
-    var message: String {
-        switch self {
-        case .empty:
-            String(localized: "Enter a tag path.")
-        case .emptyComponent:
-            String(localized: "Tag paths cannot start, end, or contain an empty component.")
-        }
-    }
 }
 
 extension TagPreview {
@@ -137,15 +128,6 @@ enum TagResultScope: String, CaseIterable, Identifiable, Sendable {
 enum TrackTagMatchSource: String, Hashable, Sendable {
     case direct
     case inherited
-
-    var title: String {
-        switch self {
-        case .direct:
-            String(localized: "Direct track tag")
-        case .inherited:
-            String(localized: "Inherited from album")
-        }
-    }
 }
 
 struct TaggedTrackPreview: Identifiable, Hashable, Sendable {
@@ -160,15 +142,6 @@ struct TaggedTrackPreview: Identifiable, Hashable, Sendable {
 enum AlbumTagMatchSource: String, Hashable, Sendable {
     case album
     case track
-
-    var title: String {
-        switch self {
-        case .album:
-            String(localized: "Album assignment")
-        case .track:
-            String(localized: "Matching tagged track")
-        }
-    }
 }
 
 struct TaggedAlbumPreview: Identifiable, Hashable, Sendable {

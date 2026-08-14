@@ -135,8 +135,7 @@ final class ImportCoordinator {
             ManagedImportProgress(
                 phase: .copying,
                 completedCount: 0,
-                totalCount: includedIDs.count,
-                copiedByteCount: 0
+                totalCount: includedIDs.count
             )
         )
         importProgressPolicy = ImportProgressPublicationPolicy()

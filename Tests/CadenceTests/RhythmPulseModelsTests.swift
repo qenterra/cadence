@@ -188,7 +188,9 @@ struct RhythmPulseModelsTests {
                 > wash.peakOpacity * 0.85
         )
     }
+}
 
+struct RhythmPulseCompositorTests {
     @MainActor
     @Test("Recycled compositor layers are hidden with neutral model state")
     func recycledLayersCannotFlashAtTheWindowOrigin() {

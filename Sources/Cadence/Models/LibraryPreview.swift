@@ -20,9 +20,4 @@ struct AlbumPreview: Identifiable, Hashable, Sendable {
     var yearText: String {
         year.formatted(.number.grouping(.never))
     }
-
-    var durationText: String {
-        let totalMinutes = Int(totalDuration.rounded()) / 60
-        return "\(totalMinutes) min"
-    }
 }

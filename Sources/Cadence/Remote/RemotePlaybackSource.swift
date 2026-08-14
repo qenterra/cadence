@@ -3,7 +3,6 @@ import Foundation
 actor RemotePlaybackSource {
     private var objectsByTrackID: [UUID: RemoteMediaObject] = [:]
     private var cache: RemoteMediaCache?
-    private(set) var libraryID: UUID?
 
     func activate(
         provider: any RemoteLibraryProvider,
@@ -12,7 +11,6 @@ actor RemotePlaybackSource {
         budgetBytes: Int64
     ) async throws {
         try manifest.validate()
-        libraryID = manifest.libraryID
         objectsByTrackID = Dictionary(
             uniqueKeysWithValues: manifest.tracks.map {
                 ($0.trackID, $0.media)
@@ -28,7 +26,6 @@ actor RemotePlaybackSource {
     func deactivate() {
         objectsByTrackID.removeAll()
         cache = nil
-        libraryID = nil
     }
 
     func resolve(

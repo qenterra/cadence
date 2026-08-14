@@ -63,7 +63,7 @@ extension CadenceAppModel {
         librarySession.beginRecovery()
         do {
             if let location = librarySession.location {
-                _ = await LibraryRelocationRecovery().recover(
+                try await LibraryRelocationRecovery().recover(
                     activeLocation: location
                 )
             }

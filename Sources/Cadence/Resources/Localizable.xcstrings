@@ -503,16 +503,6 @@
         }
       }
     },
-    "Album assignment": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Назначено альбому"
-          }
-        }
-      }
-    },
     "Albums": {
       "localizations": {
         "ru": {
@@ -2003,16 +1993,6 @@
         }
       }
     },
-    "Direct track tag": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Тег самого трека"
-          }
-        }
-      }
-    },
     "Disabled": {
       "localizations": {
         "ru": {
@@ -2363,16 +2343,6 @@
         }
       }
     },
-    "Enter a tag path.": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Введите путь тега."
-          }
-        }
-      }
-    },
     "Enter a valid time.": {
       "localizations": {
         "ru": {
@@ -2399,16 +2369,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Точные дубликаты и недоступные файлы останутся исключёнными."
-          }
-        }
-      }
-    },
-    "Excluded from track": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Исключено для трека"
           }
         }
       }
@@ -2809,16 +2769,6 @@
         }
       }
     },
-    "Inherited from album": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Унаследовано от альбома"
-          }
-        }
-      }
-    },
     "Inspect each mock import state": {
       "localizations": {
         "ru": {
@@ -3109,16 +3059,6 @@
         }
       }
     },
-    "Loading track": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Загрузка трека"
-          }
-        }
-      }
-    },
     "Local Cache": {
       "localizations": {
         "ru": {
@@ -3291,16 +3231,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Условие"
-          }
-        }
-      }
-    },
-    "Matching tagged track": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Совпадающий трек с тегом"
           }
         }
       }
@@ -5255,16 +5185,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Тег или группа/подтег"
-          }
-        }
-      }
-    },
-    "Tag paths cannot start, end, or contain an empty component.": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Путь тега не может начинаться, заканчиваться или содержать пустой компонент."
           }
         }
       }

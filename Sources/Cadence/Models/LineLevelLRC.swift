@@ -3,7 +3,6 @@ import Foundation
 enum LineLevelLRC {
     enum Error: Swift.Error, Equatable {
         case malformedLine(Int)
-        case incompleteTiming
         case emptyDocument
     }
 

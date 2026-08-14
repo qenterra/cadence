@@ -1,6 +1,33 @@
 import Foundation
 
 extension CadenceAppModel {
+    func playSelectedProductionSmartCollection(
+        shuffled: Bool = false
+    ) {
+        guard let selectedSmartCollection else {
+            return
+        }
+        Task {
+            var collectionTracks = await librarySession.store
+                .completeSmartCollectionTracks(
+                    for: selectedSmartCollection.rule
+                )
+            if shuffled {
+                collectionTracks.shuffle()
+            }
+            guard let first = collectionTracks.first else {
+                return
+            }
+            playProductionTrack(
+                first,
+                within: collectionTracks,
+                source: selectedSmartCollectionID.map {
+                    .smartCollection($0)
+                }
+            )
+        }
+    }
+
     @discardableResult
     func playSelectedSmartCollection() -> Bool {
         guard let collection = selectedSmartCollection else {
@@ -36,12 +63,6 @@ extension CadenceAppModel {
             trackIDs: visibleIDs,
             startingAt: track.id
         )
-    }
-
-    @discardableResult
-    func shuffleSelectedSmartCollection() -> Bool {
-        var generator = SystemRandomNumberGenerator()
-        return shuffleSelectedSmartCollection(using: &generator)
     }
 
     @discardableResult

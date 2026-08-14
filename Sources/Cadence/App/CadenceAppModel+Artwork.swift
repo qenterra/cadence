@@ -23,12 +23,6 @@ extension CadenceAppModel {
         return artworkRepository.asset(for: target)
     }
 
-    func resolvedArtwork(for artist: ArtistPreview) -> ResolvedArtworkSource {
-        ArtworkResolver.artist(
-            custom: customArtwork(for: .artist(artist.id))
-        )
-    }
-
     func resolvedArtwork(for album: AlbumPreview) -> ResolvedArtworkSource {
         ArtworkResolver.album(
             custom: customArtwork(for: .album(album.id)),

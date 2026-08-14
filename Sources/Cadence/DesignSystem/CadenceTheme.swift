@@ -49,9 +49,6 @@ enum CadenceTheme {
     static let strongSeparator = adaptive(QDS.Color.borderStrong)
     static let subduedFill = adaptive(QDS.Color.fillDisabled)
     static let selectionFill = adaptive(QDS.Color.fillSelected)
-    static let increasedContrastSelectionFill = adaptive(
-        QDS.Color.fillSelectedStrong
-    )
     static let hoverFill = adaptive(QDS.Color.fillHover)
     static let playerMetadata = adaptive(QDS.Color.textSecondary)
 
@@ -60,7 +57,6 @@ enum CadenceTheme {
     static let radiusGroup = QDS.Radius.group
     static let radiusPanel = QDS.Radius.panel
     static let radiusHero = QDS.Radius.hero
-    static let radiusFloating = QDS.Radius.floating
 
     static let motionPress = QDS.MotionSeconds.press
     static let motionHover = QDS.MotionSeconds.hover
@@ -78,8 +74,6 @@ enum CadenceTheme {
     // Product motion: Cadence Mode has no second consumer, so it stays named
     // here rather than inflating the cross-product QDS motion scale.
     static let motionCadenceModeEnter = 0.5
-    static let motionCadenceModeExit = 0.55
-
     private static func adaptive(_ token: QDSColorValue) -> Color {
         let light = NSColor(Color(qds: token, appearance: .light))
         let dark = NSColor(Color(qds: token, appearance: .dark))

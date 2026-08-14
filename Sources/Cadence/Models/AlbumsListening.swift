@@ -20,23 +20,6 @@ enum AlbumShelfKind: String, CaseIterable, Hashable, Identifiable, Sendable {
     var id: Self {
         self
     }
-
-    var title: String {
-        switch self {
-        case .favorites:
-            String(localized: "Favorites")
-        }
-    }
-}
-
-enum AlbumsOverviewSection: String, Hashable, Sendable {
-    case favorites
-    case allAlbums
-}
-
-enum AlbumBrowseAnchor: Hashable, Sendable {
-    case section(AlbumsOverviewSection)
-    case album(AlbumPreview.ID)
 }
 
 enum AlbumSortField: String, CaseIterable, Hashable, Identifiable, Sendable {
@@ -105,17 +88,6 @@ enum AlbumTrackTagSource: Hashable, Sendable {
     case direct
     case inherited
     case excluded
-
-    var title: String {
-        switch self {
-        case .direct:
-            String(localized: "Direct track tag")
-        case .inherited:
-            String(localized: "Inherited from album")
-        case .excluded:
-            String(localized: "Excluded from track")
-        }
-    }
 }
 
 struct AlbumTrackTagItem: Identifiable, Hashable, Sendable {

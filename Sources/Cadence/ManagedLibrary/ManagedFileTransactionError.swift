@@ -18,6 +18,8 @@ struct ManagedFileTransactionError: Error, LocalizedError, Sendable {
         "\(subsystem.rawValue.capitalized) update failed: \(primaryFailure). "
             + "Recovery also failed: "
             + compensationFailures.joined(separator: "; ")
+            + ". Operation \(operationID.uuidString); recovery data: "
+            + recoveryDirectory.path(percentEncoded: false)
     }
 }
 

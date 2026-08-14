@@ -110,13 +110,6 @@ struct PlaybackCoordinatorState: Equatable, Sendable {
     var isPlaying: Bool {
         transport == .playing
     }
-
-    var progress: Double {
-        guard duration > 0 else {
-            return 0
-        }
-        return min(max(currentTime / duration, 0), 1)
-    }
 }
 
 struct PlaybackIndicatorState: Equatable, Sendable {

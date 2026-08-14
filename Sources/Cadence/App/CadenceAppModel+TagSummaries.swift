@@ -41,7 +41,6 @@ extension CadenceAppModel {
 
         return TagSelectionSummary(
             tag: tag,
-            selectionCount: tagEditingSelection.count,
             directCount: directCount,
             inheritedCount: inheritedCount,
             excludedCount: excludedCount,

@@ -57,50 +57,6 @@ extension CadenceAppModel {
         )
     }
 
-    @discardableResult
-    func playAlbumTrack(
-        _ track: TrackPreview,
-        in album: AlbumPreview
-    ) -> Bool {
-        guard track.albumID == album.id else {
-            return false
-        }
-        let albumTrackIDs = AlbumListeningProjection.canonicalTracks(
-            tracks.filter { $0.albumID == album.id }
-        ).map(\.id)
-        return startPlaybackQueue(
-            source: .album(album.id),
-            trackIDs: albumTrackIDs,
-            startingAt: track.id
-        )
-    }
-
-    @discardableResult
-    func shuffleAlbum(
-        _ album: AlbumPreview,
-        using generator: inout some RandomNumberGenerator
-    ) -> Bool {
-        let albumTrackIDs = AlbumListeningProjection.canonicalTracks(
-            tracks.filter { $0.albumID == album.id }
-        ).map(\.id)
-        let shuffled = PlaybackQueue.shuffledOrder(
-            albumTrackIDs,
-            using: &generator
-        )
-        return startPlaybackQueue(
-            source: .album(album.id),
-            trackIDs: shuffled,
-            startingAt: shuffled.first,
-            isShuffled: true
-        )
-    }
-
-    @discardableResult
-    func shuffleAlbum(_ album: AlbumPreview) -> Bool {
-        var generator = SystemRandomNumberGenerator()
-        return shuffleAlbum(album, using: &generator)
-    }
-
     func togglePlayback() {
         if let playbackCoordinator,
            playbackCoordinator.state.currentTrack != nil {
@@ -133,20 +89,6 @@ extension CadenceAppModel {
     }
 
     @discardableResult
-    func reorderPlaybackQueue(
-        _ trackIDs: [TrackPreview.ID],
-        before targetTrackID: TrackPreview.ID?,
-        undoManager: UndoManager? = nil
-    ) -> Bool {
-        updatePlaybackQueue(
-            actionName: "Reorder Queue",
-            undoManager: undoManager
-        ) { queue in
-            queue.reorderUpNext(trackIDs, before: targetTrackID)
-        }
-    }
-
-    @discardableResult
     func removeFromPlaybackQueue(
         _ trackIDs: [TrackPreview.ID],
         undoManager: UndoManager? = nil
@@ -168,36 +110,6 @@ extension CadenceAppModel {
             undoManager: undoManager
         ) { queue in
             queue.clearUpNext()
-        }
-    }
-
-    @discardableResult
-    func playNext(
-        _ trackIDs: [TrackPreview.ID],
-        undoManager: UndoManager? = nil
-    ) -> Bool {
-        let available = Set(tracks.map(\.id))
-        let validTrackIDs = trackIDs.filter(available.contains)
-        return updatePlaybackQueue(
-            actionName: "Play Next",
-            undoManager: undoManager
-        ) { queue in
-            queue.playNext(validTrackIDs)
-        }
-    }
-
-    @discardableResult
-    func addToPlaybackQueue(
-        _ trackIDs: [TrackPreview.ID],
-        undoManager: UndoManager? = nil
-    ) -> Bool {
-        let available = Set(tracks.map(\.id))
-        let validTrackIDs = trackIDs.filter(available.contains)
-        return updatePlaybackQueue(
-            actionName: "Add to Queue",
-            undoManager: undoManager
-        ) { queue in
-            queue.addToEnd(validTrackIDs)
         }
     }
 

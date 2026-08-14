@@ -9,24 +9,6 @@ extension CadenceAppModel {
         )
     }
 
-    var sortedAllAlbums: [AlbumPreview] {
-        AlbumListeningProjection.sortedAlbums(
-            albums,
-            by: allAlbumsSortDescriptor,
-            favoriteDates: favoriteAlbumDates
-        )
-    }
-
-    var visibleAlbumSearchResults: [AlbumPreview] {
-        sortedAllAlbums.filter { album in
-            AlbumListeningProjection.matchesSearch(
-                album: album,
-                query: albumSearchQuery,
-                assignedTags: assignedTags(for: album)
-            )
-        }
-    }
-
     var isAlbumSearchActive: Bool {
         !albumSearchQuery.trimmingCharacters(
             in: .whitespacesAndNewlines
@@ -45,31 +27,6 @@ extension CadenceAppModel {
             return nil
         }
         return albums.first { $0.id == albumID }
-    }
-
-    var albumsBackTitle: String {
-        guard case let .detail(_, origin) = albumsPresentation else {
-            return "Albums"
-        }
-        switch origin {
-        case .overview, .search:
-            return "Albums"
-        case let .shelf(kind):
-            return kind.title
-        case let .artist(artistID):
-            return artists.first { $0.id == artistID }?.name ?? "Artists"
-        }
-    }
-
-    func albumShelfProjection(
-        kind: AlbumShelfKind,
-        capacity: Int
-    ) -> AlbumShelfProjection {
-        let source = switch kind {
-        case .favorites:
-            favoriteAlbums
-        }
-        return AlbumListeningProjection.shelf(source, capacity: capacity)
     }
 
     func isFavorite(_ album: AlbumPreview) -> Bool {
@@ -133,14 +90,6 @@ extension CadenceAppModel {
         selectedDestination = .albums
     }
 
-    func requestShowAll(_ kind: AlbumShelfKind) {
-        albumShelfSortDescriptors[kind] = switch kind {
-        case .favorites:
-            .recentlyFavorited
-        }
-        albumsPresentation = .shelf(kind)
-    }
-
     func requestAlbumsBack() {
         if hasContextualBackNavigation {
             requestContextualBack()
@@ -174,21 +123,6 @@ extension CadenceAppModel {
             }
             selectedDestination = .artists
         }
-    }
-
-    func updateAlbumsScrollAnchor(
-        _ anchor: AlbumBrowseAnchor?,
-        scope: AlbumShelfKind?
-    ) {
-        if let scope {
-            albumGridScrollAnchors[scope] = anchor
-        } else {
-            albumsOverviewScrollAnchor = anchor
-        }
-    }
-
-    func updateAlbumsFocus(_ albumID: AlbumPreview.ID?) {
-        albumsFocusedAlbumID = albumID
     }
 
     func prepareAlbumsDestination() {

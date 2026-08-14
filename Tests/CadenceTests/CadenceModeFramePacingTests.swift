@@ -12,78 +12,28 @@ struct CadenceModeFramePacingTests {
             return
         }
 
-        let fixture = try await DocumentationScreenshotFixture.make()
-        fixture.model.presentNowPlaying()
-        fixture.model.selectedNowPlayingPanel = .lyrics
-
-        let contentSize = NSSize(width: 1512, height: 982)
-        let cadenceModeSession = CadenceModeSession(automatesTiming: false)
-        let hostingView = NSHostingView(
-            rootView: CadenceRootView(
-                model: fixture.model,
-                cadenceModeSession: cadenceModeSession
-            )
-            .frame(width: contentSize.width, height: contentSize.height)
-            .environment(\.colorScheme, ColorScheme.dark)
-            .tint(CadenceTheme.primaryAccent)
-        )
-        let window = makeWindow(
-            contentSize: contentSize,
-            contentView: hostingView
-        )
+        let surface = try await makeSurface()
+        let window = surface.window
         defer {
             window.orderOut(nil)
             window.close()
         }
 
         try await Task.sleep(for: .milliseconds(500))
-        window.makeFirstResponder(hostingView)
-
-        let expectedFramesPerSecond = window.screen?
-            .maximumFramesPerSecond ?? 60
-        let probe = CadenceDisplayLinkProbe()
-        let displayLink = makeDisplayLink(
-            window: window,
-            probe: probe,
-            expectedFramesPerSecond: expectedFramesPerSecond
-        )
-        displayLink.add(to: .main, forMode: .common)
-        try await beginMeasurement(probe)
-        try await Task.sleep(for: .seconds(2))
-        let baselineReport = try #require(
-            probe.report(
-                expectedFramesPerSecond: expectedFramesPerSecond
-            )
-        )
-        probe.reset()
-
-        sendKey(type: .keyDown, keyCode: 6, characters: "z", to: window)
-        try await Task.sleep(for: .milliseconds(80))
-        sendKey(type: .keyDown, keyCode: 7, characters: "x", to: window)
-        try await Task.sleep(for: .milliseconds(260))
-        cadenceModeSession.pulseStore.reset()
-        sendKey(type: .keyUp, keyCode: 6, characters: "z", to: window)
-        sendKey(type: .keyUp, keyCode: 7, characters: "x", to: window)
-        try await Task.sleep(for: .milliseconds(440))
-        try await beginMeasurement(probe)
-
-        try await Task.sleep(for: .seconds(2))
-        let idleCadenceReport = try #require(
-            probe.report(
-                expectedFramesPerSecond: expectedFramesPerSecond
-            )
-        )
-        try await beginMeasurement(probe)
-
+        window.makeFirstResponder(surface.hostingView)
+        surface.displayLink.add(to: .main, forMode: .common)
+        let baselineReport = try await measureFrames(surface)
+        try await activateCadenceMode(surface)
+        let idleCadenceReport = try await measureFrames(surface)
+        try await beginMeasurement(surface.probe)
         let tapLatencyReport = try await stressWithDiscreteTaps(
             window: window,
             duration: 4
         )
-        displayLink.invalidate()
-
+        surface.displayLink.invalidate()
         let report = try #require(
-            probe.report(
-                expectedFramesPerSecond: expectedFramesPerSecond
+            surface.probe.report(
+                expectedFramesPerSecond: surface.expectedFramesPerSecond
             )
         )
         let cadenceSummary = report.summary + "; " + tapLatencyReport.summary
@@ -93,16 +43,16 @@ struct CadenceModeFramePacingTests {
 
         expectBaselineFrameRate(
             baselineReport,
-            expectedFramesPerSecond: expectedFramesPerSecond
+            expectedFramesPerSecond: surface.expectedFramesPerSecond
         )
         expectCadencePerformance(
             idleCadenceReport,
-            expectedFramesPerSecond: expectedFramesPerSecond,
+            expectedFramesPerSecond: surface.expectedFramesPerSecond,
             label: "Idle"
         )
         expectCadencePerformance(
             report,
-            expectedFramesPerSecond: expectedFramesPerSecond,
+            expectedFramesPerSecond: surface.expectedFramesPerSecond,
             label: "Active"
         )
         #expect(
@@ -110,6 +60,65 @@ struct CadenceModeFramePacingTests {
                 <= CadenceModePerformancePolicy.maximumInputLatency,
             Comment(rawValue: cadenceSummary)
         )
+    }
+}
+
+private extension CadenceModeFramePacingTests {
+    func makeSurface() async throws -> CadenceFramePacingSurface {
+        let fixture = try await DocumentationScreenshotFixture.make()
+        fixture.model.presentNowPlaying()
+        fixture.model.selectedNowPlayingPanel = .lyrics
+        let contentSize = NSSize(width: 1512, height: 982)
+        let session = CadenceModeSession(automatesTiming: false)
+        let hostingView = NSHostingView(
+            rootView: CadenceRootView(
+                model: fixture.model,
+                cadenceModeSession: session
+            )
+            .frame(width: contentSize.width, height: contentSize.height)
+            .environment(\.colorScheme, ColorScheme.dark)
+            .tint(CadenceTheme.primaryAccent)
+        )
+        let window = makeWindow(contentSize: contentSize, contentView: hostingView)
+        let expectedFramesPerSecond = window.screen?.maximumFramesPerSecond ?? 60
+        let probe = CadenceDisplayLinkProbe()
+        return CadenceFramePacingSurface(
+            window: window,
+            hostingView: hostingView,
+            session: session,
+            probe: probe,
+            displayLink: makeDisplayLink(
+                window: window,
+                probe: probe,
+                expectedFramesPerSecond: expectedFramesPerSecond
+            ),
+            expectedFramesPerSecond: expectedFramesPerSecond
+        )
+    }
+
+    func measureFrames(
+        _ surface: CadenceFramePacingSurface
+    ) async throws -> CadenceFramePacingReport {
+        try await beginMeasurement(surface.probe)
+        try await Task.sleep(for: .seconds(2))
+        return try #require(
+            surface.probe.report(
+                expectedFramesPerSecond: surface.expectedFramesPerSecond
+            )
+        )
+    }
+
+    func activateCadenceMode(
+        _ surface: CadenceFramePacingSurface
+    ) async throws {
+        sendKey(type: .keyDown, keyCode: 6, characters: "z", to: surface.window)
+        try await Task.sleep(for: .milliseconds(80))
+        sendKey(type: .keyDown, keyCode: 7, characters: "x", to: surface.window)
+        try await Task.sleep(for: .milliseconds(260))
+        surface.session.pulseStore.reset()
+        sendKey(type: .keyUp, keyCode: 6, characters: "z", to: surface.window)
+        sendKey(type: .keyUp, keyCode: 7, characters: "x", to: surface.window)
+        try await Task.sleep(for: .milliseconds(440))
     }
 
     private static var runMarker: URL {
@@ -296,6 +305,15 @@ struct CadenceModeFramePacingTests {
     }
 }
 
+@MainActor private struct CadenceFramePacingSurface {
+    let window: NSWindow
+    let hostingView: NSView
+    let session: CadenceModeSession
+    let probe: CadenceDisplayLinkProbe
+    let displayLink: CADisplayLink
+    let expectedFramesPerSecond: Int
+}
+
 private struct CadenceTapLatencyReport {
     let maximum: TimeInterval
     let average: TimeInterval
@@ -361,14 +379,6 @@ private struct CadenceFramePacingReport {
     let deliveredFramesPerSecond: Double
     let longestFrameDuration: TimeInterval
     let longestFrameOffset: TimeInterval
-
-    var deliveredFrameRatio: Double {
-        deliveredFramesPerSecond / expectedFramesPerSecond
-    }
-
-    var frameBudget: TimeInterval {
-        1 / expectedFramesPerSecond
-    }
 
     var summary: String {
         String(

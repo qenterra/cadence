@@ -191,24 +191,7 @@ private extension ProductionTrackTable {
 
             Spacer(minLength: 0)
 
-            Menu {
-                Text("Columns")
-                ForEach(TrackTableColumn.allCases) { column in
-                    Toggle(
-                        column.title,
-                        isOn: visibilityBinding(for: column)
-                    )
-                }
-            } label: {
-                Image(systemName: "ellipsis")
-                    .frame(
-                        width: TrackTableColumnPolicy.actionWidth,
-                        height: TrackTableColumnPolicy.actionWidth
-                    )
-            }
-            .menuIndicator(.hidden)
-            .menuStyle(.borderlessButton)
-            .help("Choose Columns")
+            columnMenu
         }
         .font(.caption.weight(.semibold))
         .foregroundStyle(.secondary)
@@ -227,6 +210,27 @@ private extension ProductionTrackTable {
                 )
             }
         }
+    }
+
+    private var columnMenu: some View {
+        Menu {
+            Text("Columns")
+            ForEach(TrackTableColumn.allCases) { column in
+                Toggle(
+                    column.title,
+                    isOn: visibilityBinding(for: column)
+                )
+            }
+        } label: {
+            Image(systemName: "ellipsis")
+                .frame(
+                    width: TrackTableColumnPolicy.actionWidth,
+                    height: TrackTableColumnPolicy.actionWidth
+                )
+        }
+        .menuIndicator(.hidden)
+        .menuStyle(.borderlessButton)
+        .help("Choose Columns")
     }
 
     func headerCell(

@@ -33,13 +33,6 @@ extension CadenceAppModel {
         pendingLibraryDeletion = nil
     }
 
-    func confirmLibraryDeletion() async {
-        guard let pending = pendingLibraryDeletion else {
-            return
-        }
-        await confirmLibraryDeletion(pending)
-    }
-
     func confirmLibraryDeletion(
         _ pending: PendingLibraryDeletion
     ) async {

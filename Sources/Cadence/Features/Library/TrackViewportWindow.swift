@@ -73,19 +73,6 @@ struct TrackPageWindow<Element> {
         recency.removeAll(keepingCapacity: true)
     }
 
-    mutating func first(
-        where predicate: (Element) -> Bool
-    ) -> Element? {
-        for page in Array(recency.reversed()) {
-            guard let item = pages[page]?.first(where: predicate) else {
-                continue
-            }
-            touch(page)
-            return item
-        }
-        return nil
-    }
-
     mutating func index(
         where predicate: (Element) -> Bool,
         pageSize: Int
@@ -238,10 +225,6 @@ final class LibraryTrackWindow {
         return pages.item(at: index, pageSize: pageSize)
     }
 
-    func cachedTrack(id: UUID) -> LibraryTrackProjection? {
-        pages.first { $0.id == id }
-    }
-
     func index(ofTrackID trackID: UUID) -> Int? {
         pages.index(
             where: { $0.id == trackID },
@@ -280,21 +263,12 @@ final class LibraryTrackWindow {
             else {
                 return
             }
-            let evictedPage = pages.insert(items, page: requestedPage)
-            requests.finishRequest(page: requestedPage)
-            if requestedPage == 0 {
-                firstPageState = .ready
-            }
-            if let evictedPage {
-                requests.forgetRequest(page: evictedPage)
-            }
-            revision &+= 1
-            if allowsPrefetch {
-                await prefetch(
-                    around: requestedPage,
-                    direction: prefetchDirection
-                )
-            }
+            await acceptLoadedPage(
+                items,
+                page: requestedPage,
+                allowsPrefetch: allowsPrefetch,
+                prefetchDirection: prefetchDirection
+            )
         } catch {
             guard
                 requestGeneration == generation,
@@ -306,6 +280,26 @@ final class LibraryTrackWindow {
             if requestedPage == 0 {
                 firstPageState = .failed(error.localizedDescription)
             }
+        }
+    }
+
+    private func acceptLoadedPage(
+        _ items: [LibraryTrackProjection],
+        page: Int,
+        allowsPrefetch: Bool,
+        prefetchDirection: TrackViewportPrefetchDirection
+    ) async {
+        let evictedPage = pages.insert(items, page: page)
+        requests.finishRequest(page: page)
+        if page == 0 {
+            firstPageState = .ready
+        }
+        if let evictedPage {
+            requests.forgetRequest(page: evictedPage)
+        }
+        revision &+= 1
+        if allowsPrefetch {
+            await prefetch(around: page, direction: prefetchDirection)
         }
     }
 

@@ -39,11 +39,3 @@ struct WorkspacePaneHeader<Trailing: View>: View {
         }
     }
 }
-
-extension WorkspacePaneHeader where Trailing == EmptyView {
-    init(_ title: String) {
-        self.init(title) {
-            EmptyView()
-        }
-    }
-}

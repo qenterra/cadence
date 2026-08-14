@@ -68,19 +68,6 @@ extension CadenceAppModel {
         playbackWorkspace = .hidden
     }
 
-    func requestClosePlaybackWorkspace() {
-        switch playbackWorkspace {
-        case .hidden:
-            break
-        case .nowPlaying:
-            dismissNowPlaying()
-        case .lyricsEditor:
-            requestCloseLyricsEditor()
-        case .lyricsSearch:
-            dismissLyricsSearchResult()
-        }
-    }
-
     func requestPlaybackQueueMove(by offset: Int) {
         if currentPlaybackTrack != nil {
             if playbackWorkspace == .lyricsEditor, isLyricDraftDirty {

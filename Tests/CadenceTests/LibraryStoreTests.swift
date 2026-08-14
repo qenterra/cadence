@@ -145,7 +145,9 @@ struct LibraryStoreTests {
         #expect(store.tracks.map(\.title) == ["New Result"])
         #expect(store.availability == .ready)
     }
+}
 
+extension LibraryStoreTests {
     @Test("Initial library loading publishes bounded artist, album, and track pages")
     func initialLibraryLoading() async throws {
         let container = try makeContainer(trackCount: 205)

@@ -52,13 +52,6 @@ enum ImportLyricsInspection: Equatable, Sendable {
 
 enum ImportInspectionFailure: Equatable, Sendable {
     case unreadableSource(String)
-
-    var message: String {
-        switch self {
-        case let .unreadableSource(message):
-            message
-        }
-    }
 }
 
 struct ImportInspectionDraft: Equatable, Sendable {

@@ -34,25 +34,6 @@ enum LibraryContentLoadState: Equatable, Sendable {
     }
 }
 
-private struct InitialLibrarySnapshot: Sendable {
-    let tracks: LibraryPage<LibraryTrackProjection>
-    let favoriteTracks: LibraryPage<LibraryTrackProjection>
-    let favoriteTrackIDs: [UUID]
-    let recentlyPlayedTracks: [LibraryTrackProjection]
-    let artists: LibraryPage<LibraryArtistProjection>
-    let favoriteArtists: LibraryPage<LibraryArtistProjection>
-    let albums: LibraryPage<LibraryAlbumProjection>
-    let favoriteAlbums: LibraryPage<LibraryAlbumProjection>
-    let tags: LibraryPage<LibraryTagProjection>
-    let counts: LibraryCatalogCounts
-    let trashOperations: [LibraryTrashProjection]
-}
-
-typealias LibraryTrackPageLoader = @Sendable (
-    _ query: LibraryTrackQuery,
-    _ cursor: LibraryPageCursor?
-) async throws -> LibraryPage<LibraryTrackProjection>
-
 struct ProductionSmartCollectionSummary: Sendable {
     let count: Int
     let totalDuration: TimeInterval
@@ -84,9 +65,9 @@ enum LyricsSearchIndexState: Equatable, Sendable {
 @MainActor
 @Observable
 final class LibraryStore {
-    private(set) var repository: LibraryRepository?
-    private(set) var lyricsService: ManagedLyricsService?
-    private(set) var artworkService: ManagedArtworkService?
+    var repository: LibraryRepository?
+    var lyricsService: ManagedLyricsService?
+    var artworkService: ManagedArtworkService?
     @ObservationIgnored var lyricsSearchIndexer: LyricsSearchIndexer?
     var trackCursor: LibraryPageCursor?
     var trackRequestGeneration = 0
@@ -143,7 +124,7 @@ final class LibraryStore {
     var selectedPlaylistTracksState = LibraryContentLoadState.idle
     var tagRevision = 0
     var trashOperations: [LibraryTrashProjection] = []
-    private(set) var catalogCounts = LibraryCatalogCounts.empty
+    var catalogCounts = LibraryCatalogCounts.empty
     private(set) var catalogSearchQuery = ""
     var catalogSearchResults = CatalogSearchResults.empty
     private(set) var isCatalogSearching = false
@@ -260,78 +241,6 @@ final class LibraryStore {
         tagCursor != nil
     }
 
-    func attach(
-        repository: LibraryRepository,
-        package: ManagedLibraryPackage? = nil
-    ) {
-        self.repository = repository
-        playlistClient = LibraryPlaylistClient(repository: repository)
-        catalogLookupClient = LibraryCatalogLookupClient(
-            repository: repository
-        )
-        trackPageLoader = { query, cursor in
-            try await repository.tracksPage(
-                query: query,
-                after: cursor
-            )
-        }
-        allTracksWindow = LibraryTrackWindow { query, offset, limit in
-            try await repository.tracksWindow(
-                query: query,
-                offset: offset,
-                limit: limit
-            )
-        }
-        lyricsService = package.map {
-            ManagedLyricsService(
-                package: $0,
-                repository: repository
-            )
-        }
-        artworkService = package.map {
-            ManagedArtworkService(
-                package: $0,
-                repository: repository
-            )
-        }
-        configureLyricsSearch(package: package, repository: repository)
-        availability = .ready
-    }
-
-    func detach() {
-        repository = nil
-        playlistClient = nil
-        catalogLookupClient = nil
-        trackPageLoader = nil
-        allTracksWindow = nil
-        lyricsService = nil
-        artworkService = nil
-        lyricsSearchIndexer = nil
-        artworkDataLoads.values.forEach { $0.cancel() }
-        artworkDataLoads.removeAll()
-        lyricsSearchIndexState = .unavailable
-        resetLibrary(availability: .empty)
-    }
-
-    func loadInitialLibrary() async {
-        guard let repository else {
-            resetLibrary(availability: .empty)
-            return
-        }
-
-        availability = .loading
-        do {
-            try await apply(initialSnapshot(from: repository))
-            await synchronizeLyricsSearch()
-        } catch {
-            resetLibrary(
-                availability: .failed(
-                    LibraryStoreFailure(message: error.localizedDescription)
-                )
-            )
-        }
-    }
-
     func searchCatalog(_ query: String) async {
         catalogSearchGeneration += 1
         let generation = catalogSearchGeneration
@@ -396,146 +305,5 @@ final class LibraryStore {
         Task {
             await searchCatalog(query)
         }
-    }
-}
-
-private extension LibraryStore {
-    func configureLyricsSearch(
-        package: ManagedLibraryPackage?,
-        repository: LibraryRepository
-    ) {
-        guard let package else {
-            lyricsSearchIndexer = nil
-            lyricsSearchIndexState = .unavailable
-            return
-        }
-        do {
-            lyricsSearchIndexer = try LyricsSearchIndexer(
-                package: package,
-                repository: repository
-            )
-            lyricsSearchIndexState = .idle
-        } catch {
-            lyricsSearchIndexer = nil
-            lyricsSearchIndexState = .failed(error.localizedDescription)
-        }
-    }
-}
-
-private extension LibraryStore {
-    func initialSnapshot(
-        from repository: LibraryRepository
-    ) async throws -> InitialLibrarySnapshot {
-        async let tracks = repository.tracksPage()
-        async let favoriteTracks = repository.favoriteTracksPage()
-        async let favoriteTrackIDs = repository.favoriteTrackIDs()
-        async let recentlyPlayedTracks = repository.recentlyPlayedTracks()
-        async let artists = repository.artistsPage()
-        async let favoriteArtists = repository.favoriteArtistsPage()
-        async let albums = repository.albumsPage()
-        async let favoriteAlbums = repository.favoriteAlbumsPage()
-        async let tags = repository.tagsPage()
-        async let counts = repository.catalogCounts()
-        async let trash = repository.trashOperations()
-        return try await InitialLibrarySnapshot(
-            tracks: tracks,
-            favoriteTracks: favoriteTracks,
-            favoriteTrackIDs: favoriteTrackIDs,
-            recentlyPlayedTracks: recentlyPlayedTracks,
-            artists: artists,
-            favoriteArtists: favoriteArtists,
-            albums: albums,
-            favoriteAlbums: favoriteAlbums,
-            tags: tags,
-            counts: counts,
-            trashOperations: trash
-        )
-    }
-
-    func apply(_ snapshot: InitialLibrarySnapshot) {
-        trackRequestGeneration += 1
-        tracks = snapshot.tracks.items
-        favoriteTracks = snapshot.favoriteTracks.items
-        favoriteTrackIDs = Set(snapshot.favoriteTrackIDs)
-        favoriteTrackCursor = snapshot.favoriteTracks.nextCursor
-        recentlyPlayedTracks = snapshot.recentlyPlayedTracks
-        trackCursor = snapshot.tracks.nextCursor
-        trackQuery = .allTracks
-        searchQuery = ""
-        isLoadingNextTracks = false
-        artists = snapshot.artists.items
-        artistCursor = snapshot.artists.nextCursor
-        favoriteArtists = snapshot.favoriteArtists.items
-        favoriteArtistCursor = snapshot.favoriteArtists.nextCursor
-        albums = snapshot.albums.items
-        albumCursor = snapshot.albums.nextCursor
-        favoriteAlbums = snapshot.favoriteAlbums.items
-        favoriteAlbumCursor = snapshot.favoriteAlbums.nextCursor
-        tags = snapshot.tags.items
-        tagCursor = snapshot.tags.nextCursor
-        tagGeneration &+= 1
-        catalogCounts = snapshot.counts
-        trashOperations = snapshot.trashOperations
-        availability = .ready
-    }
-
-    func resetLibrary(availability: LibraryAvailability) {
-        trackRequestGeneration += 1
-        tracks = []
-        favoriteTracks = []
-        favoriteTrackIDs = []
-        recentlyPlayedTracks = []
-        playbackQueueProjectionGeneration &+= 1
-        playbackQueueTracks = []
-        isLoadingPlaybackQueueTracks = false
-        playbackQueueProjectionError = nil
-        artists = []
-        favoriteArtists = []
-        albums = []
-        favoriteAlbums = []
-        tags = []
-        playlists = []
-        playlistListState = .idle
-        selectedPlaylistID = nil
-        selectedPlaylistTracks = []
-        selectedPlaylistTracksState = .idle
-        smartCollectionRuleData = .empty
-        smartCollectionSummaries = [:]
-        smartCollectionResults = [:]
-        smartCollectionRuleDataGeneration &+= 1
-        smartCollectionSummaryGeneration &+= 1
-        smartCollectionResultGeneration &+= 1
-        isLoadingNextSmartCollectionResult = false
-        isLoadingSmartCollectionData = false
-        trashOperations = []
-        catalogCounts = .empty
-        catalogSearchResults = .empty
-        trackCursor = nil
-        trackQuery = .allTracks
-        searchQuery = ""
-        isLoadingNextTracks = false
-        artistCursor = nil
-        albumCursor = nil
-        isLoadingNextArtists = false
-        isLoadingNextAlbums = false
-        favoriteTrackCursor = nil
-        favoriteArtistCursor = nil
-        favoriteAlbumCursor = nil
-        isLoadingNextFavoriteTracks = false
-        isLoadingNextFavoriteArtists = false
-        isLoadingNextFavoriteAlbums = false
-        tagCursor = nil
-        tagGeneration &+= 1
-        browserArtistID = nil
-        browserAlbums = []
-        browserAlbumID = nil
-        browserTracks = []
-        browserAlbumCursor = nil
-        browserTrackCursor = nil
-        browserAlbumGeneration &+= 1
-        browserTrackGeneration &+= 1
-        isLoadingNextBrowserAlbums = false
-        isLoadingNextBrowserTracks = false
-        self.availability = availability
     }
 }

@@ -25,13 +25,4 @@ struct TagSuggestion: Identifiable, Hashable, Sendable {
     var id: TagPreview.ID {
         tag.id
     }
-
-    var eligibilityDescription: String {
-        if eligibleTargets.count == selectionCount {
-            return selectionCount == 1
-                ? "Suggested for this item"
-                : "Suggested for all \(selectionCount)"
-        }
-        return "Suggested for \(eligibleTargets.count) of \(selectionCount)"
-    }
 }

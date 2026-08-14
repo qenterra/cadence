@@ -106,43 +106,6 @@ struct MediaArtworkView: View {
     }
 }
 
-struct ArtistArtworkView: View {
-    let artist: ArtistPreview
-    let source: ResolvedArtworkSource
-
-    init(
-        artist: ArtistPreview,
-        source: ResolvedArtworkSource
-    ) {
-        self.artist = artist
-        self.source = source
-    }
-
-    init(
-        artist: ArtistPreview,
-        customImage: ArtistImageAsset?
-    ) {
-        self.artist = artist
-        source = ArtworkResolver.artist(custom: customImage)
-    }
-
-    var body: some View {
-        MediaArtworkView(
-            source: source,
-            title: artist.name,
-            placeholder: .artist,
-            cornerRadius: CadenceTheme.radiusNone,
-            showsBorder: false
-        )
-        .clipShape(Circle())
-        .overlay {
-            Circle()
-                .strokeBorder(CadenceTheme.separator, lineWidth: 0.5)
-        }
-        .accessibilityLabel("Artwork for \(artist.name)")
-    }
-}
-
 private struct CustomArtworkContent: View {
     let asset: ArtistImageAsset
     let placeholder: ArtworkPlaceholder

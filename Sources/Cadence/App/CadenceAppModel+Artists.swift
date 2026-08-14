@@ -1,52 +1,6 @@
 import Foundation
 
 extension CadenceAppModel {
-    var artistRecentPlaybackDates: [ArtistPreview.ID: Date] {
-        Dictionary(
-            uniqueKeysWithValues: artists.compactMap { artist in
-                let date = ArtistListeningProjection.mostRecentPlayback(
-                    in: tracksForArtist(artist.id)
-                )
-                return date.map { (artist.id, $0) }
-            }
-        )
-    }
-
-    var recentlyPlayedArtists: [ArtistPreview] {
-        ArtistListeningProjection.sortedArtists(
-            artists.filter { artistRecentPlaybackDates[$0.id] != nil },
-            by: .recentlyPlayed,
-            recentDates: artistRecentPlaybackDates
-        )
-    }
-
-    var favoriteArtists: [ArtistPreview] {
-        ArtistListeningProjection.sortedArtists(
-            artists.filter { favoriteArtistDates[$0.id] != nil },
-            by: .recentlyFavorited,
-            favoriteDates: favoriteArtistDates
-        )
-    }
-
-    var sortedAllArtists: [ArtistPreview] {
-        ArtistListeningProjection.sortedArtists(
-            artists,
-            by: allArtistsSortDescriptor,
-            recentDates: artistRecentPlaybackDates,
-            favoriteDates: favoriteArtistDates
-        )
-    }
-
-    var visibleArtistSearchResults: [ArtistPreview] {
-        sortedAllArtists.filter { artist in
-            ArtistListeningProjection.matchesSearch(
-                artist: artist,
-                query: artistSearchQuery,
-                derivedTags: derivedTags(for: artist)
-            )
-        }
-    }
-
     var isArtistSearchActive: Bool {
         !artistSearchQuery.trimmingCharacters(
             in: .whitespacesAndNewlines
@@ -67,18 +21,6 @@ extension CadenceAppModel {
         return artists.first { $0.id == artistID }
     }
 
-    var artistsBackTitle: String {
-        guard case let .detail(_, origin) = artistsPresentation else {
-            return "Artists"
-        }
-        switch origin {
-        case .overview, .search:
-            return "Artists"
-        case let .shelf(kind):
-            return kind.title
-        }
-    }
-
     func tracksForArtist(
         _ artistID: ArtistPreview.ID
     ) -> [TrackPreview] {
@@ -96,16 +38,6 @@ extension CadenceAppModel {
     ) -> [TrackPreview] {
         ArtistListeningProjection.canonicalTracks(
             tracksForArtist(artist.id)
-        )
-    }
-
-    func recentlyPlayedTracks(
-        for artist: ArtistPreview,
-        limit: Int = 5
-    ) -> [TrackPreview] {
-        ArtistListeningProjection.recentlyPlayed(
-            tracksForArtist(artist.id),
-            limit: limit
         )
     }
 
@@ -135,19 +67,6 @@ extension CadenceAppModel {
                 }
                 .prefix(max(limit, 0))
         )
-    }
-
-    func artistShelfProjection(
-        kind: ArtistShelfKind,
-        capacity: Int
-    ) -> ArtistShelfProjection {
-        let source = switch kind {
-        case .recentlyPlayed:
-            recentlyPlayedArtists
-        case .favorites:
-            favoriteArtists
-        }
-        return ArtistListeningProjection.shelf(source, capacity: capacity)
     }
 
     func isFavorite(_ artist: ArtistPreview) -> Bool {
@@ -208,16 +127,6 @@ extension CadenceAppModel {
         artistsPresentation = .detail(artist.id, origin: origin)
     }
 
-    func requestShowAllArtists(_ kind: ArtistShelfKind) {
-        artistShelfSortDescriptors[kind] = switch kind {
-        case .recentlyPlayed:
-            .recentlyPlayed
-        case .favorites:
-            .recentlyFavorited
-        }
-        artistsPresentation = .shelf(kind)
-    }
-
     func requestArtistsBack() {
         if hasContextualBackNavigation {
             requestContextualBack()
@@ -233,21 +142,6 @@ extension CadenceAppModel {
         case let .shelf(kind):
             .shelf(kind)
         }
-    }
-
-    func updateArtistsScrollAnchor(
-        _ anchor: ArtistBrowseAnchor?,
-        scope: ArtistShelfKind?
-    ) {
-        if let scope {
-            artistGridScrollAnchors[scope] = anchor
-        } else {
-            artistsOverviewScrollAnchor = anchor
-        }
-    }
-
-    func updateArtistsFocus(_ artistID: ArtistPreview.ID?) {
-        artistsFocusedArtistID = artistID
     }
 
     func prepareArtistsDestination() {

@@ -33,8 +33,6 @@ struct ContextualNavigationSnapshot: Sendable {
         AlbumShelfKind: AlbumSortDescriptor
     ]
     let albumSearchQuery: String
-    let albumsOverviewScrollAnchor: AlbumBrowseAnchor?
-    let albumGridScrollAnchors: [AlbumShelfKind: AlbumBrowseAnchor]
     let albumsFocusedAlbumID: AlbumPreview.ID?
 
     let artistsPresentation: ArtistsPresentation
@@ -43,8 +41,6 @@ struct ContextualNavigationSnapshot: Sendable {
         ArtistShelfKind: ArtistSortDescriptor
     ]
     let artistSearchQuery: String
-    let artistsOverviewScrollAnchor: ArtistBrowseAnchor?
-    let artistGridScrollAnchors: [ArtistShelfKind: ArtistBrowseAnchor]
     let artistsFocusedArtistID: ArtistPreview.ID?
 
     let selectedTagGroupID: TagGroupID

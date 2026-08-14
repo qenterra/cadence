@@ -33,6 +33,8 @@ struct ProductLanguageTests {
             "Source",
             "Next Track",
         ])
+        #expect(presentation.details[0].value == "FLAC · 24-bit · 96 kHz")
+        #expect(presentation.details[2].value == "Cadence PCM · 96 kHz · Stereo")
         #expect(presentation.details.last?.value == "Gapless")
     }
 

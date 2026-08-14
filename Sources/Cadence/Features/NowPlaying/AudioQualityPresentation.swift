@@ -54,8 +54,13 @@ struct AudioQualityPresentation: Equatable, Sendable {
         codec: String,
         sampleRate: String
     ) -> String {
-        ([codec, path.sourceBitDepth.map { "\($0)-bit" }, sampleRate]
-            .compactMap(\.self))
+        let container = path.container.uppercased()
+        let formats = container == codec ? [codec] : [codec, container]
+        let technical = [
+            path.sourceBitDepth.map { "\($0)-bit" },
+            sampleRate,
+        ].compactMap(\.self)
+        return (formats + technical)
             .joined(separator: " · ")
     }
 
@@ -77,7 +82,9 @@ struct AudioQualityPresentation: Equatable, Sendable {
         guard let rate = path.rendererSampleRate else {
             return name
         }
-        return "\(name) · \(sampleRate(rate))"
+        let channels = path.rendererChannelCount.map(Self.channels)
+        return ([name, sampleRate(rate), channels].compactMap(\.self))
+            .joined(separator: " · ")
     }
 
     private static func source(_ format: StoredSpatialFormat) -> String {

@@ -23,12 +23,6 @@ extension CadenceAppModel {
         )
     }
 
-    var selectedSmartCollectionDuration: TimeInterval {
-        SmartCollectionListeningProjection.totalDuration(
-            of: selectedSmartCollectionCanonicalTracks
-        )
-    }
-
     var selectedSmartCollectionArtwork: SmartCollectionArtworkLayout {
         SmartCollectionListeningProjection.artworkLayout(
             for: selectedSmartCollectionCanonicalTracks

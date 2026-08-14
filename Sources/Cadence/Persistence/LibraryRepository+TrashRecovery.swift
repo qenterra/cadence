@@ -5,12 +5,6 @@ struct ManagedTrashRecoveryResult: Equatable, Sendable {
     let rolledBackOperationIDs: [UUID]
     let reconstructedOperationIDs: [UUID]
     let cleanedOperationIDs: [UUID]
-
-    static let empty = ManagedTrashRecoveryResult(
-        rolledBackOperationIDs: [],
-        reconstructedOperationIDs: [],
-        cleanedOperationIDs: []
-    )
 }
 
 extension LibraryRepository {
@@ -76,10 +70,6 @@ private struct TrashRecoveryFileState {
     let pathCount: Int
     let originalCount: Int
     let trashedCount: Int
-
-    var hasOriginalFiles: Bool {
-        originalCount > 0
-    }
 
     var hasTrashedFiles: Bool {
         trashedCount > 0

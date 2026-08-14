@@ -75,13 +75,6 @@ extension CadenceAppModel {
         }
     }
 
-    func toggleCurrentProductionTrackFavorite() {
-        let nextState = !currentProductionTrackIsFavorite
-        Task {
-            await setCurrentProductionTrackFavorite(nextState)
-        }
-    }
-
     var productionPlaybackQueueTracks: [PlaybackQueueTrackProjection] {
         if playbackCoordinator?.state.queue?.source == .externalFiles,
            let queue = playbackCoordinator?.state.queue {
@@ -220,15 +213,6 @@ extension CadenceAppModel {
         playbackCoordinator?.state.audioPath?.outputRoute
             ?? playbackCoordinator?.outputRoute
             ?? .unknown
-    }
-
-    var playbackPathStatus: String {
-        guard let path = playbackCoordinator?.state.audioPath else {
-            return "No active playback path"
-        }
-        return path.backend == .pcm
-            ? "Cadence PCM renderer"
-            : "System native renderer"
     }
 
     func retryPlaybackFailure() {

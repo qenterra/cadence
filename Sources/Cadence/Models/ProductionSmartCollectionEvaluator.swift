@@ -4,19 +4,12 @@ struct ProductionSmartCollectionIndex: Sendable {
     let tracks: [LibraryTrackProjection]
     let effectiveTagIDsByTrackID: [UUID: Set<UUID>]
     let tagsByID: [UUID: LibraryTagProjection]
-
-    static let empty = ProductionSmartCollectionIndex(
-        tracks: [],
-        effectiveTagIDsByTrackID: [:],
-        tagsByID: [:]
-    )
 }
 
 struct ProductionSmartCollectionCandidate: Sendable {
     let id: UUID
     let artist: String
     let album: String
-    let duration: TimeInterval
     let year: Int?
     let codec: String
     let isFavorite: Bool
@@ -30,11 +23,6 @@ struct ProductionSmartCollectionEvaluation: Sendable {
     var count: Int {
         orderedTrackIDs.count
     }
-
-    static let empty = ProductionSmartCollectionEvaluation(
-        orderedTrackIDs: [],
-        totalDuration: 0
-    )
 }
 
 struct ProductionSmartCollectionResultPage: Sendable {
@@ -62,7 +50,6 @@ struct ProductionSmartCollectionEvaluator: Sendable {
                 id: track.id,
                 artist: track.artist,
                 album: track.album,
-                duration: track.duration,
                 year: track.year,
                 codec: track.codec,
                 isFavorite: track.isFavorite,

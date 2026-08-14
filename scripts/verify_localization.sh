@@ -10,33 +10,21 @@ fi
 project_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 catalog="$project_root/Sources/Cadence/Resources/Localizable.xcstrings"
 derived_data="$1"
-temporary_directory="$(mktemp -d /private/tmp/cadence-localizable.XXXXXX)"
-temporary_catalog="$temporary_directory/Localizable.xcstrings"
-trap 'rm -f "$temporary_catalog"; rmdir "$temporary_directory"' EXIT
 
-cp "$catalog" "$temporary_catalog"
-
-metadata_arguments=()
+metadata_files=()
 while IFS= read -r -d '' metadata_file; do
-    metadata_arguments+=(--stringsdata "$metadata_file")
+    metadata_files+=("$metadata_file")
 done < <(
     find "$derived_data/Build/Intermediates.noindex/Cadence.build" \
         -path '*Cadence.build/Objects-normal/*/*.stringsdata' \
         -print0
 )
 
-if [[ ${#metadata_arguments[@]} -eq 0 ]]; then
+if [[ ${#metadata_files[@]} -eq 0 ]]; then
     echo "No Cadence localization metadata found under $derived_data." >&2
     exit 1
 fi
 
-xcrun xcstringstool sync "$temporary_catalog" "${metadata_arguments[@]}"
-
-if ! cmp -s "$catalog" "$temporary_catalog"; then
-    echo "Localizable.xcstrings is stale. Rebuild and sync compiler metadata." >&2
-    diff -u "$catalog" "$temporary_catalog" || true
-    exit 1
-fi
-
-key_count="$(xcrun xcstringstool print "$catalog" | awk 'NF' | wc -l | tr -d ' ')"
-echo "Localization catalog is synchronized ($key_count keys)."
+python3 "$project_root/scripts/verify_localization.py" \
+    "$catalog" \
+    "${metadata_files[@]}"

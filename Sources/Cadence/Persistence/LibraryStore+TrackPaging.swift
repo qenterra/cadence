@@ -64,17 +64,6 @@ extension LibraryStore {
         }
     }
 
-    func replaceTracks(search: String) async {
-        searchQuery = search
-        await replaceTracks(
-            query: LibraryTrackQuery(
-                scope: trackQuery.scope,
-                search: search,
-                sort: trackQuery.sort
-            )
-        )
-    }
-
     func replaceTracks(query: LibraryTrackQuery) async {
         trackRequestGeneration += 1
         let generation = trackRequestGeneration

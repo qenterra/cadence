@@ -18,16 +18,6 @@ struct ImportDuplicateLookup: Sendable {
     ) async throws -> ImportDuplicateEvidence {
         try await operation(probes)
     }
-
-    static func repository(
-        _ repository: LibraryRepository
-    ) -> ImportDuplicateLookup {
-        ImportDuplicateLookup { probes in
-            try await repository.importDuplicateEvidence(
-                probes: probes
-            )
-        }
-    }
 }
 
 struct ImportInspectionService: Sendable {

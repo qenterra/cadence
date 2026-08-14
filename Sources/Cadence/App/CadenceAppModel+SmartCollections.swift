@@ -125,33 +125,6 @@ extension CadenceAppModel {
         )
     }
 
-    func playSelectedProductionSmartCollection(
-        shuffled: Bool = false
-    ) {
-        guard let selectedSmartCollection else {
-            return
-        }
-        Task {
-            var collectionTracks = await librarySession.store
-                .completeSmartCollectionTracks(
-                    for: selectedSmartCollection.rule
-                )
-            if shuffled {
-                collectionTracks.shuffle()
-            }
-            guard let first = collectionTracks.first else {
-                return
-            }
-            playProductionTrack(
-                first,
-                within: collectionTracks,
-                source: selectedSmartCollectionID.map {
-                    .smartCollection($0)
-                }
-            )
-        }
-    }
-
     func renameSmartCollectionDraft(_ name: String) {
         mutateSmartCollectionDraft {
             $0.name = name

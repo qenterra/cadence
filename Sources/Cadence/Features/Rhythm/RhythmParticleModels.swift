@@ -51,10 +51,6 @@ struct RhythmParticle: Identifiable, Sendable {
         )
     }
 
-    func isAlive(at time: TimeInterval) -> Bool {
-        time >= startedAt && time < startedAt + lifetime
-    }
-
     func isExpired(at time: TimeInterval) -> Bool {
         time >= startedAt + lifetime
     }
@@ -113,10 +109,6 @@ struct RhythmParticleSimulation: Sendable {
 
     mutating func removeAll() {
         allParticles.removeAll(keepingCapacity: true)
-    }
-
-    func particles(at time: TimeInterval) -> [RhythmParticle] {
-        allParticles.filter { $0.isAlive(at: time) }
     }
 
     private func makeParticle(

@@ -36,7 +36,9 @@ struct CadenceModeScreenshotTests {
             visualQAState: states.entry
         )
     }
+}
 
+private extension CadenceModeScreenshotTests {
     private static func makeVisualQAStates() -> VisualQAStates {
         let standard = RhythmPulseVisualQAState(
             palette: RhythmAccentPalette(
@@ -137,28 +139,13 @@ struct CadenceModeScreenshotTests {
     ) async throws {
         fixture.model.dismissNowPlaying()
         let cadenceModeSession = CadenceModeSession(automatesTiming: false)
-        let contentSize = NSSize.wide
-        let rootView = CadenceRootView(
+        let transition = makeTransitionWindow(
             model: fixture.model,
-            cadenceModeSession: cadenceModeSession
+            session: cadenceModeSession,
+            visualQAState: visualQAState
         )
-        .frame(width: contentSize.width, height: contentSize.height)
-        .environment(\.colorScheme, ColorScheme.dark)
-        .environment(\.rhythmPulseVisualQAState, visualQAState)
-        .tint(CadenceTheme.primaryAccent)
-        let hostingView = NSHostingView(rootView: rootView)
-        let window = NSWindow(
-            contentRect: NSRect(origin: .zero, size: contentSize),
-            styleMask: [.titled, .closable, .miniaturizable, .resizable],
-            backing: .buffered,
-            defer: false
-        )
-        window.isReleasedWhenClosed = false
-        window.title = "Cadence"
-        window.titleVisibility = .hidden
-        window.toolbarStyle = .unifiedCompact
-        window.appearance = NSAppearance(named: .darkAqua)
-        window.contentView = hostingView
+        let window = transition.window
+        let hostingView = transition.hostingView
         window.makeKeyAndOrderFront(nil)
         defer {
             window.orderOut(nil)
@@ -196,6 +183,33 @@ struct CadenceModeScreenshotTests {
             filename: "qa-cadence-mode-wide-transition-settled-dark.png"
         )
         sendKey(type: .keyUp, keyCode: 6, characters: "z", to: window)
+    }
+
+    private func makeTransitionWindow(
+        model: CadenceAppModel,
+        session: CadenceModeSession,
+        visualQAState: RhythmPulseVisualQAState
+    ) -> (window: NSWindow, hostingView: NSView) {
+        let contentSize = NSSize.wide
+        let rootView = CadenceRootView(model: model, cadenceModeSession: session)
+            .frame(width: contentSize.width, height: contentSize.height)
+            .environment(\.colorScheme, ColorScheme.dark)
+            .environment(\.rhythmPulseVisualQAState, visualQAState)
+            .tint(CadenceTheme.primaryAccent)
+        let hostingView = NSHostingView(rootView: rootView)
+        let window = NSWindow(
+            contentRect: NSRect(origin: .zero, size: contentSize),
+            styleMask: [.titled, .closable, .miniaturizable, .resizable],
+            backing: .buffered,
+            defer: false
+        )
+        window.isReleasedWhenClosed = false
+        window.title = "Cadence"
+        window.titleVisibility = .hidden
+        window.toolbarStyle = .unifiedCompact
+        window.appearance = NSAppearance(named: .darkAqua)
+        window.contentView = hostingView
+        return (window, hostingView)
     }
 
     private func sendKey(

@@ -246,15 +246,6 @@ private extension LibraryRepository {
         return try modelContext.fetch(descriptor).first
     }
 
-    func tagRecord(normalizedPath: String) throws -> TagRecord? {
-        let predicate = #Predicate<TagRecord> {
-            $0.normalizedPath == normalizedPath
-        }
-        var descriptor = FetchDescriptor(predicate: predicate)
-        descriptor.fetchLimit = 1
-        return try modelContext.fetch(descriptor).first
-    }
-
     func directAssignment(
         tagID: UUID,
         trackID: UUID

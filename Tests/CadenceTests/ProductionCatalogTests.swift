@@ -151,7 +151,9 @@ struct ProductionCatalogTests {
         #expect(!restored.isFavorite)
         #expect(restored.artist == "North Assembly, Satellite Guest")
     }
+}
 
+extension ProductionCatalogTests {
     @Test("Favorite catalog pages exclude non-favorites and keep stable order")
     func favoriteCatalogPages() async throws {
         let fixture = try makeCatalogFixture()

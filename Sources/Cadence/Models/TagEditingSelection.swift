@@ -3,15 +3,6 @@ import Foundation
 enum TagEditingTargetKind: Hashable, Sendable {
     case tracks
     case albums
-
-    var title: String {
-        switch self {
-        case .tracks:
-            "Tracks"
-        case .albums:
-            "Albums"
-        }
-    }
 }
 
 enum TagSelectionGesture: Hashable, Sendable {

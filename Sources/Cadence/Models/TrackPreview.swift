@@ -38,33 +38,9 @@ struct TrackPreview: Identifiable, Hashable, Sendable {
         "\(album) · \(yearText) · \(durationText) · \(format)"
     }
 
-    var sampleRateText: String {
-        sampleRate.formatted(.number.precision(.fractionLength(1))) + " kHz"
-    }
-
-    var lastPlayedText: String {
-        lastPlayed.map(Self.dateText) ?? "Never"
-    }
-
     static func timeText(_ time: TimeInterval) -> String {
         let totalSeconds = max(Int(time.rounded()), 0)
         return String(format: "%d:%02d", totalSeconds / 60, totalSeconds % 60)
-    }
-
-    private static func dateText(_ date: Date) -> String {
-        let components = Calendar(identifier: .gregorian).dateComponents(
-            [.year, .month, .day],
-            from: date
-        )
-        guard
-            let year = components.year,
-            let month = components.month,
-            let day = components.day
-        else {
-            return "Unknown"
-        }
-
-        return String(format: "%04d-%02d-%02d", year, month, day)
     }
 }
 

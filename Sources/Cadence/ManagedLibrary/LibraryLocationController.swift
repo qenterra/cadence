@@ -176,17 +176,6 @@ final class LibraryLocationController {
         return .available(location)
     }
 
-    func activate(
-        parentURL: URL,
-        identity: LibraryIdentity
-    ) throws {
-        let activation = try prepareActivation(
-            parentURL: parentURL,
-            identity: identity
-        )
-        try commit(activation)
-    }
-
     func prepareActivation(
         parentURL: URL,
         identity: LibraryIdentity
@@ -243,19 +232,6 @@ final class LibraryLocationController {
         if pendingParentURL == activation.parentURL,
            accessedParentURL != activation.parentURL {
             bookmarkResolver.stopAccessing(activation.parentURL)
-        }
-        pendingParentURL = nil
-    }
-
-    func clearCustomLocation() throws {
-        try store.save(nil)
-        if let accessedParentURL {
-            bookmarkResolver.stopAccessing(accessedParentURL)
-            self.accessedParentURL = nil
-        }
-        if let pendingParentURL,
-           pendingParentURL != accessedParentURL {
-            bookmarkResolver.stopAccessing(pendingParentURL)
         }
         pendingParentURL = nil
     }

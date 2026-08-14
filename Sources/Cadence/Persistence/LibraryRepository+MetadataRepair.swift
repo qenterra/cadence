@@ -22,6 +22,13 @@ private struct MetadataRepairAffectedRecords {
     var albums: [UUID: AlbumRecord] = [:]
 }
 
+private struct MetadataRepairContext {
+    let artists: [String: ArtistRecord]
+    let albums: [ManagedAlbumIdentity: AlbumRecord]
+    let creditsByTrackID: [UUID: [TrackArtistCreditRecord]]
+    var affected: MetadataRepairAffectedRecords
+}
+
 extension LibraryRepository {
     func metadataRepairCandidates(
         after cursor: String? = nil,
@@ -84,55 +91,25 @@ extension LibraryRepository {
         let tracks = try modelContext.fetch(
             FetchDescriptor(predicate: trackPredicate)
         )
-        let creditPredicate = #Predicate<TrackArtistCreditRecord> { credit in
-            trackIDs.contains(credit.trackID)
-        }
-        let existingCredits = try modelContext.fetch(
-            FetchDescriptor(predicate: creditPredicate)
+        var context = try metadataRepairContext(
+            repairs: repairs,
+            trackIDs: trackIDs
         )
-        let creditsByTrackID = Dictionary(
-            grouping: existingCredits,
-            by: \.trackID
-        )
-        let existingArtistIDs = Array(Set(existingCredits.map(\.artistID)))
-        let existingArtists = try modelContext.fetch(
-            FetchDescriptor<ArtistRecord>(
-                predicate: #Predicate {
-                    existingArtistIDs.contains($0.id)
-                }
-            )
-        )
-        let artists = try repairArtists(for: repairs)
-        let albums = try repairAlbums(
-            for: repairs,
-            artists: artists
-        )
-        var affected = MetadataRepairAffectedRecords()
-        for artist in existingArtists {
-            affected.artists[artist.id] = artist
-        }
 
         for track in tracks {
             guard let repair = repairsByID[track.id] else {
                 continue
             }
-            applyMetadataRepair(
-                repair,
-                to: track,
-                artists: artists,
-                albums: albums,
-                existingCredits: creditsByTrackID[track.id] ?? [],
-                affected: &affected
-            )
+            applyMetadataRepair(repair, to: track, context: &context)
         }
 
         removeEmptyAlbums(
-            affected.albums,
-            affectedArtists: &affected.artists
+            context.affected.albums,
+            affectedArtists: &context.affected.artists
         )
         try refreshRepairCounts(
-            artists: affected.artists,
-            albums: affected.albums
+            artists: context.affected.artists,
+            albums: context.affected.albums
         )
         try modelContext.save()
         return tracks.count
@@ -141,18 +118,15 @@ extension LibraryRepository {
     private func applyMetadataRepair(
         _ repair: ManagedMetadataRepair,
         to track: TrackRecord,
-        artists: [String: ArtistRecord],
-        albums: [ManagedAlbumIdentity: AlbumRecord],
-        existingCredits: [TrackArtistCreditRecord],
-        affected: inout MetadataRepairAffectedRecords
+        context: inout MetadataRepairContext
     ) {
         if let artist = track.artist {
-            affected.artists[artist.id] = artist
+            context.affected.artists[artist.id] = artist
         }
         if let album = track.album {
-            affected.albums[album.id] = album
+            context.affected.albums[album.id] = album
         }
-        for credit in existingCredits {
+        for credit in context.creditsByTrackID[track.id] ?? [] {
             modelContext.delete(credit)
         }
 
@@ -167,9 +141,48 @@ extension LibraryRepository {
             normalizedArtist: albumArtistKey,
             normalizedTitle: SearchNormalizer.normalize(metadata.album)
         )
-        let artist = artists[primaryArtistKey]
-        let album = albums[albumKey]
+        let artist = context.artists[primaryArtistKey]
+        let album = context.albums[albumKey]
 
+        applyMetadataValues(
+            repair,
+            to: track,
+            artist: artist,
+            album: album
+        )
+
+        for (position, name) in metadata.creditArtistNames.enumerated() {
+            let key = SearchNormalizer.normalize(name)
+            guard let creditedArtist = context.artists[key] else {
+                continue
+            }
+            modelContext.insert(
+                TrackArtistCreditRecord(
+                    track: track,
+                    artist: creditedArtist,
+                    position: position,
+                    displayArtistName: metadata.artist
+                )
+            )
+            context.affected.artists[creditedArtist.id] = creditedArtist
+        }
+
+        if let artist {
+            context.affected.artists[artist.id] = artist
+        }
+        if let album {
+            album.year = album.year ?? metadata.year
+            context.affected.albums[album.id] = album
+        }
+    }
+
+    private func applyMetadataValues(
+        _ repair: ManagedMetadataRepair,
+        to track: TrackRecord,
+        artist: ArtistRecord?,
+        album: AlbumRecord?
+    ) {
+        let metadata = repair.metadata
         track.rename(to: metadata.title)
         track.trackNumber = metadata.trackNumber
         track.discNumber = metadata.discNumber
@@ -184,30 +197,35 @@ extension LibraryRepository {
         track.sourceMetadata = repair.sourceMetadata
         track.artist = artist
         track.album = album
+    }
 
-        for (position, name) in metadata.creditArtistNames.enumerated() {
-            let key = SearchNormalizer.normalize(name)
-            guard let creditedArtist = artists[key] else {
-                continue
-            }
-            modelContext.insert(
-                TrackArtistCreditRecord(
-                    track: track,
-                    artist: creditedArtist,
-                    position: position,
-                    displayArtistName: metadata.artist
-                )
-            )
-            affected.artists[creditedArtist.id] = creditedArtist
+    private func metadataRepairContext(
+        repairs: [ManagedMetadataRepair],
+        trackIDs: [UUID]
+    ) throws -> MetadataRepairContext {
+        let creditPredicate = #Predicate<TrackArtistCreditRecord> { credit in
+            trackIDs.contains(credit.trackID)
         }
-
-        if let artist {
+        let credits = try modelContext.fetch(
+            FetchDescriptor(predicate: creditPredicate)
+        )
+        let existingArtistIDs = Array(Set(credits.map(\.artistID)))
+        let existingArtists = try modelContext.fetch(
+            FetchDescriptor<ArtistRecord>(
+                predicate: #Predicate { existingArtistIDs.contains($0.id) }
+            )
+        )
+        let artists = try repairArtists(for: repairs)
+        var affected = MetadataRepairAffectedRecords()
+        for artist in existingArtists {
             affected.artists[artist.id] = artist
         }
-        if let album {
-            album.year = album.year ?? metadata.year
-            affected.albums[album.id] = album
-        }
+        return try MetadataRepairContext(
+            artists: artists,
+            albums: repairAlbums(for: repairs, artists: artists),
+            creditsByTrackID: Dictionary(grouping: credits, by: \.trackID),
+            affected: affected
+        )
     }
 
     private func repairArtists(
@@ -345,98 +363,5 @@ extension LibraryRepository {
                 modelContext.delete(artist)
             }
         }
-    }
-}
-
-struct ManagedMetadataRepairService: Sendable {
-    let location: ManagedLibraryLocation
-    let repository: LibraryRepository
-    let reader: MetadataReader
-
-    init(
-        location: ManagedLibraryLocation,
-        repository: LibraryRepository,
-        reader: MetadataReader = MetadataReader()
-    ) {
-        self.location = location
-        self.repository = repository
-        self.reader = reader
-    }
-
-    func repairAll() async throws -> Int {
-        var cursor: String?
-        var repairedCount = 0
-
-        repeat {
-            let page = try await repository.metadataRepairCandidates(
-                after: cursor
-            )
-            let repairs = await inspect(page.items)
-            repairedCount += try await repository.applyMetadataRepairs(
-                repairs
-            )
-            cursor = page.nextCursor
-        } while cursor != nil
-
-        return repairedCount
-    }
-
-    private func inspect(
-        _ candidates: [ManagedMetadataRepairCandidate]
-    ) async -> [ManagedMetadataRepair] {
-        var repairs: [ManagedMetadataRepair] = []
-
-        for startIndex in stride(
-            from: 0,
-            to: candidates.count,
-            by: 4
-        ) {
-            let endIndex = min(startIndex + 4, candidates.count)
-            let batch = candidates[startIndex ..< endIndex]
-            await withTaskGroup(
-                of: ManagedMetadataRepair?.self
-            ) { group in
-                for candidate in batch {
-                    group.addTask {
-                        await inspect(candidate)
-                    }
-                }
-                for await repair in group {
-                    if let repair {
-                        repairs.append(repair)
-                    }
-                }
-            }
-        }
-
-        return repairs
-    }
-
-    private func inspect(
-        _ candidate: ManagedMetadataRepairCandidate
-    ) async -> ManagedMetadataRepair? {
-        guard
-            let url = try? location.resolve(
-                relativePath: candidate.relativeMediaPath,
-                directoryHint: .notDirectory
-            ),
-            let scanned = try? await reader.read(url: url)
-        else {
-            return nil
-        }
-        let metadata = ManagedImportManifest.Metadata(scanned)
-        let sourceMetadata: Data? = if let snapshot = scanned.sourceMetadata {
-            try? JSONEncoder().encode(snapshot)
-        } else {
-            try? JSONEncoder().encode(metadata)
-        }
-        guard let sourceMetadata else {
-            return nil
-        }
-        return ManagedMetadataRepair(
-            trackID: candidate.id,
-            metadata: metadata,
-            sourceMetadata: sourceMetadata
-        )
     }
 }

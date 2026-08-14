@@ -124,8 +124,9 @@ struct ImportMusicReview: View {
         layoutMode: ImportMusicReviewLayout.Mode
     ) -> some View {
         HStack(spacing: CadenceLayout.compactGap) {
-            Text("")
+            Text(verbatim: "")
                 .frame(width: 34)
+                .accessibilityHidden(true)
             Text("Title")
                 .frame(minWidth: 150, maxWidth: .infinity, alignment: .leading)
             if layoutMode == .compact {

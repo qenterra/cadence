@@ -116,6 +116,16 @@ struct MetadataReader: Sendable {
         let spatialFormat: StoredSpatialFormat
     }
 
+    private struct TextMetadata {
+        let display: AudioDisplayMetadata
+        let artist: String
+        let artists: [String]
+        let albumArtist: String?
+        let year: Int?
+        let trackNumber: Int?
+        let discNumber: Int?
+    }
+
     func read(
         url: URL
     ) async throws -> ScannedAudioMetadata {
@@ -142,6 +152,34 @@ struct MetadataReader: Sendable {
             metadataItems: metadata,
             url: url
         )
+        let text = await textMetadata(values: values, url: url)
+        return ScannedAudioMetadata(
+            title: text.display.title,
+            artist: text.artist,
+            album: text.display.album,
+            artists: text.artists,
+            albumArtist: text.albumArtist,
+            year: text.year,
+            trackNumber: text.trackNumber,
+            discNumber: text.discNumber,
+            duration: max(duration.seconds, 0),
+            codec: properties.codec,
+            container: containerName(for: url),
+            sampleRate: properties.sampleRate,
+            channelCount: properties.channelCount,
+            bitrate: properties.bitrate,
+            bitDepth: properties.bitDepth,
+            spatialFormat: properties.spatialFormat,
+            embeddedArtwork: artwork?.metadata,
+            embeddedLyrics: embeddedLyrics,
+            sourceMetadata: sourceMetadata
+        )
+    }
+
+    private func textMetadata(
+        values: MetadataValueResolver,
+        url: URL
+    ) async -> TextMetadata {
         let display = await displayMetadata(values: values, url: url)
         let sourceArtistValues = await values.strings(
             commonIdentifier: .commonIdentifierArtist,
@@ -172,26 +210,14 @@ struct MetadataReader: Sendable {
             rawKeys: ["DISC", "DISCNUMBER", "TPOS"]
         )
 
-        return ScannedAudioMetadata(
-            title: display.title,
+        return TextMetadata(
+            display: display,
             artist: artistDisplay,
-            album: display.album,
             artists: artists,
             albumArtist: albumArtistValues.isEmpty ? nil : albumArtist,
             year: year(from: date),
             trackNumber: trackNumber,
-            discNumber: discNumber,
-            duration: max(duration.seconds, 0),
-            codec: properties.codec,
-            container: containerName(for: url),
-            sampleRate: properties.sampleRate,
-            channelCount: properties.channelCount,
-            bitrate: properties.bitrate,
-            bitDepth: properties.bitDepth,
-            spatialFormat: properties.spatialFormat,
-            embeddedArtwork: artwork?.metadata,
-            embeddedLyrics: embeddedLyrics,
-            sourceMetadata: sourceMetadata
+            discNumber: discNumber
         )
     }
 

@@ -239,7 +239,6 @@ private extension LibraryRepository {
                 id: track.id,
                 artist: track.artist?.name ?? "Unknown Artist",
                 album: track.album?.title ?? "Unknown Album",
-                duration: track.duration,
                 year: track.album?.year,
                 codec: track.codec,
                 isFavorite: track.isFavorite,

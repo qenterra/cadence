@@ -56,8 +56,7 @@ struct LyricsSearchPresentationTests {
                 trackID: trackID,
                 lineIndex: 3,
                 timestamp: 24,
-                snippet: "A <mark>signal</mark> remains",
-                score: -1
+                snippet: "A <mark>signal</mark> remains"
             )
         )
     }

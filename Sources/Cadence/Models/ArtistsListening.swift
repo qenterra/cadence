@@ -20,26 +20,6 @@ enum ArtistShelfKind: String, CaseIterable, Hashable, Identifiable, Sendable {
     var id: Self {
         self
     }
-
-    var title: String {
-        switch self {
-        case .recentlyPlayed:
-            String(localized: "Recently Played")
-        case .favorites:
-            String(localized: "Favorites")
-        }
-    }
-}
-
-enum ArtistsOverviewSection: String, Hashable, Sendable {
-    case recentlyPlayed
-    case favorites
-    case allArtists
-}
-
-enum ArtistBrowseAnchor: Hashable, Sendable {
-    case section(ArtistsOverviewSection)
-    case artist(ArtistPreview.ID)
 }
 
 enum ArtistSortField: String, CaseIterable, Hashable, Identifiable, Sendable {
@@ -86,11 +66,6 @@ struct ArtistSortDescriptor: Hashable, Sendable {
         field: .recentlyPlayed,
         direction: .descending
     )
-    static let recentlyFavorited = ArtistSortDescriptor(
-        field: .favoriteDate,
-        direction: .descending
-    )
-
     static func defaultDescriptor(for field: ArtistSortField) -> Self {
         let direction: ArtistSortDirection = switch field {
         case .name:
@@ -137,10 +112,6 @@ struct ArtistsLayoutMetrics: Hashable, Sendable {
             max(proposedWidth, Self.minimumTileWidth),
             Self.maximumTileWidth
         )
-    }
-
-    var shelfCapacity: Int {
-        columnCount
     }
 }
 
@@ -283,33 +254,6 @@ enum ArtistListeningProjection {
             }
             return lhs.id < rhs.id
         }
-    }
-
-    static func recentlyPlayed(
-        _ tracks: [TrackPreview],
-        limit: Int = 5
-    ) -> [TrackPreview] {
-        Array(
-            tracks.sorted { lhs, rhs in
-                let lhsDate = lhs.lastPlayed ?? .distantPast
-                let rhsDate = rhs.lastPlayed ?? .distantPast
-                if lhsDate != rhsDate {
-                    return lhsDate > rhsDate
-                }
-                let albumOrder = compare(lhs.album, rhs.album)
-                if albumOrder != .orderedSame {
-                    return albumOrder == .orderedAscending
-                }
-                if lhs.discNumber != rhs.discNumber {
-                    return lhs.discNumber < rhs.discNumber
-                }
-                if lhs.trackNumber != rhs.trackNumber {
-                    return lhs.trackNumber < rhs.trackNumber
-                }
-                return lhs.id < rhs.id
-            }
-            .prefix(max(limit, 0))
-        )
     }
 
     static func matchesSearch(

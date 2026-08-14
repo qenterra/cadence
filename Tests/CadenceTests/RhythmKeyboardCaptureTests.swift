@@ -103,69 +103,19 @@ struct RhythmKeyboardCaptureTests {
             ) == nil
         )
     }
+}
 
+struct RhythmKeyboardCaptureLifecycleTests {
     @MainActor
     @Test("The root capture receives physical key down and key up events")
     func installedCaptureReceivesKeyLifecycle() async throws {
         let recorder = RhythmHitRecorder()
-        let rootView = Color.clear
-            .frame(width: 320, height: 240)
-            .overlay(alignment: .topLeading) {
-                RhythmKeyboardCapture(
-                    canActivateCadenceMode: true
-                ) { lane in
-                    recorder.pressedLanes.append(lane)
-                } onKeyUp: { lane in
-                    recorder.releasedLanes.append(lane)
-                }
-                .frame(width: 0, height: 0)
-            }
-        let hostingView = NSHostingView(rootView: rootView)
-        let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 320, height: 240),
-            styleMask: [.titled],
-            backing: .buffered,
-            defer: false
-        )
-        window.isReleasedWhenClosed = false
-        window.contentView = hostingView
-        window.makeKeyAndOrderFront(nil)
-        defer {
-            window.orderOut(nil)
-            window.close()
-        }
+        let window = makeCaptureWindow(recorder: recorder)
+        defer { close(window) }
 
         try await Task.sleep(for: .milliseconds(50))
-        let keyDown = try #require(
-            NSEvent.keyEvent(
-                with: .keyDown,
-                location: .zero,
-                modifierFlags: [],
-                timestamp: ProcessInfo.processInfo.systemUptime,
-                windowNumber: window.windowNumber,
-                context: nil,
-                characters: "z",
-                charactersIgnoringModifiers: "z",
-                isARepeat: false,
-                keyCode: 6
-            )
-        )
-        let keyUp = try #require(
-            NSEvent.keyEvent(
-                with: .keyUp,
-                location: .zero,
-                modifierFlags: [],
-                timestamp: ProcessInfo.processInfo.systemUptime,
-                windowNumber: window.windowNumber,
-                context: nil,
-                characters: "z",
-                charactersIgnoringModifiers: "z",
-                isARepeat: false,
-                keyCode: 6
-            )
-        )
-        NSApp.sendEvent(keyDown)
-        NSApp.sendEvent(keyUp)
+        sendKey(type: .keyDown, keyCode: 6, characters: "z", to: window)
+        sendKey(type: .keyUp, keyCode: 6, characters: "z", to: window)
 
         #expect(recorder.pressedLanes == [.left])
         #expect(recorder.releasedLanes == [.left])
@@ -180,103 +130,147 @@ struct RhythmKeyboardCaptureTests {
         #expect(!fixture.model.isPlaying)
         fixture.model.playbackWorkspace = .hidden
         let session = CadenceModeSession(automatesTiming: false)
+        let (window, hostingView) = makeCadenceWindow(
+            model: fixture.model,
+            session: session
+        )
+        defer { close(window) }
+
+        try await activateCadenceMode(
+            in: window,
+            hostingView: hostingView,
+            model: fixture.model,
+            session: session
+        )
+        try await verifyPulseEmission(in: window, session: session)
+        try await verifyTrackChangePreservesMode(
+            model: fixture.model,
+            session: session
+        )
+    }
+
+    @MainActor
+    private func makeCaptureWindow(recorder: RhythmHitRecorder) -> NSWindow {
+        let rootView = Color.clear
+            .frame(width: 320, height: 240)
+            .overlay(alignment: .topLeading) {
+                RhythmKeyboardCapture(canActivateCadenceMode: true) { lane in
+                    recorder.pressedLanes.append(lane)
+                } onKeyUp: { lane in
+                    recorder.releasedLanes.append(lane)
+                }
+                .frame(width: 0, height: 0)
+            }
+        return makeWindow(
+            contentView: NSHostingView(rootView: rootView),
+            contentSize: NSSize(width: 320, height: 240),
+            styleMask: [.titled]
+        )
+    }
+
+    @MainActor
+    private func makeCadenceWindow(
+        model: CadenceAppModel,
+        session: CadenceModeSession
+    ) -> (NSWindow, NSView) {
         let contentSize = NSSize(width: 1200, height: 760)
         let hostingView = NSHostingView(
-            rootView: CadenceRootView(
-                model: fixture.model,
-                cadenceModeSession: session
-            )
-            .frame(width: contentSize.width, height: contentSize.height)
+            rootView: CadenceRootView(model: model, cadenceModeSession: session)
+                .frame(width: contentSize.width, height: contentSize.height)
         )
+        let window = makeWindow(
+            contentView: hostingView,
+            contentSize: contentSize,
+            styleMask: [.titled, .closable, .resizable]
+        )
+        return (window, hostingView)
+    }
+
+    @MainActor
+    private func makeWindow(
+        contentView: NSView,
+        contentSize: NSSize,
+        styleMask: NSWindow.StyleMask
+    ) -> NSWindow {
         let window = NSWindow(
             contentRect: NSRect(origin: .zero, size: contentSize),
-            styleMask: [.titled, .closable, .resizable],
+            styleMask: styleMask,
             backing: .buffered,
             defer: false
         )
         window.isReleasedWhenClosed = false
-        window.contentView = hostingView
+        window.contentView = contentView
         window.makeKeyAndOrderFront(nil)
-        defer {
-            window.orderOut(nil)
-            window.close()
-        }
+        return window
+    }
 
+    @MainActor
+    private func activateCadenceMode(
+        in window: NSWindow,
+        hostingView: NSView,
+        model: CadenceAppModel,
+        session: CadenceModeSession
+    ) async throws {
         try await Task.sleep(for: .milliseconds(80))
         window.makeFirstResponder(hostingView)
-        sendKey(
-            type: .keyDown,
-            keyCode: 6,
-            characters: "z",
-            to: window
-        )
-        sendKey(
-            type: .keyDown,
-            keyCode: 7,
-            characters: "x",
-            to: window
-        )
+        sendKey(type: .keyDown, keyCode: 6, characters: "z", to: window)
+        sendKey(type: .keyDown, keyCode: 7, characters: "x", to: window)
 
-        #expect(fixture.model.playbackWorkspace == .nowPlaying)
+        #expect(model.playbackWorkspace == .nowPlaying)
         #expect(session.activationIsPending)
         #expect(!session.isActive)
-
-        for _ in 0 ..< 20 where !session.isActive {
-            try await Task.sleep(for: .milliseconds(20))
-        }
-
-        #expect(fixture.model.playbackWorkspace == .nowPlaying)
+        try await waitUntil { session.isActive }
+        #expect(model.playbackWorkspace == .nowPlaying)
         #expect(session.isActive)
-        #expect(!fixture.model.isPlaying)
-        for _ in 0 ..< 20 where !session.pulseStore.hasAttachedCompositor {
-            try await Task.sleep(for: .milliseconds(10))
-        }
+        #expect(!model.isPlaying)
+        try await waitUntil { session.pulseStore.hasAttachedCompositor }
         #expect(session.pulseStore.hasAttachedCompositor)
+    }
 
-        sendKey(
-            type: .keyUp,
-            keyCode: 6,
-            characters: "z",
-            to: window
-        )
-        sendKey(
-            type: .keyUp,
-            keyCode: 7,
-            characters: "x",
-            to: window
-        )
-        sendKey(
-            type: .keyDown,
-            keyCode: 6,
-            characters: "z",
-            to: window
-        )
-        sendKey(
-            type: .keyUp,
-            keyCode: 6,
-            characters: "z",
-            to: window
-        )
+    @MainActor
+    private func verifyPulseEmission(
+        in window: NSWindow,
+        session: CadenceModeSession
+    ) async throws {
+        sendKey(type: .keyUp, keyCode: 6, characters: "z", to: window)
+        sendKey(type: .keyUp, keyCode: 7, characters: "x", to: window)
+        sendKey(type: .keyDown, keyCode: 6, characters: "z", to: window)
+        sendKey(type: .keyUp, keyCode: 6, characters: "z", to: window)
         try await Task.sleep(for: .milliseconds(40))
 
         #expect(!session.pulseStore.renderParticles.isEmpty)
         #expect(!session.pulseStore.renderWashes.isEmpty)
-        for _ in 0 ..< 20 where
-            session.pulseStore.visibleCompositorEffectCount == 0 {
-            try await Task.sleep(for: .milliseconds(10))
+        try await waitUntil {
+            session.pulseStore.visibleCompositorEffectCount > 0
         }
         #expect(session.pulseStore.visibleCompositorEffectCount > 0)
+    }
 
-        let previousTrackID = fixture.model.currentPlaybackTrack?.id
-        fixture.model.selectNextTrack()
-        for _ in 0 ..< 20 where
-            fixture.model.currentPlaybackTrack?.id == previousTrackID {
-            try await Task.sleep(for: .milliseconds(25))
-        }
+    @MainActor
+    private func verifyTrackChangePreservesMode(
+        model: CadenceAppModel,
+        session: CadenceModeSession
+    ) async throws {
+        let previousTrackID = model.currentPlaybackTrack?.id
+        model.selectNextTrack()
+        try await waitUntil { model.currentPlaybackTrack?.id != previousTrackID }
 
-        #expect(fixture.model.currentPlaybackTrack?.id != previousTrackID)
-        #expect(fixture.model.playbackWorkspace == .nowPlaying)
+        #expect(model.currentPlaybackTrack?.id != previousTrackID)
+        #expect(model.playbackWorkspace == .nowPlaying)
         #expect(session.isActive)
+    }
+
+    @MainActor
+    private func waitUntil(_ condition: () -> Bool) async throws {
+        for _ in 0 ..< 20 where !condition() {
+            try await Task.sleep(for: .milliseconds(20))
+        }
+    }
+
+    @MainActor
+    private func close(_ window: NSWindow) {
+        window.orderOut(nil)
+        window.close()
     }
 
     @MainActor

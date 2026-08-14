@@ -18,7 +18,6 @@ struct LyricsSearchMatch: Identifiable, Hashable, Sendable {
     let lineIndex: Int
     let timestamp: TimeInterval?
     let snippet: String
-    let score: Double
 }
 
 enum LyricsSearchIndexError: Error, Equatable, LocalizedError, Sendable {
@@ -310,10 +309,10 @@ private extension LyricsSearchIndex {
                 sql: """
                 SELECT track_id, line_index, timestamp,
                        highlight(lyrics_search_fts, 3, '<mark>', '</mark>') AS snippet,
-                       bm25(lyrics_search_fts) AS score
+                       bm25(lyrics_search_fts)
                 FROM lyrics_search_fts
                 WHERE lyrics_search_fts MATCH ?
-                ORDER BY score
+                ORDER BY bm25(lyrics_search_fts)
                 LIMIT ? OFFSET ?
                 """,
                 arguments: [expression, searchBatchSize, offset]
@@ -331,8 +330,7 @@ private extension LyricsSearchIndex {
                         trackID: trackID,
                         lineIndex: row["line_index"],
                         timestamp: row["timestamp"],
-                        snippet: row["snippet"],
-                        score: row["score"]
+                        snippet: row["snippet"]
                     )
                 )
                 if matches.count == limit {

@@ -150,7 +150,9 @@ struct PCMPlaybackBackendTests {
         #expect(backend.logicalStartTime == track.track.duration / 2)
         backend.stop()
     }
+}
 
+extension PCMPlaybackBackendTests {
     @Test("Pausing freezes the PCM timeline at the rendered position")
     func pauseFreezesRenderedPosition() {
         let backend = PCMPlaybackBackend()

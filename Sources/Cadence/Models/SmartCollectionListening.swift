@@ -17,18 +17,6 @@ enum SmartCollectionSortField: String, CaseIterable, Hashable, Identifiable, Sen
     var id: Self {
         self
     }
-
-    var title: String {
-        switch self {
-        case .canonical: "#"
-        case .title: String(localized: "Title")
-        case .artist: String(localized: "Artist")
-        case .album: String(localized: "Album")
-        case .year: String(localized: "Year")
-        case .format: String(localized: "Format")
-        case .duration: String(localized: "Time")
-        }
-    }
 }
 
 enum SmartCollectionSortDirection: Hashable, Sendable {

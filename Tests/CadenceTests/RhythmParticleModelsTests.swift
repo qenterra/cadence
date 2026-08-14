@@ -138,7 +138,9 @@ struct RhythmParticleModelsTests {
             )
         )
     }
+}
 
+struct RhythmParticleMotionTests {
     @Test("Particles keep moving after key release and settle into dust")
     func particlesContinueBallistically() throws {
         var simulation = RhythmParticleSimulation()

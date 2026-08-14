@@ -211,60 +211,17 @@ final class CadenceModeBackgroundView: NSView {
             return
         }
 
-        let primaryScale = CAKeyframeAnimation(keyPath: "transform.scale")
-        primaryScale.values = [1.02, 1.12, 1.05, 1.02]
-        primaryScale.keyTimes = [0, 0.36, 0.72, 1]
-        primaryScale.calculationMode = .cubic
-
-        let primaryPosition = CAKeyframeAnimation(keyPath: "position")
-        primaryPosition.values = [
-            CGPoint(x: bounds.width * 0.46, y: bounds.height * 0.48),
-            CGPoint(x: bounds.width * 0.56, y: bounds.height * 0.43),
-            CGPoint(x: bounds.width * 0.54, y: bounds.height * 0.56),
-            CGPoint(x: bounds.width * 0.44, y: bounds.height * 0.55),
-            CGPoint(x: bounds.width * 0.46, y: bounds.height * 0.48),
-        ]
-        primaryPosition.keyTimes = [0, 0.24, 0.52, 0.78, 1]
-        primaryPosition.calculationMode = .cubicPaced
-
-        let primaryAnimation = CAAnimationGroup()
-        primaryAnimation.animations = [
-            primaryScale,
-            primaryPosition,
-        ]
-        primaryAnimation.duration = appearance.animationDuration
-        primaryAnimation.repeatCount = .infinity
-        primaryAnimation.isRemovedOnCompletion = false
-        primaryAnimation.preferredFrameRateRange = preferredFrameRateRange
+        let animations = CadenceModeBackgroundAnimations.make(
+            in: bounds,
+            appearance: appearance,
+            frameRateRange: preferredFrameRateRange
+        )
         primaryGradientLayer.add(
-            primaryAnimation,
+            animations.primary,
             forKey: AnimationKey.primary
         )
-
-        let bloomPosition = CAKeyframeAnimation(keyPath: "position")
-        bloomPosition.values = [
-            CGPoint(x: bounds.width * 0.28, y: bounds.height * 0.34),
-            CGPoint(x: bounds.width * 0.72, y: bounds.height * 0.42),
-            CGPoint(x: bounds.width * 0.58, y: bounds.height * 0.74),
-            CGPoint(x: bounds.width * 0.24, y: bounds.height * 0.64),
-            CGPoint(x: bounds.width * 0.28, y: bounds.height * 0.34),
-        ]
-        bloomPosition.keyTimes = [0, 0.24, 0.52, 0.78, 1]
-        bloomPosition.calculationMode = .cubicPaced
-
-        let bloomScale = CAKeyframeAnimation(keyPath: "transform.scale")
-        bloomScale.values = [0.9, 1.16, 0.98, 0.9]
-        bloomScale.keyTimes = [0, 0.38, 0.73, 1]
-        bloomScale.calculationMode = .cubic
-
-        let bloomAnimation = CAAnimationGroup()
-        bloomAnimation.animations = [bloomPosition, bloomScale]
-        bloomAnimation.duration = appearance.animationDuration * 0.82
-        bloomAnimation.repeatCount = .infinity
-        bloomAnimation.isRemovedOnCompletion = false
-        bloomAnimation.preferredFrameRateRange = preferredFrameRateRange
         bloomGradientLayer.add(
-            bloomAnimation,
+            animations.bloom,
             forKey: AnimationKey.bloom
         )
     }
@@ -330,15 +287,6 @@ private extension RhythmPulseColor {
             red: red + (other.red - red) * clampedAmount,
             green: green + (other.green - green) * clampedAmount,
             blue: blue + (other.blue - blue) * clampedAmount
-        )
-    }
-
-    func cgColor(alpha: Double) -> CGColor {
-        CGColor(
-            red: red,
-            green: green,
-            blue: blue,
-            alpha: min(max(alpha, 0), 1)
         )
     }
 }

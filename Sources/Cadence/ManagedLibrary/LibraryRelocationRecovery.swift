@@ -1,13 +1,26 @@
 import Foundation
 
-struct LibraryRelocationRecoveryResult: Equatable, Sendable {
-    let recoveredOperationIDs: [UUID]
-    let cleanupFailures: [UUID]
+enum LibraryRelocationRecoveryError: Error, LocalizedError, Sendable {
+    case manifestReadFailed(URL, String)
+    case manifestDecodeFailed(URL, String)
+    case manifestDirectoryReadFailed(URL, String)
+    case unknownActiveLocation(UUID)
+    case cleanupFailed(UUID, URL, String)
 
-    static let empty = LibraryRelocationRecoveryResult(
-        recoveredOperationIDs: [],
-        cleanupFailures: []
-    )
+    var errorDescription: String? {
+        switch self {
+        case let .manifestReadFailed(url, message):
+            "Cadence could not read the library-move record at \(url.path): \(message)"
+        case let .manifestDecodeFailed(url, message):
+            "Cadence could not decode the library-move record at \(url.path): \(message)"
+        case let .manifestDirectoryReadFailed(url, message):
+            "Cadence could not inspect library-move records at \(url.path): \(message)"
+        case let .unknownActiveLocation(operationID):
+            "Library move \(operationID.uuidString) does not include the active library location."
+        case let .cleanupFailed(operationID, url, message):
+            "Library move \(operationID.uuidString) could not clean up \(url.path): \(message)"
+        }
+    }
 }
 
 actor LibraryRelocationRecovery {
@@ -19,49 +32,47 @@ actor LibraryRelocationRecovery {
 
     func recover(
         activeLocation: ManagedLibraryLocation
-    ) -> LibraryRelocationRecoveryResult {
-        let manifestURLs = candidateManifestURLs(
+    ) throws {
+        let manifestURLs = try candidateManifestURLs(
             activeLocation: activeLocation
         )
         var manifests: [UUID: LibraryRelocationManifest] = [:]
         for url in manifestURLs {
-            guard
-                let data = try? Data(contentsOf: url),
-                let manifest = try? JSONDecoder().decode(
-                    LibraryRelocationManifest.self,
-                    from: data
-                )
-            else {
-                continue
-            }
+            let manifest = try decodeManifest(at: url)
             manifests[manifest.operationID] = manifest
         }
-        guard !manifests.isEmpty else {
-            return .empty
-        }
-
-        var recovered: [UUID] = []
-        var failures: [UUID] = []
         for manifest in manifests.values {
-            if recover(
-                manifest,
-                activeLocation: activeLocation
-            ) {
-                recovered.append(manifest.operationID)
-            } else {
-                failures.append(manifest.operationID)
-            }
+            try recover(manifest, activeLocation: activeLocation)
         }
-        return LibraryRelocationRecoveryResult(
-            recoveredOperationIDs: recovered.sorted { $0.uuidString < $1.uuidString },
-            cleanupFailures: failures.sorted { $0.uuidString < $1.uuidString }
-        )
+    }
+
+    private func decodeManifest(at url: URL) throws -> LibraryRelocationManifest {
+        let data: Data
+        do {
+            data = try Data(contentsOf: url)
+        } catch {
+            throw LibraryRelocationRecoveryError.manifestReadFailed(
+                url,
+                error.localizedDescription
+            )
+        }
+        do {
+            return try JSONDecoder().decode(
+                LibraryRelocationManifest.self,
+                from: data
+            )
+        } catch {
+            throw LibraryRelocationRecoveryError.manifestDecodeFailed(
+                url,
+                error.localizedDescription
+            )
+        }
     }
 
     private func recover(
         _ manifest: LibraryRelocationManifest,
         activeLocation: ManagedLibraryLocation
-    ) -> Bool {
+    ) throws {
         let activePath = canonicalPath(activeLocation.packageURL)
         let sourceURL = URL(filePath: manifest.sourcePackagePath)
         let destinationURL = URL(filePath: manifest.destinationPackagePath)
@@ -80,62 +91,119 @@ actor LibraryRelocationRecovery {
             .appending(path: "\(manifest.operationID.uuidString).json")
 
         if fileManager.fileExists(atPath: stagingURL.path) {
-            try? fileManager.removeItem(at: stagingURL)
+            try removeItem(
+                at: stagingURL,
+                operationID: manifest.operationID
+            )
         }
 
-        let cleanupTarget: URL?
-        if activePath == destinationPath {
-            cleanupTarget = fileManager.fileExists(atPath: sourceURL.path)
-                ? sourceURL
-                : nil
-        } else if activePath == sourcePath {
-            cleanupTarget = fileManager.fileExists(atPath: destinationURL.path)
-                ? destinationURL
-                : nil
-        } else {
-            return false
+        if let cleanupTarget = try cleanupTarget(
+            activePath: activePath,
+            source: (url: sourceURL, path: sourcePath),
+            destination: (url: destinationURL, path: destinationPath),
+            operationID: manifest.operationID
+        ) {
+            try trash(cleanupTarget, operationID: manifest.operationID)
         }
+        try removeItemIfPresent(
+            at: destinationManifestURL,
+            operationID: manifest.operationID
+        )
+        try removeItemIfPresent(
+            at: sourceManifestURL,
+            operationID: manifest.operationID
+        )
+    }
 
-        if let cleanupTarget {
-            do {
-                var trashedURL: NSURL?
-                try fileManager.trashItem(
-                    at: cleanupTarget,
-                    resultingItemURL: &trashedURL
-                )
-            } catch {
-                return false
-            }
+    private func cleanupTarget(
+        activePath: String,
+        source: (url: URL, path: String),
+        destination: (url: URL, path: String),
+        operationID: UUID
+    ) throws -> URL? {
+        if activePath == destination.path {
+            return fileManager.fileExists(atPath: source.url.path)
+                ? source.url
+                : nil
         }
-        try? fileManager.removeItem(at: destinationManifestURL)
-        try? fileManager.removeItem(at: sourceManifestURL)
-        return true
+        if activePath == source.path {
+            return fileManager.fileExists(atPath: destination.url.path)
+                ? destination.url
+                : nil
+        }
+        throw LibraryRelocationRecoveryError.unknownActiveLocation(operationID)
+    }
+
+    private func trash(_ url: URL, operationID: UUID) throws {
+        do {
+            var trashedURL: NSURL?
+            try fileManager.trashItem(at: url, resultingItemURL: &trashedURL)
+        } catch {
+            throw LibraryRelocationRecoveryError.cleanupFailed(
+                operationID,
+                url,
+                error.localizedDescription
+            )
+        }
     }
 
     private func candidateManifestURLs(
         activeLocation: ManagedLibraryLocation
-    ) -> [URL] {
+    ) throws -> [URL] {
         let package = ManagedLibraryPackage(location: activeLocation)
         let sourceDirectory = package.stagingDirectoryURL.appending(
             path: "Relocations",
             directoryHint: .isDirectory
         )
-        let sourceManifests = (
-            try? fileManager.contentsOfDirectory(
-                at: sourceDirectory,
-                includingPropertiesForKeys: nil
-            )
-        ) ?? []
-        let parentManifests = (
-            try? fileManager.contentsOfDirectory(
-                at: activeLocation.musicDirectory,
-                includingPropertiesForKeys: nil
-            )
-        )?.filter {
+        let sourceManifests = try contentsIfPresent(
+            of: sourceDirectory
+        )
+        let parentManifests = try contentsIfPresent(
+            of: activeLocation.musicDirectory
+        ).filter {
             $0.lastPathComponent.hasPrefix(".Cadence-relocation-")
                 && $0.pathExtension == "json"
-        } ?? []
+        }
         return sourceManifests + parentManifests
+    }
+
+    private func contentsIfPresent(of directory: URL) throws -> [URL] {
+        guard fileManager.fileExists(atPath: directory.path) else {
+            return []
+        }
+        do {
+            return try fileManager.contentsOfDirectory(
+                at: directory,
+                includingPropertiesForKeys: nil
+            )
+        } catch {
+            throw LibraryRelocationRecoveryError.manifestDirectoryReadFailed(
+                directory,
+                error.localizedDescription
+            )
+        }
+    }
+
+    private func removeItemIfPresent(
+        at url: URL,
+        operationID: UUID
+    ) throws {
+        guard fileManager.fileExists(atPath: url.path) else {
+            return
+        }
+        try removeItem(at: url, operationID: operationID)
+    }
+
+    private func removeItem(at url: URL, operationID: UUID) throws {
+        do {
+            try fileManager.removeItem(at: url)
+        } catch {
+            throw LibraryRelocationRecoveryError.cleanupFailed(
+                operationID,
+                url,
+                error.localizedDescription
+            )
+        }
     }
 
     private func canonicalPath(

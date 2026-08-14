@@ -1,24 +1,6 @@
 import Foundation
 
 extension CadenceAppModel {
-    var tagEditingTitle: String {
-        guard let kind = tagEditingSelection.kind else {
-            return "Edit Tags"
-        }
-        if tagEditingSelection.count > 1 {
-            return "\(tagEditingSelection.count) \(kind.title)"
-        }
-
-        switch tagEditingSelection.primaryTarget {
-        case let .track(trackID):
-            return tracks.first { $0.id == trackID }?.title ?? "Track"
-        case let .album(albumID):
-            return albums.first { $0.id == albumID }?.title ?? "Album"
-        case nil:
-            return "Edit Tags"
-        }
-    }
-
     func updateTagEditingSelection(
         _ gesture: TagSelectionGesture,
         target: TagAssignmentTarget
@@ -79,37 +61,6 @@ extension CadenceAppModel {
             return
         }
         isTagInspectorPresented.toggle()
-    }
-
-    func inheritedTrackIDs(
-        for tagID: TagPreview.ID
-    ) -> [TrackPreview.ID] {
-        tagEditingSelection.targets.compactMap { target in
-            guard
-                case let .track(trackID) = target,
-                let track = tracks.first(where: { $0.id == trackID }),
-                tagMatchSource(for: track, tagID: tagID) == .inherited
-            else {
-                return nil
-            }
-            return trackID
-        }
-    }
-
-    func excludedTrackIDs(
-        for tagID: TagPreview.ID
-    ) -> [TrackPreview.ID] {
-        tagEditingSelection.targets.compactMap { target in
-            guard
-                case let .track(trackID) = target,
-                tagExclusions.contains(
-                    TagExclusionPreview(tagID: tagID, trackID: trackID)
-                )
-            else {
-                return nil
-            }
-            return trackID
-        }
     }
 
     @discardableResult

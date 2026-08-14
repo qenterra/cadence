@@ -9,7 +9,6 @@ extension ManagedLibraryImporter {
     ) async throws -> [ManagedImportManifest.Entry] {
         var nextIndex = 0
         var completedCount = 0
-        var copiedBytes: Int64 = 0
         var results: [Int: ManagedImportManifest.Entry] = [:]
 
         return try await withThrowingTaskGroup(
@@ -32,13 +31,11 @@ extension ManagedLibraryImporter {
             while let (index, entry) = try await group.next() {
                 results[index] = entry
                 completedCount += 1
-                copiedBytes += entry.sizeInBytes
                 await progress(
                     ManagedImportProgress(
                         phase: .copying,
                         completedCount: completedCount,
-                        totalCount: manifest.entries.count,
-                        copiedByteCount: copiedBytes
+                        totalCount: manifest.entries.count
                     )
                 )
                 if nextIndex < manifest.entries.count {

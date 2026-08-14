@@ -1,4 +1,5 @@
 import Foundation
+import OSLog
 
 actor RemoteMediaCache {
     private let rootURL: URL
@@ -12,7 +13,10 @@ actor RemoteMediaCache {
     private var pinnedIDs: Set<RemoteObjectID> = []
     private var inFlight: [RemoteObjectID: Task<URL, Error>] = [:]
     private var prefetchTasks: [RemoteObjectID: Task<Void, Never>] = [:]
-    private(set) var lastPrefetchFailure: String?
+    private let logger = Logger(
+        subsystem: AppConfiguration.bundleIdentifier,
+        category: "RemoteMediaCache"
+    )
 
     init(
         rootURL: URL,
@@ -90,11 +94,13 @@ actor RemoteMediaCache {
     ) async {
         do {
             _ = try await materialize(object, protectedFromEviction: false)
-            lastPrefetchFailure = nil
         } catch is CancellationError {
             // Cancellation is expected when the queue's prefetch target changes.
         } catch {
-            lastPrefetchFailure = error.localizedDescription
+            let description = error.localizedDescription
+            logger.error(
+                "Prefetch failed for \(object.id.rawValue, privacy: .private): \(description, privacy: .public)"
+            )
         }
     }
 

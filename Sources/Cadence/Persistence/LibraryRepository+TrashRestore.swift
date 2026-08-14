@@ -269,19 +269,7 @@ private extension LibraryRepository {
         artists: [UUID: ArtistRecord]
     ) throws {
         guard let snapshots, !snapshots.isEmpty else {
-            for track in restoredTracks.values {
-                guard let artist = track.artist else {
-                    continue
-                }
-                modelContext.insert(
-                    TrackArtistCreditRecord(
-                        track: track,
-                        artist: artist,
-                        position: 0,
-                        displayArtistName: artist.name
-                    )
-                )
-            }
+            restoreLegacyArtistCredits(tracks: restoredTracks.values)
             return
         }
 
@@ -324,6 +312,24 @@ private extension LibraryRepository {
             if snapshot.position == 0 {
                 track.artist = artist
             }
+        }
+    }
+
+    func restoreLegacyArtistCredits(
+        tracks: Dictionary<UUID, TrackRecord>.Values
+    ) {
+        for track in tracks {
+            guard let artist = track.artist else {
+                continue
+            }
+            modelContext.insert(
+                TrackArtistCreditRecord(
+                    track: track,
+                    artist: artist,
+                    position: 0,
+                    displayArtistName: artist.name
+                )
+            )
         }
     }
 }

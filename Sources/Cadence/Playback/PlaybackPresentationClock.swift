@@ -19,19 +19,6 @@ struct PlaybackPresentationClock: Sendable {
         rate = max(sample.rate, 0)
     }
 
-    mutating func freeze(
-        mediaTime: TimeInterval,
-        hostUptime: TimeInterval
-    ) {
-        update(
-            PlaybackTimelineSample(
-                mediaTime: mediaTime,
-                hostUptime: hostUptime,
-                rate: 0
-            )
-        )
-    }
-
     func time(
         atHostUptime hostUptime: TimeInterval,
         duration: TimeInterval

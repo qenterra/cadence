@@ -156,13 +156,6 @@ extension LibraryStore {
         return try await catalogLookupClient.artistTracks(artistID)
     }
 
-    func albums(artistID: UUID) async throws -> [LibraryAlbumProjection] {
-        guard let catalogLookupClient else {
-            throw CatalogLookupError.unavailable
-        }
-        return try await catalogLookupClient.artistAlbums(artistID)
-    }
-
     func artistReleaseSections(
         artistID: UUID
     ) async throws -> ArtistReleaseSections {

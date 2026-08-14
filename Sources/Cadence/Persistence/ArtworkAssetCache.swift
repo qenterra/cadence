@@ -84,12 +84,6 @@ final class ArtworkAssetCache {
         }
     }
 
-    func removeAll() {
-        entries.removeAll(keepingCapacity: true)
-        recency.removeAll(keepingCapacity: true)
-        totalCost = 0
-    }
-
     private func touch(_ key: Key) {
         recency.removeAll { $0 == key }
         recency.append(key)

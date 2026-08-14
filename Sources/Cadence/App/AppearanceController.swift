@@ -21,14 +21,6 @@ final class AppearanceController {
         }
     }
 
-    func refreshOpenSurfaces(
-        application: NSApplication = .shared
-    ) {
-        for window in allWindows(startingAt: application.windows) {
-            refresh(view: window.contentView)
-        }
-    }
-
     private func allWindows(
         startingAt roots: [NSWindow]
     ) -> [NSWindow] {

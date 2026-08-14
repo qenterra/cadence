@@ -1,10 +1,6 @@
 import Foundation
 
 extension LibraryStore {
-    var canLoadMoreFavoriteTracks: Bool {
-        favoriteTrackCursor != nil
-    }
-
     var canLoadMoreFavoriteArtists: Bool {
         favoriteArtistCursor != nil
     }

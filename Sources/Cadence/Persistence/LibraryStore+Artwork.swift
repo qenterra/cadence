@@ -9,13 +9,7 @@ extension LibraryStore {
         guard let repository, let location else {
             return nil
         }
-        let projection: ManagedArtworkProjection?
-        do {
-            projection = try await repository.artwork(id: id)
-        } catch {
-            return nil
-        }
-        guard let artwork = projection else {
+        guard let artwork = await artworkProjection(id: id, repository: repository) else {
             return nil
         }
         if let cached = artworkAssetCache.asset(
@@ -25,10 +19,10 @@ extension LibraryStore {
         ) {
             return cached
         }
-        let url: URL
-        do {
-            url = try location.resolve(relativePath: artwork.relativePath)
-        } catch {
+        guard let url = resolvedArtworkURL(
+            relativePath: artwork.relativePath,
+            location: location
+        ) else {
             return nil
         }
         let key = ArtworkAssetCache.Key(
@@ -57,6 +51,28 @@ extension LibraryStore {
         )
         artworkAssetCache.insert(asset, variant: variant)
         return asset
+    }
+
+    private func artworkProjection(
+        id: UUID,
+        repository: LibraryRepository
+    ) async -> ManagedArtworkProjection? {
+        do {
+            return try await repository.artwork(id: id)
+        } catch {
+            return nil
+        }
+    }
+
+    private func resolvedArtworkURL(
+        relativePath: String,
+        location: ManagedLibraryLocation
+    ) -> URL? {
+        do {
+            return try location.resolve(relativePath: relativePath)
+        } catch {
+            return nil
+        }
     }
 
     private func artworkData(

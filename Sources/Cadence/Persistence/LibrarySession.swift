@@ -201,10 +201,6 @@ final class LibrarySession {
         }
     }
 
-    func finishRecoveryWithoutLibrary() {
-        availability = .empty
-    }
-
     func fail(
         kind: LibrarySessionFailure.Kind = .recoveryFailed,
         message: String

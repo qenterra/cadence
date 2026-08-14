@@ -184,15 +184,11 @@ extension CadenceAppModel {
             allAlbumsSortDescriptor: allAlbumsSortDescriptor,
             albumShelfSortDescriptors: albumShelfSortDescriptors,
             albumSearchQuery: albumSearchQuery,
-            albumsOverviewScrollAnchor: albumsOverviewScrollAnchor,
-            albumGridScrollAnchors: albumGridScrollAnchors,
             albumsFocusedAlbumID: albumsFocusedAlbumID,
             artistsPresentation: artistsPresentation,
             allArtistsSortDescriptor: allArtistsSortDescriptor,
             artistShelfSortDescriptors: artistShelfSortDescriptors,
             artistSearchQuery: artistSearchQuery,
-            artistsOverviewScrollAnchor: artistsOverviewScrollAnchor,
-            artistGridScrollAnchors: artistGridScrollAnchors,
             artistsFocusedArtistID: artistsFocusedArtistID,
             selectedTagGroupID: selectedTagGroupID,
             selectedTagID: selectedTagID,
@@ -233,16 +229,12 @@ extension CadenceAppModel {
         allAlbumsSortDescriptor = snapshot.allAlbumsSortDescriptor
         albumShelfSortDescriptors = snapshot.albumShelfSortDescriptors
         albumSearchQuery = snapshot.albumSearchQuery
-        albumsOverviewScrollAnchor = snapshot.albumsOverviewScrollAnchor
-        albumGridScrollAnchors = snapshot.albumGridScrollAnchors
         albumsFocusedAlbumID = snapshot.albumsFocusedAlbumID
 
         artistsPresentation = snapshot.artistsPresentation
         allArtistsSortDescriptor = snapshot.allArtistsSortDescriptor
         artistShelfSortDescriptors = snapshot.artistShelfSortDescriptors
         artistSearchQuery = snapshot.artistSearchQuery
-        artistsOverviewScrollAnchor = snapshot.artistsOverviewScrollAnchor
-        artistGridScrollAnchors = snapshot.artistGridScrollAnchors
         artistsFocusedArtistID = snapshot.artistsFocusedArtistID
 
         selectedTagGroupID = snapshot.selectedTagGroupID

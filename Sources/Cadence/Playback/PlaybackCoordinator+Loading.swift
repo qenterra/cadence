@@ -21,39 +21,12 @@ extension PlaybackCoordinator {
         let generation = beginLoading()
 
         do {
-            let prepared = try await prepareLoad(currentID: currentID)
-            guard generation == loadGeneration else {
-                return false
-            }
-            backends.values
-                .filter { $0.kind != prepared.backend.kind }
-                .forEach { $0.stop() }
-            stage(
-                prepared,
-                startTime: startTime
-            )
-            let request = PlaybackBackendLoadRequest(
-                current: prepared.current,
-                next: repeatMode == .one ? nil : prepared.next,
+            return try await performLoad(
+                currentID: currentID,
                 startTime: startTime,
                 autoplay: autoplay,
-                volume: volume
-            )
-            try await loadVerified(
-                prepared.backend,
-                request: request,
                 generation: generation
             )
-            guard generation == loadGeneration else {
-                prepared.backend.stop()
-                return false
-            }
-            commit(
-                prepared,
-                startTime: startTime,
-                autoplay: autoplay
-            )
-            return true
         } catch {
             guard generation == loadGeneration else {
                 return false
@@ -66,6 +39,40 @@ extension PlaybackCoordinator {
             }
             return false
         }
+    }
+
+    private func performLoad(
+        currentID: UUID,
+        startTime: TimeInterval,
+        autoplay: Bool,
+        generation: Int
+    ) async throws -> Bool {
+        let prepared = try await prepareLoad(currentID: currentID)
+        guard generation == loadGeneration else {
+            return false
+        }
+        backends.values
+            .filter { $0.kind != prepared.backend.kind }
+            .forEach { $0.stop() }
+        stage(prepared, startTime: startTime)
+        let request = PlaybackBackendLoadRequest(
+            current: prepared.current,
+            next: repeatMode == .one ? nil : prepared.next,
+            startTime: startTime,
+            autoplay: autoplay,
+            volume: volume
+        )
+        try await loadVerified(
+            prepared.backend,
+            request: request,
+            generation: generation
+        )
+        guard generation == loadGeneration else {
+            prepared.backend.stop()
+            return false
+        }
+        commit(prepared, startTime: startTime, autoplay: autoplay)
+        return true
     }
 
     private func loadVerified(

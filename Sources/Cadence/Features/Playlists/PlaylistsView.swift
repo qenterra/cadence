@@ -4,7 +4,7 @@ struct PlaylistsView: View {
     @Bindable var model: CadenceAppModel
     @Bindable var store: LibraryStore
 
-    @State private var playlistNameOperation: PlaylistNameOperation?
+    @State var playlistNameOperation: PlaylistNameOperation?
     @State private var isDeletingPlaylist = false
     @State private var playlistName = ""
     @AppStorage("playlists.sidebarWidth")
@@ -205,44 +205,8 @@ private extension PlaylistsView {
         _ playlist: LibraryPlaylistProjection
     ) -> some View {
         HStack(spacing: 11) {
-            Button {
-                Task {
-                    await store.selectPlaylist(playlist.id)
-                }
-            } label: {
-                HStack(spacing: 11) {
-                    ProductionArtworkView(
-                        model: model,
-                        artworkID: playlist.customArtworkID,
-                        title: playlist.name,
-                        placeholder: .playlist,
-                        cornerRadius: CadenceTheme.radiusControl
-                    )
-                    .frame(width: 28, height: 28)
-
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text(playlist.name)
-                            .foregroundStyle(.primary)
-                            .lineLimit(1)
-                        Text("\(playlist.trackCount) tracks")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-
-                    Spacer(minLength: 0)
-                }
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-
-            Menu {
-                playlistActions(playlist)
-            } label: {
-                Image(systemName: "ellipsis")
-                    .frame(width: 26, height: 26)
-            }
-            .menuIndicator(.hidden)
-            .menuStyle(.borderlessButton)
+            playlistSelectionButton(playlist)
+            playlistActionMenu(playlist)
         }
         .padding(.horizontal, 10)
         .frame(height: WorkspaceLayout.rowHeight)
@@ -264,6 +228,52 @@ private extension PlaylistsView {
         .contextMenu {
             playlistActions(playlist)
         }
+    }
+
+    private func playlistSelectionButton(
+        _ playlist: LibraryPlaylistProjection
+    ) -> some View {
+        Button {
+            Task {
+                await store.selectPlaylist(playlist.id)
+            }
+        } label: {
+            HStack(spacing: 11) {
+                ProductionArtworkView(
+                    model: model,
+                    artworkID: playlist.customArtworkID,
+                    title: playlist.name,
+                    placeholder: .playlist,
+                    cornerRadius: CadenceTheme.radiusControl
+                )
+                .frame(width: 28, height: 28)
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(playlist.name)
+                        .foregroundStyle(.primary)
+                        .lineLimit(1)
+                    Text("\(playlist.trackCount) tracks")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer(minLength: 0)
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func playlistActionMenu(
+        _ playlist: LibraryPlaylistProjection
+    ) -> some View {
+        Menu {
+            playlistActions(playlist)
+        } label: {
+            Image(systemName: "ellipsis")
+                .frame(width: 26, height: 26)
+        }
+        .menuIndicator(.hidden)
+        .menuStyle(.borderlessButton)
     }
 
     private func playlistHeader(
@@ -324,39 +334,6 @@ private extension PlaylistsView {
         }
     }
 
-    private func playlistPlaybackButtons(
-        _ playlist: LibraryPlaylistProjection
-    ) -> some View {
-        HStack {
-            Button("Play", systemImage: "play.fill") {
-                playPlaylist(playlist, shuffled: false)
-            }
-            .buttonStyle(.borderedProminent)
-
-            Button("Shuffle", systemImage: "shuffle") {
-                playPlaylist(playlist, shuffled: true)
-            }
-        }
-    }
-
-    private func playPlaylist(
-        _ playlist: LibraryPlaylistProjection,
-        shuffled: Bool
-    ) {
-        let tracks = store.selectedPlaylistTracks
-        guard
-            let first = shuffled ? tracks.randomElement() : tracks.first
-        else {
-            return
-        }
-        model.playProductionTrack(
-            first,
-            within: tracks,
-            source: .playlist(playlist.id),
-            isShuffled: shuffled
-        )
-    }
-
     @ViewBuilder
     private func playlistActions(
         _ playlist: LibraryPlaylistProjection
@@ -393,54 +370,6 @@ private extension PlaylistsView {
                 await store.selectPlaylist(playlist.id)
                 isDeletingPlaylist = true
             }
-        }
-    }
-
-    private var selectedPlaylist: LibraryPlaylistProjection? {
-        guard let id = store.selectedPlaylistID else {
-            return nil
-        }
-        return store.playlists.first { $0.id == id }
-    }
-
-    private var playlistNameOperationPresented: Binding<Bool> {
-        Binding(
-            get: { playlistNameOperation != nil },
-            set: { isPresented in
-                if !isPresented {
-                    playlistNameOperation = nil
-                }
-            }
-        )
-    }
-
-    private func timeText(
-        _ duration: TimeInterval
-    ) -> String {
-        let seconds = max(Int(duration.rounded()), 0)
-        return String(format: "%d:%02d", seconds / 60, seconds % 60)
-    }
-}
-
-private enum PlaylistNameOperation {
-    case create
-    case rename
-
-    var title: String {
-        switch self {
-        case .create:
-            String(localized: "New Playlist")
-        case .rename:
-            String(localized: "Rename Playlist")
-        }
-    }
-
-    var actionTitle: String {
-        switch self {
-        case .create:
-            String(localized: "Create")
-        case .rename:
-            String(localized: "Rename")
         }
     }
 }

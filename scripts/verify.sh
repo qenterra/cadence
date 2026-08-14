@@ -82,6 +82,9 @@ DEVELOPER_DIR="$developer_dir" \
     "$project_root/scripts/verify_localization.sh" \
     "$project_root/.build/DerivedData"
 
+DEVELOPER_DIR="$developer_dir" \
+    "$project_root/scripts/verify_periphery.sh"
+
 app_bundle="$project_root/.build/DerivedData/Build/Products/Debug/Cadence.app"
 info_plist="$app_bundle/Contents/Info.plist"
 icon_file="$app_bundle/Contents/Resources/Cadence.icns"

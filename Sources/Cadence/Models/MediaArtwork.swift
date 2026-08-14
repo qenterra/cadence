@@ -153,20 +153,6 @@ enum ResolvedArtworkSource: Hashable, Sendable {
     case custom(ArtworkAsset)
     case catalog(ArtworkPalette)
     case placeholder(ArtworkPlaceholder)
-
-    var palette: ArtworkPalette? {
-        guard case let .catalog(palette) = self else {
-            return nil
-        }
-        return palette
-    }
-
-    var isPlaceholder: Bool {
-        if case .placeholder = self {
-            return true
-        }
-        return false
-    }
 }
 
 @MainActor

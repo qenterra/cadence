@@ -43,11 +43,31 @@ struct ManagedImportRepositoryTests {
                 == [1, 1]
         )
 
+        try await verifyArtistBrowsing(
+            repository: repository,
+            artists: artists,
+            albums: albums,
+            trackID: entry.trackID
+        )
+
+        let albumID = try #require(albums.first?.id)
+        let albumProjection = try #require(
+            try await repository.album(id: albumID)
+        )
+        #expect(albumProjection.artist == "madkid, темный принц")
+    }
+
+    private func verifyArtistBrowsing(
+        repository: LibraryRepository,
+        artists: [ArtistRecord],
+        albums: [AlbumRecord],
+        trackID: UUID
+    ) async throws {
         for artist in artists {
             let page = try await repository.tracksPage(
                 query: LibraryTrackQuery(scope: .artist(artist.id))
             )
-            #expect(page.items.map(\.id) == [entry.trackID])
+            #expect(page.items.map(\.id) == [trackID])
             #expect(page.items.map(\.artist) == ["madkid, темный принц"])
             #expect(
                 try await repository.albums(artistID: artist.id).map(\.id)
@@ -56,15 +76,9 @@ struct ManagedImportRepositoryTests {
             #expect(try await repository.artist(id: artist.id)?.albumCount == 1)
             #expect(
                 try await repository.playlistTrackIDs(artistID: artist.id)
-                    == [entry.trackID]
+                    == [trackID]
             )
         }
-
-        let albumID = try #require(albums.first?.id)
-        let albumProjection = try #require(
-            try await repository.album(id: albumID)
-        )
-        #expect(albumProjection.artist == "madkid, темный принц")
     }
 
     @Test("A manifest commits one import session and reuses artist and album")

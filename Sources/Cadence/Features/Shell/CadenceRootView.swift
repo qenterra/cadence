@@ -4,7 +4,7 @@ struct CadenceRootView: View {
     @Environment(\.visualRegressionUsesStableSystemControls)
     private var usesStableSystemControls
     @Bindable var model: CadenceAppModel
-    @State private var isSearchPresented = false
+    @State var isSearchPresented = false
     @State private var cadenceModeSession: CadenceModeSession
 
     init(
@@ -355,127 +355,6 @@ private extension CadenceRootView {
             case .trash:
                 ProductionTrashView(model: model)
             }
-        }
-    }
-
-    private var supportsSearch: Bool {
-        switch model.selectedDestination {
-        case .home, .library, .allTracks, .albums, .artists, .favorites, .tags,
-             .smartCollections, .playlists:
-            true
-        case .importMusic, .trash:
-            false
-        }
-    }
-
-    private var activeSearchQuery: String {
-        model.librarySession.store.catalogSearchQuery
-    }
-
-    private var searchHelp: String {
-        "Search Library"
-    }
-
-    private var shouldPresentProductionSearch: Bool {
-        supportsSearch
-            && (isSearchPresented
-                || !SearchNormalizer.normalize(activeSearchQuery).isEmpty)
-    }
-
-    private var productionSearchBinding: Binding<String> {
-        Binding(
-            get: {
-                model.librarySession.store.catalogSearchQuery
-            },
-            set: { query in
-                Task {
-                    await model.librarySession.store.searchCatalog(query)
-                }
-            }
-        )
-    }
-
-    private var activeSearchBinding: Binding<String> {
-        productionSearchBinding
-    }
-
-    private func dismissSearch() {
-        isSearchPresented = false
-        model.librarySession.store.clearCatalogSearch()
-    }
-
-    private var libraryDeletionPresented: Binding<Bool> {
-        Binding(
-            get: { model.pendingLibraryDeletion != nil },
-            set: {
-                if !$0 {
-                    model.cancelLibraryDeletion()
-                }
-            }
-        )
-    }
-
-    private var libraryOperationErrorPresented: Binding<Bool> {
-        Binding(
-            get: { model.libraryOperationError != nil },
-            set: {
-                if !$0 {
-                    model.dismissLibraryOperationError()
-                }
-            }
-        )
-    }
-
-    private var storeOperationFailurePresented: Binding<Bool> {
-        Binding(
-            get: { model.librarySession.store.operationFailure != nil },
-            set: {
-                if !$0 {
-                    model.librarySession.store.dismissOperationFailure()
-                }
-            }
-        )
-    }
-
-    private var externalAudioErrorPresented: Binding<Bool> {
-        Binding(
-            get: { model.externalAudioOpenError != nil },
-            set: {
-                if !$0 {
-                    model.externalAudioOpenError = nil
-                }
-            }
-        )
-    }
-
-    private var externalAudioNoticePresented: Binding<Bool> {
-        Binding(
-            get: { model.externalAudioNotice != nil },
-            set: {
-                if !$0 {
-                    model.externalAudioNotice = nil
-                }
-            }
-        )
-    }
-}
-
-private struct CadenceSearchModifier: ViewModifier {
-    let isEnabled: Bool
-    @Binding var text: String
-    @Binding var isPresented: Bool
-    let prompt: String
-
-    func body(content: Content) -> some View {
-        if isEnabled {
-            content.searchable(
-                text: $text,
-                isPresented: $isPresented,
-                placement: .toolbar,
-                prompt: Text(prompt)
-            )
-        } else {
-            content
         }
     }
 }

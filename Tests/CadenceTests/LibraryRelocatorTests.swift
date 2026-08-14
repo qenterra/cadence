@@ -73,6 +73,34 @@ struct LibraryRelocatorTests {
         #expect(try Data(contentsOf: marker) == Data("keep".utf8))
     }
 
+    @Test("Recovery reports a corrupt relocation manifest")
+    func corruptRecoveryManifest() async throws {
+        let root = try temporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let location = ManagedLibraryLocation(musicDirectory: root)
+        let package = ManagedLibraryPackage(location: location)
+        try package.bootstrapForConfirmedImport()
+        let relocationDirectory = package.stagingDirectoryURL.appending(
+            path: "Relocations",
+            directoryHint: .isDirectory
+        )
+        try FileManager.default.createDirectory(
+            at: relocationDirectory,
+            withIntermediateDirectories: true
+        )
+        let manifestURL = relocationDirectory.appending(
+            path: "corrupt.json",
+            directoryHint: .notDirectory
+        )
+        try Data("not json".utf8).write(to: manifestURL)
+
+        await #expect(throws: LibraryRelocationRecoveryError.self) {
+            try await LibraryRelocationRecovery().recover(
+                activeLocation: location
+            )
+        }
+    }
+
     private func temporaryDirectory() throws -> URL {
         let url = FileManager.default.temporaryDirectory.appending(
             path: "Cadence-Relocation-\(UUID().uuidString)",

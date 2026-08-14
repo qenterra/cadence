@@ -50,18 +50,6 @@ extension CadenceAppModel {
         }
     }
 
-    func trackCount(for tag: TagPreview) -> Int {
-        tracks.filter { track in
-            tagMatchSource(for: track, tagID: tag.id) != nil
-        }.count
-    }
-
-    func albumCount(for tag: TagPreview) -> Int {
-        albums.filter { album in
-            albumMatchSource(for: album, tagID: tag.id) != nil
-        }.count
-    }
-
     func effectiveTags(for track: TrackPreview) -> [TagPreview] {
         let direct = tagIDs(assignedTo: .track(track.id))
         let excluded = Set(

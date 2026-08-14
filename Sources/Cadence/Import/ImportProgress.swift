@@ -27,18 +27,14 @@ struct ImportProgress: Equatable, Sendable {
     let phase: ImportProgressPhase
     let completedCount: Int
     let totalCount: Int
-    let copiedByteCount: Int64
-
     init(
         phase: ImportProgressPhase,
         completedCount: Int,
-        totalCount: Int,
-        copiedByteCount: Int64 = 0
+        totalCount: Int
     ) {
         self.phase = phase
         self.completedCount = max(completedCount, 0)
         self.totalCount = max(totalCount, 0)
-        self.copiedByteCount = max(copiedByteCount, 0)
     }
 
     static let empty = ImportProgress(

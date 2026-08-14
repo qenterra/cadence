@@ -163,11 +163,6 @@ final class PlaybackCoordinator {
         }
     }
 
-    func cycleRepeatMode() {
-        repeatMode = repeatMode.next
-        publishState()
-    }
-
     func setShuffleEnabled(_ enabled: Bool) {
         guard var queue = state.queue,
               let currentTrackID = queue.currentTrackID

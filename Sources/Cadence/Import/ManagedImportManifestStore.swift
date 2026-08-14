@@ -49,24 +49,16 @@ struct ManagedImportManifestStore: Sendable {
                 try (directory.resourceValues(
                     forKeys: [.isDirectoryKey]
                 ).isDirectory) == true,
-                UUID(uuidString: directory.lastPathComponent) != nil
+                let importID = UUID(uuidString: directory.lastPathComponent)
             else {
                 return nil
             }
-            let manifestURL = directory.appending(
-                path: Self.filename,
-                directoryHint: .notDirectory
-            )
-            guard fileManager.fileExists(atPath: manifestURL.path) else {
+            guard fileManager.fileExists(
+                atPath: manifestURL(importID: importID).path
+            ) else {
                 return nil
             }
-            let data = try Data(contentsOf: manifestURL)
-            let decoder = JSONDecoder()
-            decoder.dateDecodingStrategy = .millisecondsSince1970
-            return try decoder.decode(
-                ManagedImportManifest.self,
-                from: data
-            ).validated()
+            return try load(importID: importID)
         }
         .sorted { $0.createdAt < $1.createdAt }
     }

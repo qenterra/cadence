@@ -5,6 +5,25 @@ import Testing
 
 @MainActor
 struct ProductionPlaybackAppModelTests {
+    @Test("Repeat control mutates the production coordinator")
+    func productionRepeatControl() {
+        let coordinator = makePlaybackCoordinator(
+            resolver: PlaybackTestResolver(tracks: []),
+            backends: [PlaybackTestBackend(kind: .pcm)]
+        )
+        let model = CadenceAppModel(
+            runtimeEnvironment: .production,
+            importRuntimeAvailability: .unavailable("Not used by this test."),
+            librarySession: .preview(),
+            playbackCoordinator: coordinator
+        )
+
+        model.cycleRepeatMode()
+
+        #expect(coordinator.repeatMode == .all)
+        #expect(model.repeatMode == .all)
+    }
+
     @Test("Mute restores the last audible volume")
     func muteToggleRestoresVolume() {
         let model = CadenceAppModel.testFixture()

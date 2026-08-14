@@ -1,46 +1,6 @@
 import Foundation
 
 extension CadenceAppModel {
-    func openTagEditor(for album: AlbumPreview) {
-        guard albums.contains(where: { $0.id == album.id }) else {
-            return
-        }
-        contextualNavigationHistory.removeAll()
-
-        let assignedTags = assignedTags(for: album)
-        let anchorTag = assignedTags.first {
-            $0.id == selectedTagID
-        } ?? assignedTags.first
-        let target = TagAssignmentTarget.album(album.id)
-
-        selectedDestination = .tags
-        selectedTagGroupID = .all
-        selectedTagID = anchorTag?.id
-        tagResultScope = .albums
-        tagEditingSelection.apply(
-            .replace,
-            target: target,
-            canonicalOrder: [target]
-        )
-        isLibraryTagEditingContext = true
-        selectAlbum(album)
-        isTagInspectorPresented = true
-    }
-
-    func openTagsDestination(selecting tag: TagPreview) {
-        guard tags.contains(where: { $0.id == tag.id }) else {
-            return
-        }
-        contextualNavigationHistory.removeAll()
-        clearTagEditingSelection()
-        selectedDestination = .tags
-        selectedTagGroupID = tag.groupID
-        selectedTagID = tag.id
-        tagResultScope = .tracks
-        isTagInspectorPresented = false
-        isLibraryTagEditingContext = false
-    }
-
     func openTagEditor(for track: TrackPreview) {
         guard tracks.contains(where: { $0.id == track.id }) else {
             return

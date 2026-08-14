@@ -25,10 +25,6 @@ struct ManagedLibraryPackage: Sendable {
         directoryURL("Lyrics")
     }
 
-    var artworkDirectoryURL: URL {
-        directoryURL("Artwork")
-    }
-
     var artworkOriginalDirectoryURL: URL {
         directoryURL("Artwork/Original")
     }
