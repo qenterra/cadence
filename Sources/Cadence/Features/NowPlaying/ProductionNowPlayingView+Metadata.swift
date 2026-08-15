@@ -103,7 +103,7 @@ extension ProductionNowPlayingView {
 
     var externalFileNotice: some View {
         VStack(alignment: .leading, spacing: 5) {
-            Label("Playing external file", systemImage: "doc.badge.play")
+            Label("Playing external file", systemImage: "play.rectangle")
                 .font(.caption.weight(.semibold))
             Text("This track is not in your library. Add it only if you want to keep it there.")
                 .font(.caption)

@@ -1802,12 +1802,12 @@
         }
       }
     },
-    "Created by %@": {
+    "Created by": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Автор: %@"
+            "value": "Автор"
           }
         }
       }
@@ -2448,16 +2448,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Избранные треки"
-          }
-        }
-      }
-    },
-    "Favorite Type": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Тип избранного"
           }
         }
       }
@@ -3660,22 +3650,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "ОК"
-          }
-        }
-      }
-    },
-    "Open %@ by %@": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "Open %1$@ by %2$@"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Открыть %@ — %@"
           }
         }
       }
@@ -6114,12 +6088,22 @@
         }
       }
     },
-    "© 2026 %@": {
+    "Choose a playlist to view its tracks.": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "© 2026 %@"
+            "value": "Выберите плейлист, чтобы посмотреть его треки."
+          }
+        }
+      }
+    },
+    "Type": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Тип"
           }
         }
       }

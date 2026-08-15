@@ -117,16 +117,11 @@ struct LyricDocument: Hashable, Sendable {
     }
 
     func activeLine(at time: TimeInterval) -> LyricLine? {
-        guard timingStatus == .synchronized else {
+        guard let lineID = SynchronizedLyricTimeline(document: self)
+            .activeLineID(at: time) else {
             return nil
         }
-
-        return lines.last { line in
-            guard let startTime = line.startTime else {
-                return false
-            }
-            return startTime <= time
-        }
+        return lines.first { $0.id == lineID }
     }
 
     func replacingText(
@@ -203,6 +198,39 @@ struct LyricDocument: Hashable, Sendable {
                 omittingEmptySubsequences: false
             )
             .map { LyricLine(text: String($0)) }
+    }
+}
+
+struct SynchronizedLyricTimeline: Sendable {
+    private let entries: [(time: TimeInterval, id: LyricLine.ID)]
+
+    init(document: LyricDocument) {
+        let contentLines = document.lines.filter { !$0.isBlank }
+        guard !contentLines.isEmpty,
+              contentLines.allSatisfy({ $0.startTime != nil }) else {
+            entries = []
+            return
+        }
+        entries = contentLines.compactMap { line in
+            line.startTime.map { (time: $0, id: line.id) }
+        }
+    }
+
+    func activeLineID(at time: TimeInterval) -> LyricLine.ID? {
+        var lower = 0
+        var upper = entries.count
+        while lower < upper {
+            let middle = lower + (upper - lower) / 2
+            if entries[middle].time <= time {
+                lower = middle + 1
+            } else {
+                upper = middle
+            }
+        }
+        guard lower > 0 else {
+            return nil
+        }
+        return entries[lower - 1].id
     }
 }
 

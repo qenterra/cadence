@@ -53,36 +53,36 @@ struct SettingsAboutSection: View {
     }
 
     private var creatorCard: some View {
-        Link(destination: AppConfiguration.creatorURL) {
-            HStack(spacing: CadenceLayout.contentGap) {
-                SettingsAboutSymbol(symbol: "person.crop.circle")
+        HStack(spacing: CadenceLayout.contentGap) {
+            SettingsAboutSymbol(symbol: "music.note.house")
 
-                VStack(alignment: .leading, spacing: CadenceLayout.textStack) {
-                    Text("Created by \(AppConfiguration.creatorName)")
-                        .font(.body.weight(.medium))
-                        .foregroundStyle(.primary)
-                    Text("© 2026 \(AppConfiguration.creatorName)")
-                        .font(.callout)
-                        .foregroundStyle(.tertiary)
-                }
+            VStack(alignment: .leading, spacing: CadenceLayout.textStack) {
+                Text("Created by")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+                Text(AppConfiguration.creatorName)
+                    .font(.body.weight(.medium))
+                    .foregroundStyle(.primary)
+            }
 
-                Spacer()
+            Spacer()
 
+            VStack(alignment: .trailing, spacing: CadenceLayout.textStack) {
+                Text("Cadence")
+                    .font(.body.weight(.medium))
                 Text("Version \(appVersion)")
-                    .font(.callout.weight(.medium))
+                    .font(.callout)
                     .foregroundStyle(.secondary)
             }
-            .padding(.horizontal, CadenceLayout.contentGap)
-            .frame(minHeight: 76)
-            .background(CadenceTheme.secondarySurface)
-            .clipShape(RoundedRectangle(cornerRadius: CadenceTheme.radiusPanel))
-            .overlay {
-                RoundedRectangle(cornerRadius: CadenceTheme.radiusPanel)
-                    .strokeBorder(CadenceTheme.separator, lineWidth: 0.5)
-            }
-            .contentShape(RoundedRectangle(cornerRadius: CadenceTheme.radiusPanel))
         }
-        .buttonStyle(.plain)
+        .padding(.horizontal, CadenceLayout.contentGap)
+        .frame(minHeight: 84)
+        .background(CadenceTheme.secondarySurface)
+        .clipShape(RoundedRectangle(cornerRadius: CadenceTheme.radiusPanel))
+        .overlay {
+            RoundedRectangle(cornerRadius: CadenceTheme.radiusPanel)
+                .strokeBorder(CadenceTheme.separator, lineWidth: 0.5)
+        }
     }
 
     private var appVersion: String {

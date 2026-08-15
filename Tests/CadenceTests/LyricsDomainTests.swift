@@ -62,6 +62,20 @@ struct LyricsDomainTests {
         #expect(lyrics.activeLine(at: 999)?.id == third.id)
     }
 
+    @Test("Compiled lyric timeline keeps exact timestamp boundaries")
+    func compiledTimelineLookup() {
+        let lyrics = document(
+            texts: ["First", "Second", "Third"],
+            times: [4, 8, 12]
+        )
+        let timeline = SynchronizedLyricTimeline(document: lyrics)
+
+        #expect(timeline.activeLineID(at: 3.99) == nil)
+        #expect(timeline.activeLineID(at: 4) == lyrics.lines[0].id)
+        #expect(timeline.activeLineID(at: 11.99) == lyrics.lines[1].id)
+        #expect(timeline.activeLineID(at: 12) == lyrics.lines[2].id)
+    }
+
     @Test("Timestamp validation allows missing stanza times and reports exact rows")
     func validation() {
         let lyrics = document(

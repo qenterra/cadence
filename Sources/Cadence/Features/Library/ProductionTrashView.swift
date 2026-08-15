@@ -110,17 +110,18 @@ struct ProductionTrashView: View {
                 .frame(width: 36, height: 36)
                 .background(CadenceTheme.subduedFill, in: Circle())
             VStack(alignment: .leading, spacing: 3) {
-                Text(operation.targetKind.title)
+                Text(operation.displayTitle)
                     .font(.body.weight(.medium))
-                Text(
-                    "\(operation.itemCount) tracks · "
-                        + operation.createdAt.formatted(
-                            date: .abbreviated,
-                            time: .shortened
-                        )
-                )
-                .font(.caption)
-                .foregroundStyle(.secondary)
+                Text([
+                    operation.displaySubtitle,
+                    "\(operation.itemCount) tracks",
+                    operation.createdAt.formatted(
+                        date: .abbreviated,
+                        time: .shortened
+                    ),
+                ].compactMap(\.self).joined(separator: " · "))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
             Spacer()
             Button("Restore") {
@@ -144,14 +145,6 @@ struct ProductionTrashView: View {
 }
 
 private extension TrashTargetKind {
-    var title: String {
-        switch self {
-        case .track: String(localized: "Removed Track")
-        case .album: String(localized: "Removed Album")
-        case .artist: String(localized: "Removed Artist")
-        }
-    }
-
     var symbolName: String {
         switch self {
         case .track: "music.note"

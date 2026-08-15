@@ -6,6 +6,27 @@ import Testing
 
 @MainActor
 struct DocumentationScreenshotTests {
+    @Test("Screenshot preferences cannot mutate the live navigation profile")
+    func navigationPreferencesAreIsolated() {
+        let key = "navigationRail.expanded"
+        let liveDefaults = UserDefaults.standard
+        let previousValue = liveDefaults.object(forKey: key)
+        defer {
+            if let previousValue {
+                liveDefaults.set(previousValue, forKey: key)
+            } else {
+                liveDefaults.removeObject(forKey: key)
+            }
+        }
+
+        liveDefaults.set(false, forKey: key)
+        let preferences = NavigationScreenshotPreferences(isExpanded: true)
+        preferences.install()
+        defer { preferences.restore() }
+
+        #expect(liveDefaults.bool(forKey: key) == false)
+    }
+
     @Test("Album capture cannot complete while album content is loading")
     func albumCaptureRequiresSemanticReadiness() async throws {
         let fixture = try await DocumentationScreenshotFixture.make()

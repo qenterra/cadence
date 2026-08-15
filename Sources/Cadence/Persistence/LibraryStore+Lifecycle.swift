@@ -25,6 +25,7 @@ extension LibraryStore {
         package: ManagedLibraryPackage? = nil
     ) {
         mode = .production
+        managedPackage = package
         self.repository = repository
         playlistClient = LibraryPlaylistClient(repository: repository)
         catalogLookupClient = LibraryCatalogLookupClient(
@@ -68,6 +69,7 @@ extension LibraryStore {
         allTracksWindow = nil
         lyricsService = nil
         artworkService = nil
+        managedPackage = nil
         lyricsSearchIndexer = nil
         artworkDataLoads.values.forEach { $0.cancel() }
         artworkDataLoads.removeAll()
@@ -133,7 +135,9 @@ private extension LibraryStore {
         async let favoriteAlbums = repository.favoriteAlbumsPage()
         async let tags = repository.tagsPage()
         async let counts = repository.catalogCounts()
-        async let trash = repository.trashOperations()
+        async let trash = repository.trashOperations(
+            location: managedPackage?.location
+        )
         return try await InitialLibrarySnapshot(
             tracks: tracks,
             favoriteTracks: favoriteTracks,

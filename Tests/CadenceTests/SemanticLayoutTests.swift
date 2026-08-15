@@ -28,13 +28,13 @@ struct SemanticLayoutTests {
         #expect(TrackTableColumnPolicy.columnSpacing == CadenceLayout.controlGap)
     }
 
-    @Test("Home uses artwork cards and a compact text fallback")
+    @Test("Home uses one artwork-card presentation even without custom artwork")
     func homeTilePresentation() {
         #expect(HomeTilePresentation.resolve(hasArtwork: true) == .artworkCard)
-        #expect(HomeTilePresentation.resolve(hasArtwork: false) == .textRow)
+        #expect(HomeTilePresentation.resolve(hasArtwork: false) == .artworkCard)
         #expect(HomeLayoutMetrics.titleLineLimit == 2)
         #expect(HomeLayoutMetrics.subtitleLineLimit == 1)
-        #expect(HomeLayoutMetrics.textRowHeight < HomeLayoutMetrics.artworkCardHeight)
+        #expect(HomeLayoutMetrics.artworkCardHeight < 264)
     }
 
     @Test("Primary layout regions use bounded semantic metrics")

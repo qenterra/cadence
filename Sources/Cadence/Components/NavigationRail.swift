@@ -49,6 +49,7 @@ struct NavigationRail: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @FocusState private var focusedDestination: NavigationDestination?
     @State private var hoveredDestination: NavigationDestination?
+    @State private var activationCounts: [NavigationDestination: Int] = [:]
     @AppStorage("navigationRail.expanded")
     private var isExpanded = NavigationRailConfiguration.defaultIsExpanded
     @AppStorage("navigationRail.order")
@@ -62,10 +63,9 @@ struct NavigationRail: View {
 
             Spacer(minLength: CadenceLayout.controlGap)
 
-            Divider()
-                .padding(.horizontal, NavigationRailMetrics.rowInset)
-
-            railButton(.trash)
+            ForEach(bottomDestinations) { destination in
+                railButton(destination)
+            }
         }
         .frame(
             width: NavigationRailMetrics.contentWidth(
@@ -90,8 +90,8 @@ struct NavigationRail: View {
             expansionButton
                 .padding(.bottom, CadenceLayout.controlGap)
 
-            ForEach(primarySections) { section in
-                navigationSection(section)
+            ForEach(primaryDestinations) { destination in
+                railButton(destination)
             }
         }
     }
@@ -103,26 +103,19 @@ struct NavigationRail: View {
         )
     }
 
-    private func navigationSection(
-        _ section: NavigationRailSection
-    ) -> some View {
-        VStack(alignment: .leading, spacing: CadenceLayout.textStack) {
-            if isExpanded {
-                Text(section.group.title)
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.tertiary)
-                    .padding(.horizontal, NavigationRailMetrics.rowInset)
-                    .frame(height: NavigationRailMetrics.sectionHeaderHeight)
-                    .accessibilityAddTraits(.isHeader)
-            }
+    private var primaryDestinations: [NavigationDestination] {
+        NavigationRailConfiguration.visibleDestinations(
+            orderRawValue: orderRawValue,
+            hiddenRawValue: hiddenRawValue
+        ).filter { $0 != .importMusic }
+    }
 
-            ForEach(section.destinations) { destination in
-                railButton(destination)
-            }
-        }
-        .padding(.bottom, NavigationRailMetrics.sectionSpacing)
-        .accessibilityElement(children: .contain)
-        .accessibilityLabel(section.group.title)
+    private var bottomDestinations: [NavigationDestination] {
+        let visible = NavigationRailConfiguration.visibleDestinations(
+            orderRawValue: orderRawValue,
+            hiddenRawValue: hiddenRawValue
+        )
+        return (visible.contains(.importMusic) ? [.importMusic] : []) + [.trash]
     }
 
     private var expansionButton: some View {
@@ -163,11 +156,15 @@ struct NavigationRail: View {
         )
 
         return Button {
+            activationCounts[destination, default: 0] &+= 1
             selection = destination
         } label: {
             railLabel(
                 systemName: destination.symbolName,
-                title: destination.title
+                title: destination.title,
+                animationValue: reduceMotion
+                    ? 0
+                    : activationCounts[destination, default: 0]
             )
             .foregroundStyle(isSelected ? .primary : .secondary)
             .background {
@@ -198,14 +195,16 @@ struct NavigationRail: View {
     private func railLabel(
         systemName: String,
         title: String,
-        animatesSymbolReplacement: Bool = false
+        animatesSymbolReplacement: Bool = false,
+        animationValue: Int = 0
     ) -> some View {
         Group {
             if isExpanded {
                 HStack(spacing: CadenceLayout.controlGap) {
                     railIcon(
                         systemName,
-                        animatesSymbolReplacement: animatesSymbolReplacement
+                        animatesSymbolReplacement: animatesSymbolReplacement,
+                        animationValue: animationValue
                     )
                     Text(title)
                         .font(.callout.weight(.medium))
@@ -217,7 +216,8 @@ struct NavigationRail: View {
             } else {
                 railIcon(
                     systemName,
-                    animatesSymbolReplacement: animatesSymbolReplacement
+                    animatesSymbolReplacement: animatesSymbolReplacement,
+                    animationValue: animationValue
                 )
                 .frame(maxWidth: .infinity)
             }
@@ -231,7 +231,8 @@ struct NavigationRail: View {
 
     private func railIcon(
         _ systemName: String,
-        animatesSymbolReplacement: Bool
+        animatesSymbolReplacement: Bool,
+        animationValue: Int
     ) -> some View {
         Group {
             if animatesSymbolReplacement {
@@ -239,6 +240,7 @@ struct NavigationRail: View {
                     .contentTransition(.symbolEffect(.replace))
             } else {
                 Image(systemName: systemName)
+                    .symbolEffect(.bounce, value: animationValue)
             }
         }
         .font(.system(size: 15, weight: .medium))
@@ -258,8 +260,6 @@ enum NavigationRailMetrics {
     static let rowInset = CadenceLayout.compactGap
     static let rowHeight = CadenceLayout.rowHeight
     static let iconSlotWidth: CGFloat = 32
-    static let sectionHeaderHeight: CGFloat = 20
-    static let sectionSpacing = CadenceLayout.controlGap
 
     static func totalWidth(isExpanded: Bool) -> CGFloat {
         isExpanded ? expandedWidth : collapsedWidth

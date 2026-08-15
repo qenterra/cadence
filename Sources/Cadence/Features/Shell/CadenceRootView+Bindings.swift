@@ -2,13 +2,7 @@ import SwiftUI
 
 extension CadenceRootView {
     var supportsSearch: Bool {
-        switch model.selectedDestination {
-        case .home, .library, .allTracks, .albums, .artists, .favorites, .tags,
-             .smartCollections, .playlists:
-            true
-        case .importMusic, .trash:
-            false
-        }
+        true
     }
 
     var activeSearchQuery: String {

@@ -2,18 +2,16 @@ import SwiftUI
 
 enum HomeTilePresentation: Equatable, Sendable {
     case artworkCard
-    case textRow
 
-    static func resolve(hasArtwork: Bool) -> Self {
-        hasArtwork ? .artworkCard : .textRow
+    static func resolve(hasArtwork _: Bool) -> Self {
+        .artworkCard
     }
 }
 
 enum HomeLayoutMetrics {
-    static let minimumCardWidth: CGFloat = 176
-    static let maximumCardWidth: CGFloat = 220
-    static let artworkCardHeight: CGFloat = 264
-    static let textRowHeight = CadenceLayout.comfortableRowHeight
+    static let minimumCardWidth: CGFloat = 156
+    static let maximumCardWidth: CGFloat = 196
+    static let artworkCardHeight: CGFloat = 236
     static let titleLineLimit = 2
     static let subtitleLineLimit = 1
 }
@@ -195,6 +193,10 @@ struct HomeTrackTile: View {
             artworkID: track.artworkID,
             placeholder: .track,
             accessorySymbol: "play.fill",
+            activationTarget: CatalogActivationTarget(
+                kind: .track,
+                id: track.id
+            ),
             accessibilityLabel: "Play \(track.title) by \(track.artist)"
         ) {
             model.playProductionTrack(
@@ -206,30 +208,13 @@ struct HomeTrackTile: View {
     }
 }
 
-struct HomeAlbumTile: View {
-    @Bindable var model: CadenceAppModel
-    let album: LibraryAlbumProjection
-    var body: some View {
-        HomeMediaTile(
-            model: model,
-            title: album.title,
-            subtitle: album.artist.isEmpty ? "Album" : album.artist,
-            artworkID: album.customArtworkID,
-            placeholder: .album,
-            accessorySymbol: "chevron.right",
-            accessibilityLabel: "Open \(album.title) by \(album.artist)"
-        ) {
-            model.requestOpenProductionAlbumContextually(id: album.id)
-        }
-    }
-}
-
 struct HomeDestinationTile: View {
     @Bindable var model: CadenceAppModel
     let title: String
     let subtitle: String
     let artworkID: UUID?
     let placeholder: ArtworkPlaceholder
+    let activationTarget: CatalogActivationTarget
     let action: () -> Void
 
     var body: some View {
@@ -240,6 +225,7 @@ struct HomeDestinationTile: View {
             artworkID: artworkID,
             placeholder: placeholder,
             accessorySymbol: "chevron.right",
+            activationTarget: activationTarget,
             accessibilityLabel: "Open \(title), \(subtitle)",
             action: action
         )
@@ -253,22 +239,19 @@ private struct HomeMediaTile: View {
     let artworkID: UUID?
     let placeholder: ArtworkPlaceholder
     let accessorySymbol: String
+    let activationTarget: CatalogActivationTarget
     let accessibilityLabel: LocalizedStringKey
     let action: () -> Void
     @State private var isHovered = false
 
-    private var presentation: HomeTilePresentation {
-        HomeTilePresentation.resolve(hasArtwork: artworkID != nil)
-    }
-
     var body: some View {
-        Button(action: action) {
-            switch presentation {
-            case .artworkCard:
-                artworkCard
-            case .textRow:
-                textRow
+        Button {
+            guard model.requestCatalogActivation(activationTarget) else {
+                return
             }
+            action()
+        } label: {
+            artworkCard
         }
         .buttonStyle(CadenceRowButtonStyle())
         .onHover { isHovered = $0 }
@@ -300,29 +283,14 @@ private struct HomeMediaTile: View {
             alignment: .topLeading
         )
         .background(
-            isHovered ? CadenceTheme.hoverFill : .clear,
+            model.catalogActivationSelection.selected == activationTarget
+                ? CadenceTheme.selectionFill
+                : (isHovered ? CadenceTheme.hoverFill : .clear),
             in: RoundedRectangle(
                 cornerRadius: CadenceTheme.radiusGroup,
                 style: .continuous
             )
         )
-    }
-
-    private var textRow: some View {
-        labels
-            .padding(.horizontal, CadenceLayout.controlGap)
-            .frame(
-                maxWidth: .infinity,
-                minHeight: HomeLayoutMetrics.textRowHeight,
-                alignment: .leading
-            )
-            .background(
-                isHovered ? CadenceTheme.hoverFill : CadenceTheme.subduedFill,
-                in: RoundedRectangle(
-                    cornerRadius: CadenceTheme.radiusGroup,
-                    style: .continuous
-                )
-            )
     }
 
     private var labels: some View {

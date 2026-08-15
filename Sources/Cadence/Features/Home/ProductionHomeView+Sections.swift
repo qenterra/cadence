@@ -64,21 +64,19 @@ extension ProductionHomeView {
                     }
 
                     ForEach(albums) { album in
-                        HomeAlbumTile(model: model, album: album)
+                        ProductionAlbumTile(
+                            model: model,
+                            store: store,
+                            album: album
+                        )
                     }
 
                     ForEach(artists) { artist in
-                        HomeDestinationTile(
+                        ProductionArtistTile(
                             model: model,
-                            title: artist.name,
-                            subtitle: "Artist",
-                            artworkID: artist.customArtworkID,
-                            placeholder: .artist
-                        ) {
-                            model.requestOpenProductionArtistContextually(
-                                id: artist.id
-                            )
-                        }
+                            store: store,
+                            artist: artist
+                        )
                     }
                 }
             }
@@ -102,20 +100,18 @@ extension ProductionHomeView {
             HomeShelf(title: "Quick Access") {
                 HomeCompactGrid {
                     ForEach(albums) { album in
-                        HomeAlbumTile(model: model, album: album)
+                        ProductionAlbumTile(
+                            model: model,
+                            store: store,
+                            album: album
+                        )
                     }
                     ForEach(artists) { artist in
-                        HomeDestinationTile(
+                        ProductionArtistTile(
                             model: model,
-                            title: artist.name,
-                            subtitle: "Artist",
-                            artworkID: artist.customArtworkID,
-                            placeholder: .artist
-                        ) {
-                            model.requestOpenProductionArtistContextually(
-                                id: artist.id
-                            )
-                        }
+                            store: store,
+                            artist: artist
+                        )
                     }
                     ForEach(playlists) { playlist in
                         HomeDestinationTile(
@@ -123,7 +119,11 @@ extension ProductionHomeView {
                             title: playlist.name,
                             subtitle: "\(playlist.trackCount) tracks",
                             artworkID: playlist.customArtworkID,
-                            placeholder: .playlist
+                            placeholder: .playlist,
+                            activationTarget: CatalogActivationTarget(
+                                kind: .playlist,
+                                id: playlist.id
+                            )
                         ) {
                             model.requestNavigationDestination(.playlists)
                             Task { await store.selectPlaylist(playlist.id) }
@@ -135,7 +135,11 @@ extension ProductionHomeView {
                             title: collection.name,
                             subtitle: "Smart Collection",
                             artworkID: collection.customArtworkID,
-                            placeholder: .smartCollection
+                            placeholder: .smartCollection,
+                            activationTarget: CatalogActivationTarget(
+                                kind: .smartCollection,
+                                id: collection.id
+                            )
                         ) {
                             model.requestNavigationDestination(.smartCollections)
                             model.requestSelectSmartCollection(collection.id)

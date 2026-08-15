@@ -102,6 +102,7 @@ private extension PlaylistsView {
                         }
                     }
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if store.playlists.isEmpty {
                 ContentUnavailableView(
                     "No Playlists",
@@ -110,6 +111,7 @@ private extension PlaylistsView {
                         "Create a playlist, then add music from any track menu."
                     )
                 )
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 ScrollView(.vertical) {
                     LazyVStack(spacing: 2) {
@@ -151,6 +153,7 @@ private extension PlaylistsView {
                             }
                         }
                     }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else if store.selectedPlaylistTracks.isEmpty {
                     ContentUnavailableView(
                         "Empty Playlist",
@@ -159,6 +162,7 @@ private extension PlaylistsView {
                             "Add tracks, albums, or artists from their ••• menu."
                         )
                     )
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     ProductionTrackTable(
                         model: model,
@@ -174,30 +178,16 @@ private extension PlaylistsView {
                             }
                         }
                     )
-                    .padding(.horizontal, 28)
                     .padding(.bottom, 24)
                 }
             }
         } else {
-            VStack(alignment: .leading, spacing: 28) {
-                CadencePageHeader(
-                    "Playlists",
-                    subtitle: "Choose a playlist to view its tracks."
-                )
-
-                ContentUnavailableView(
-                    "Choose a Playlist",
-                    systemImage: "music.note.list"
-                )
-                .frame(maxWidth: .infinity)
-                .padding(.top, 28)
-            }
-            .padding(WorkspaceLayout.pageInset)
-            .frame(
-                maxWidth: .infinity,
-                maxHeight: .infinity,
-                alignment: .topLeading
+            ContentUnavailableView(
+                "Choose a Playlist",
+                systemImage: "music.note.list",
+                description: Text("Choose a playlist to view its tracks.")
             )
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
     }
 
@@ -219,11 +209,15 @@ private extension PlaylistsView {
         }
         .contentShape(Rectangle())
         .onTapGesture(count: 2) {
-            Task {
-                await store.selectPlaylist(playlist.id)
-                playlistName = playlist.name
-                playlistNameOperation = .rename
+            guard store.selectedPlaylistID == playlist.id,
+                  let first = store.selectedPlaylistTracks.first else {
+                return
             }
+            model.playProductionTrack(
+                first,
+                within: store.selectedPlaylistTracks,
+                source: .playlist(playlist.id)
+            )
         }
         .contextMenu {
             playlistActions(playlist)

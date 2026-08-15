@@ -115,7 +115,8 @@ private struct SmartCollectionListRow: View {
                 guard !item.isTransient else {
                     return
                 }
-                model.requestRenameSmartCollection(item.id)
+                model.requestSelectSmartCollection(item.id)
+                model.playSelectedProductionSmartCollection()
             }
         )
         .contextMenu {

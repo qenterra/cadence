@@ -8,6 +8,7 @@ struct ProductionLyricsPanel: View {
     @State private var document: LyricDocument?
     @State private var editingLineID: LyricLine.ID?
     @State private var editingText = ""
+    @State private var activeLineID: LyricLine.ID?
     @FocusState private var focusedEditingLineID: LyricLine.ID?
 
     var body: some View {
@@ -37,7 +38,7 @@ struct ProductionLyricsPanel: View {
             Group {
                 if model.isCurrentPlaybackExternal {
                     ContentUnavailableView {
-                        Label("External File", systemImage: "doc.badge.play")
+                        Label("External File", systemImage: "play.rectangle")
                     } description: {
                         Text("Lyrics editing is available after you add the track to your library.")
                     } actions: {
@@ -46,19 +47,19 @@ struct ProductionLyricsPanel: View {
                         }
                     }
                 } else if let document {
-                    if document.timingStatus == .unsynchronized {
-                        lyrics(
-                            document,
-                            presentationTime: 0
-                        )
-                    } else {
-                        TimelineView(.periodic(from: .now, by: 0.1)) { _ in
-                            lyrics(
-                                document,
-                                presentationTime: model.playbackPresentationTime()
-                            )
+                    lyrics(document, activeLineID: activeLineID)
+                        .overlay {
+                            if document.timingStatus == .synchronized {
+                                PlaybackLyricActiveLineObserver(
+                                    model: model,
+                                    document: document
+                                ) { lineID in
+                                    activeLineID = lineID
+                                }
+                                .allowsHitTesting(false)
+                                .accessibilityHidden(true)
+                            }
                         }
-                    }
                 } else {
                     ContentUnavailableView {
                         Label("No Lyrics", systemImage: "quote.bubble")
@@ -79,6 +80,11 @@ struct ProductionLyricsPanel: View {
                 return
             }
             document = await model.loadProductionLyrics(for: track)
+            activeLineID = document.flatMap {
+                SynchronizedLyricTimeline(document: $0).activeLineID(
+                    at: model.playbackPresentationTime()
+                )
+            }
             editingLineID = nil
             focusedEditingLineID = nil
         }
@@ -86,14 +92,9 @@ struct ProductionLyricsPanel: View {
 
     private func lyrics(
         _ document: LyricDocument,
-        presentationTime: TimeInterval
+        activeLineID: LyricLine.ID?
     ) -> some View {
-        let currentLineID = activeLineID(
-            in: document,
-            presentationTime: presentationTime
-        )
-
-        return ScrollViewReader { proxy in
+        ScrollViewReader { proxy in
             ScrollView(.vertical) {
                 LazyVStack(alignment: .leading, spacing: 18) {
                     ForEach(document.lines) { line in
@@ -102,7 +103,7 @@ struct ProductionLyricsPanel: View {
                         } else {
                             lyricLine(
                                 line,
-                                isActive: currentLineID == line.id
+                                isActive: activeLineID == line.id
                             )
                             .id(line.id)
                         }
@@ -113,7 +114,7 @@ struct ProductionLyricsPanel: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
             .onChange(
-                of: currentLineID,
+                of: activeLineID,
                 initial: true
             ) { _, lineID in
                 guard let lineID else {
@@ -206,22 +207,24 @@ struct ProductionLyricsPanel: View {
         focusedEditingLineID = nil
         editingText = ""
     }
+}
 
-    private func activeLine(
-        in document: LyricDocument,
-        presentationTime: TimeInterval
-    ) -> LyricLine? {
-        document.activeLine(at: presentationTime)
-    }
+struct PlaybackLyricActiveLineObserver: View {
+    @Bindable var model: CadenceAppModel
+    let document: LyricDocument
+    let update: (LyricLine.ID?) -> Void
 
-    private func activeLineID(
-        in document: LyricDocument,
-        presentationTime: TimeInterval
-    ) -> LyricLine.ID? {
-        activeLine(
-            in: document,
-            presentationTime: presentationTime
-        )?.id
+    var body: some View {
+        let timeline = SynchronizedLyricTimeline(document: document)
+        TimelineView(.animation(minimumInterval: 1.0 / 120.0, paused: false)) { _ in
+            let lineID = timeline.activeLineID(
+                at: model.playbackPresentationTime()
+            )
+            Color.clear
+                .onChange(of: lineID, initial: true) { _, lineID in
+                    update(lineID)
+                }
+        }
     }
 }
 

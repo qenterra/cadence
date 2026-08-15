@@ -92,6 +92,21 @@ struct TrackPageWindow<Element> {
         return nil
     }
 
+    mutating func replace(
+        where predicate: (Element) -> Bool,
+        with replacement: Element
+    ) -> Bool {
+        for page in pages.keys {
+            guard let offset = pages[page]?.firstIndex(where: predicate) else {
+                continue
+            }
+            pages[page]?[offset] = replacement
+            touch(page)
+            return true
+        }
+        return false
+    }
+
     private mutating func touch(_ page: Int) {
         recency.removeAll { $0 == page }
         recency.append(page)
@@ -230,6 +245,13 @@ final class LibraryTrackWindow {
             where: { $0.id == trackID },
             pageSize: pageSize
         )
+    }
+
+    func replace(_ track: LibraryTrackProjection) {
+        guard pages.replace(where: { $0.id == track.id }, with: track) else {
+            return
+        }
+        revision &+= 1
     }
 
     func load(

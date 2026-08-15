@@ -67,7 +67,6 @@ struct SmartCollectionResultsColumn: View {
             queueSource: selectedProductionQueueSource,
             onReachEnd: loadNextProductionPage
         )
-        .padding(.horizontal, 14)
         .padding(.bottom, 16)
     }
 

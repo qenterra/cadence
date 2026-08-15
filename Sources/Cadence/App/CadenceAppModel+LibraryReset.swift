@@ -25,10 +25,11 @@ extension CadenceAppModel {
                 location: location
             )
             do {
-                let activation = try locationController.prepareActivation(
-                    parentURL: location.musicDirectory,
-                    identity: prepared.identity
-                )
+                let activation = try locationController
+                    .prepareReplacementForCurrentLocation(
+                        parentURL: location.musicDirectory,
+                        identity: prepared.identity
+                    )
                 do {
                     try await activateLibrary(at: location)
                     try locationController.commit(activation)

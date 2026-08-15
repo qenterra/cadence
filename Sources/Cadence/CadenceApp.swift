@@ -224,20 +224,41 @@ struct CadenceSettingsWindow: View {
     }
 
     var body: some View {
-        TabView(selection: $selection) {
-            ForEach(CadenceSettingsTab.allCases) { tab in
-                ProductionSettingsView(
-                    model: model,
-                    tab: tab,
-                    updateController: updateController
-                )
-                .tabItem {
-                    Label(tab.title, systemImage: tab.symbolName)
+        VStack(spacing: 0) {
+            HStack(spacing: CadenceLayout.compactGap) {
+                ForEach(CadenceSettingsTab.allCases) { tab in
+                    Button {
+                        selection = tab
+                    } label: {
+                        VStack(spacing: CadenceLayout.textStack) {
+                            Image(systemName: tab.symbolName)
+                                .font(.system(size: 17, weight: .medium))
+                                .frame(width: 24, height: 22)
+                            Text(tab.title)
+                                .font(.caption)
+                                .lineLimit(1)
+                        }
+                        .foregroundStyle(selection == tab ? .primary : .secondary)
+                        .frame(minWidth: 76, minHeight: 54)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityValue(selection == tab ? "Selected" : "")
                 }
-                .tag(tab)
             }
+            .frame(maxWidth: .infinity)
+            .padding(.horizontal, CadenceLayout.contentGap)
+            .padding(.vertical, CadenceLayout.compactGap)
+
+            CadenceSeparator()
+
+            ProductionSettingsView(
+                model: model,
+                tab: selection,
+                updateController: updateController
+            )
         }
-        .frame(width: 760, height: 640, alignment: .topLeading)
+        .frame(width: 760, height: 640, alignment: .top)
         .task(id: selection) {
             await Task.yield()
             NSApp.keyWindow?.title = "Settings"

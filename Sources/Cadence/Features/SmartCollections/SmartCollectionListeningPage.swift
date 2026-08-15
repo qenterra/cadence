@@ -24,7 +24,6 @@ struct SmartCollectionListeningPage: View {
                         queueSource: selectedProductionQueueSource,
                         onReachEnd: loadNextProductionPage
                     )
-                    .padding(.horizontal, 24)
                     .padding(.bottom, 24)
                 }
             }

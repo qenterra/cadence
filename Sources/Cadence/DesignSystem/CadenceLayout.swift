@@ -15,6 +15,5 @@ enum CadenceLayout {
     static let sectionGap = CGFloat(QDS.Space.value8)
 
     static let rowHeight = CGFloat(QDS.Size.rowStandard)
-    static let comfortableRowHeight = CGFloat(QDS.Size.rowComfortable)
     static let readableContentWidth = CGFloat(QDS.Size.contentReadable)
 }

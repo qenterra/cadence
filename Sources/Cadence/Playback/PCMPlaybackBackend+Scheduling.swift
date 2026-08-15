@@ -1,5 +1,30 @@
+import AudioToolbox
 import AVFAudio
 import Foundation
+
+enum PCMGainAutomation {
+    static let silenceDecibels: Float = -96
+
+    static func decibels(for scalar: Float) -> Float {
+        let scalar = min(max(scalar, 0), 1)
+        guard scalar > 0 else {
+            return silenceDecibels
+        }
+        return max(20 * log10(scalar), silenceDecibels)
+    }
+
+    static func frameCount(
+        duration: Duration,
+        sampleRate: Double
+    ) -> AUAudioFrameCount {
+        let components = duration.components
+        let seconds = Double(components.seconds)
+            + Double(components.attoseconds) / 1e18
+        return AUAudioFrameCount(
+            min(max(seconds * sampleRate, 0), Double(UInt32.max))
+        )
+    }
+}
 
 struct PCMPlaybackStartTracker {
     let generation: Int
@@ -229,14 +254,36 @@ extension PCMPlaybackBackend {
     }
 
     func applyGain(
-        duration _: Duration
+        duration: Duration
     ) {
         playerNode.volume = 1
         let targetScalar = min(
             max(userVolume * presentationGain, 0),
             1
         )
-        engine.mainMixerNode.outputVolume = targetScalar
+        engine.mainMixerNode.outputVolume = 1
+        let targetDecibels = PCMGainAutomation.decibels(
+            for: targetScalar
+        )
+        let frameCount = PCMGainAutomation.frameCount(
+            duration: duration,
+            sampleRate: max(engine.outputNode.outputFormat(forBus: 0).sampleRate, 1)
+        )
+        guard engine.isRunning, frameCount > 0,
+              let parameter = gainUnit.auAudioUnit.parameterTree?
+              .allParameters.first(where: {
+                  $0.identifier.localizedCaseInsensitiveContains("gain")
+              })
+        else {
+            gainUnit.globalGain = targetDecibels
+            return
+        }
+        gainUnit.auAudioUnit.scheduleParameterBlock(
+            AUEventSampleTimeImmediate,
+            frameCount,
+            parameter.address,
+            targetDecibels
+        )
     }
 
     func startProgressUpdates() {

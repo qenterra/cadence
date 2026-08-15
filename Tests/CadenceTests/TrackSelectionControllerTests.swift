@@ -4,6 +4,22 @@ import Testing
 
 @MainActor
 struct TrackSelectionControllerTests {
+    @Test("Catalog items select on first click and activate on the second")
+    func catalogActivationSelection() {
+        let album = CatalogActivationTarget(kind: .album, id: UUID())
+        let artist = CatalogActivationTarget(kind: .artist, id: UUID())
+        var selection = CatalogActivationSelection()
+
+        let firstAlbumClickActivates = selection.request(album)
+        #expect(!firstAlbumClickActivates)
+        #expect(selection.selected == album)
+        let secondAlbumClickActivates = selection.request(album)
+        #expect(secondAlbumClickActivates)
+        let firstArtistClickActivates = selection.request(artist)
+        #expect(!firstArtistClickActivates)
+        #expect(selection.selected == artist)
+    }
+
     @Test("Selection survives sorting but clears between destinations")
     func sortPreservesSelectionAndContextClearsIt() {
         let first = UUID()

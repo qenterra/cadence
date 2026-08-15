@@ -160,6 +160,7 @@ final class CadenceAppModel {
     var selectedProductionAlbumID: UUID?
     var selectedProductionTagID: UUID?
     var selectedProductionTagEditingTrackID: UUID?
+    var catalogActivationSelection = CatalogActivationSelection()
     var selectedTagGroupID: TagGroupID = .all
     var selectedTagID: TagPreview.ID?
     var tagResultScope: TagResultScope = .tracks
@@ -303,5 +304,39 @@ final class CadenceAppModel {
         importCoordinator?.onStateChange = { [weak self] state in
             self?.applyImportCoordinatorState(state)
         }
+    }
+}
+
+enum CatalogActivationKind: Hashable, Sendable {
+    case track
+    case album
+    case artist
+    case playlist
+    case smartCollection
+    case tag
+}
+
+struct CatalogActivationTarget: Hashable, Sendable {
+    let kind: CatalogActivationKind
+    let id: UUID
+}
+
+struct CatalogActivationSelection: Equatable, Sendable {
+    private(set) var selected: CatalogActivationTarget?
+
+    mutating func request(_ target: CatalogActivationTarget) -> Bool {
+        guard selected == target else {
+            selected = target
+            return false
+        }
+        return true
+    }
+}
+
+extension CadenceAppModel {
+    func requestCatalogActivation(
+        _ target: CatalogActivationTarget
+    ) -> Bool {
+        catalogActivationSelection.request(target)
     }
 }

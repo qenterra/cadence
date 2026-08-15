@@ -1,3 +1,4 @@
+import AppKit
 @testable import Cadence
 import Foundation
 import Testing
@@ -85,5 +86,35 @@ struct SecondAuditPresentationTests {
         #expect(SettingsLayoutMetrics.cardInset == CadenceLayout.contentGap)
         #expect(SettingsLayoutMetrics.cardContentSpacing == CadenceLayout.controlGap)
         #expect(SettingsLayoutMetrics.maximumContentWidth == 640)
+    }
+
+    @Test("Every settings card symbol resolves on the supported macOS baseline")
+    func settingsSymbolsResolve() {
+        let symbols = [
+            "play.rectangle",
+            "circle.lefthalf.filled",
+            "externaldrive",
+            "sidebar.left",
+            "network",
+            "keyboard",
+            "arrow.triangle.2.circlepath",
+            "person.2.circle",
+            "chevron.left.forwardslash.chevron.right",
+            "book.pages",
+            "doc.text",
+            "books.vertical",
+            "cup.and.saucer",
+            "music.note.house",
+        ]
+
+        for symbol in symbols {
+            #expect(
+                NSImage(
+                    systemSymbolName: symbol,
+                    accessibilityDescription: nil
+                ) != nil,
+                "Missing SF Symbol: \(symbol)"
+            )
+        }
     }
 }

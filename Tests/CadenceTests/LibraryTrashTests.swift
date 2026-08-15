@@ -122,10 +122,14 @@ struct LibraryTrashTests {
             location: fixture.location
         )
 
-        let operations = try await repository.trashOperations()
+        let operations = try await repository.trashOperations(
+            location: fixture.location
+        )
         let trashed = try #require(operations.first)
         #expect(trashed.id == operationID)
         #expect(trashed.targetKind == .album)
+        #expect(trashed.displayTitle == "Trash Album")
+        #expect(trashed.displaySubtitle == "Trash Artist")
         #expect(Set(trashed.targetIDs) == Set(fixture.trackIDs))
         #expect(trashed.relativePaths.count == fixture.managedPaths.count)
         #expect(try await repository.tracksPage().items.isEmpty)

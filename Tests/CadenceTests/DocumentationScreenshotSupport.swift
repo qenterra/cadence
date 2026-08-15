@@ -172,6 +172,17 @@ final class DocumentationScreenshotFixture {
         scene: DocumentationScreenshotScene,
         rhythmPulseVisualQAState: RhythmPulseVisualQAState? = nil
     ) async throws {
+        let defaults = DocumentationScreenshotDefaults.userDefaults
+        let previousAppearance = defaults.object(forKey: "appearance")
+        defaults.set(appearance.cadenceAppearance.rawValue, forKey: "appearance")
+        defer {
+            if let previousAppearance {
+                defaults.set(previousAppearance, forKey: "appearance")
+            } else {
+                defaults.removeObject(forKey: "appearance")
+            }
+        }
+
         readinessTracker.prepareForCapture(scene)
         let rootView = preparedRootView(
             rootView,
@@ -245,6 +256,10 @@ final class DocumentationScreenshotFixture {
             .environment(
                 \.visualRegressionFreezesHighlights,
                 true
+            )
+            .environment(\.controlActiveState, .key)
+            .defaultAppStorage(
+                DocumentationScreenshotDefaults.userDefaults
             )
             .environment(\.visualRegressionHidesPreviewChrome, true)
             .tint(CadenceTheme.primaryAccent)
@@ -337,6 +352,14 @@ enum DocumentationScreenshotAppearance: CaseIterable {
         case .system: NSApp.effectiveAppearance.name
         case .dark: .darkAqua
         case .light: .aqua
+        }
+    }
+
+    var cadenceAppearance: CadenceAppearance {
+        switch self {
+        case .system: .system
+        case .dark: .dark
+        case .light: .light
         }
     }
 

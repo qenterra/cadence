@@ -197,7 +197,8 @@ struct ProductionAlbumTile: View {
         .padding(10)
         .background {
             BrowserRowSurface(
-                isSelected: false,
+                isSelected: model.catalogActivationSelection.selected
+                    == CatalogActivationTarget(kind: .album, id: album.id),
                 isHovered: isHovered,
                 isFocused: false
             )
@@ -280,6 +281,10 @@ struct ProductionAlbumTile: View {
     }
 
     private func openAlbum() {
+        let target = CatalogActivationTarget(kind: .album, id: album.id)
+        guard model.requestCatalogActivation(target) else {
+            return
+        }
         model.requestOpenProductionAlbumContextually(id: album.id)
     }
 

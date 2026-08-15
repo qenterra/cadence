@@ -87,6 +87,7 @@ final class LibraryStore {
     var repository: LibraryRepository?
     var lyricsService: ManagedLyricsService?
     var artworkService: ManagedArtworkService?
+    @ObservationIgnored var managedPackage: ManagedLibraryPackage?
     @ObservationIgnored var lyricsSearchIndexer: LyricsSearchIndexer?
     var trackCursor: LibraryPageCursor?
     var trackRequestGeneration = 0
@@ -171,6 +172,7 @@ final class LibraryStore {
         container: ModelContainer? = nil,
         package: ManagedLibraryPackage? = nil
     ) {
+        managedPackage = package
         if let container {
             mode = .production
             let repository = LibraryRepository(modelContainer: container)

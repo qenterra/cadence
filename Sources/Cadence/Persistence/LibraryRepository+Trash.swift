@@ -24,6 +24,16 @@ enum LibraryTrashError: Error, LocalizedError, Sendable {
     }
 }
 
+private extension TrashTargetKind {
+    var fallbackTitle: String {
+        switch self {
+        case .track: String(localized: "Removed Track")
+        case .album: String(localized: "Removed Album")
+        case .artist: String(localized: "Removed Artist")
+        }
+    }
+}
+
 struct LibraryTrashPlan {
     let tracks: [TrackRecord]
     let retainedTracks: [TrackRecord]
@@ -120,7 +130,9 @@ extension LibraryRepository {
         }
     }
 
-    func trashOperations() throws -> [LibraryTrashProjection] {
+    func trashOperations(
+        location: ManagedLibraryLocation? = nil
+    ) throws -> [LibraryTrashProjection] {
         let records = try modelContext.fetch(
             FetchDescriptor<TrashOperationRecord>(
                 sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
@@ -137,16 +149,54 @@ extension LibraryRepository {
                     [String].self,
                     from: record.originalRelativePathsData
                 )
+                let labels = location.flatMap { location in
+                    try? trashLabels(
+                        manifest: ManagedTrashManifestStore(location: location)
+                            .read(operationID: record.id),
+                        targetIDs: ids
+                    )
+                }
                 return LibraryTrashProjection(
                     id: record.id,
                     targetKind: record.targetKind,
                     targetIDs: ids,
                     relativePaths: paths,
-                    createdAt: record.createdAt
+                    createdAt: record.createdAt,
+                    displayTitle: labels?.title ?? record.targetKind.fallbackTitle,
+                    displaySubtitle: labels?.subtitle
                 )
             } catch {
                 throw LibraryTrashError.invalidManifest
             }
+        }
+    }
+
+    private func trashLabels(
+        manifest: ManagedTrashManifest,
+        targetIDs: [UUID]
+    ) -> (title: String, subtitle: String?) {
+        let targetID = targetIDs.first ?? manifest.targetID
+        switch manifest.targetKind {
+        case .track:
+            let track = manifest.tracks.first { $0.id == targetID }
+                ?? manifest.tracks.first
+            let artist = track?.artistID.flatMap { artistID in
+                manifest.artists.first { $0.id == artistID }?.name
+            } ?? manifest.artistCredits?
+                .first(where: { $0.trackID == track?.id })?
+                .displayArtistName
+            return (track?.title ?? manifest.targetKind.fallbackTitle, artist)
+        case .album:
+            let album = manifest.albums.first { $0.id == targetID }
+                ?? manifest.albums.first
+            let artist = album?.artistID.flatMap { artistID in
+                manifest.artists.first { $0.id == artistID }?.name
+            }
+            return (album?.title ?? manifest.targetKind.fallbackTitle, artist)
+        case .artist:
+            let artist = manifest.artists.first { $0.id == targetID }
+                ?? manifest.artists.first
+            return (artist?.name ?? manifest.targetKind.fallbackTitle, nil)
         }
     }
 

@@ -24,7 +24,7 @@ struct CadencePageScrollView<Content: View>: View {
             .frame(maxWidth: maxContentWidth ?? .infinity, alignment: .leading)
             .padding(.horizontal, CadenceLayout.pageInset)
             .padding(.vertical, CadenceLayout.pageInset)
-            .frame(maxWidth: .infinity, alignment: .topLeading)
+            .frame(maxWidth: .infinity, alignment: .top)
         }
         .background(CadenceTheme.contentBackground)
     }

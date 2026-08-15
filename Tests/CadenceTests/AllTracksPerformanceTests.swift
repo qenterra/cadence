@@ -154,6 +154,45 @@ struct AllTracksPerformanceTests {
         )
     }
 
+    @Test("A favorite change reloads visible rows without rebuilding the table")
+    func sameCountMutationRefreshPolicy() {
+        let before = makeTrack(title: "Signal")
+        let after = LibraryTrackProjection(
+            id: before.id,
+            title: before.title,
+            artistID: before.artistID,
+            artist: before.artist,
+            albumID: before.albumID,
+            album: before.album,
+            duration: before.duration,
+            year: before.year,
+            codec: before.codec,
+            sampleRate: before.sampleRate,
+            channelCount: before.channelCount,
+            bitDepth: before.bitDepth,
+            isFavorite: true,
+            isExplicit: before.isExplicit,
+            customArtworkID: before.customArtworkID,
+            artworkID: before.artworkID,
+            relativeMediaPath: before.relativeMediaPath,
+            lastPlayedAt: before.lastPlayedAt,
+            hasSynchronizedLyrics: before.hasSynchronizedLyrics
+        )
+
+        #expect(
+            TrackTableRefreshPolicy.requiresVisibleReload(
+                previous: [before],
+                current: [after]
+            )
+        )
+        #expect(
+            !TrackTableRefreshPolicy.requiresVisibleReload(
+                previous: [before],
+                current: [before]
+            )
+        )
+    }
+
     private func makeTrack(title: String) -> LibraryTrackProjection {
         LibraryTrackProjection(
             id: UUID(),

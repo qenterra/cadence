@@ -8,6 +8,13 @@ enum TrackTableRefreshPolicy {
     ) -> Bool {
         previousCount != count
     }
+
+    static func requiresVisibleReload(
+        previous: [LibraryTrackProjection],
+        current: [LibraryTrackProjection]
+    ) -> Bool {
+        previous != current
+    }
 }
 
 struct TrackTableCore: NSViewRepresentable {
@@ -38,6 +45,7 @@ struct TrackTableCore: NSViewRepresentable {
     func makeNSView(context: Context) -> NSScrollView {
         let tableView = TrackTableView()
         tableView.headerView = nil
+        tableView.style = .plain
         tableView.backgroundColor = .clear
         tableView.rowHeight = 58
         tableView.intercellSpacing = .zero
@@ -86,6 +94,7 @@ struct TrackTableCore: NSViewRepresentable {
         let coordinator = context.coordinator
         let previousCount = coordinator.parent.totalCount
         let previousRevision = coordinator.parent.revision
+        let previousTracks = coordinator.parent.tracks
         coordinator.parent = self
 
         guard let tableView = scrollView.documentView as? NSTableView else {
@@ -98,7 +107,11 @@ struct TrackTableCore: NSViewRepresentable {
         ) {
             tableView.reloadData()
             coordinator.didReachEnd = false
-        } else if previousRevision != revision {
+        } else if previousRevision != revision
+            || TrackTableRefreshPolicy.requiresVisibleReload(
+                previous: previousTracks,
+                current: tracks
+            ) {
             coordinator.reloadVisibleRows()
         }
         coordinator.restoreSelection()

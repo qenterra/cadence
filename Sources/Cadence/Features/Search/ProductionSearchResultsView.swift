@@ -124,7 +124,17 @@ private extension ProductionSearchResultsView {
                                 artworkID: artist.customArtworkID,
                                 placeholder: .artist
                             ),
+                            isSelected: isCatalogResultSelected(
+                                kind: .artist,
+                                id: artist.id
+                            ),
                             action: {
+                                guard model.requestCatalogActivation(
+                                    CatalogActivationTarget(
+                                        kind: .artist,
+                                        id: artist.id
+                                    )
+                                ) else { return }
                                 model.requestOpenProductionArtistContextually(
                                     id: artist.id
                                 )
@@ -169,7 +179,17 @@ private extension ProductionSearchResultsView {
                                 artworkID: album.customArtworkID,
                                 placeholder: .album
                             ),
+                            isSelected: isCatalogResultSelected(
+                                kind: .album,
+                                id: album.id
+                            ),
                             action: {
+                                guard model.requestCatalogActivation(
+                                    CatalogActivationTarget(
+                                        kind: .album,
+                                        id: album.id
+                                    )
+                                ) else { return }
                                 model.requestOpenProductionAlbumContextually(
                                     id: album.id
                                 )
@@ -210,8 +230,15 @@ private extension ProductionSearchResultsView {
                         resultButton(
                             title: tag.displayPath,
                             subtitle: tag.groupPath ?? "Standalone",
-                            symbol: "tag.fill"
+                            symbol: "tag.fill",
+                            isSelected: isCatalogResultSelected(
+                                kind: .tag,
+                                id: tag.id
+                            )
                         ) {
+                            guard model.requestCatalogActivation(
+                                CatalogActivationTarget(kind: .tag, id: tag.id)
+                            ) else { return }
                             model.requestOpenProductionTagContextually(
                                 id: tag.id
                             )
@@ -325,6 +352,7 @@ private extension ProductionSearchResultsView {
         title: String,
         subtitle: String,
         symbol: String,
+        isSelected: Bool,
         action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
@@ -340,7 +368,13 @@ private extension ProductionSearchResultsView {
                 Spacer()
             }
             .padding(12)
-            .background(CadenceTheme.hoverFill)
+            .background {
+                BrowserRowSurface(
+                    isSelected: isSelected,
+                    isHovered: false,
+                    isFocused: false
+                )
+            }
             .clipShape(RoundedRectangle(cornerRadius: CadenceTheme.radiusGroup))
             .contentShape(Rectangle())
         }
@@ -349,6 +383,7 @@ private extension ProductionSearchResultsView {
 
     private func mediaResultRow(
         _ result: ProductionSearchMediaResult,
+        isSelected: Bool,
         action: @escaping () -> Void,
         @ViewBuilder actions: () -> some View
     ) -> some View {
@@ -390,7 +425,21 @@ private extension ProductionSearchResultsView {
             .padding(.trailing, 8)
             .help("More Actions")
         }
-        .background(CadenceTheme.subduedFill)
+        .background {
+            BrowserRowSurface(
+                isSelected: isSelected,
+                isHovered: false,
+                isFocused: false
+            )
+        }
         .clipShape(RoundedRectangle(cornerRadius: CadenceTheme.radiusGroup))
+    }
+
+    private func isCatalogResultSelected(
+        kind: CatalogActivationKind,
+        id: UUID
+    ) -> Bool {
+        model.catalogActivationSelection.selected
+            == CatalogActivationTarget(kind: kind, id: id)
     }
 }

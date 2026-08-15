@@ -35,7 +35,6 @@ struct AllTracksView: View {
                     },
                     selection: $selection
                 )
-                .padding(.horizontal, CadenceLayout.pageInset)
                 .padding(.bottom, CadenceLayout.pageInset)
             }
         }
@@ -89,7 +88,6 @@ struct AllTracksView: View {
                 },
                 selection: $selection
             )
-            .padding(.horizontal, CadenceLayout.pageInset)
             .padding(.bottom, CadenceLayout.pageInset)
         }
     }

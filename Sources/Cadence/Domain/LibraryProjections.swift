@@ -213,6 +213,8 @@ struct LibraryTrashProjection: Identifiable, Hashable, Sendable {
     let targetIDs: [UUID]
     let relativePaths: [String]
     let createdAt: Date
+    let displayTitle: String
+    let displaySubtitle: String?
 
     var itemCount: Int {
         targetIDs.count

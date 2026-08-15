@@ -30,7 +30,8 @@ xcodegen generate --spec project.yml
 
 marker="$project_root/.build/update-screenshots"
 cadence_mode_marker="$project_root/.build/update-cadence-mode-screenshots"
-candidate_dir="$HOME/Library/Containers/com.qenterra.cadence/Data/tmp/CadenceVisualRegression/update"
+candidate_dir="${TMPDIR:?}/CadenceVisualRegression/update"
+expected_candidate_count="86"
 mkdir -p "$project_root/.build"
 mkdir -p "$candidate_dir"
 find "$candidate_dir" -maxdepth 1 -type f -name '*.png' -delete
@@ -48,6 +49,14 @@ is_supported_minimum_height() {
     [[ "$1" == "1752" || "$1" == "1768" ]]
 }
 
+is_supported_wide_height() {
+    [[ "$1" == "1800" || "$1" == "1816" ]]
+}
+
+is_supported_large_height() {
+    [[ "$1" == "2664" || "$1" == "2680" ]]
+}
+
 DEVELOPER_DIR="$developer_dir" xcodebuild \
     -project Cadence.xcodeproj \
     -scheme Cadence \
@@ -61,11 +70,12 @@ DEVELOPER_DIR="$developer_dir" xcodebuild \
     CODE_SIGN_ENTITLEMENTS= \
     test | xcbeautify
 
-# Documentation screenshot tests run inside the app sandbox. Promote the
-# complete candidate set only after the test process has exited successfully.
+# The screenshot test target runs without app entitlements, so its
+# FileManager.default.temporaryDirectory resolves to the developer TMPDIR.
+# Promote the complete candidate set only after the test process exits.
 candidate_count="$(find "$candidate_dir" -maxdepth 1 -type f -name '*.png' | wc -l | tr -d ' ')"
-if [[ "$candidate_count" != "78" ]]; then
-    echo "Expected 78 documentation screenshot candidates, found $candidate_count." >&2
+if [[ "$candidate_count" != "$expected_candidate_count" ]]; then
+    echo "Expected $expected_candidate_count documentation screenshot candidates, found $candidate_count." >&2
     exit 70
 fi
 cp -f "$candidate_dir"/*.png "$project_root/docs/images/"
@@ -129,10 +139,10 @@ done
 for image in "$project_root"/docs/images/qa-cadence-mode-wide-*.png; do
     [[ -f "$image" ]]
     [[ "$(sips -g pixelWidth "$image" | tail -n 1 | awk '{print $2}')" == "2880" ]]
-    [[ "$(sips -g pixelHeight "$image" | tail -n 1 | awk '{print $2}')" == "1800" ]]
+    is_supported_wide_height "$(sips -g pixelHeight "$image" | tail -n 1 | awk '{print $2}')"
 done
 
 large_cadence_image="$project_root/docs/images/qa-cadence-mode-large-dark.png"
 [[ -f "$large_cadence_image" ]]
 [[ "$(sips -g pixelWidth "$large_cadence_image" | tail -n 1 | awk '{print $2}')" == "4400" ]]
-[[ "$(sips -g pixelHeight "$large_cadence_image" | tail -n 1 | awk '{print $2}')" == "2664" ]]
+is_supported_large_height "$(sips -g pixelHeight "$large_cadence_image" | tail -n 1 | awk '{print $2}')"

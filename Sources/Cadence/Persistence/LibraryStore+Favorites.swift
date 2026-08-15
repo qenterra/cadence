@@ -47,6 +47,7 @@ extension LibraryStore {
 
 private extension LibraryStore {
     func synchronizeFavoriteTrack(_ projection: LibraryTrackProjection) {
+        allTracksWindow?.replace(projection)
         tracks.replaceElement(id: projection.id, with: projection)
         browserTracks.replaceElement(id: projection.id, with: projection)
         selectedPlaylistTracks.replaceElement(id: projection.id, with: projection)

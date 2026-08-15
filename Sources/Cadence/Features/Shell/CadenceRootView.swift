@@ -16,53 +16,55 @@ struct CadenceRootView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            ZStack {
-                HStack(spacing: 0) {
-                    NavigationRail(
-                        selection: navigationSelection,
-                        suppressesSelection: model.isPlaybackWorkspacePresented
-                    )
-                    Rectangle()
-                        .fill(CadenceTheme.separator)
-                        .frame(width: 1)
-                    workspaceContent
-                        .frame(
-                            maxWidth: .infinity,
-                            maxHeight: .infinity,
-                            alignment: .topLeading
+        WindowContentLayout {
+            VStack(spacing: 0) {
+                ZStack {
+                    HStack(spacing: 0) {
+                        NavigationRail(
+                            selection: navigationSelection,
+                            suppressesSelection: model.isPlaybackWorkspacePresented
                         )
+                        Rectangle()
+                            .fill(CadenceTheme.separator)
+                            .frame(width: 1)
+                        workspaceContent
+                            .frame(
+                                maxWidth: .infinity,
+                                maxHeight: .infinity,
+                                alignment: .topLeading
+                            )
+                    }
+                    .frame(
+                        maxWidth: .infinity,
+                        maxHeight: .infinity,
+                        alignment: .topLeading
+                    )
+
+                    if model.isImportDropTargeted {
+                        ImportMusicDropOverlay()
+                            .transition(.opacity)
+                    }
                 }
-                .frame(
-                    maxWidth: .infinity,
-                    maxHeight: .infinity,
-                    alignment: .topLeading
+                .dropDestination(
+                    for: URL.self
+                ) { urls, _ in
+                    guard !urls.isEmpty else {
+                        return false
+                    }
+                    model.acceptImportDrop(urls: urls)
+                    return true
+                } isTargeted: { isTargeted in
+                    model.setImportDropTargeted(isTargeted)
+                }
+
+                Rectangle()
+                    .fill(CadenceTheme.separator)
+                    .frame(height: 1)
+                PlayerBar(
+                    model: model,
+                    suspendsProgressAnimation: cadenceModeSession.isActive
                 )
-
-                if model.isImportDropTargeted {
-                    ImportMusicDropOverlay()
-                        .transition(.opacity)
-                }
             }
-            .dropDestination(
-                for: URL.self
-            ) { urls, _ in
-                guard !urls.isEmpty else {
-                    return false
-                }
-                model.acceptImportDrop(urls: urls)
-                return true
-            } isTargeted: { isTargeted in
-                model.setImportDropTargeted(isTargeted)
-            }
-
-            Rectangle()
-                .fill(CadenceTheme.separator)
-                .frame(height: 1)
-            PlayerBar(
-                model: model,
-                suspendsProgressAnimation: cadenceModeSession.isActive
-            )
         }
         .background(CadenceTheme.contentBackground)
         .background {
@@ -80,8 +82,7 @@ struct CadenceRootView: View {
         .toolbarBackgroundVisibility(.visible, for: .windowToolbar)
         .modifier(
             CadenceSearchModifier(
-                isEnabled: model.playbackWorkspace == .hidden
-                    && supportsSearch,
+                isEnabled: supportsSearch,
                 text: activeSearchBinding,
                 isPresented: $isSearchPresented,
                 prompt: searchHelp
@@ -272,6 +273,18 @@ private extension CadenceRootView {
 
     @ViewBuilder
     private var workspaceContent: some View {
+        if shouldPresentProductionSearch {
+            ProductionSearchResultsView(
+                model: model,
+                store: model.librarySession.store
+            )
+        } else {
+            playbackOrDestinationContent
+        }
+    }
+
+    @ViewBuilder
+    private var playbackOrDestinationContent: some View {
         switch model.playbackWorkspace {
         case .nowPlaying:
             NowPlayingView(
@@ -307,11 +320,6 @@ private extension CadenceRootView {
             } locate: {
                 model.locateUnavailableLibrary()
             }
-        } else if shouldPresentProductionSearch {
-            ProductionSearchResultsView(
-                model: model,
-                store: model.librarySession.store
-            )
         } else {
             switch model.selectedDestination {
             case .home:

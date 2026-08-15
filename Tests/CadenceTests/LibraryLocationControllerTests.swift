@@ -118,6 +118,27 @@ struct LibraryLocationControllerTests {
         #expect(try store.load()?.identity == identity)
     }
 
+    @Test("Resetting the standard Music library does not create a bookmark")
+    func standardLocationReplacement() throws {
+        let parent = URL(filePath: "/Users/example/Music")
+        let store = InMemoryLibraryLocationStore()
+        let resolver = BookmarkResolverStub()
+        let controller = LibraryLocationController(
+            store: store,
+            bookmarkResolver: resolver
+        )
+
+        let activation = try controller.prepareReplacementForCurrentLocation(
+            parentURL: parent,
+            identity: LibraryIdentity()
+        )
+        try controller.commit(activation)
+
+        #expect(try store.load() == nil)
+        #expect(resolver.bookmarkCreationCount == 0)
+        #expect(resolver.accessStartCount == 0)
+    }
+
     @Test("Cancelling a prepared activation preserves the current location")
     func activationCancellation() throws {
         let original = LibraryLocationRecord(
@@ -158,15 +179,29 @@ private final class InMemoryLibraryLocationStore: LibraryLocationStoring {
 }
 
 @MainActor
-private struct BookmarkResolverStub: LibraryBookmarkResolving {
+private final class BookmarkResolverStub: LibraryBookmarkResolving {
     var resolvedURL = FileManager.default.temporaryDirectory.appending(
         path: "CadenceLibraryLocationControllerTests/ResolvedMusic",
         directoryHint: .isDirectory
     )
     var isStale = false
+    var bookmarkCreationCount = 0
+    var accessStartCount = 0
+
+    init(
+        resolvedURL: URL = FileManager.default.temporaryDirectory.appending(
+            path: "CadenceLibraryLocationControllerTests/ResolvedMusic",
+            directoryHint: .isDirectory
+        ),
+        isStale: Bool = false
+    ) {
+        self.resolvedURL = resolvedURL
+        self.isStale = isStale
+    }
 
     func makeBookmark(for _: URL) throws -> Data {
-        Data("bookmark".utf8)
+        bookmarkCreationCount += 1
+        return Data("bookmark".utf8)
     }
 
     func resolve(_ data: Data) throws -> ResolvedLibraryBookmark {
@@ -175,7 +210,8 @@ private struct BookmarkResolverStub: LibraryBookmarkResolving {
     }
 
     func startAccessing(_: URL) -> Bool {
-        true
+        accessStartCount += 1
+        return true
     }
 
     func stopAccessing(_: URL) {}

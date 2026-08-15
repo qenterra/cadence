@@ -208,7 +208,8 @@ struct ProductionArtistTile: View {
         .padding(10)
         .background {
             BrowserRowSurface(
-                isSelected: false,
+                isSelected: model.catalogActivationSelection.selected
+                    == CatalogActivationTarget(kind: .artist, id: artist.id),
                 isHovered: isHovered,
                 isFocused: false
             )
@@ -277,6 +278,10 @@ struct ProductionArtistTile: View {
     }
 
     private func openArtist() {
+        let target = CatalogActivationTarget(kind: .artist, id: artist.id)
+        guard model.requestCatalogActivation(target) else {
+            return
+        }
         model.requestOpenProductionArtistContextually(id: artist.id)
     }
 }

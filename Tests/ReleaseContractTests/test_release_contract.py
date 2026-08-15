@@ -187,10 +187,12 @@ class ReleaseScriptContractTests(unittest.TestCase):
         modern_branch = script.split('if (( macos_major >= 27 ));', 1)[1]
         self.assertIn('"$layout_writer"', modern_branch)
 
-    def test_screenshot_update_promotes_sandbox_candidates(self) -> None:
+    def test_screenshot_update_promotes_complete_temporary_candidates(self) -> None:
         script = (ROOT / "scripts" / "update_screenshots.sh").read_text(encoding="utf-8")
 
         self.assertIn('CadenceVisualRegression/update', script)
+        self.assertIn('candidate_dir="${TMPDIR:?}', script)
+        self.assertIn('expected_candidate_count="86"', script)
         self.assertIn('candidate_count', script)
         self.assertIn('cp -f "$candidate_dir"/*.png', script)
 

@@ -270,7 +270,16 @@ private extension ProductionTagsView {
         _ tag: LibraryTagProjection
     ) -> some View {
         Button {
-            model.selectedProductionTagID = tag.id
+            if model.selectedProductionTagID == tag.id,
+               let first = taggedTracks.first {
+                model.playProductionTrack(
+                    first,
+                    within: taggedTracks,
+                    source: .adHoc
+                )
+            } else {
+                model.selectedProductionTagID = tag.id
+            }
         } label: {
             HStack {
                 Image(systemName: "tag")

@@ -127,7 +127,6 @@ struct ProductionSettingsView: View {
     private var tabContent: some View {
         switch tab {
         case .general:
-            playbackCard
             defaultAudioApplicationCard
             appearanceCard
         case .library:
@@ -168,21 +167,6 @@ struct ProductionSettingsView: View {
         }
     }
 
-    private var playbackCard: some View {
-        SettingsCard(
-            title: "Playback",
-            symbol: "waveform"
-        ) {
-            Text(
-                "Cadence uses its direct PCM path whenever the format and "
-                    + "output allow it, with system playback for formats and "
-                    + "routes that require native handling."
-            )
-            .font(.caption)
-            .foregroundStyle(.secondary)
-        }
-    }
-
     private var appearanceCard: some View {
         SettingsCard(
             title: "Interface",
@@ -208,7 +192,7 @@ struct ProductionSettingsView: View {
     private var defaultAudioApplicationCard: some View {
         SettingsCard(
             title: "Audio Files",
-            symbol: "doc.badge.play"
+            symbol: "play.rectangle"
         ) {
             HStack(spacing: CadenceLayout.controlGap) {
                 VStack(alignment: .leading, spacing: CadenceLayout.textStack) {

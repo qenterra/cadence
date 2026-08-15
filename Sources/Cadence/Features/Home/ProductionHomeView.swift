@@ -6,24 +6,31 @@ struct ProductionHomeView: View {
     @AppStorage("home.pins.revision") var pinRevision = 0
 
     var body: some View {
-        CadencePageScrollView {
-            CadencePageHeader(
-                "Home",
-                subtitle: "\(store.catalogCounts.liveTrackCount) tracks"
-            )
-
-            if store.availability == .loading,
-               store.catalogCounts.liveTrackCount == 0 {
-                ProgressView("Loading Home")
-                    .frame(maxWidth: .infinity, minHeight: 240)
-            } else if store.catalogCounts.liveTrackCount == 0 {
+        if store.availability == .loading,
+           store.catalogCounts.liveTrackCount == 0 {
+            ProgressView("Loading Home")
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(CadenceTheme.contentBackground)
+        } else if store.catalogCounts.liveTrackCount == 0 {
+            VStack(spacing: 0) {
+                CadencePageHeader("Home", subtitle: "0 tracks")
+                    .padding(CadenceLayout.pageInset)
                 EmptyLibraryView(
                     title: "No Music Yet",
                     description: "Import music to start building your library."
                 ) {
                     model.requestNavigationDestination(.importMusic)
                 }
-            } else {
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(CadenceTheme.contentBackground)
+        } else {
+            CadencePageScrollView {
+                CadencePageHeader(
+                    "Home",
+                    subtitle: "\(store.catalogCounts.liveTrackCount) tracks"
+                )
+
                 pinnedItems
                 recentlyPlayed
                 favorites

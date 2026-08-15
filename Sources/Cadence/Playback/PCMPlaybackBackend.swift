@@ -40,6 +40,9 @@ final class PCMPlaybackBackend: PlaybackBackend {
     func load(
         _ request: PlaybackBackendLoadRequest
     ) async throws {
+        if currentItem != nil, isPlaying {
+            await setPresentationGain(0, duration: .milliseconds(36))
+        }
         gainRampGeneration &+= 1
         userVolume = request.volume
         presentationGain = request.autoplay ? 0 : 1
@@ -166,12 +169,19 @@ final class PCMPlaybackBackend: PlaybackBackend {
         guard let current = currentItem?.resolved else {
             return
         }
+        let resumesPlayback = isPlaying
+        if resumesPlayback {
+            await setPresentationGain(0, duration: .milliseconds(28))
+        }
         try configureSchedule(
             current: current,
             next: preparedItem?.resolved,
             startTime: time,
             autoplay: isPlaying
         )
+        if resumesPlayback {
+            await setPresentationGain(1, duration: .milliseconds(42))
+        }
         onEvent?(
             .timeline(
                 timelineSample(

@@ -151,6 +151,7 @@ struct ProductionLibraryView: View {
                 systemImage: "rectangle.stack",
                 description: Text("Choose an album to see its tracks.")
             )
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         case .loading:
             ProgressView("Loading Tracks")
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -160,6 +161,7 @@ struct ProductionLibraryView: View {
                 systemImage: "music.note.list",
                 description: Text("This album has no available tracks.")
             )
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         case let .failed(message):
             ContentUnavailableView {
                 Label("Couldn’t Load Tracks", systemImage: "exclamationmark.triangle")
@@ -176,6 +178,7 @@ struct ProductionLibraryView: View {
                 }
                 .buttonStyle(.borderedProminent)
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         case .content:
             ProductionTrackTable(
                 model: model,
@@ -191,7 +194,6 @@ struct ProductionLibraryView: View {
                     await store.sortBrowserTracks(sort)
                 }
             )
-            .padding(.horizontal, 14)
             .padding(.bottom, 16)
         }
     }
@@ -223,7 +225,11 @@ private extension ProductionLibraryView {
         _ artist: LibraryArtistProjection
     ) -> some View {
         Button {
-            selectArtist(artist)
+            if selectedArtistID == artist.id {
+                model.requestOpenProductionArtistContextually(id: artist.id)
+            } else {
+                selectArtist(artist)
+            }
         } label: {
             artistRowLabel(artist)
         }
@@ -242,8 +248,12 @@ private extension ProductionLibraryView {
         _ album: LibraryAlbumProjection
     ) -> some View {
         Button {
-            selectedAlbumID = album.id
-            selectedTrackID = nil
+            if selectedAlbumID == album.id {
+                model.requestOpenProductionAlbumContextually(id: album.id)
+            } else {
+                selectedAlbumID = album.id
+                selectedTrackID = nil
+            }
         } label: {
             albumRowLabel(album)
         }

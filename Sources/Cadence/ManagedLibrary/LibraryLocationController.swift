@@ -22,7 +22,8 @@ struct LibraryLocationRecord: Codable, Equatable, Sendable {
 
 struct PreparedLibraryLocationActivation: Sendable {
     let parentURL: URL
-    let record: LibraryLocationRecord
+    let record: LibraryLocationRecord?
+    let usesSecurityScope: Bool
 }
 
 enum LibraryLocationResolution: Equatable, Sendable {
@@ -209,7 +210,28 @@ final class LibraryLocationController {
             record: LibraryLocationRecord(
                 bookmarkData: bookmark,
                 identity: identity
+            ),
+            usesSecurityScope: true
+        )
+    }
+
+    /// Prepares a replacement without inventing a bookmark for the standard
+    /// Music location. A missing persisted record is the canonical marker for
+    /// that location; resets must preserve it.
+    func prepareReplacementForCurrentLocation(
+        parentURL: URL,
+        identity: LibraryIdentity
+    ) throws -> PreparedLibraryLocationActivation {
+        guard try store.load() != nil else {
+            return PreparedLibraryLocationActivation(
+                parentURL: parentURL.standardizedFileURL,
+                record: nil,
+                usesSecurityScope: false
             )
+        }
+        return try prepareActivation(
+            parentURL: parentURL,
+            identity: identity
         )
     }
 
@@ -237,14 +259,20 @@ final class LibraryLocationController {
         _ activation: PreparedLibraryLocationActivation
     ) throws {
         try store.save(activation.record)
-        replaceAccessedParent(with: activation.parentURL)
+        if activation.usesSecurityScope {
+            replaceAccessedParent(with: activation.parentURL)
+        } else if let accessedParentURL {
+            bookmarkResolver.stopAccessing(accessedParentURL)
+            self.accessedParentURL = nil
+        }
         pendingParentURL = nil
     }
 
     func cancel(
         _ activation: PreparedLibraryLocationActivation
     ) {
-        if pendingParentURL == activation.parentURL,
+        if activation.usesSecurityScope,
+           pendingParentURL == activation.parentURL,
            accessedParentURL != activation.parentURL {
             bookmarkResolver.stopAccessing(activation.parentURL)
         }

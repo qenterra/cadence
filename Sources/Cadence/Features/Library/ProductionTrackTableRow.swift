@@ -74,9 +74,6 @@ struct ProductionTrackTableRow: View {
         .contentShape(Rectangle())
         .onHover { isHovered = $0 }
         .onTapGesture(count: 1, perform: select)
-        .onTapGesture(count: 2) {
-            play()
-        }
         .accessibilityAddTraits(isSelected ? .isSelected : [])
         .contextMenu {
             actions

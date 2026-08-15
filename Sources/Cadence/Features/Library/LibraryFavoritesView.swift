@@ -57,14 +57,16 @@ struct LibraryFavoritesView: View {
     }
 
     private var sectionPicker: some View {
-        Picker("Favorite Type", selection: sectionBinding) {
-            ForEach(FavoriteCatalogSection.allCases) { section in
-                Label(section.title, systemImage: section.symbolName)
-                    .tag(section)
+        Menu("Type") {
+            Picker("Type", selection: sectionBinding) {
+                ForEach(FavoriteCatalogSection.allCases) { section in
+                    Label(section.title, systemImage: section.symbolName)
+                        .tag(section)
+                }
             }
         }
-        .pickerStyle(.segmented)
-        .frame(maxWidth: 420)
+        .menuStyle(.borderlessButton)
+        .fixedSize()
         .padding(.horizontal, CadenceLayout.pageInset)
         .padding(.bottom, CadenceLayout.contentGap)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -99,7 +101,6 @@ struct LibraryFavoritesView: View {
                 },
                 selection: $selection
             )
-            .padding(.horizontal, CadenceLayout.pageInset)
             .padding(.bottom, CadenceLayout.pageInset)
         }
     }

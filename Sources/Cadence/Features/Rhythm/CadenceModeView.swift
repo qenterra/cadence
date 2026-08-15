@@ -10,6 +10,7 @@ struct CadenceModeView: View {
     let artworkNamespace: Namespace.ID
     let lyricDocument: LyricDocument?
     let visualQAPresentationTime: TimeInterval?
+    @State private var activeLineID: LyricLine.ID?
 
     var body: some View {
         ZStack(alignment: .topLeading) {
@@ -69,29 +70,35 @@ struct CadenceModeView: View {
         if let visualQAPresentationTime {
             lyricStack(
                 lyricDocument,
-                presentationTime: visualQAPresentationTime
+                activeLineID: SynchronizedLyricTimeline(
+                    document: lyricDocument
+                ).activeLineID(at: visualQAPresentationTime)
             )
         } else {
-            TimelineView(.periodic(from: .now, by: 0.1)) { _ in
-                lyricStack(
-                    lyricDocument,
-                    presentationTime: model.playbackPresentationTime()
-                )
+            lyricStack(
+                lyricDocument,
+                activeLineID: activeLineID
+            )
+            .overlay {
+                PlaybackLyricActiveLineObserver(
+                    model: model,
+                    document: lyricDocument
+                ) { lineID in
+                    activeLineID = lineID
+                }
+                .allowsHitTesting(false)
+                .accessibilityHidden(true)
             }
         }
     }
 
     private func lyricStack(
         _ document: LyricDocument,
-        presentationTime: TimeInterval
+        activeLineID: LyricLine.ID?
     ) -> some View {
-        let projection = CadenceModeLyricProjection.make(
+        CadenceModeLyricStack(
             document: document,
-            presentationTime: presentationTime
-        )
-        return CadenceModeLyricStack(
-            document: document,
-            activeLineID: projection.activeLineID,
+            activeLineID: activeLineID,
             slotHeight: layout.modeLyricSlotHeight,
             seek: model.seekProductionPlayback
         )

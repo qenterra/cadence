@@ -5,6 +5,13 @@ import SwiftData
 import SwiftUI
 import Testing
 
+@MainActor
+enum DocumentationScreenshotDefaults {
+    static let userDefaults = UserDefaults(
+        suiteName: "com.qenterra.cadence.visual-regression"
+    )!
+}
+
 extension LibraryTrackProjection {
     func replacingHomeMetadata(
         title: String,
@@ -73,8 +80,9 @@ final class HomeScreenshotPreferences {
 }
 
 /// Isolates captures from navigation preferences mutated by other test suites.
+@MainActor
 final class NavigationScreenshotPreferences {
-    private let defaults = UserDefaults.standard
+    private let defaults = DocumentationScreenshotDefaults.userDefaults
     private let values: [String: Any]
     private let previousValues: [String: Any]
 
@@ -109,8 +117,9 @@ final class NavigationScreenshotPreferences {
             "tags.sidebarWidth",
             "tags.inspectorWidth",
         ]
+        let screenshotDefaults = DocumentationScreenshotDefaults.userDefaults
         previousValues = keys.reduce(into: [:]) { result, key in
-            result[key] = UserDefaults.standard.object(forKey: key)
+            result[key] = screenshotDefaults.object(forKey: key)
         }
     }
 

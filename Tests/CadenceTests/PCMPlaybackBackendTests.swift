@@ -173,14 +173,15 @@ extension PCMPlaybackBackendTests {
         backend.stop()
     }
 
-    @Test("User volume controls the PCM engine output")
+    @Test("User volume is applied through the rampable gain unit")
     func outputVolume() {
         let backend = PCMPlaybackBackend()
 
         backend.setVolume(0.25)
 
         #expect(backend.userVolume == 0.25)
-        #expect(backend.engine.mainMixerNode.outputVolume == 0.25)
+        #expect(backend.engine.mainMixerNode.outputVolume == 1)
+        #expect(abs(backend.gainUnit.globalGain - -12.0412) < 0.01)
         backend.stop()
     }
 
