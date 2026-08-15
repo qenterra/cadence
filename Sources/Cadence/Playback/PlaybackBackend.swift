@@ -38,6 +38,7 @@ enum PlaybackStartObservation: Equatable, Sendable {
 protocol PlaybackBackend: AnyObject {
     var kind: PlaybackBackendKind { get }
     var onEvent: ((PlaybackBackendEvent) -> Void)? { get set }
+    var bassLevelProvider: (any PlaybackBassLevelProviding)? { get }
 
     func load(_ request: PlaybackBackendLoadRequest) async throws
     func verifyStart(timeout: Duration) async -> PlaybackStartObservation
@@ -54,6 +55,10 @@ protocol PlaybackBackend: AnyObject {
 }
 
 extension PlaybackBackend {
+    var bassLevelProvider: (any PlaybackBassLevelProviding)? {
+        nil
+    }
+
     func setPresentationGain(
         _: Float,
         duration _: Duration

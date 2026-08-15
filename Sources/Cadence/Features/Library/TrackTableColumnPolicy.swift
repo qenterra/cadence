@@ -8,10 +8,18 @@ enum TrackTableLayoutMode: Equatable, Sendable {
 enum TrackTableColumnPolicy {
     static let compactThreshold = 720.0
     static let horizontalInset = CadenceLayout.pageInset
+    static let selectionHorizontalInset = CadenceLayout.compactGap
     static let columnSpacing = CadenceLayout.controlGap
     static let actionWidth: CGFloat = 28
     static let favoriteControlWidth = CatalogTileFavoriteLayout.controlSize
     static let songContentSpacing = CadenceLayout.compactGap
+
+    static func showsColumnSeparator(
+        isHovered: Bool,
+        isDragging: Bool
+    ) -> Bool {
+        isHovered || isDragging
+    }
 
     static func rowChromeWidth(
         columnCount: Int

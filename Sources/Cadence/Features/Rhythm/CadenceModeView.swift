@@ -10,35 +10,30 @@ struct CadenceModeView: View {
     let artworkNamespace: Namespace.ID
     let lyricDocument: LyricDocument?
     let visualQAPresentationTime: TimeInterval?
+    let visualQABassLevel: Float?
     @State private var activeLineID: LyricLine.ID?
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         ZStack(alignment: .topLeading) {
-            ProductionArtworkView(
-                model: model,
-                artworkID: artworkID,
-                title: trackTitle,
-                placeholder: .track,
-                variant: .original,
-                cornerRadius: CadenceTheme.radiusHero
-            )
-            .matchedGeometryEffect(
-                id: CadenceModeTransition.artworkID,
-                in: artworkNamespace
-            )
-            .frame(
-                width: layout.modeArtworkFrame.width,
-                height: layout.modeArtworkFrame.height
-            )
-            .position(
-                x: layout.modeArtworkFrame.midX,
-                y: layout.modeArtworkFrame.midY
-            )
-            .shadow(
-                color: Color.black.opacity(0.22),
-                radius: 32,
-                y: 18
-            )
+            bassReactiveArtwork
+                .matchedGeometryEffect(
+                    id: CadenceModeTransition.artworkID,
+                    in: artworkNamespace
+                )
+                .frame(
+                    width: layout.modeArtworkFrame.width,
+                    height: layout.modeArtworkFrame.height
+                )
+                .position(
+                    x: layout.modeArtworkFrame.midX,
+                    y: layout.modeArtworkFrame.midY
+                )
+                .shadow(
+                    color: Color.black.opacity(0.22),
+                    radius: 32,
+                    y: 18
+                )
 
             lyricContent
                 .frame(
@@ -51,6 +46,42 @@ struct CadenceModeView: View {
                 )
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private var bassReactiveArtwork: some View {
+        TimelineView(
+            .animation(
+                minimumInterval: 1.0 / 120.0,
+                paused: visualQABassLevel != nil
+                    || reduceMotion
+                    || !model.isPlaying
+            )
+        ) { _ in
+            let response = CadenceModeBassResponse.resolve(
+                level: visualQABassLevel ?? model.playbackBassLevel,
+                reduceMotion: reduceMotion
+            )
+
+            ZStack {
+                RoundedRectangle(
+                    cornerRadius: CadenceTheme.radiusHero,
+                    style: .continuous
+                )
+                .strokeBorder(.primary.opacity(0.34), lineWidth: 1)
+                .scaleEffect(response.haloScale)
+                .opacity(response.haloOpacity)
+
+                ProductionArtworkView(
+                    model: model,
+                    artworkID: artworkID,
+                    title: trackTitle,
+                    placeholder: .track,
+                    variant: .original,
+                    cornerRadius: CadenceTheme.radiusHero
+                )
+                .scaleEffect(response.artworkScale)
+            }
+        }
     }
 
     @ViewBuilder
@@ -105,20 +136,33 @@ struct CadenceModeView: View {
     }
 
     private var unavailableLyrics: some View {
-        VStack(spacing: 7) {
+        VStack(spacing: CadenceLayout.controlGap) {
             Text(trackTitle)
-                .font(.title2.weight(.semibold))
-                .lineLimit(1)
+                .font(
+                    .system(
+                        size: CadenceModeUnavailableLyricsMetrics.titleSize,
+                        weight: .semibold,
+                        design: .rounded
+                    )
+                )
+                .lineLimit(2)
+                .minimumScaleFactor(0.72)
             Text(artist)
-                .font(.body.weight(.medium))
+                .font(
+                    .system(
+                        size: CadenceModeUnavailableLyricsMetrics.artistSize,
+                        weight: .medium
+                    )
+                )
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
             Text(unavailableLyricsCaption)
                 .font(.caption)
                 .foregroundStyle(.tertiary)
-                .padding(.top, 4)
+                .padding(.top, CadenceLayout.textStack)
         }
         .multilineTextAlignment(.center)
+        .padding(.horizontal, CadenceLayout.pageInset)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
@@ -133,6 +177,39 @@ struct CadenceModeView: View {
         case .synchronized:
             ""
         }
+    }
+}
+
+enum CadenceModeUnavailableLyricsMetrics {
+    static let titleSize: CGFloat = 36
+    static let artistSize: CGFloat = 17
+}
+
+struct CadenceModeBassResponse: Equatable, Sendable {
+    let artworkScale: CGFloat
+    let haloScale: CGFloat
+    let haloOpacity: Double
+
+    static let identity = CadenceModeBassResponse(
+        artworkScale: 1,
+        haloScale: 1,
+        haloOpacity: 0
+    )
+
+    static func resolve(
+        level: Float,
+        reduceMotion: Bool
+    ) -> CadenceModeBassResponse {
+        guard !reduceMotion else {
+            return .identity
+        }
+        let level = CGFloat(min(max(level, 0), 1))
+        let shapedLevel = level * level
+        return CadenceModeBassResponse(
+            artworkScale: 1 + level * 0.025 + shapedLevel * 0.018,
+            haloScale: 1.01 + level * 0.055,
+            haloOpacity: Double(level * 0.12 + shapedLevel * 0.08)
+        )
     }
 }
 

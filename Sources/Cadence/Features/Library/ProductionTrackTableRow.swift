@@ -69,6 +69,10 @@ struct ProductionTrackTableRow: View {
                 isHovered: isHovered,
                 isFocused: isFocused
             )
+            .padding(
+                .horizontal,
+                TrackTableColumnPolicy.selectionHorizontalInset
+            )
             .padding(.vertical, 3)
         }
         .contentShape(Rectangle())

@@ -9,6 +9,8 @@ final class PCMPlaybackBackend: PlaybackBackend {
     let engine = AVAudioEngine()
     let playerNode = AVAudioPlayerNode()
     let gainUnit = AVAudioUnitEQ(numberOfBands: 0)
+    let bassMeter: PCMBassLevelMeter
+    private let bassAnalyzer: PCMBassAnalyzer
     var currentItem: ScheduledPCMItem?
     var preparedItem: ScheduledPCMItem?
     var progressTask: Task<Void, Never>?
@@ -21,7 +23,14 @@ final class PCMPlaybackBackend: PlaybackBackend {
     var presentationGain: Float = 1
     var gainRampGeneration = 0
 
+    var bassLevelProvider: (any PlaybackBassLevelProviding)? {
+        bassMeter
+    }
+
     init() {
+        let bassMeter = PCMBassLevelMeter()
+        self.bassMeter = bassMeter
+        bassAnalyzer = PCMBassAnalyzer(meter: bassMeter)
         engine.attach(playerNode)
         engine.attach(gainUnit)
         engine.connect(
@@ -34,6 +43,13 @@ final class PCMPlaybackBackend: PlaybackBackend {
             to: engine.mainMixerNode,
             format: nil
         )
+        playerNode.installTap(
+            onBus: 0,
+            bufferSize: 1024,
+            format: nil
+        ) { [bassAnalyzer] buffer, _ in
+            bassAnalyzer.process(buffer)
+        }
         engine.mainMixerNode.outputVolume = 1
     }
 
@@ -223,6 +239,7 @@ final class PCMPlaybackBackend: PlaybackBackend {
         lastKnownPlaybackTime = 0
         isPlaying = false
         presentationGain = 1
+        bassMeter.store(0)
     }
 
     private func rampPresentationGain(

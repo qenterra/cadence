@@ -146,9 +146,12 @@ struct TrackTableHeaderCell: View {
                 .overlay {
                     Rectangle()
                         .fill(
-                            isResizerHovered || dragStartWidth != nil
+                            TrackTableColumnPolicy.showsColumnSeparator(
+                                isHovered: isResizerHovered,
+                                isDragging: dragStartWidth != nil
+                            )
                                 ? CadenceTheme.strongSeparator
-                                : CadenceTheme.separator
+                                : .clear
                         )
                         .frame(width: 1)
                 }

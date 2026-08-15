@@ -4,6 +4,71 @@ import QuartzCore
 import Testing
 
 struct CadenceModeRegressionTests {
+    @Test("Bass response stays subtle and becomes static with Reduce Motion")
+    func bassResponseIsBounded() {
+        let idle = CadenceModeBassResponse.resolve(
+            level: 0,
+            reduceMotion: false
+        )
+        let peak = CadenceModeBassResponse.resolve(
+            level: 1,
+            reduceMotion: false
+        )
+        let reduced = CadenceModeBassResponse.resolve(
+            level: 1,
+            reduceMotion: true
+        )
+
+        #expect(idle.artworkScale == 1)
+        #expect(peak.artworkScale > idle.artworkScale)
+        #expect(peak.artworkScale <= 1.05)
+        #expect(peak.haloOpacity <= 0.22)
+        #expect(reduced == .identity)
+    }
+
+    @Test("Low-frequency energy drives the meter more than upper mids")
+    func bassFilterPrefersLowFrequencies() {
+        let sampleRate = 48000.0
+        let frameCount = 4800
+        let bass = (0 ..< frameCount).map { frame in
+            Float(sin(2 * Double.pi * 80 * Double(frame) / sampleRate) * 0.35)
+        }
+        let upperMid = (0 ..< frameCount).map { frame in
+            Float(sin(2 * Double.pi * 1200 * Double(frame) / sampleRate) * 0.35)
+        }
+
+        var bassFilter = PCMBassEnergyFilter(sampleRate: sampleRate)
+        var upperMidFilter = PCMBassEnergyFilter(sampleRate: sampleRate)
+
+        let bassLevel = bassFilter.process(samples: bass)
+        let upperMidLevel = upperMidFilter.process(samples: upperMid)
+
+        #expect(bassLevel > upperMidLevel * 2)
+        #expect((0 ... 1).contains(bassLevel))
+    }
+
+    @Test("Precomputed bass envelopes interpolate for native routes")
+    func bassEnvelopeInterpolation() {
+        let envelope = PlaybackBassEnvelope(
+            samplesPerSecond: 2,
+            levels: [0, 1, 0]
+        )
+
+        #expect(envelope.level(at: 0) == 0)
+        #expect(envelope.level(at: 0.25) == 0.5)
+        #expect(envelope.level(at: 0.5) == 1)
+        #expect(envelope.level(at: 10) == 0)
+    }
+
+    @Test("Unavailable lyrics reserve display-scale type for the track")
+    func unavailableLyricsTypography() {
+        #expect(CadenceModeUnavailableLyricsMetrics.titleSize >= 32)
+        #expect(
+            CadenceModeUnavailableLyricsMetrics.titleSize
+                > CadenceModeUnavailableLyricsMetrics.artistSize
+        )
+    }
+
     @Test("Cadence Mode keeps a hard 60 FPS floor and 110 FPS ProMotion target")
     func performancePolicyKeepsSupportedFloor() {
         #expect(

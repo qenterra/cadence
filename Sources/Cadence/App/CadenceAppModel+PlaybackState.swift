@@ -110,6 +110,10 @@ extension CadenceAppModel {
             ?? 0
     }
 
+    var playbackBassLevel: Float {
+        playbackCoordinator?.currentBassLevel() ?? 0
+    }
+
     var hasCurrentPlaybackItem: Bool {
         currentPlaybackTrack != nil || currentTrack != nil
     }

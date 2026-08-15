@@ -57,7 +57,8 @@ private extension CadenceModeScreenshotTests {
             lanes: standard.lanes,
             isCadenceModeActive: true,
             cadenceModeLyricDocument: cadenceModeLyricDocument,
-            cadenceModePresentationTime: 89
+            cadenceModePresentationTime: 89,
+            cadenceModeBassLevel: 0.9
         )
         let grayscale = RhythmPulseVisualQAState(
             palette: RhythmAccentPalette(
@@ -70,7 +71,8 @@ private extension CadenceModeScreenshotTests {
             lanes: [.left, .right],
             isCadenceModeActive: true,
             cadenceModeLyricDocument: cadenceModeLyricDocument,
-            cadenceModePresentationTime: 89
+            cadenceModePresentationTime: 89,
+            cadenceModeBassLevel: 0.65
         )
 
         return VisualQAStates(

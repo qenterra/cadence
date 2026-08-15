@@ -87,5 +87,21 @@ struct TrackTableColumnPolicyTests {
                 == CatalogTileFavoriteLayout.controlSize + 4
         )
         #expect(TrackTableColumnPolicy.songContentSpacing == 8)
+        #expect(
+            TrackTableColumnPolicy.selectionHorizontalInset
+                == CadenceLayout.compactGap
+        )
+        #expect(
+            !TrackTableColumnPolicy.showsColumnSeparator(
+                isHovered: false,
+                isDragging: false
+            )
+        )
+        #expect(
+            TrackTableColumnPolicy.showsColumnSeparator(
+                isHovered: true,
+                isDragging: false
+            )
+        )
     }
 }

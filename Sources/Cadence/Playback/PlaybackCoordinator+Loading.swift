@@ -55,6 +55,14 @@ extension PlaybackCoordinator {
             .filter { $0.kind != prepared.backend.kind }
             .forEach { $0.stop() }
         stage(prepared, startTime: startTime)
+        if prepared.backend.bassLevelProvider == nil {
+            beginBassEnvelopeAnalysis(
+                for: prepared.current,
+                generation: generation
+            )
+        } else {
+            cancelBassEnvelopeAnalysis()
+        }
         let request = PlaybackBackendLoadRequest(
             current: prepared.current,
             next: repeatMode == .one ? nil : prepared.next,

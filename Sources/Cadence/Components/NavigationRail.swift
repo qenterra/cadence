@@ -86,7 +86,7 @@ struct NavigationRail: View {
     }
 
     private var primaryNavigation: some View {
-        VStack(spacing: 0) {
+        VStack(spacing: NavigationRailMetrics.rowSpacing) {
             expansionButton
                 .padding(.bottom, CadenceLayout.controlGap)
 
@@ -142,7 +142,7 @@ struct NavigationRail: View {
             .foregroundStyle(.secondary)
             .contentShape(Rectangle())
         }
-        .buttonStyle(CadenceRowButtonStyle())
+        .buttonStyle(.plain)
         .help(isExpanded ? "Collapse Sidebar" : "Expand Sidebar")
         .accessibilityLabel(accessibility.label)
         .accessibilityHint(accessibility.hint)
@@ -175,7 +175,7 @@ struct NavigationRail: View {
                 )
             }
         }
-        .buttonStyle(CadenceRowButtonStyle())
+        .buttonStyle(.plain)
         .focused($focusedDestination, equals: destination)
         .onHover { isInside in
             hoveredDestination = isInside ? destination : nil
@@ -240,7 +240,7 @@ struct NavigationRail: View {
                     .contentTransition(.symbolEffect(.replace))
             } else {
                 Image(systemName: systemName)
-                    .symbolEffect(.bounce, value: animationValue)
+                    .symbolEffect(.bounce.up, value: animationValue)
             }
         }
         .font(.system(size: 15, weight: .medium))
@@ -259,6 +259,7 @@ enum NavigationRailMetrics {
     static let verticalInset = CadenceLayout.controlGap
     static let rowInset = CadenceLayout.compactGap
     static let rowHeight = CadenceLayout.rowHeight
+    static let rowSpacing: CGFloat = 2
     static let iconSlotWidth: CGFloat = 32
 
     static func totalWidth(isExpanded: Bool) -> CGFloat {

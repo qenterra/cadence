@@ -3,6 +3,11 @@ import AppKit
 import Testing
 
 struct NavigationRailTests {
+    @Test("Navigation rows keep selection surfaces visually separate")
+    func navigationRowSpacing() {
+        #expect(NavigationRailMetrics.rowSpacing == 2)
+    }
+
     @Test("Navigation rail order is sanitized and hidden pages stay hidden")
     func navigationConfiguration() throws {
         let favorites = try #require(

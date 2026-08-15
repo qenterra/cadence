@@ -25,6 +25,12 @@ final class PlaybackCoordinator {
     var presentationClock = PlaybackPresentationClock()
     @ObservationIgnored
     var lastTimelinePublication: PlaybackTimelineSample?
+    @ObservationIgnored
+    var bassEnvelopeWorker: Task<PlaybackBassEnvelope?, Never>?
+    @ObservationIgnored
+    var bassEnvelope: PlaybackBassEnvelope?
+    @ObservationIgnored
+    var bassEnvelopeTrackID: UUID?
     var repeatMode: RepeatMode = .off
     private(set) var volume: Float = 0.72
 
@@ -186,6 +192,7 @@ final class PlaybackCoordinator {
     }
 
     func stop(resetQueue: Bool = true) {
+        cancelBassEnvelopeAnalysis()
         backends.values.forEach { $0.stop() }
         loadGeneration += 1
         routeGeneration += 1
@@ -208,6 +215,7 @@ final class PlaybackCoordinator {
     }
 
     func shutdown() {
+        cancelBassEnvelopeAnalysis()
         audioRouteProvider.stopMonitoring()
         routeGeneration += 1
         pendingOutputRoute = nil
@@ -231,6 +239,19 @@ final class PlaybackCoordinator {
             atHostUptime: hostUptime,
             duration: state.duration
         )
+    }
+
+    func currentBassLevel() -> Float {
+        guard state.isPlaying else {
+            return 0
+        }
+        if let provider = activeBackend?.bassLevelProvider {
+            return provider.currentBassLevel()
+        }
+        guard bassEnvelopeTrackID == state.currentTrack?.id else {
+            return 0
+        }
+        return bassEnvelope?.level(at: presentationTime()) ?? 0
     }
 }
 

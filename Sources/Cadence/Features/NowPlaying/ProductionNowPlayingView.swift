@@ -85,7 +85,9 @@ struct ProductionNowPlayingView: View {
                                 .cadenceModeLyricDocument
                                 ?? cadenceModeLyricDocument,
                             visualQAPresentationTime: rhythmPulseVisualQAState?
-                                .cadenceModePresentationTime
+                                .cadenceModePresentationTime,
+                            visualQABassLevel: rhythmPulseVisualQAState?
+                                .cadenceModeBassLevel
                         )
                     }
                     .environment(\.colorScheme, .dark)

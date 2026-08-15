@@ -212,6 +212,7 @@ struct CadenceSettingsWindow: View {
     @Bindable var model: CadenceAppModel
     let updateController: CadenceUpdateController
     @State private var selection: CadenceSettingsTab
+    @Environment(\.dismiss) private var dismiss
 
     init(
         model: CadenceAppModel,
@@ -227,23 +228,12 @@ struct CadenceSettingsWindow: View {
         VStack(spacing: 0) {
             HStack(spacing: CadenceLayout.compactGap) {
                 ForEach(CadenceSettingsTab.allCases) { tab in
-                    Button {
+                    SettingsTabButton(
+                        tab: tab,
+                        isSelected: selection == tab
+                    ) {
                         selection = tab
-                    } label: {
-                        VStack(spacing: CadenceLayout.textStack) {
-                            Image(systemName: tab.symbolName)
-                                .font(.system(size: 17, weight: .medium))
-                                .frame(width: 24, height: 22)
-                            Text(tab.title)
-                                .font(.caption)
-                                .lineLimit(1)
-                        }
-                        .foregroundStyle(selection == tab ? .primary : .secondary)
-                        .frame(minWidth: 76, minHeight: 54)
-                        .contentShape(Rectangle())
                     }
-                    .buttonStyle(.plain)
-                    .accessibilityValue(selection == tab ? "Selected" : "")
                 }
             }
             .frame(maxWidth: .infinity)
@@ -255,7 +245,11 @@ struct CadenceSettingsWindow: View {
             ProductionSettingsView(
                 model: model,
                 tab: selection,
-                updateController: updateController
+                updateController: updateController,
+                openDestination: { destination in
+                    model.requestNavigationDestination(destination)
+                    dismiss()
+                }
             )
         }
         .frame(width: 760, height: 640, alignment: .top)
@@ -263,6 +257,57 @@ struct CadenceSettingsWindow: View {
             await Task.yield()
             NSApp.keyWindow?.title = "Settings"
         }
+    }
+}
+
+private struct SettingsTabButton: View {
+    @Environment(\.visualRegressionUsesStableSystemControls)
+    private var usesStableSystemControls
+
+    let tab: CadenceSettingsTab
+    let isSelected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        if isSelected, usesStableSystemControls {
+            tabButton
+                .buttonStyle(.plain)
+                .background(
+                    CadenceTheme.selectionFill,
+                    in: RoundedRectangle(
+                        cornerRadius: CadenceTheme.radiusControl,
+                        style: .continuous
+                    )
+                )
+                .accessibilityValue("Selected")
+        } else if isSelected {
+            tabButton
+                .buttonStyle(.glass)
+                .accessibilityValue("Selected")
+        } else {
+            tabButton
+                .buttonStyle(.plain)
+        }
+    }
+
+    private var tabButton: some View {
+        Button(action: action) {
+            tabLabel
+        }
+    }
+
+    private var tabLabel: some View {
+        VStack(spacing: CadenceLayout.textStack) {
+            Image(systemName: tab.symbolName)
+                .font(.system(size: 17, weight: .medium))
+                .frame(width: 24, height: 22)
+            Text(tab.title)
+                .font(.caption)
+                .lineLimit(1)
+        }
+        .foregroundStyle(isSelected ? .primary : .secondary)
+        .frame(minWidth: 76, minHeight: 54)
+        .contentShape(Rectangle())
     }
 }
 
