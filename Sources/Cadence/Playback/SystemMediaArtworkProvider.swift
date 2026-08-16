@@ -10,6 +10,16 @@ private struct SendableSystemMediaImage: @unchecked Sendable {
     let value: NSImage
 }
 
+private func makeSystemMediaArtwork(
+    image: SendableSystemMediaImage
+) -> MPMediaItemArtwork {
+    MPMediaItemArtwork(
+        boundsSize: image.value.size
+    ) { _ in
+        image.value
+    }
+}
+
 @MainActor
 final class SystemMediaArtworkProvider: SystemMediaArtworkProviding {
     typealias AssetLoader = @MainActor (UUID) async -> ArtworkAsset?
@@ -41,11 +51,9 @@ final class SystemMediaArtworkProvider: SystemMediaArtworkProviding {
         }).value?.value else {
             return nil
         }
-        let artwork = MPMediaItemArtwork(
-            boundsSize: image.size
-        ) { _ in
-            image
-        }
+        let artwork = makeSystemMediaArtwork(
+            image: SendableSystemMediaImage(value: image)
+        )
         cache = cache.filter { $0.key.id != id }
         cache[key] = artwork
         return artwork

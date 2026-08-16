@@ -5,6 +5,31 @@ import Testing
 
 @MainActor
 struct SystemMediaArtworkProviderTests {
+    @Test("System artwork can be requested from MediaPlayer's private queue")
+    func servesArtworkOutsideMainActor() async throws {
+        let artworkID = UUID()
+        let image = NSImage(size: NSSize(width: 32, height: 32))
+        image.lockFocus()
+        NSColor.systemBlue.setFill()
+        NSRect(x: 0, y: 0, width: 32, height: 32).fill()
+        image.unlockFocus()
+        let data = try #require(image.tiffRepresentation)
+        let provider = SystemMediaArtworkProvider { requestedID in
+            #expect(requestedID == artworkID)
+            return ArtworkAsset(id: artworkID, data: data)
+        }
+
+        let artwork = try #require(await provider.artwork(for: artworkID))
+        let sendableArtwork = SendableMediaItemArtwork(artwork)
+        let requestedImage = await Task.detached {
+            sendableArtwork.value.image(
+                at: NSSize(width: 16, height: 16)
+            )
+        }.value
+
+        #expect(requestedImage != nil)
+    }
+
     @Test("System Now Playing publishes the current track artwork")
     func publishesCurrentArtwork() async {
         let artworkID = UUID()
@@ -99,6 +124,14 @@ struct SystemMediaArtworkProviderTests {
             }
             try? await Task.sleep(for: .milliseconds(1))
         }
+    }
+}
+
+private struct SendableMediaItemArtwork: @unchecked Sendable {
+    let value: MPMediaItemArtwork
+
+    init(_ value: MPMediaItemArtwork) {
+        self.value = value
     }
 }
 

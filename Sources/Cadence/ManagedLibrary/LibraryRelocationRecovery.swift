@@ -114,13 +114,13 @@ actor LibraryRelocationRecovery {
             )
         }
 
-        if let cleanupTarget = try cleanupTarget(
+        guard try cleanupInactivePackage(
             activePath: activePath,
             source: (url: sourceURL, path: sourcePath),
             destination: (url: destinationURL, path: destinationPath),
             operationID: manifest.operationID
-        ) {
-            try trash(cleanupTarget, operationID: manifest.operationID)
+        ) else {
+            return
         }
         try removeItemIfPresent(
             at: parentManifestURL,
@@ -134,6 +134,30 @@ actor LibraryRelocationRecovery {
             at: destinationManifestURL,
             operationID: manifest.operationID
         )
+    }
+
+    private func cleanupInactivePackage(
+        activePath: String,
+        source: (url: URL, path: String),
+        destination: (url: URL, path: String),
+        operationID: UUID
+    ) throws -> Bool {
+        guard let target = try cleanupTarget(
+            activePath: activePath,
+            source: source,
+            destination: destination,
+            operationID: operationID
+        ) else {
+            return true
+        }
+        do {
+            try trash(target, operationID: operationID)
+            return true
+        } catch LibraryRelocationRecoveryError.cleanupFailed {
+            // The selected library is already authoritative. Keep the journal
+            // for a later retry instead of making that library unavailable.
+            return false
+        }
     }
 
     private func cleanupTarget(
