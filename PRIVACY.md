@@ -43,12 +43,10 @@ after quitting the app if you also want to erase downloaded remote audio.
 
 ## Data not sent to QenTerra
 
-Cadence does not transmit your library or listening data to Nikita Melnychenko
-(QenTerra) or an analytics service. When iCloud is available, Cadence stores
-encrypted library metadata and media assets in your private CloudKit database
-so your devices can synchronize. When you connect Remote Media,
-Cadence transmits only the requests, credentials, OAuth data, and remote media
-data necessary to use the provider you selected.
+Cadence does not transmit your managed library or listening data to Nikita
+Melnychenko (QenTerra), iCloud, or an analytics service. When you connect Remote
+Media, Cadence transmits only the requests, credentials, OAuth data, and remote
+media data necessary to use the provider you selected.
 The app opens a URL in your default browser only after you select a GitHub,
 Wiki, or license link in Settings.
 

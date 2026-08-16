@@ -82,9 +82,7 @@ actor LibraryRelocator {
     init(
         fileManager: FileManager = .default,
         hasher: ContentHasher = ContentHasher(),
-        validate: @escaping Validator = {
-            try LibraryContainerFactory.persistentReplica(package: $0)
-        },
+        validate: @escaping Validator = LibraryContainerFactory.persistent,
         manifestStore: LibraryRelocationManifestStore = .live
     ) {
         self.fileManager = fileManager

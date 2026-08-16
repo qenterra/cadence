@@ -81,7 +81,7 @@ private extension CadenceAppModel {
         at location: ManagedLibraryLocation
     ) async throws {
         let package = ManagedLibraryPackage(location: location)
-        let container = try LibraryContainerFactory.persistentReplica(
+        let container = try LibraryContainerFactory.persistent(
             package: package
         )
         let repository = LibraryRepository(modelContainer: container)

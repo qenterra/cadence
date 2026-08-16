@@ -23,8 +23,7 @@ extension CadenceAppModel {
         panel.title = librarySession.location.map { _ in
             "Move Cadence Library"
         } ?? "Choose Library Location"
-        panel.message = "Choose where to store the Cadence folder. Local disks, external drives, "
-            + "iCloud Drive, and File Provider folders are supported."
+        panel.message = "Choose where to store the Cadence folder on this Mac or a connected drive."
         panel.prompt = "Choose"
         panel.canChooseDirectories = true
         panel.canChooseFiles = false
@@ -58,7 +57,7 @@ extension CadenceAppModel {
                 )
                 let location = ManagedLibraryLocation(musicDirectory: parent)
                 let package = ManagedLibraryPackage(location: location)
-                let container = try LibraryContainerFactory.persistentReplica(
+                let container = try LibraryContainerFactory.persistent(
                     package: package
                 )
                 let repository = LibraryRepository(modelContainer: container)
@@ -145,7 +144,7 @@ extension CadenceAppModel {
             let location = ManagedLibraryLocation(musicDirectory: parent)
             let package = ManagedLibraryPackage(location: location)
             let identity = try package.readIdentity()
-            let container = try LibraryContainerFactory.persistentReplica(package: package)
+            let container = try LibraryContainerFactory.persistent(package: package)
             let repository = LibraryRepository(modelContainer: container)
             let activation = try controller.prepareActivation(
                 parentURL: parent,
@@ -253,7 +252,7 @@ private extension CadenceAppModel {
         try package.bootstrapForConfirmedImport()
         let identity = LibraryIdentity()
         try package.writeIdentity(identity)
-        let container = try LibraryContainerFactory.persistentReplica(package: package)
+        let container = try LibraryContainerFactory.persistent(package: package)
         let repository = LibraryRepository(modelContainer: container)
         let activation = try controller.prepareActivation(
             parentURL: destinationParent,
@@ -298,12 +297,5 @@ private extension CadenceAppModel {
         importDestination = destination
         importRecovery = ManagedLibraryImportRecovery(destination: destination)
         importCoordinator = coordinator
-        libraryCloudSyncController?.stop()
-        let cloud = LibraryCloudSyncFactory.make(
-            librarySession: librarySession
-        )
-        cloudMediaSourceRegistry?.source = cloud?.mediaSource
-        libraryCloudSyncController = cloud?.controller
-        libraryCloudSyncController?.start()
     }
 }

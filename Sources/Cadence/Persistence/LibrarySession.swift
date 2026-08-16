@@ -120,13 +120,37 @@ final class LibrarySession {
                 locationController: locationController
             )
         case .valid:
-            break
+            return openExistingPackage(
+                package,
+                at: location,
+                fileManager: fileManager,
+                locationController: locationController
+            )
         }
+    }
 
+    private static func openExistingPackage(
+        _ package: ManagedLibraryPackage,
+        at location: ManagedLibraryLocation,
+        fileManager: FileManager,
+        locationController: LibraryLocationController?
+    ) -> LibrarySession {
+        let replicaMigration = LegacyLocalLibraryReplicaMigration()
+        var preparedMigration: PreparedReplicaMigration?
         do {
-            let container = try LibraryContainerFactory.persistentReplica(
+            preparedMigration = try replicaMigration.prepareIfNeeded(
+                package: package,
+                fileManager: fileManager
+            )
+            let container = try LibraryContainerFactory.persistent(
                 package: package
             )
+            if let preparedMigration {
+                try replicaMigration.commit(
+                    preparedMigration,
+                    fileManager: fileManager
+                )
+            }
             return LibrarySession(
                 location: location,
                 store: LibraryStore(
@@ -137,6 +161,12 @@ final class LibrarySession {
                 locationController: locationController
             )
         } catch {
+            if let preparedMigration {
+                try? replicaMigration.rollback(
+                    preparedMigration,
+                    fileManager: fileManager
+                )
+            }
             return failed(
                 location: location,
                 kind: .openFailed,

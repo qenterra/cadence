@@ -29,8 +29,8 @@
 
 Cadence imports local audio into a managed library, keeps the source files
 untouched, and puts playback, lyrics, tags, playlists, and smart collections in
-one native SwiftUI app. Its managed folder can live locally, on an external
-disk, or in an iCloud Drive location chosen by the user.
+one native SwiftUI app. Its managed folder lives on this Mac or a connected
+local drive chosen by the user.
 
 > [!IMPORTANT]
 > Cadence 0.2.0 Beta 1 (2) is an Apple silicon release candidate. No binary
@@ -79,8 +79,8 @@ synthetic; the capture process cannot open the developer's music library.
 - Link a same-folder `.lrc` file when its normalized basename matches the audio
   file.
 - Move tracks, albums, or artists to Cadence Trash and restore them later.
-- Synchronize the catalog and media between devices through the user's private
-  iCloud database, with optimized or fully downloaded local storage.
+- Keep the catalog, artwork, lyrics, and original media together in the local
+  Cadence folder.
 
 ### Native playback
 
@@ -167,9 +167,8 @@ in Settings. When connected, Cadence uses the selected provider only to read
 the remote library manifest and transfer the media needed for playback; it does
 not send your local library or listening activity to QenTerra. Credentials and
 Google OAuth state stay in Keychain, while remote audio uses a bounded local
-cache. Cadence uses the signed-in system iCloud account to synchronize encrypted
-library records and media through the user's private CloudKit database. External
-project links open only when you select one in Settings.
+cache. Cadence does not synchronize the managed library through iCloud.
+External project links open only when you select one in Settings.
 
 - [Privacy](PRIVACY.md)
 - [Terms of Use](TERMS_OF_USE.md)
@@ -187,7 +186,6 @@ right to copy and play.
 Sources/Cadence/
   App/             Application state and feature coordination
   Components/      Shared SwiftUI components
-  CloudSync/       Private CloudKit metadata and media synchronization
   DesignSystem/    Theme, surfaces, typography, and motion
   Features/        Library, playback, tags, playlists, import, and settings
   Foundation/      App configuration and shared infrastructure

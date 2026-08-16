@@ -18,12 +18,6 @@ extension CadenceAppModel {
         let importRuntime = importRuntime(librarySession: librarySession)
         let remote = remoteRuntime(librarySession: librarySession)
         let externalAudioSession = ExternalAudioSession()
-        let cloud = LibraryCloudSyncFactory.make(
-            librarySession: librarySession
-        )
-        let cloudMediaSourceRegistry = CloudMediaPlaybackSourceRegistry(
-            source: cloud?.mediaSource
-        )
         let systemMediaArtworkProvider = SystemMediaArtworkProvider { id in
             if let asset = externalAudioSession.artwork(id: id) {
                 return asset
@@ -39,8 +33,7 @@ extension CadenceAppModel {
                 external: externalAudioSession,
                 managed: ManagedPlaybackTrackResolver(
                     librarySession: librarySession,
-                    remoteSource: remote.source,
-                    cloudMediaSourceRegistry: cloudMediaSourceRegistry
+                    remoteSource: remote.source
                 )
             ),
             backends: [
@@ -63,14 +56,10 @@ extension CadenceAppModel {
             },
             playbackCoordinator: playbackCoordinator,
             externalAudioSession: externalAudioSession,
-            remoteLibraryController: remote.controller,
-            cloudMediaSourceRegistry: cloudMediaSourceRegistry,
-            libraryCloudSyncController: cloud?.controller
+            remoteLibraryController: remote.controller
         )
         Task {
             await remote.controller.restore()
-            await model.bootstrapCloudLibraryIfNeeded()
-            model.libraryCloudSyncController?.start()
         }
         return model
     }

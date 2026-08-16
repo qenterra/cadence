@@ -10,9 +10,7 @@ flowchart LR
     UI["SwiftUI features"] -->|"intent"| Model["CadenceAppModel<br/>@MainActor"]
     Model --> Store["LibraryStore"]
     Store --> Repository["LibraryRepository"]
-    Repository --> SwiftData["Local SwiftData replica"]
-    Repository --> CloudSync["CKSyncEngine"]
-    CloudSync --> CloudKit["Private CloudKit database"]
+    Repository --> SwiftData["SwiftData store in Cadence folder"]
     Model --> Import["ImportCoordinator"]
     Import --> Inspector["Inspection and duplicate review"]
     Import --> Managed["Cadence folder"]
@@ -24,8 +22,6 @@ flowchart LR
     Playback --> Native["NativePlaybackBackend"]
     Playback --> System["Media keys and Control Center"]
     Managed --> Media["Media, artwork, lyrics, manifests, Trash"]
-    CloudKit --> CloudMedia["Chunked verified media assets"]
-    CloudMedia --> Playback
     Playback --> RemoteCache["Verified bounded remote cache"]
     RemoteCache --> Providers["WebDAV or Google Drive"]
 ```
@@ -50,22 +46,12 @@ opt-in test harness backed by an in-memory SwiftData repository.
 `LibraryRepository` owns the SwiftData model container and migrations.
 `LibraryStore` provides paged catalog access and derived counts to the UI.
 Production state does not load the complete music library into a second
-in-memory cache. The live SwiftData store is a per-library local replica under
-Application Support, rather than a database opened directly inside iCloud Drive
-or another File Provider folder.
+in-memory cache. The live SwiftData store stays inside the managed Cadence
+folder and is the single canonical catalog.
 
 The current schema stores tracks, albums, artists, artwork, tags, assignments,
 exclusions, playlists, smart collections, lyrics references, playback fields,
 and Trash metadata.
-
-`CKSyncEngine` mirrors object-level records into the user's private CloudKit
-database. User modification dates resolve concurrent edits, deterministic
-device IDs break exact ties, and tombstones preserve deletions across devices.
-The library identity is registered separately so a new device joins the same
-single logical library. Original audio is SHA-256 addressed, split into bounded
-CloudKit assets, reassembled into staging, verified, and only then promoted to
-the managed media path. CloudKit transport is never the canonical in-process
-store and an unavailable account leaves the local replica intact.
 
 ## Managed library
 
@@ -91,10 +77,9 @@ into their managed locations. A durable manifest supports recovery or rollback.
 Original source files remain untouched.
 
 The package location is persisted as a security-scoped bookmark and may point
-to a local disk, external disk, iCloud Drive, or another File Provider. Stale
-bookmarks are refreshed after successful resolution. The local replica is keyed
-by the package's stable library identity, so moving the folder does not create a
-second catalog.
+to this Mac or a connected local drive. Stale bookmarks are refreshed after
+successful resolution. The package's stable library identity prevents a moved
+folder from being mistaken for a different library.
 
 ## Playback
 

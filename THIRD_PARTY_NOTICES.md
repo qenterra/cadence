@@ -15,7 +15,7 @@ linked source distributions. Cadence does not modify or relicense them.
 
 Cadence links frameworks supplied by Xcode and macOS, including SwiftUI,
 AppKit, Foundation, Observation, SwiftData, AVFoundation, AVFAudio, CoreAudio,
-AudioToolbox, CloudKit, CoreImage, MediaPlayer, and UniformTypeIdentifiers. Apple provides
+AudioToolbox, CoreImage, MediaPlayer, and UniformTypeIdentifiers. Apple provides
 these components under the terms that accompany Xcode, the macOS SDK, and
 macOS. Cadence does not relicense them.
 

@@ -244,8 +244,6 @@ final class CadenceAppModel {
     let libraryRelocator: LibraryRelocator
     let libraryResetter: ManagedLibraryResetter
     let remoteLibraryController: RemoteLibraryController?
-    let cloudMediaSourceRegistry: CloudMediaPlaybackSourceRegistry?
-    var libraryCloudSyncController: LibraryCloudSyncController?
 
     var runtimeMode: CadenceRuntimeMode {
         runtimeEnvironment.mode
@@ -261,8 +259,6 @@ final class CadenceAppModel {
         playbackCoordinator: PlaybackCoordinator? = nil,
         externalAudioSession: ExternalAudioSession? = nil,
         remoteLibraryController: RemoteLibraryController? = nil,
-        cloudMediaSourceRegistry: CloudMediaPlaybackSourceRegistry? = nil,
-        libraryCloudSyncController: LibraryCloudSyncController? = nil,
         libraryRelocator: LibraryRelocator = LibraryRelocator(),
         libraryResetter: ManagedLibraryResetter = ManagedLibraryResetter()
     ) {
@@ -291,8 +287,6 @@ final class CadenceAppModel {
         self.playbackCoordinator = playbackCoordinator
         self.externalAudioSession = externalAudioSession
         self.remoteLibraryController = remoteLibraryController
-        self.cloudMediaSourceRegistry = cloudMediaSourceRegistry
-        self.libraryCloudSyncController = libraryCloudSyncController
         self.libraryRelocator = libraryRelocator
         self.libraryResetter = libraryResetter
         selectedArtistID = initialTracks.first?.artistID

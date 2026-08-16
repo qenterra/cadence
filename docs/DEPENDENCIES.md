@@ -14,7 +14,6 @@ runtime, plus six Homebrew tools during development and release packaging.
 | AppKit, Foundation, Observation | Active macOS SDK | macOS integration and app infrastructure | Apple |
 | CoreAudio and AudioToolbox | Active macOS SDK | Audio route and format services | Apple |
 | CoreImage | Active macOS SDK | Artwork processing | Apple |
-| CloudKit | Active macOS SDK | Private iCloud library and media synchronization | Apple |
 | MediaPlayer | Active macOS SDK | Now Playing and remote commands | Apple |
 | UniformTypeIdentifiers | Active macOS SDK | File and library package types | Apple |
 | GRDB.swift | Exactly `7.10.0` | Derived SQLite FTS5 index for lyrics search | [groue/GRDB.swift](https://github.com/groue/GRDB.swift) |
