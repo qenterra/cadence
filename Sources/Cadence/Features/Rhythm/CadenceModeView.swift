@@ -12,6 +12,7 @@ struct CadenceModeView: View {
     let visualQAPresentationTime: TimeInterval?
     let visualQABassLevel: Float?
     @State private var activeLineID: LyricLine.ID?
+    @State private var bassSmoother = CadenceModeBassSmoother()
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
@@ -56,31 +57,33 @@ struct CadenceModeView: View {
                     || reduceMotion
                     || !model.isPlaying
             )
-        ) { _ in
+        ) { timeline in
+            let targetLevel = visualQABassLevel ?? model.playbackBassLevel
+            let displayedLevel: Float = if visualQABassLevel != nil {
+                targetLevel
+            } else if reduceMotion || !model.isPlaying {
+                bassSmoother.reset()
+            } else {
+                bassSmoother.resolve(
+                    target: targetLevel,
+                    timestamp: timeline.date.timeIntervalSinceReferenceDate
+                )
+            }
             let response = CadenceModeBassResponse.resolve(
-                level: visualQABassLevel ?? model.playbackBassLevel,
+                level: displayedLevel,
                 reduceMotion: reduceMotion
             )
 
-            ZStack {
-                RoundedRectangle(
-                    cornerRadius: CadenceTheme.radiusHero,
-                    style: .continuous
-                )
-                .strokeBorder(.primary.opacity(0.34), lineWidth: 1)
-                .scaleEffect(response.haloScale)
-                .opacity(response.haloOpacity)
-
-                ProductionArtworkView(
-                    model: model,
-                    artworkID: artworkID,
-                    title: trackTitle,
-                    placeholder: .track,
-                    variant: .original,
-                    cornerRadius: CadenceTheme.radiusHero
-                )
-                .scaleEffect(response.artworkScale)
-            }
+            ProductionArtworkView(
+                model: model,
+                artworkID: artworkID,
+                title: trackTitle,
+                placeholder: .track,
+                variant: .original,
+                cornerRadius: CadenceTheme.radiusHero,
+                showsBorder: false
+            )
+            .scaleEffect(response.artworkScale)
         }
     }
 
@@ -187,13 +190,9 @@ enum CadenceModeUnavailableLyricsMetrics {
 
 struct CadenceModeBassResponse: Equatable, Sendable {
     let artworkScale: CGFloat
-    let haloScale: CGFloat
-    let haloOpacity: Double
 
     static let identity = CadenceModeBassResponse(
-        artworkScale: 1,
-        haloScale: 1,
-        haloOpacity: 0
+        artworkScale: 1
     )
 
     static func resolve(
@@ -206,10 +205,49 @@ struct CadenceModeBassResponse: Equatable, Sendable {
         let level = CGFloat(min(max(level, 0), 1))
         let shapedLevel = level * level
         return CadenceModeBassResponse(
-            artworkScale: 1 + level * 0.025 + shapedLevel * 0.018,
-            haloScale: 1.01 + level * 0.055,
-            haloOpacity: Double(level * 0.12 + shapedLevel * 0.08)
+            artworkScale: 1 + level * 0.025 + shapedLevel * 0.018
         )
+    }
+}
+
+@MainActor
+final class CadenceModeBassSmoother {
+    private static let attackDuration = 0.009
+    private static let releaseDuration = 0.115
+    private static let fallbackFrameDuration = 1.0 / 120.0
+
+    private var value: Float = 0
+    private var previousTimestamp: TimeInterval?
+
+    func resolve(
+        target: Float,
+        timestamp: TimeInterval
+    ) -> Float {
+        let target = min(max(target, 0), 1)
+        let rawFrameDuration = previousTimestamp.map {
+            timestamp - $0
+        } ?? Self.fallbackFrameDuration
+        previousTimestamp = timestamp
+        let frameDuration = min(
+            max(rawFrameDuration, 1.0 / 240.0),
+            1.0 / 30.0
+        )
+        let duration = target > value
+            ? Self.attackDuration
+            : Self.releaseDuration
+        let interpolation = Float(1 - exp(-frameDuration / duration))
+        value += (target - value) * interpolation
+        if abs(target - value) < 0.0001 {
+            value = target
+        }
+        return value
+    }
+
+    @discardableResult
+    func reset() -> Float {
+        value = 0
+        previousTimestamp = nil
+        return 0
     }
 }
 

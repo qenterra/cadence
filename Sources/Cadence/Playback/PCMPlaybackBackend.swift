@@ -46,10 +46,9 @@ final class PCMPlaybackBackend: PlaybackBackend {
         playerNode.installTap(
             onBus: 0,
             bufferSize: 1024,
-            format: nil
-        ) { [bassAnalyzer] buffer, _ in
-            bassAnalyzer.process(buffer)
-        }
+            format: nil,
+            block: makePCMBassTap(analyzer: bassAnalyzer)
+        )
         engine.mainMixerNode.outputVolume = 1
     }
 

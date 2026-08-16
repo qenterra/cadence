@@ -1,4 +1,5 @@
 import AppKit
+import AVFAudio
 @testable import Cadence
 import QuartzCore
 import Testing
@@ -22,29 +23,86 @@ struct CadenceModeRegressionTests {
         #expect(idle.artworkScale == 1)
         #expect(peak.artworkScale > idle.artworkScale)
         #expect(peak.artworkScale <= 1.05)
-        #expect(peak.haloOpacity <= 0.22)
         #expect(reduced == .identity)
     }
 
-    @Test("Low-frequency energy drives the meter more than upper mids")
+    @Test("Sustained bass drives the meter more than upper mids")
     func bassFilterPrefersLowFrequencies() {
         let sampleRate = 48000.0
-        let frameCount = 4800
-        let bass = (0 ..< frameCount).map { frame in
-            Float(sin(2 * Double.pi * 80 * Double(frame) / sampleRate) * 0.35)
-        }
-        let upperMid = (0 ..< frameCount).map { frame in
-            Float(sin(2 * Double.pi * 1200 * Double(frame) / sampleRate) * 0.35)
-        }
-
+        let frameCount = 1024
         var bassFilter = PCMBassEnergyFilter(sampleRate: sampleRate)
         var upperMidFilter = PCMBassEnergyFilter(sampleRate: sampleRate)
+        var bassLevel: Float = 0
+        var upperMidLevel: Float = 0
+        for chunk in 0 ..< 32 {
+            let bass = (0 ..< frameCount).map { frame in
+                let sample = chunk * frameCount + frame
+                return Float(
+                    sin(2 * Double.pi * 80 * Double(sample) / sampleRate)
+                        * 0.35
+                )
+            }
+            let upperMid = (0 ..< frameCount).map { frame in
+                let sample = chunk * frameCount + frame
+                return Float(
+                    sin(2 * Double.pi * 1200 * Double(sample) / sampleRate)
+                        * 0.35
+                )
+            }
+            bassLevel = bassFilter.process(samples: bass)
+            upperMidLevel = upperMidFilter.process(samples: upperMid)
+        }
 
-        let bassLevel = bassFilter.process(samples: bass)
-        let upperMidLevel = upperMidFilter.process(samples: upperMid)
-
+        #expect(bassLevel > 0.2)
         #expect(bassLevel > upperMidLevel * 2)
         #expect((0 ... 1).contains(bassLevel))
+    }
+
+    @Test("PCM bass tap processes audio away from the main actor")
+    func bassTapIsRealtimeSafe() async throws {
+        let meter = PCMBassLevelMeter()
+        let analyzer = PCMBassAnalyzer(meter: meter)
+        let tap = makePCMBassTap(analyzer: analyzer)
+
+        try await Task.detached {
+            let format = try #require(
+                AVAudioFormat(
+                    standardFormatWithSampleRate: 48000,
+                    channels: 1
+                )
+            )
+            let buffer = try #require(
+                AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 4800)
+            )
+            buffer.frameLength = buffer.frameCapacity
+            let samples = try #require(buffer.floatChannelData?[0])
+            for frame in 0 ..< Int(buffer.frameLength) {
+                samples[frame] = Float(
+                    sin(2 * Double.pi * 80 * Double(frame) / 48000) * 0.35
+                )
+            }
+            tap(buffer, AVAudioTime(sampleTime: 0, atRate: 48000))
+        }.value
+
+        #expect(meter.currentBassLevel() > 0)
+    }
+
+    @MainActor
+    @Test("Bass artwork rises quickly and releases across display frames")
+    func bassArtworkResponseIsSmoothed() {
+        let smoother = CadenceModeBassSmoother()
+
+        let first = smoother.resolve(target: 1, timestamp: 0)
+        let second = smoother.resolve(target: 1, timestamp: 1.0 / 120.0)
+        let third = smoother.resolve(target: 1, timestamp: 2.0 / 120.0)
+        let release = smoother.resolve(target: 0, timestamp: 3.0 / 120.0)
+
+        #expect(first > 0.5)
+        #expect(first < second)
+        #expect(second < third)
+        #expect(third < 1)
+        #expect(release < third)
+        #expect(release > third * 0.85)
     }
 
     @Test("Precomputed bass envelopes interpolate for native routes")

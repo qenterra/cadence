@@ -2,6 +2,16 @@ import AVFAudio
 import Foundation
 import Synchronization
 
+typealias PCMBassTap = @Sendable (AVAudioPCMBuffer, AVAudioTime) -> Void
+
+nonisolated func makePCMBassTap(
+    analyzer: PCMBassAnalyzer
+) -> PCMBassTap {
+    { buffer, _ in
+        analyzer.process(buffer)
+    }
+}
+
 protocol PlaybackBassLevelProviding: Sendable {
     func currentBassLevel() -> Float
 }
