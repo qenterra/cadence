@@ -88,6 +88,20 @@ struct SecondAuditPresentationTests {
         #expect(SettingsLayoutMetrics.maximumContentWidth == 640)
     }
 
+    @Test("Settings tabs keep native glass outside deterministic captures")
+    func settingsTabGlassPresentation() {
+        #expect(
+            SettingsTabControlPresentation.resolve(
+                usesStableSystemControls: false
+            ) == .nativeGlass
+        )
+        #expect(
+            SettingsTabControlPresentation.resolve(
+                usesStableSystemControls: true
+            ) == .stableOpaque
+        )
+    }
+
     @Test("Every settings card symbol resolves on the supported macOS baseline")
     func settingsSymbolsResolve() {
         let symbols = [
