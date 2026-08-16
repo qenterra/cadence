@@ -124,6 +124,18 @@ struct ManagedLibraryPackage: Sendable {
         return try JSONDecoder().decode(LibraryIdentity.self, from: data)
     }
 
+    @discardableResult
+    func createIdentityIfNeeded(
+        fileManager: FileManager = .default
+    ) throws -> LibraryIdentity {
+        if fileManager.fileExists(atPath: identityURL.path) {
+            return try readIdentity()
+        }
+        let identity = LibraryIdentity()
+        try writeIdentity(identity, fileManager: fileManager)
+        return identity
+    }
+
     func writeIdentity(
         _ identity: LibraryIdentity,
         fileManager: FileManager = .default

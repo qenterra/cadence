@@ -45,29 +45,40 @@ struct LibraryLocationControllerTests {
         #expect(message.contains("unreadable"))
     }
 
-    @Test("A stale bookmark fails closed and asks the user to locate the library")
-    func staleBookmark() {
-        let parent = URL(filePath: "/Volumes/Music")
+    @Test("A stale bookmark is refreshed without asking the user to locate the library")
+    func staleBookmarkIsRefreshed() throws {
+        let parent = FileManager.default.temporaryDirectory.appending(
+            path: "Cadence-Stale-Bookmark-\(UUID().uuidString)",
+            directoryHint: .isDirectory
+        )
+        defer { try? FileManager.default.removeItem(at: parent) }
         let identity = LibraryIdentity(id: UUID(), formatVersion: 1)
+        let location = ManagedLibraryLocation(musicDirectory: parent)
+        try ManagedLibraryPackage(location: location).writeIdentity(identity)
         let store = InMemoryLibraryLocationStore(
             record: LibraryLocationRecord(
-                bookmarkData: Data("bookmark".utf8),
+                bookmarkData: Data("stale-bookmark".utf8),
                 identity: identity
             )
         )
+        let resolver = BookmarkResolverStub(
+            resolvedURL: parent,
+            isStale: true,
+            bookmarkData: Data("refreshed-bookmark".utf8)
+        )
         let controller = LibraryLocationController(
             store: store,
-            bookmarkResolver: BookmarkResolverStub(
-                resolvedURL: parent,
-                isStale: true
-            )
+            bookmarkResolver: resolver
         )
 
         #expect(
             controller.resolveActiveLibrary(
-                fallback: ManagedLibraryLocation(musicDirectory: parent)
-            ) == .staleBookmark(previousParent: parent)
+                fallback: location
+            ) == .available(location)
         )
+        #expect(try store.load()?.bookmarkData == Data("refreshed-bookmark".utf8))
+        #expect(resolver.bookmarkCreationCount == 1)
+        #expect(resolver.accessStartCount == 1)
     }
 
     @Test("A different package identity is never opened silently")
@@ -185,6 +196,7 @@ private final class BookmarkResolverStub: LibraryBookmarkResolving {
         directoryHint: .isDirectory
     )
     var isStale = false
+    var bookmarkData = Data("bookmark".utf8)
     var bookmarkCreationCount = 0
     var accessStartCount = 0
 
@@ -193,15 +205,17 @@ private final class BookmarkResolverStub: LibraryBookmarkResolving {
             path: "CadenceLibraryLocationControllerTests/ResolvedMusic",
             directoryHint: .isDirectory
         ),
-        isStale: Bool = false
+        isStale: Bool = false,
+        bookmarkData: Data = Data("bookmark".utf8)
     ) {
         self.resolvedURL = resolvedURL
         self.isStale = isStale
+        self.bookmarkData = bookmarkData
     }
 
     func makeBookmark(for _: URL) throws -> Data {
         bookmarkCreationCount += 1
-        return Data("bookmark".utf8)
+        return bookmarkData
     }
 
     func resolve(_ data: Data) throws -> ResolvedLibraryBookmark {

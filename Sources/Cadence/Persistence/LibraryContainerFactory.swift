@@ -1,3 +1,4 @@
+import Foundation
 import SwiftData
 
 enum LibraryContainerFactory {
@@ -21,11 +22,34 @@ enum LibraryContainerFactory {
     static func persistent(
         package: ManagedLibraryPackage
     ) throws -> ModelContainer {
+        try persistent(storeURL: package.metadataStoreURL)
+    }
+
+    static func persistentReplica(
+        package: ManagedLibraryPackage,
+        fileManager: FileManager = .default
+    ) throws -> ModelContainer {
+        let identity = try package.readIdentity()
+        let replica = try LocalLibraryReplicaLocation.currentUser(
+            identity: identity,
+            fileManager: fileManager
+        )
+        try LocalLibraryReplicaSeeder().seedIfNeeded(
+            from: package.metadataStoreURL,
+            to: replica.storeURL,
+            fileManager: fileManager
+        )
+        return try persistent(storeURL: replica.storeURL)
+    }
+
+    private static func persistent(
+        storeURL: URL
+    ) throws -> ModelContainer {
         let schema = Schema(versionedSchema: CadenceSchemaV5.self)
         let configuration = ModelConfiguration(
             "CadenceLibrary",
             schema: schema,
-            url: package.metadataStoreURL,
+            url: storeURL,
             cloudKitDatabase: .none
         )
         let container = try ModelContainer(

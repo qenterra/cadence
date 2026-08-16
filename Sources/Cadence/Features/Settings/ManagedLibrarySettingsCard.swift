@@ -4,6 +4,10 @@ struct ManagedLibrarySettingsCard: View {
     @Bindable var model: CadenceAppModel
     @State private var libraryStorageSize = "Calculating…"
     @State private var isDeleteConfirmationPresented = false
+    @State private var storageOperationMessage: String?
+    @State private var isApplyingStoragePolicy = false
+    @AppStorage(LibraryStorageMode.defaultsKey)
+    private var storageModeRawValue = LibraryStorageMode.optimize.rawValue
 
     private var store: LibraryStore {
         model.librarySession.store
@@ -15,6 +19,7 @@ struct ManagedLibrarySettingsCard: View {
             symbol: "externaldrive"
         ) {
             libraryDetails
+            storagePolicy
             libraryActions
             deletionAction
             relocationProgress
@@ -57,6 +62,43 @@ struct ManagedLibrarySettingsCard: View {
                 model.libraryResetNotice
                     ?? "Cadence finished the library reset operation."
             )
+        }
+    }
+
+    private var storagePolicy: some View {
+        VStack(alignment: .leading, spacing: CadenceLayout.controlGap) {
+            Picker("Storage", selection: storageModeBinding) {
+                ForEach(LibraryStorageMode.allCases) { mode in
+                    Text(mode.title).tag(mode)
+                }
+            }
+            .disabled(isApplyingStoragePolicy)
+
+            Text(storagePolicyDescription)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            HStack {
+                if storageMode == .downloadOriginals {
+                    Button("Download Now", systemImage: "arrow.down.circle") {
+                        applyStoragePolicy()
+                    }
+                } else {
+                    Button("Free Up Space", systemImage: "internaldrive") {
+                        evictDownloadedOriginals()
+                    }
+                }
+                if isApplyingStoragePolicy {
+                    ProgressView()
+                        .controlSize(.small)
+                }
+            }
+
+            if let storageOperationMessage {
+                Text(storageOperationMessage)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
         }
     }
 
@@ -139,5 +181,75 @@ struct ManagedLibrarySettingsCard: View {
     private var libraryPath: String {
         model.librarySession.location?.packageURL.path
             ?? "~/Music/Cadence"
+    }
+
+    private var storageMode: LibraryStorageMode {
+        LibraryStorageMode(rawValue: storageModeRawValue) ?? .optimize
+    }
+
+    private var storageModeBinding: Binding<LibraryStorageMode> {
+        Binding(
+            get: { storageMode },
+            set: { mode in
+                storageModeRawValue = mode.rawValue
+                storageOperationMessage = nil
+                if mode == .downloadOriginals {
+                    applyStoragePolicy()
+                }
+            }
+        )
+    }
+
+    private var storagePolicyDescription: String {
+        switch storageMode {
+        case .optimize:
+            "Originals download when you play them. macOS may remove local iCloud copies when space is needed."
+        case .downloadOriginals:
+            "Cadence requests local copies of every original while iCloud continues syncing the library."
+        }
+    }
+
+    private func applyStoragePolicy() {
+        guard let location = model.librarySession.location else {
+            return
+        }
+        let policy = LibraryStoragePolicy(mode: storageMode)
+        isApplyingStoragePolicy = true
+        storageOperationMessage = nil
+        Task {
+            do {
+                try await Task.detached {
+                    try LibraryStoragePolicyApplier().apply(
+                        policy,
+                        to: ManagedLibraryPackage(location: location)
+                    )
+                }.value
+                storageOperationMessage = "Original downloads have been requested."
+            } catch {
+                storageOperationMessage = error.localizedDescription
+            }
+            isApplyingStoragePolicy = false
+        }
+    }
+
+    private func evictDownloadedOriginals() {
+        guard let location = model.librarySession.location else {
+            return
+        }
+        isApplyingStoragePolicy = true
+        storageOperationMessage = nil
+        Task {
+            do {
+                try await Task.detached {
+                    try LibraryStoragePolicyApplier().evictDownloadedOriginals(
+                        in: ManagedLibraryPackage(location: location)
+                    )
+                }.value
+                storageOperationMessage = "Downloaded iCloud originals were released."
+            } catch {
+                storageOperationMessage = error.localizedDescription
+            }
+            isApplyingStoragePolicy = false
+        }
     }
 }

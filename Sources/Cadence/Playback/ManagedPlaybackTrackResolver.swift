@@ -5,15 +5,18 @@ final class ManagedPlaybackTrackResolver: PlaybackTrackResolving {
     private let librarySession: LibrarySession
     private let fileManager: FileManager
     private let remoteSource: RemotePlaybackSource?
+    private let mediaMaterializer: any MediaMaterializing
 
     init(
         librarySession: LibrarySession,
         remoteSource: RemotePlaybackSource? = nil,
-        fileManager: FileManager = .default
+        fileManager: FileManager = .default,
+        mediaMaterializer: any MediaMaterializing = UbiquitousMediaMaterializer()
     ) {
         self.librarySession = librarySession
         self.remoteSource = remoteSource
         self.fileManager = fileManager
+        self.mediaMaterializer = mediaMaterializer
     }
 
     func resolve(
@@ -44,6 +47,7 @@ final class ManagedPlaybackTrackResolver: PlaybackTrackResolving {
                 directoryHint: .notDirectory
             ),
                 fileManager.fileExists(atPath: url.path) {
+                try await mediaMaterializer.materialize(url)
                 resolved.append(
                     ResolvedPlaybackTrack(track: track, mediaURL: url)
                 )

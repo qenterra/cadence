@@ -158,13 +158,9 @@ final class LibraryLocationController {
         } catch {
             return .unavailable(previousParent: nil)
         }
-        guard !resolved.isStale else {
-            return .staleBookmark(previousParent: resolved.parentURL)
-        }
         guard bookmarkResolver.startAccessing(resolved.parentURL) else {
             return .unavailable(previousParent: resolved.parentURL)
         }
-        replaceAccessedParent(with: resolved.parentURL)
 
         let location = ManagedLibraryLocation(
             musicDirectory: resolved.parentURL
@@ -188,6 +184,25 @@ final class LibraryLocationController {
                 actual: actualIdentity
             )
         }
+        if resolved.isStale {
+            do {
+                let bookmarkData = try bookmarkResolver.makeBookmark(
+                    for: resolved.parentURL
+                )
+                try store.save(
+                    LibraryLocationRecord(
+                        bookmarkData: bookmarkData,
+                        identity: record.identity
+                    )
+                )
+            } catch {
+                releaseAccess(to: resolved.parentURL)
+                return .configurationUnavailable(
+                    "The saved library permission could not be refreshed."
+                )
+            }
+        }
+        replaceAccessedParent(with: resolved.parentURL)
         return .available(location)
     }
 

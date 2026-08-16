@@ -124,7 +124,7 @@ final class LibrarySession {
         }
 
         do {
-            let container = try LibraryContainerFactory.persistent(
+            let container = try LibraryContainerFactory.persistentReplica(
                 package: package
             )
             return LibrarySession(
