@@ -1,5 +1,4 @@
 {
-  "$schema": "../design-system/schemas/product-release.schema.json",
   "schemaVersion": 1,
   "product": {
     "name": "Cadence",

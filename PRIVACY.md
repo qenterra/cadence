@@ -1,6 +1,6 @@
 # Privacy
 
-Last updated: August 11, 2026
+Last updated: August 16, 2026
 
 Cadence is a local macOS music player and library manager. It does not include
 an account system, analytics, advertising, telemetry, or crash-reporting
@@ -41,15 +41,16 @@ OAuth state. Existing remote-media cache files are local to your Mac and are
 not automatically deleted by Disconnect; remove Cadence's cache through macOS
 after quitting the app if you also want to erase downloaded remote audio.
 
-## Data that stays on your Mac
+## Data not sent to QenTerra
 
-Cadence does not transmit your local library, listening activity, tags,
-playlists, artwork, lyrics, search queries, or preferences to Nikita
-Melnychenko (QenTerra) or an analytics service. When you connect Remote Media,
+Cadence does not transmit your library or listening data to Nikita Melnychenko
+(QenTerra) or an analytics service. When iCloud is available, Cadence stores
+encrypted library metadata and media assets in your private CloudKit database
+so your devices can synchronize. When you connect Remote Media,
 Cadence transmits only the requests, credentials, OAuth data, and remote media
 data necessary to use the provider you selected.
 The app opens a URL in your default browser only after you select a GitHub,
-Wiki, license, or Buy Me a Coffee link in Settings.
+Wiki, or license link in Settings.
 
 ## Files you import
 

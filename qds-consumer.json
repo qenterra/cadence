@@ -1,8 +1,0 @@
-{
-  "schemaVersion": 1,
-  "product": "Cadence",
-  "platforms": ["macOS"],
-  "adapters": {"swift": true, "css": false},
-  "sourceRoots": ["Sources/Cadence"],
-  "exceptions": "qds-exceptions.json"
-}

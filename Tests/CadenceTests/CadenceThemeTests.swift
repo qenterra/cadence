@@ -1,24 +1,29 @@
 @testable import Cadence
 import Foundation
-import QenTerraDesignTokens
 import Testing
 
 struct CadenceThemeTests {
-    @Test("Cadence theme is backed by the connected QDS package")
-    func qdsPackageContract() {
-        #expect(CadenceTheme.qdsVersion == QDS.version)
-        #expect(QDS.version == "4.2.0")
+    @Test("Cadence owns the semantic tokens required to build standalone")
+    func localTokenContract() {
+        #expect(CadenceTheme.radiusControl == 6)
+        #expect(CadenceTheme.motionPress == 0.08)
+        #expect(CadenceTheme.surfaceContent.light == "#F4F4F6")
     }
 
     @Test("Player controls keep accessible contrast in both appearances")
     func playerControlContrast() throws {
-        for appearance in QDSAppearance.allCases {
-            let surface = try RGBColor(
-                source: QDS.Color.surfaceContent.value(for: appearance)
-            )
+        let appearances = [
+            ("light", CadenceTheme.surfaceContent.light),
+            ("dark", CadenceTheme.surfaceContent.dark),
+        ]
+        for (appearance, surfaceSource) in appearances {
+            let surface = try RGBColor(source: surfaceSource)
             for state in PlayerControlVisualState.allCases {
+                let source = appearance == "light"
+                    ? state.token.light
+                    : state.token.dark
                 let foreground = try RGBColor(
-                    source: state.token.value(for: appearance)
+                    source: source
                 )
                 #expect(
                     foreground.contrastRatio(against: surface) >= 4.5,

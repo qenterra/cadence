@@ -57,7 +57,7 @@ class CadenceReleaseContractTests(unittest.TestCase):
                 "checksums": "Cadence-0.2.0-beta.1-SHA256SUMS.txt",
             },
         }
-        (self.root / "qds-release.json").write_text(json.dumps(manifest), encoding="utf-8")
+        (self.root / "release-contract.json").write_text(json.dumps(manifest), encoding="utf-8")
         (self.root / "project.yml").write_text(
             'deploymentTarget:\n  macOS: "26.0"\n'
             'MARKETING_VERSION: "0.2.0"\n'
@@ -144,7 +144,7 @@ class CadenceReleaseContractTests(unittest.TestCase):
         self.assertIn("distribution.gatekeeperDisclosure must be false", errors)
 
     def test_public_release_accepts_complete_distribution_contract(self) -> None:
-        manifest_path = self.root / "qds-release.json"
+        manifest_path = self.root / "release-contract.json"
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["distribution"] = {
             "signing": "developer-id",

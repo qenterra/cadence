@@ -40,22 +40,9 @@ icon_manifest="$icon_source/icon.json"
 
 xcodegen generate --spec project.yml
 
-qds_doctor="${QDS_DOCTOR:-$project_root/../design-system/scripts/audit_consumer.py}"
-if [[ ! -f "$qds_doctor" ]]; then
-    echo "QDS consumer doctor was not found. Set QDS_DOCTOR to design-system/scripts/audit_consumer.py." >&2
-    exit 1
-fi
-python3 "$qds_doctor" "$project_root"
-
-qds_release_auditor="${QDS_RELEASE_AUDITOR:-$project_root/../design-system/scripts/audit_release_contract.py}"
-if [[ ! -f "$qds_release_auditor" ]]; then
-    echo "QDS release auditor was not found. Set QDS_RELEASE_AUDITOR to design-system/scripts/audit_release_contract.py." >&2
-    exit 1
-fi
-python3 "$qds_release_auditor" "$project_root"
 python3 "$project_root/scripts/release_contract.py" check
 python3 -m unittest "$project_root/Tests/ReleaseContractTests/test_release_contract.py" -v
-image_python="${QDS_IMAGE_PYTHON:-python3}"
+image_python="${CADENCE_IMAGE_PYTHON:-python3}"
 "$image_python" -m unittest "$project_root/Tests/ReleaseContractTests/test_dmg_background.py" -v
 
 swiftformat Sources Tests --lint

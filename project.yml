@@ -15,8 +15,6 @@ settings:
     CURRENT_PROJECT_VERSION: "2"
 
 packages:
-  QenTerraDesignTokens:
-    path: ../design-system/packages/swift
   GRDB:
     url: https://github.com/groue/GRDB.swift.git
     exactVersion: 7.10.0
@@ -36,7 +34,6 @@ targets:
       - path: Sources/Cadence
       - path: icon/Cadence.icon
     dependencies:
-      - package: QenTerraDesignTokens
       - package: GRDB
       - package: AppAuth
       - package: Sparkle
@@ -73,17 +70,6 @@ targets:
         SUFeedURL: https://raw.githubusercontent.com/QenTerra/cadence/main/appcast.xml
         SUPublicEDKey: 7/3AjNwmfbQhlvGOgMuXxlu2cWV/pb009DPVu6AuSN0=
         SUScheduledCheckInterval: 86400
-    entitlements:
-      path: Sources/Cadence/Resources/Cadence.entitlements
-      properties:
-        com.apple.security.app-sandbox: true
-        com.apple.security.assets.music.read-write: true
-        com.apple.security.files.user-selected.read-write: true
-        com.apple.security.files.bookmarks.app-scope: true
-        com.apple.security.network.client: true
-        com.apple.security.temporary-exception.mach-lookup.global-name:
-          - $(PRODUCT_BUNDLE_IDENTIFIER)-spks
-          - $(PRODUCT_BUNDLE_IDENTIFIER)-spki
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.qenterra.cadence
@@ -95,6 +81,11 @@ targets:
         LOCALIZATION_PREFERS_STRING_CATALOGS: YES
         STRING_CATALOG_GENERATE_SYMBOLS: YES
         SWIFT_EMIT_LOC_STRINGS: YES
+      configs:
+        Debug:
+          CODE_SIGN_ENTITLEMENTS: Sources/Cadence/Resources/CadenceDebug.entitlements
+        Release:
+          CODE_SIGN_ENTITLEMENTS: Sources/Cadence/Resources/Cadence.entitlements
     scheme:
       testTargets:
         - CadenceTests

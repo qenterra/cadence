@@ -19,6 +19,7 @@ struct ManagedLibrarySettingsCard: View {
             symbol: "externaldrive"
         ) {
             libraryDetails
+            cloudSync
             storagePolicy
             libraryActions
             deletionAction
@@ -62,6 +63,24 @@ struct ManagedLibrarySettingsCard: View {
                 model.libraryResetNotice
                     ?? "Cadence finished the library reset operation."
             )
+        }
+    }
+
+    private var cloudSync: some View {
+        VStack(alignment: .leading, spacing: CadenceLayout.controlGap) {
+            LabeledContent("iCloud Sync") {
+                Label(syncStatusTitle, systemImage: syncStatusSymbol)
+                    .foregroundStyle(syncStatusColor)
+            }
+            if let controller = model.libraryCloudSyncController {
+                Button("Sync Now", systemImage: "arrow.triangle.2.circlepath") {
+                    Task { await controller.synchronize() }
+                }
+                .disabled(controller.status == .syncing)
+            }
+            Text(syncStatusDetail)
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
     }
 
@@ -209,6 +228,58 @@ struct ManagedLibrarySettingsCard: View {
         }
     }
 
+    private var syncStatusTitle: String {
+        guard let controller = model.libraryCloudSyncController else {
+            return "Waiting for Library"
+        }
+        return switch controller.status {
+        case .idle: "Ready"
+        case .syncing: "Syncing…"
+        case .synced: "Up to Date"
+        case .unavailable: "Unavailable"
+        case .failed: "Sync Error"
+        }
+    }
+
+    private var syncStatusSymbol: String {
+        guard let controller = model.libraryCloudSyncController else {
+            return "icloud.slash"
+        }
+        return switch controller.status {
+        case .idle: "icloud"
+        case .syncing: "icloud.and.arrow.up"
+        case .synced: "checkmark.icloud.fill"
+        case .unavailable, .failed: "exclamationmark.icloud"
+        }
+    }
+
+    private var syncStatusColor: Color {
+        guard let controller = model.libraryCloudSyncController else {
+            return .secondary
+        }
+        return switch controller.status {
+        case .synced: .green
+        case .failed: .orange
+        case .idle, .syncing, .unavailable: .secondary
+        }
+    }
+
+    private var syncStatusDetail: String {
+        guard let controller = model.libraryCloudSyncController else {
+            return "iCloud sync starts after the library has an identity and a local catalog."
+        }
+        return switch controller.status {
+        case .idle:
+            "Cadence syncs metadata through your private iCloud database."
+        case .syncing:
+            "Uploading local changes and applying changes from your other devices."
+        case let .synced(date):
+            "Last synced \(date.formatted(date: .omitted, time: .shortened))."
+        case let .unavailable(message), let .failed(message):
+            message
+        }
+    }
+
     private func applyStoragePolicy() {
         guard let location = model.librarySession.location else {
             return
@@ -224,6 +295,9 @@ struct ManagedLibrarySettingsCard: View {
                         to: ManagedLibraryPackage(location: location)
                     )
                 }.value
+                if storageMode == .downloadOriginals {
+                    try await model.libraryCloudSyncController?.downloadAllOriginals()
+                }
                 storageOperationMessage = "Original downloads have been requested."
             } catch {
                 storageOperationMessage = error.localizedDescription

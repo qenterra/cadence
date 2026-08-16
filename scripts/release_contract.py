@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate Cadence release surfaces against qds-release.json."""
+"""Validate Cadence release surfaces against release-contract.json."""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def load_manifest(root: Path) -> dict[str, Any]:
-    return json.loads((root / "qds-release.json").read_text(encoding="utf-8"))
+    return json.loads((root / "release-contract.json").read_text(encoding="utf-8"))
 
 
 def environment_values(root: Path = ROOT) -> dict[str, str]:

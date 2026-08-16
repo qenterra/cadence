@@ -2,7 +2,7 @@
 import Testing
 
 struct SemanticLayoutTests {
-    @Test("Product spacing aliases follow the four-point QDS rhythm")
+    @Test("Product spacing aliases follow the four-point rhythm")
     func semanticSpacingRhythm() {
         let values = [
             CadenceLayout.textStack,

@@ -42,12 +42,6 @@ struct SettingsAboutSection: View {
                     symbol: "books.vertical",
                     destination: AppConfiguration.thirdPartyNoticesURL
                 )
-                SettingsAboutLinkTile(
-                    title: "Buy Me a Coffee",
-                    subtitle: "Support independent development",
-                    symbol: "cup.and.saucer",
-                    destination: AppConfiguration.supportURL
-                )
             }
         }
     }

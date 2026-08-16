@@ -10,19 +10,13 @@ notarized application.
 - Xcode 27 or later with a compatible macOS SDK
 - Homebrew
 - Git
-- A sibling `design-system` checkout containing `packages/swift`
 
 ## Clone
 
 ```sh
 git clone https://github.com/QenTerra/cadence.git
-git clone <authorized-design-system-source> design-system
 cd cadence
 ```
-
-Keep `cadence` and `design-system` in the same parent directory. The design
-system is not downloaded implicitly; use the authorized QenTerra source for
-your environment.
 
 ## Select Xcode
 
@@ -44,8 +38,8 @@ Change the path when your Xcode app has another name or location.
 brew bundle
 ```
 
-This installs XcodeGen, SwiftFormat, SwiftLint, and xcbeautify. Xcode resolves
-the local QDS Swift package from `../design-system/packages/swift`.
+This installs XcodeGen, SwiftFormat, SwiftLint, and xcbeautify. All Cadence UI
+tokens are part of this repository, so no sibling checkout is required.
 
 ## Generate and open the project
 
@@ -63,8 +57,8 @@ bash scripts/verify.sh
 git diff --check
 ```
 
-The script regenerates the project, runs the QDS consumer doctor, checks
-formatting and linting, builds the app, runs unit and integration tests, and
+The script regenerates the project, checks formatting and linting, builds the
+app, runs unit and integration tests, and
 rejects `Localizable.xcstrings` when it no longer matches compiler-extracted
 SwiftUI and Foundation strings.
 

@@ -1,6 +1,10 @@
 import AppKit
-import QenTerraDesignTokens
 import SwiftUI
+
+struct CadenceColorValue: Equatable, Sendable {
+    let light: String
+    let dark: String
+}
 
 enum CadenceAppearance: String, CaseIterable, Identifiable {
     case system
@@ -40,30 +44,79 @@ enum CadenceAppearance: String, CaseIterable, Identifiable {
 }
 
 enum CadenceTheme {
-    static let qdsVersion = QDS.version
-    static let primaryAccent = adaptive(QDS.Color.actionPrimary)
-    static let contentBackground = adaptive(QDS.Color.surfaceContent)
-    static let secondarySurface = adaptive(QDS.Color.surfaceSecondary)
-    static let opaqueSurface = adaptive(QDS.Color.surfaceRaised)
-    static let separator = adaptive(QDS.Color.borderDefault)
-    static let strongSeparator = adaptive(QDS.Color.borderStrong)
-    static let subduedFill = adaptive(QDS.Color.fillDisabled)
-    static let selectionFill = adaptive(QDS.Color.fillSelected)
-    static let hoverFill = adaptive(QDS.Color.fillHover)
-    static let playerMetadata = adaptive(QDS.Color.textSecondary)
+    static let actionPrimary = CadenceColorValue(
+        light: "#1A1A1C",
+        dark: "#FFFFFF"
+    )
+    static let surfaceContent = CadenceColorValue(
+        light: "#F4F4F6",
+        dark: "#171719"
+    )
+    static let surfaceSecondary = CadenceColorValue(
+        light: "#E8E8EC",
+        dark: "#202023"
+    )
+    static let surfaceRaised = CadenceColorValue(
+        light: "#E0E0E6",
+        dark: "#27272B"
+    )
+    static let borderDefault = CadenceColorValue(
+        light: "rgba(15, 15, 17, 0.12)",
+        dark: "rgba(255, 255, 255, 0.13)"
+    )
+    static let borderStrong = CadenceColorValue(
+        light: "rgba(15, 15, 17, 0.22)",
+        dark: "rgba(255, 255, 255, 0.24)"
+    )
+    static let fillDisabled = CadenceColorValue(
+        light: "rgba(15, 15, 17, 0.04)",
+        dark: "rgba(255, 255, 255, 0.04)"
+    )
+    static let fillHover = CadenceColorValue(
+        light: "rgba(15, 15, 17, 0.045)",
+        dark: "rgba(255, 255, 255, 0.045)"
+    )
+    static let fillSelected = CadenceColorValue(
+        light: "rgba(15, 15, 17, 0.075)",
+        dark: "rgba(255, 255, 255, 0.085)"
+    )
+    static let fillSelectedStrong = CadenceColorValue(
+        light: "rgba(15, 15, 17, 0.14)",
+        dark: "rgba(255, 255, 255, 0.14)"
+    )
+    static let textPrimary = CadenceColorValue(
+        light: "#1A1A1C",
+        dark: "#FFFFFF"
+    )
+    static let textSecondary = CadenceColorValue(
+        light: "#56565E",
+        dark: "#B9B9C0"
+    )
 
-    static let radiusNone = QDS.Radius.none
-    static let radiusControl = QDS.Radius.control
-    static let radiusGroup = QDS.Radius.group
-    static let radiusPanel = QDS.Radius.panel
-    static let radiusHero = QDS.Radius.hero
+    static let primaryAccent = adaptive(actionPrimary)
+    static let contentBackground = adaptive(surfaceContent)
+    static let secondarySurface = adaptive(surfaceSecondary)
+    static let opaqueSurface = adaptive(surfaceRaised)
+    static let separator = adaptive(borderDefault)
+    static let strongSeparator = adaptive(borderStrong)
+    static let subduedFill = adaptive(fillDisabled)
+    static let selectionFill = adaptive(fillSelected)
+    static let selectionStrongFill = adaptive(fillSelectedStrong)
+    static let hoverFill = adaptive(fillHover)
+    static let playerMetadata = adaptive(textSecondary)
 
-    static let motionPress = QDS.MotionSeconds.press
-    static let motionHover = QDS.MotionSeconds.hover
-    static let motionPresent = QDS.MotionSeconds.present
-    static let motionReplace = QDS.MotionSeconds.replace
-    static let motionDismiss = QDS.MotionSeconds.dismiss
-    static let motionSpatialLong = QDS.MotionSeconds.spatialLong
+    static let radiusNone = 0.0
+    static let radiusControl = 6.0
+    static let radiusGroup = 10.0
+    static let radiusPanel = 14.0
+    static let radiusHero = 18.0
+
+    static let motionPress = 0.08
+    static let motionHover = 0.1
+    static let motionPresent = 0.14
+    static let motionReplace = 0.15
+    static let motionDismiss = 0.16
+    static let motionSpatialLong = 0.24
 
     static func playerControl(
         _ state: PlayerControlVisualState
@@ -72,11 +125,11 @@ enum CadenceTheme {
     }
 
     // Product motion: Cadence Mode has no second consumer, so it stays named
-    // here rather than inflating the cross-product QDS motion scale.
+    // here rather than inflating the shared feedback motion scale.
     static let motionCadenceModeEnter = 0.5
-    private static func adaptive(_ token: QDSColorValue) -> Color {
-        let light = NSColor(Color(qds: token, appearance: .light))
-        let dark = NSColor(Color(qds: token, appearance: .dark))
+    private static func adaptive(_ token: CadenceColorValue) -> Color {
+        let light = nsColor(token.light)
+        let dark = nsColor(token.dark)
         return Color(
             nsColor: NSColor(
                 name: nil
@@ -85,6 +138,35 @@ enum CadenceTheme {
                     from: [.darkAqua, .aqua]
                 ) == .darkAqua ? dark : light
             }
+        )
+    }
+
+    private static func nsColor(
+        _ source: String
+    ) -> NSColor {
+        if source.hasPrefix("#"),
+           source.count == 7,
+           let value = UInt64(source.dropFirst(), radix: 16) {
+            return NSColor(
+                srgbRed: CGFloat((value >> 16) & 0xFF) / 255,
+                green: CGFloat((value >> 8) & 0xFF) / 255,
+                blue: CGFloat(value & 0xFF) / 255,
+                alpha: 1
+            )
+        }
+        let values = source
+            .replacingOccurrences(of: "rgba(", with: "")
+            .replacingOccurrences(of: ")", with: "")
+            .split(separator: ",")
+            .compactMap { Double($0.trimmingCharacters(in: .whitespaces)) }
+        guard values.count == 4 else {
+            return .clear
+        }
+        return NSColor(
+            srgbRed: values[0] / 255,
+            green: values[1] / 255,
+            blue: values[2] / 255,
+            alpha: values[3]
         )
     }
 }

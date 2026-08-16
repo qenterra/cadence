@@ -21,7 +21,7 @@ Updates**.
 
 ## Preparing a release
 
-`qds-release.json` is the canonical release source. The current contract is
+`release-contract.json` is the canonical release source. The current contract is
 **Cadence 0.2.0 Beta 1 (2)**, tag `v0.2.0-beta.1`, Apple silicon, macOS 26 or
 later. It produces exactly:
 
@@ -35,7 +35,7 @@ later. It produces exactly:
    store-credentials`, then set `CADENCE_DEVELOPER_ID_APPLICATION`,
    `CADENCE_DEVELOPMENT_TEAM`, and `CADENCE_NOTARY_KEYCHAIN_PROFILE`.
 3. Run `CADENCE_RELEASE_MODE=public scripts/prepare_release.sh
-   [release-notes.md]`. The script validates the QDS contract, archives Cadence
+   [release-notes.md]`. The script validates the release contract, archives Cadence
    with hardened runtime and Developer ID, notarizes and staples the app and
    DMG, creates the Sparkle-signed update ZIP, updates `appcast.xml`, and writes
    checksums. Any missing identity, profile, accepted submission, ticket, or

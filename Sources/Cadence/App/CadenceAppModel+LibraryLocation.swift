@@ -298,5 +298,12 @@ private extension CadenceAppModel {
         importDestination = destination
         importRecovery = ManagedLibraryImportRecovery(destination: destination)
         importCoordinator = coordinator
+        libraryCloudSyncController?.stop()
+        let cloud = LibraryCloudSyncFactory.make(
+            librarySession: librarySession
+        )
+        cloudMediaSourceRegistry?.source = cloud?.mediaSource
+        libraryCloudSyncController = cloud?.controller
+        libraryCloudSyncController?.start()
     }
 }

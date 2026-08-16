@@ -4,7 +4,6 @@ Cadence includes the following Swift Package Manager runtime dependencies:
 
 | Package | Version | Role | License | Source |
 | --- | --- | --- | --- | --- |
-| QenTerraDesignTokens | Local QDS `4.1.0` | Shared visual tokens | MIT | QenTerra design system |
 | GRDB.swift | `7.10.0` | Derived lyrics full-text index | MIT | [groue/GRDB.swift](https://github.com/groue/GRDB.swift) |
 | AppAuth | `2.1.0` | Google Drive OAuth 2.0 flow | Apache-2.0 | [openid/AppAuth-iOS](https://github.com/openid/AppAuth-iOS) |
 | Sparkle | `2.9.5` | Signed in-app software updates | MIT | [sparkle-project/Sparkle](https://github.com/sparkle-project/Sparkle) |
@@ -16,7 +15,7 @@ linked source distributions. Cadence does not modify or relicense them.
 
 Cadence links frameworks supplied by Xcode and macOS, including SwiftUI,
 AppKit, Foundation, Observation, SwiftData, AVFoundation, AVFAudio, CoreAudio,
-AudioToolbox, CoreImage, MediaPlayer, and UniformTypeIdentifiers. Apple provides
+AudioToolbox, CloudKit, CoreImage, MediaPlayer, and UniformTypeIdentifiers. Apple provides
 these components under the terms that accompany Xcode, the macOS SDK, and
 macOS. Cadence does not relicense them.
 

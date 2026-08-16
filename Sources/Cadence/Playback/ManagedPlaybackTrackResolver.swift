@@ -5,16 +5,21 @@ final class ManagedPlaybackTrackResolver: PlaybackTrackResolving {
     private let librarySession: LibrarySession
     private let fileManager: FileManager
     private let remoteSource: RemotePlaybackSource?
+    private let cloudMediaSourceRegistry: CloudMediaPlaybackSourceRegistry
     private let mediaMaterializer: any MediaMaterializing
 
     init(
         librarySession: LibrarySession,
         remoteSource: RemotePlaybackSource? = nil,
+        cloudMediaSource: CloudMediaPlaybackSource? = nil,
+        cloudMediaSourceRegistry: CloudMediaPlaybackSourceRegistry? = nil,
         fileManager: FileManager = .default,
         mediaMaterializer: any MediaMaterializing = UbiquitousMediaMaterializer()
     ) {
         self.librarySession = librarySession
         self.remoteSource = remoteSource
+        self.cloudMediaSourceRegistry = cloudMediaSourceRegistry
+            ?? CloudMediaPlaybackSourceRegistry(source: cloudMediaSource)
         self.fileManager = fileManager
         self.mediaMaterializer = mediaMaterializer
     }
@@ -55,12 +60,23 @@ final class ManagedPlaybackTrackResolver: PlaybackTrackResolving {
                 missing.append(track)
             }
         }
-        if let remoteSource,
+        if let cloudMediaSource = cloudMediaSourceRegistry.source,
            !missing.isEmpty {
-            let remoteURLs = try await remoteSource.resolve(
-                trackIDs: missing.map(\.id)
-            )
+            let cloudURLs = try await cloudMediaSource.resolve(tracks: missing)
             resolved.append(contentsOf: missing.compactMap { track in
+                cloudURLs[track.id].map {
+                    ResolvedPlaybackTrack(track: track, mediaURL: $0)
+                }
+            })
+        }
+        let resolvedIDs = Set(resolved.map(\.track.id))
+        let stillMissing = missing.filter { !resolvedIDs.contains($0.id) }
+        if let remoteSource,
+           !stillMissing.isEmpty {
+            let remoteURLs = try await remoteSource.resolve(
+                trackIDs: stillMissing.map(\.id)
+            )
+            resolved.append(contentsOf: stillMissing.compactMap { track in
                 remoteURLs[track.id].map {
                     ResolvedPlaybackTrack(track: track, mediaURL: $0)
                 }

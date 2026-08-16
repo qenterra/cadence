@@ -5,12 +5,10 @@ organization, playback, and settings. The visual goal is calm, compact, and
 predictable: Soft Graphite content surfaces, monochrome controls, original
 artwork, system typography, and native interaction behavior.
 
-Shared semantic colors, radii, and feedback motion come from the local
-QenTerra Design System Swift package. `CadenceTheme` is the product facade:
-it maps QDS 1.11 semantic values into adaptive AppKit/SwiftUI colors while
-Cadence keeps ownership of music-specific geometry, artwork, playback, and
-lyrics. `qds-consumer.json` and `qds-exceptions.json` are validated by the
-read-only consumer doctor during `scripts/verify.sh`.
+Shared semantic colors, radii, and feedback motion are owned by Cadence in
+`CadenceTheme`. The local facade maps explicit semantic values into adaptive
+AppKit/SwiftUI colors while Cadence keeps ownership of music-specific geometry,
+artwork, playback, and lyrics. No private design-system checkout is required.
 
 ## Product shell
 
@@ -107,8 +105,7 @@ Cadence follows the current Unspool About pattern:
 - one creator/version row;
 - a compact two-column link grid below it;
 - full-row link targets with subtle hover feedback and an external-link glyph;
-- GitHub Profile, Source Code, Wiki, MIT License, Third-Party Notices, and
-  Buy Me a Coffee;
+- GitHub Profile, Source Code, Wiki, MIT License, and Third-Party Notices;
 - creator attribution remains `Nikita Melnychenko (QenTerra)`;
 - the visible version omits the build number.
 
@@ -148,10 +145,10 @@ The detailed behavior and lifecycle contract lives in
   animated color, or accent glow. Blank rows are omitted. Missing, partial,
   and unsynchronized lyrics show an honest track/status fallback and never
   invent an active line.
-- Shared feedback uses QDS motion through `CadenceTheme`. The longer Cadence
+- Shared feedback uses semantic motion through `CadenceTheme`. The longer Cadence
   Mode entry and exit are named product motions because the artwork hero
-  transition has no second QDS consumer; they remain interruptible and reduce
-  to the QDS dismiss transition when Reduce Motion is enabled.
+  transition is product-specific; animations remain interruptible and reduce
+  to the short dismiss transition when Reduce Motion is enabled.
 - Behind the active composition, one conic artwork-color field rotates while a
   radial bloom travels across the workspace. Their soft native gradient
   falloff provides the blurred appearance without a live blur filter. Both are
@@ -209,7 +206,7 @@ The detailed behavior and lifecycle contract lives in
 The implementation is complete only after:
 
 1. XcodeGen and SwiftFormat produce no changes.
-2. The QDS consumer doctor passes with only exact documented exceptions.
+2. The standalone dependency and semantic-token tests pass.
 3. The full Xcode 27 build and unit-test gate passes.
 4. Tests cover workspace width allocation, rail geometry, selection insets,
    batch tag assignment, production-empty startup, and app-icon metadata.

@@ -45,10 +45,6 @@ struct AppConfigurationTests {
                 == "https://github.com/QenTerra/cadence/blob/main/THIRD_PARTY_NOTICES.md"
         )
         #expect(
-            AppConfiguration.supportURL.absoluteString
-                == "https://buymeacoffee.com/qenterra"
-        )
-        #expect(
             AppConfiguration.updateFeedURL.absoluteString
                 == "https://raw.githubusercontent.com/QenTerra/cadence/main/appcast.xml"
         )

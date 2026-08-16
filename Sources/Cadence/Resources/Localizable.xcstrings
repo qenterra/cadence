@@ -2,6 +2,106 @@
   "sourceLanguage": "en",
   "strings": {
     "": {},
+    "Cadence Mode closes after ten seconds without input.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Режим Cadence закрывается после десяти секунд бездействия."
+          }
+        }
+      }
+    },
+    "Cadence Mode stays open until you leave it.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Режим Cadence остаётся открытым, пока вы не выйдете из него."
+          }
+        }
+      }
+    },
+    "Download Now": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Загрузить сейчас"
+          }
+        }
+      }
+    },
+    "Download Originals to This Mac": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Загружать оригиналы на этот Mac"
+          }
+        }
+      }
+    },
+    "Free Up Space": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Освободить место"
+          }
+        }
+      }
+    },
+    "Optimize Mac Storage": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Оптимизировать хранилище Mac"
+          }
+        }
+      }
+    },
+    "Stay in Cadence Mode": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не выходить из режима Cadence"
+          }
+        }
+      }
+    },
+    "Storage": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Хранилище"
+          }
+        }
+      }
+    },
+    "Sync Now": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Синхронизировать"
+          }
+        }
+      }
+    },
+    "iCloud Sync": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Синхронизация с iCloud"
+          }
+        }
+      }
+    },
     " · ": {
       "localizations": {
         "ru": {

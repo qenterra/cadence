@@ -1,5 +1,4 @@
 @testable import Cadence
-import QenTerraDesignTokens
 import Testing
 
 struct AccessibilityContractTests {
@@ -90,16 +89,17 @@ struct AccessibilityContractTests {
         )
         #expect(AdaptiveLayoutPolicy.animation(reduceMotion: true) == nil)
         #expect(
-            QDSInteractiveRowState(
+            BrowserRowVisualState(
                 isSelected: true,
                 isIncreasedContrast: true
-            ).fill == QDS.Color.fillSelectedStrong
+            ).fillRole == .selectedStrong
         )
         #expect(
-            QDSInteractiveRowState(
+            BrowserRowVisualState(
+                isSelected: false,
                 isFocused: true,
                 isIncreasedContrast: true
-            ).borderWidth == QDS.Stroke.focus
+            ).borderWidth == 2
         )
     }
 }

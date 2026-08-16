@@ -24,12 +24,13 @@ struct SmartCollectionPersistenceAppModelTests {
         try package.writeIdentity(LibraryIdentity())
         let original = collection(name: "Favorites")
         let container = try LibraryContainerFactory.persistent(package: package)
-        let repository = LibraryRepository(modelContainer: container)
-        try await repository.saveSmartCollection(original)
+        let legacyRepository = LibraryRepository(modelContainer: container)
+        try await legacyRepository.saveSmartCollection(original)
 
         let model = CadenceAppModel.production(
             librarySession: .startup(location: location)
         )
+        let repository = try model.librarySession.store.requireRepository()
         await model.loadPersistedSmartCollections()
         #expect(model.smartCollections == [original])
         #expect(model.selectedSmartCollectionID == original.id)

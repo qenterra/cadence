@@ -11,9 +11,6 @@ enum AppConfiguration {
         path: "blob/main/THIRD_PARTY_NOTICES.md"
     )
     static let wikiURL = projectURL.appending(path: "wiki")
-    static let supportURL = URL(
-        string: "https://buymeacoffee.com/qenterra"
-    )!
     static let updateFeedURL = URL(
         string: "https://raw.githubusercontent.com/QenTerra/cadence/main/appcast.xml"
     )!

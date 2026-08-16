@@ -22,13 +22,6 @@ if [[ ! -f "$release_notes_path" ]]; then
     exit 66
 fi
 
-qds_release_auditor="${QDS_RELEASE_AUDITOR:-$project_root/../design-system/scripts/audit_release_contract.py}"
-if [[ ! -f "$qds_release_auditor" ]]; then
-    echo "QDS release auditor was not found. Set QDS_RELEASE_AUDITOR." >&2
-    exit 69
-fi
-
-python3 "$qds_release_auditor" "$project_root"
 python3 "$project_root/scripts/release_contract.py" check
 if [[ "$release_mode" == "public" ]]; then
     python3 "$project_root/scripts/release_contract.py" public-preflight

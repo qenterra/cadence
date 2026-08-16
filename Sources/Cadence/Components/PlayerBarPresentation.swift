@@ -1,17 +1,16 @@
 import Foundation
-import QenTerraDesignTokens
 
 enum PlayerControlVisualState: CaseIterable, Sendable {
     case normal
     case active
     case disabled
 
-    var token: QDSColorValue {
+    var token: CadenceColorValue {
         switch self {
         case .normal, .active:
-            QDS.Color.textPrimary
+            CadenceTheme.textPrimary
         case .disabled:
-            QDS.Color.textSecondary
+            CadenceTheme.textSecondary
         }
     }
 }
