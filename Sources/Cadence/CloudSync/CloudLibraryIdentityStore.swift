@@ -20,11 +20,7 @@ actor CloudLibraryIdentityStore {
 
     private let database: CKDatabase
 
-    init(
-        container: CKContainer = CKContainer(
-            identifier: CloudKitLibrarySyncEngine.containerIdentifier
-        )
-    ) {
+    init(container: CKContainer) {
         database = container.privateCloudDatabase
     }
 

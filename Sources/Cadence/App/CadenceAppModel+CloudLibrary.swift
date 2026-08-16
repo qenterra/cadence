@@ -11,8 +11,18 @@ extension CadenceAppModel {
             return
         }
         do {
-            let identityStore = identityStore ?? CloudLibraryIdentityStore()
-            guard let identity = try await identityStore.remoteIdentity() else {
+            let resolvedIdentityStore: CloudLibraryIdentityStore
+            if let identityStore {
+                resolvedIdentityStore = identityStore
+            } else {
+                guard let container = CloudKitRuntimeAvailability.makeContainer() else {
+                    return
+                }
+                resolvedIdentityStore = CloudLibraryIdentityStore(
+                    container: container
+                )
+            }
+            guard let identity = try await resolvedIdentityStore.remoteIdentity() else {
                 return
             }
             let package = ManagedLibraryPackage(location: location)

@@ -4,6 +4,37 @@ import SwiftData
 import Testing
 
 struct CloudLibrarySyncTests {
+    @Test("CloudKit stays disabled when the process lacks its service entitlement")
+    func missingServiceEntitlementDisablesCloudKit() {
+        let entitlements: [String: Any] = [
+            CloudKitRuntimeAvailability.containerEntitlement: [
+                CloudKitLibrarySyncEngine.containerIdentifier,
+            ],
+        ]
+
+        #expect(
+            !CloudKitRuntimeAvailability.isAvailable {
+                entitlements[$0]
+            }
+        )
+    }
+
+    @Test("CloudKit requires the configured service and container entitlements")
+    func matchingEntitlementsEnableCloudKit() {
+        let entitlements: [String: Any] = [
+            CloudKitRuntimeAvailability.serviceEntitlement: ["CloudKit"],
+            CloudKitRuntimeAvailability.containerEntitlement: [
+                CloudKitLibrarySyncEngine.containerIdentifier,
+            ],
+        ]
+
+        #expect(
+            CloudKitRuntimeAvailability.isAvailable {
+                entitlements[$0]
+            }
+        )
+    }
+
     @Test("Newer user intent wins even when an older device uploads later")
     func conflictResolution() {
         let libraryID = UUID()

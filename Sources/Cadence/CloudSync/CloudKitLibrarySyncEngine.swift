@@ -27,9 +27,7 @@ actor CloudKitLibrarySyncEngine: CKSyncEngineDelegate {
         libraryID: UUID,
         deviceID: UUID,
         stateURL: URL,
-        container: CKContainer = CKContainer(
-            identifier: CloudKitLibrarySyncEngine.containerIdentifier
-        ),
+        container: CKContainer,
         remoteChangeHandler: @escaping RemoteChangeHandler
     ) {
         self.libraryID = libraryID

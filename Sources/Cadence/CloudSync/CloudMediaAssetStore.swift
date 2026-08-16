@@ -14,9 +14,7 @@ actor CloudMediaAssetStore {
         libraryID: UUID,
         package: ManagedLibraryPackage,
         stagingDirectory: URL,
-        container: CKContainer = CKContainer(
-            identifier: CloudKitLibrarySyncEngine.containerIdentifier
-        ),
+        container: CKContainer,
         hasher: ContentHasher = ContentHasher()
     ) {
         self.libraryID = libraryID

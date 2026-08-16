@@ -1,6 +1,46 @@
 import CloudKit
 import Foundation
 import Observation
+import Security
+
+enum CloudKitRuntimeAvailability {
+    static let serviceEntitlement = "com.apple.developer.icloud-services"
+    static let containerEntitlement = "com.apple.developer.icloud-container-identifiers"
+
+    static func isAvailable(
+        _ readEntitlement: (String) -> Any?
+    ) -> Bool {
+        guard let services = readEntitlement(serviceEntitlement) as? [String],
+              services.contains("CloudKit"),
+              let containers = readEntitlement(containerEntitlement) as? [String]
+        else {
+            return false
+        }
+        return containers.contains(CloudKitLibrarySyncEngine.containerIdentifier)
+    }
+
+    static func makeContainer() -> CKContainer? {
+        guard isAvailable(currentProcessEntitlement) else {
+            return nil
+        }
+        return CKContainer(
+            identifier: CloudKitLibrarySyncEngine.containerIdentifier
+        )
+    }
+
+    private static func currentProcessEntitlement(
+        _ key: String
+    ) -> Any? {
+        guard let task = SecTaskCreateFromSelf(nil) else {
+            return nil
+        }
+        return SecTaskCopyValueForEntitlement(
+            task,
+            key as CFString,
+            nil
+        )
+    }
+}
 
 enum LibraryCloudSyncStatus: Equatable, Sendable {
     case unavailable(String)
@@ -26,7 +66,7 @@ final class LibraryCloudSyncController {
         repository: LibraryRepository,
         mediaSource: CloudMediaPlaybackSource,
         identity: LibraryIdentity,
-        identityStore: CloudLibraryIdentityStore = CloudLibraryIdentityStore()
+        identityStore: CloudLibraryIdentityStore
     ) {
         self.engine = engine
         self.repository = repository
@@ -104,7 +144,8 @@ struct LibraryCloudRuntime {
 enum LibraryCloudSyncFactory {
     @MainActor
     static func make(
-        librarySession: LibrarySession
+        librarySession: LibrarySession,
+        containerProvider: () -> CKContainer? = CloudKitRuntimeAvailability.makeContainer
     ) -> LibraryCloudRuntime? {
         guard !CadenceLaunchEnvironment.shouldUsePreviewLibrary(),
               let location = librarySession.location,
@@ -114,7 +155,8 @@ enum LibraryCloudSyncFactory {
               ).readIdentity(),
               let replica = try? LocalLibraryReplicaLocation.currentUser(
                   identity: identity
-              ) else {
+              ),
+              let container = containerProvider() else {
             return nil
         }
         let deviceID = DeviceIdentity.current()
@@ -124,7 +166,8 @@ enum LibraryCloudSyncFactory {
             stateURL: replica.rootURL.appending(
                 path: "Sync/CloudKit.json",
                 directoryHint: .notDirectory
-            )
+            ),
+            container: container
         ) { records in
             try await repository.applyCloudRecords(records)
             await librarySession.store.loadInitialLibrary()
@@ -136,7 +179,8 @@ enum LibraryCloudSyncFactory {
             stagingDirectory: replica.rootURL.appending(
                 path: "Sync/Media",
                 directoryHint: .isDirectory
-            )
+            ),
+            container: container
         )
         let mediaSource = CloudMediaPlaybackSource(
             repository: repository,
@@ -147,7 +191,10 @@ enum LibraryCloudSyncFactory {
             engine: engine,
             repository: repository,
             mediaSource: mediaSource,
-            identity: identity
+            identity: identity,
+            identityStore: CloudLibraryIdentityStore(
+                container: container
+            )
         )
         return LibraryCloudRuntime(
             controller: controller,
