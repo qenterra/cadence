@@ -28,6 +28,25 @@ final class CadenceApplicationDelegate: NSObject, NSApplicationDelegate {
         batches.forEach(handler)
     }
 
+    func connect(
+        instanceCoordinator: CadenceInstanceCoordinator,
+        handler: @escaping OpenHandler,
+        terminateDuplicate: @escaping () -> Void
+    ) {
+        openHandler = { urls in
+            instanceCoordinator.route(urls: urls)
+        }
+        instanceCoordinator.connect(handler)
+        let batches = pendingBatches
+        pendingBatches = []
+        batches.forEach { instanceCoordinator.route(urls: $0) }
+
+        if instanceCoordinator.claim() == .duplicate {
+            instanceCoordinator.activateOwner()
+            terminateDuplicate()
+        }
+    }
+
     func onTermination(_ handler: @escaping () -> Void) {
         terminationHandler = handler
     }

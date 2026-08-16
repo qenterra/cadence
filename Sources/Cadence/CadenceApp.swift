@@ -6,6 +6,7 @@ struct CadenceApp: App {
     @NSApplicationDelegateAdaptor(CadenceApplicationDelegate.self)
     private var applicationDelegate
     @State private var model = Self.makeInitialModel()
+    private let instanceCoordinator = CadenceInstanceCoordinator.shared
     @State private var appearanceController = AppearanceController()
     @State private var updateController = CadenceUpdateController(
         startsUpdater: !CadenceLaunchEnvironment.shouldUsePreviewLibrary()
@@ -14,30 +15,40 @@ struct CadenceApp: App {
     private var appearanceRawValue = CadenceAppearance.system.rawValue
 
     var body: some Scene {
-        WindowGroup("Cadence") {
-            CadenceRootView(model: model)
-                .frame(
-                    minWidth: AdaptiveLayoutPolicy.minimumWindowSize.width,
-                    minHeight: AdaptiveLayoutPolicy.minimumWindowSize.height
-                )
-                .preferredColorScheme(appearance.colorScheme)
-                .tint(CadenceTheme.primaryAccent)
-                .onChange(
-                    of: appearanceRawValue,
-                    initial: true
-                ) { _, _ in
-                    appearanceController.apply(appearance)
+        Window("Cadence", id: "main") {
+            Group {
+                if instanceCoordinator.claim() == .owner {
+                    CadenceRootView(model: model)
+                } else {
+                    Color.clear
                 }
-                .task {
-                    applicationDelegate.connect { urls in
-                        Task { @MainActor in
-                            await model.openExternalAudio(urls: urls)
-                        }
+            }
+            .frame(
+                minWidth: AdaptiveLayoutPolicy.minimumWindowSize.width,
+                minHeight: AdaptiveLayoutPolicy.minimumWindowSize.height
+            )
+            .preferredColorScheme(appearance.colorScheme)
+            .tint(CadenceTheme.primaryAccent)
+            .onChange(
+                of: appearanceRawValue,
+                initial: true
+            ) { _, _ in
+                appearanceController.apply(appearance)
+            }
+            .task {
+                applicationDelegate.connect(
+                    instanceCoordinator: instanceCoordinator
+                ) { urls in
+                    Task { @MainActor in
+                        await model.openExternalAudio(urls: urls)
                     }
-                    applicationDelegate.onTermination {
-                        model.shutdownPlayback()
-                    }
+                } terminateDuplicate: {
+                    NSApp.terminate(nil)
                 }
+                applicationDelegate.onTermination {
+                    model.shutdownPlayback()
+                }
+            }
         }
         .defaultSize(width: 1512, height: 982)
         .windowResizability(.contentMinSize)
@@ -52,6 +63,8 @@ struct CadenceApp: App {
             .tint(CadenceTheme.primaryAccent)
         }
         .commands {
+            CommandGroup(replacing: .newItem) {}
+
             CommandGroup(after: .appInfo) {
                 Button("Check for Updates…") {
                     updateController.checkForUpdates()
@@ -204,6 +217,9 @@ struct CadenceApp: App {
         if CadenceLaunchEnvironment.shouldUsePreviewLibrary() {
             return .preview()
         }
+        guard CadenceInstanceCoordinator.shared.claim() == .owner else {
+            return .preview()
+        }
         return .production(librarySession: .startup())
     }
 }
@@ -226,9 +242,9 @@ struct CadenceSettingsWindow: View {
     var body: some View {
         VStack(spacing: 0) {
             SettingsTabStrip(selection: $selection)
-            .frame(maxWidth: .infinity)
-            .padding(.horizontal, CadenceLayout.contentGap)
-            .padding(.vertical, CadenceLayout.compactGap)
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, CadenceLayout.contentGap)
+                .padding(.vertical, CadenceLayout.compactGap)
 
             CadenceSeparator()
 
