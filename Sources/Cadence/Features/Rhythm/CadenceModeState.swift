@@ -30,9 +30,17 @@ enum CadenceModeInputAction: Equatable, Sendable {
 }
 
 struct CadenceModeInputState: Sendable {
-    private var modeState = CadenceModeState()
+    private var modeState: CadenceModeState
     private var heldLanes: Set<RhythmLane> = []
     private var presentationAvailable = false
+
+    init(
+        timeoutPolicy: CadenceModeTimeoutPolicy = .inactivity(
+            CadenceModeState.inactivityDuration
+        )
+    ) {
+        modeState = CadenceModeState(timeoutPolicy: timeoutPolicy)
+    }
 
     var isActive: Bool {
         modeState.isActive && presentationAvailable
@@ -74,6 +82,13 @@ struct CadenceModeInputState: Sendable {
         heldLanes.removeAll(keepingCapacity: true)
     }
 
+    mutating func setTimeoutPolicy(
+        _ policy: CadenceModeTimeoutPolicy,
+        at time: TimeInterval
+    ) {
+        modeState.setTimeoutPolicy(policy, at: time)
+    }
+
     mutating func setPresentationAvailable(
         _ isAvailable: Bool,
         at _: TimeInterval
@@ -111,7 +126,16 @@ struct CadenceModeState: Sendable {
 
     private(set) var isActive = false
     private(set) var deadline: TimeInterval?
+    private var timeoutPolicy: CadenceModeTimeoutPolicy
     private var previousHit: (lane: RhythmLane, time: TimeInterval)?
+
+    init(
+        timeoutPolicy: CadenceModeTimeoutPolicy = .inactivity(
+            Self.inactivityDuration
+        )
+    ) {
+        self.timeoutPolicy = timeoutPolicy
+    }
 
     mutating func registerHit(
         lane: RhythmLane,
@@ -122,7 +146,7 @@ struct CadenceModeState: Sendable {
         }
 
         if isActive {
-            deadline = time + Self.inactivityDuration
+            deadline = timeoutPolicy.deadline(after: time)
             return .extended
         }
 
@@ -136,8 +160,18 @@ struct CadenceModeState: Sendable {
         }
 
         isActive = true
-        deadline = time + Self.inactivityDuration
+        deadline = timeoutPolicy.deadline(after: time)
         return .activated
+    }
+
+    mutating func setTimeoutPolicy(
+        _ policy: CadenceModeTimeoutPolicy,
+        at time: TimeInterval
+    ) {
+        timeoutPolicy = policy
+        if isActive {
+            deadline = policy.deadline(after: time)
+        }
     }
 
     mutating func update(at time: TimeInterval) -> CadenceModeAction {

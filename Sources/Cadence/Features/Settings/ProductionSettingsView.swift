@@ -58,6 +58,8 @@ struct ProductionSettingsView: View {
         NavigationRailConfiguration.defaultOrderRawValue
     @AppStorage("navigationRail.hidden")
     private var hiddenNavigationRawValue = ""
+    @AppStorage(CadenceModePreferences.staysActiveKey)
+    private var staysInCadenceMode = false
 
     init(
         model: CadenceAppModel,
@@ -129,6 +131,7 @@ struct ProductionSettingsView: View {
         case .general:
             defaultAudioApplicationCard
             appearanceCard
+            cadenceModeCard
         case .library:
             ManagedLibrarySettingsCard(model: model)
         case .sidebar:
@@ -241,6 +244,23 @@ struct ProductionSettingsView: View {
         }
         .task {
             defaultAudioApplication.refresh()
+        }
+    }
+
+    private var cadenceModeCard: some View {
+        SettingsCard(
+            title: "Cadence Mode",
+            symbol: "waveform"
+        ) {
+            Toggle("Stay in Cadence Mode", isOn: $staysInCadenceMode)
+
+            Text(
+                staysInCadenceMode
+                    ? "Cadence Mode stays open until you leave it."
+                    : "Cadence Mode closes after ten seconds without input."
+            )
+            .font(.caption)
+            .foregroundStyle(.secondary)
         }
     }
 

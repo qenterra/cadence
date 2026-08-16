@@ -57,6 +57,21 @@ final class CadenceModeSession {
         publishPresentationState()
     }
 
+    func setStaysActive(
+        _ staysActive: Bool,
+        at time: TimeInterval = ProcessInfo.processInfo.systemUptime
+    ) {
+        var nextState = inputState
+        nextState.setTimeoutPolicy(
+            staysActive
+                ? .persistent
+                : .inactivity(CadenceModeState.inactivityDuration),
+            at: time
+        )
+        inputState = nextState
+        scheduleDeadlineIfNeeded()
+    }
+
     func setPresentationAvailable(
         _ isAvailable: Bool,
         at time: TimeInterval = ProcessInfo.processInfo.systemUptime
@@ -98,7 +113,11 @@ final class CadenceModeSession {
     }
 
     private func scheduleDeadlineIfNeeded() {
-        guard automatesTiming, let deadline = inputState.deadline else {
+        guard automatesTiming else {
+            return
+        }
+        guard let deadline = inputState.deadline else {
+            deadlineController.cancel()
             return
         }
         deadlineController.schedule(deadline: deadline) { [weak self] in

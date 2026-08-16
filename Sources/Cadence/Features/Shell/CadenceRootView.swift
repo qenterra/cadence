@@ -6,6 +6,8 @@ struct CadenceRootView: View {
     @Bindable var model: CadenceAppModel
     @State var isSearchPresented = false
     @State private var cadenceModeSession: CadenceModeSession
+    @AppStorage(CadenceModePreferences.staysActiveKey)
+    private var staysInCadenceMode = false
 
     init(
         model: CadenceAppModel,
@@ -184,6 +186,7 @@ struct CadenceRootView: View {
             )
         }
         .task {
+            cadenceModeSession.setStaysActive(staysInCadenceMode)
             model.activateSystemMediaSession()
             await model.recoverManagedLibraryIfNeeded()
             await model.repairImportedMetadataIfNeeded()
@@ -206,6 +209,9 @@ struct CadenceRootView: View {
         }
         .onChange(of: model.selectedDestination) {
             dismissSearch()
+        }
+        .onChange(of: staysInCadenceMode) { _, staysActive in
+            cadenceModeSession.setStaysActive(staysActive)
         }
         .onKeyPress(.escape, phases: .down) { _ in
             guard isSearchPresented || !activeSearchQuery.isEmpty else {

@@ -241,6 +241,31 @@ struct CadenceModeStateTests {
         #expect(!state.isActive)
     }
 
+    @Test("Stay in Cadence Mode removes the inactivity deadline")
+    func persistentCadenceModeHasNoDeadline() {
+        var state = CadenceModeState(timeoutPolicy: .persistent)
+        _ = state.registerHit(lane: .left, at: 1)
+        _ = state.registerHit(lane: .right, at: 1.1)
+
+        #expect(state.isActive)
+        #expect(state.deadline == nil)
+        #expect(state.update(at: 1_000) == .none)
+        #expect(state.isActive)
+    }
+
+    @Test("Changing timeout policy updates an active Cadence Mode deadline")
+    func activeCadenceModeAdoptsTimeoutPolicy() {
+        var state = CadenceModeState()
+        _ = state.registerHit(lane: .left, at: 1)
+        _ = state.registerHit(lane: .right, at: 1.1)
+
+        state.setTimeoutPolicy(.persistent, at: 2)
+        #expect(state.deadline == nil)
+
+        state.setTimeoutPolicy(.inactivity(10), at: 3)
+        #expect(state.deadline == 13)
+    }
+
     @Test("A hit during exit can reactivate through a new chord")
     func hitAfterDeactivationCanReactivate() {
         var state = CadenceModeState()
