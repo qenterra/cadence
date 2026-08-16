@@ -249,7 +249,7 @@ struct CadenceModeStateTests {
 
         #expect(state.isActive)
         #expect(state.deadline == nil)
-        #expect(state.update(at: 1_000) == .none)
+        #expect(state.update(at: 1000) == .none)
         #expect(state.isActive)
     }
 

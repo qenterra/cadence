@@ -119,8 +119,7 @@ final class SystemMediaSession: SystemMediaSessionControlling {
         }
         if
             track.artworkID == publishedArtworkID,
-            let publishedArtwork
-        {
+            let publishedArtwork {
             info[MPMediaItemPropertyArtwork] = publishedArtwork
         }
         nowPlayingInfoCenter.nowPlayingInfo = info
