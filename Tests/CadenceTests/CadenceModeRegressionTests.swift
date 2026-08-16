@@ -220,6 +220,89 @@ struct CadenceModeRegressionTests {
     }
 }
 
+struct CadenceModeBassAnalysisTests {
+    @Test("Bass normalization keeps quiet and loud masters visually legible")
+    func bassFilterAdaptsToTrackLoudness() {
+        let quietLevel = normalizedBassLevel(amplitude: 0.055)
+        let loudLevel = normalizedBassLevel(amplitude: 0.35)
+
+        #expect(quietLevel > 0.2)
+        #expect(abs(quietLevel - loudLevel) < 0.15)
+    }
+
+    @Test("Bass analyzer resets normalization between tracks")
+    func bassAnalyzerResetsBetweenTracks() throws {
+        let format = try #require(
+            AVAudioFormat(
+                standardFormatWithSampleRate: 48000,
+                channels: 1
+            )
+        )
+        let loudBuffer = try sineBuffer(
+            format: format,
+            amplitude: 0.35
+        )
+        let quietBuffer = try sineBuffer(
+            format: format,
+            amplitude: 0.055
+        )
+        let reusedMeter = PCMBassLevelMeter()
+        let reusedAnalyzer = PCMBassAnalyzer(meter: reusedMeter)
+        for _ in 0 ..< 240 {
+            reusedAnalyzer.process(loudBuffer)
+        }
+
+        reusedAnalyzer.reset()
+        reusedAnalyzer.process(quietBuffer)
+
+        let freshMeter = PCMBassLevelMeter()
+        let freshAnalyzer = PCMBassAnalyzer(meter: freshMeter)
+        freshAnalyzer.process(quietBuffer)
+
+        #expect(
+            abs(reusedMeter.currentBassLevel() - freshMeter.currentBassLevel())
+                < 0.001
+        )
+    }
+
+    private func normalizedBassLevel(amplitude: Float) -> Float {
+        let sampleRate = 48000.0
+        let frameCount = 1024
+        var filter = PCMBassEnergyFilter(sampleRate: sampleRate)
+        var level: Float = 0
+        for chunk in 0 ..< 240 {
+            let samples = (0 ..< frameCount).map { frame in
+                let sample = chunk * frameCount + frame
+                return Float(
+                    sin(2 * Double.pi * 80 * Double(sample) / sampleRate)
+                ) * amplitude
+            }
+            level = filter.process(samples: samples)
+        }
+        return level
+    }
+
+    private func sineBuffer(
+        format: AVAudioFormat,
+        amplitude: Float
+    ) throws -> AVAudioPCMBuffer {
+        let buffer = try #require(
+            AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 1024)
+        )
+        buffer.frameLength = buffer.frameCapacity
+        let samples = try #require(buffer.floatChannelData?[0])
+        for frame in 0 ..< Int(buffer.frameLength) {
+            samples[frame] = Float(
+                sin(
+                    2 * Double.pi * 80 * Double(frame)
+                        / format.sampleRate
+                )
+            ) * amplitude
+        }
+        return buffer
+    }
+}
+
 private extension RhythmAccentPalette {
     static let fixture = RhythmAccentPalette(
         colors: [

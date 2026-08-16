@@ -34,30 +34,33 @@ final class PCMBassLevelMeter: PlaybackBassLevelProviding, Sendable {
 }
 
 struct PCMBassEnergyFilter {
-    private static let lowerCutoffFrequency = 35.0
-    private static let upperCutoffFrequency = 140.0
-    private static let noiseFloor: Float = 0.008
-    private static let referenceLevel: Float = 0.18
+    private static let highPassCutoffFrequency = 32.0
+    private static let lowPassCutoffFrequency = 160.0
+    private static let noiseFloor: Float = 0.002
+    private static let minimumReferenceLevel: Float = 0.006
+    private static let referenceAttackDuration = 2.0
+    private static let referenceReleaseDuration = 4.0
     private static let attack: Float = 0.72
     private static let release: Float = 0.12
 
-    private let lowerCoefficient: Float
-    private let upperCoefficient: Float
-    private var lowerLowPassedSample: Float = 0
-    private var upperLowPassedSample: Float = 0
+    private let sampleRate: Double
+    private var highPassFilter: PCMBiquadFilter
+    private var lowPassFilter: PCMBiquadFilter
+    private var referenceLevel: Float?
     private var envelope: Float = 0
 
     init(sampleRate: Double) {
         let safeSampleRate = max(sampleRate, 1)
-        lowerCoefficient = Float(
-            1 - exp(
-                -2 * Double.pi * Self.lowerCutoffFrequency / safeSampleRate
-            )
+        self.sampleRate = safeSampleRate
+        highPassFilter = PCMBiquadFilter(
+            kind: .highPass,
+            cutoffFrequency: Self.highPassCutoffFrequency,
+            sampleRate: safeSampleRate
         )
-        upperCoefficient = Float(
-            1 - exp(
-                -2 * Double.pi * Self.upperCutoffFrequency / safeSampleRate
-            )
+        lowPassFilter = PCMBiquadFilter(
+            kind: .lowPass,
+            cutoffFrequency: Self.lowPassCutoffFrequency,
+            sampleRate: safeSampleRate
         )
     }
 
@@ -88,7 +91,8 @@ struct PCMBassEnergyFilter {
         }
 
         return normalizedLevel(
-            rootMeanSquare: sqrt(squareSum / Float(frameCount))
+            rootMeanSquare: sqrt(squareSum / Float(frameCount)),
+            frameCount: frameCount
         )
     }
 
@@ -105,36 +109,113 @@ struct PCMBassEnergyFilter {
             squareSum += bandPassedSample * bandPassedSample
         }
         return normalizedLevel(
-            rootMeanSquare: sqrt(squareSum / Float(samples.count))
+            rootMeanSquare: sqrt(squareSum / Float(samples.count)),
+            frameCount: samples.count
         )
     }
 
     private mutating func normalizedLevel(
-        rootMeanSquare: Float
+        rootMeanSquare: Float,
+        frameCount: Int
     ) -> Float {
-        let normalized = min(
-            max(
-                (rootMeanSquare - Self.noiseFloor)
-                    / (Self.referenceLevel - Self.noiseFloor),
-                0
-            ),
-            1
+        guard rootMeanSquare > Self.noiseFloor else {
+            return updateEnvelope(with: 0)
+        }
+
+        let reference = updateReferenceLevel(
+            rootMeanSquare: rootMeanSquare,
+            frameCount: frameCount
         )
+        let relativeEnergy = rootMeanSquare / reference
+        let normalized = min(max((relativeEnergy - 0.45) / 1.3, 0), 1)
         return updateEnvelope(with: normalized)
     }
 
     private mutating func bandPassed(_ sample: Float) -> Float {
-        lowerLowPassedSample += lowerCoefficient
-            * (sample - lowerLowPassedSample)
-        upperLowPassedSample += upperCoefficient
-            * (sample - upperLowPassedSample)
-        return upperLowPassedSample - lowerLowPassedSample
+        lowPassFilter.process(highPassFilter.process(sample))
+    }
+
+    private mutating func updateReferenceLevel(
+        rootMeanSquare: Float,
+        frameCount: Int
+    ) -> Float {
+        guard let referenceLevel else {
+            let initialReference = max(
+                rootMeanSquare * 0.65,
+                Self.minimumReferenceLevel
+            )
+            referenceLevel = initialReference
+            return initialReference
+        }
+
+        let duration = rootMeanSquare > referenceLevel
+            ? Self.referenceAttackDuration
+            : Self.referenceReleaseDuration
+        let frameDuration = Double(frameCount) / sampleRate
+        let smoothing = Float(1 - exp(-frameDuration / duration))
+        let updatedReference = max(
+            referenceLevel + (rootMeanSquare - referenceLevel) * smoothing,
+            Self.minimumReferenceLevel
+        )
+        self.referenceLevel = updatedReference
+        return updatedReference
     }
 
     private mutating func updateEnvelope(with level: Float) -> Float {
         let smoothing = level > envelope ? Self.attack : Self.release
         envelope += (level - envelope) * smoothing
         return envelope
+    }
+}
+
+private struct PCMBiquadFilter {
+    enum Kind {
+        case highPass
+        case lowPass
+    }
+
+    private let b0: Float
+    private let b1: Float
+    private let b2: Float
+    private let a1: Float
+    private let a2: Float
+    private var z1: Float = 0
+    private var z2: Float = 0
+
+    init(
+        kind: Kind,
+        cutoffFrequency: Double,
+        sampleRate: Double
+    ) {
+        let omega = 2 * Double.pi * cutoffFrequency / sampleRate
+        let cosine = cos(omega)
+        let alpha = sin(omega) / (2 * sqrt(0.5))
+        let a0 = 1 + alpha
+        let numerator0: Double
+        let numerator1: Double
+        let numerator2: Double
+        switch kind {
+        case .highPass:
+            numerator0 = (1 + cosine) / 2
+            numerator1 = -(1 + cosine)
+            numerator2 = (1 + cosine) / 2
+        case .lowPass:
+            numerator0 = (1 - cosine) / 2
+            numerator1 = 1 - cosine
+            numerator2 = (1 - cosine) / 2
+        }
+        b0 = Float(numerator0 / a0)
+        b1 = Float(numerator1 / a0)
+        b2 = Float(numerator2 / a0)
+        a1 = Float(-2 * cosine / a0)
+        a2 = Float((1 - alpha) / a0)
+    }
+
+    mutating func process(_ sample: Float) -> Float {
+        let output = sample * b0 + z1
+        z1 = sample * b1 - output * a1 + z2
+        z2 = sample * b2 - output * a2
+        return output
     }
 }
 
@@ -207,6 +288,7 @@ enum PlaybackBassEnvelopeAnalyzer {
 
 final class PCMBassAnalyzer: @unchecked Sendable {
     private let meter: PCMBassLevelMeter
+    private let resetRequested = Atomic<Bool>(false)
     private var filter: PCMBassEnergyFilter?
     private var sampleRate: Double = 0
 
@@ -214,7 +296,19 @@ final class PCMBassAnalyzer: @unchecked Sendable {
         self.meter = meter
     }
 
+    func reset() {
+        resetRequested.store(true, ordering: .releasing)
+        meter.store(0)
+    }
+
     func process(_ buffer: AVAudioPCMBuffer) {
+        if resetRequested.exchange(
+            false,
+            ordering: .acquiringAndReleasing
+        ) {
+            filter = nil
+            sampleRate = 0
+        }
         guard let channelData = buffer.floatChannelData else {
             meter.store(0)
             return

@@ -124,6 +124,7 @@ extension PCMPlaybackBackend {
         scheduleGeneration &+= 1
         let generation = scheduleGeneration
         playerNode.stop()
+        resetBassAnalysis()
 
         let currentItem = try scheduledItem(
             current,

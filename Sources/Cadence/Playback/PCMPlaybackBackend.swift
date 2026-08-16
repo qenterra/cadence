@@ -241,6 +241,10 @@ final class PCMPlaybackBackend: PlaybackBackend {
         bassMeter.store(0)
     }
 
+    func resetBassAnalysis() {
+        bassAnalyzer.reset()
+    }
+
     private func rampPresentationGain(
         to target: Float,
         duration: Duration,
