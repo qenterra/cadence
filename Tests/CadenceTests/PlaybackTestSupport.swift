@@ -214,7 +214,8 @@ func playbackTestTrack(
     sampleRate: Double = 48000,
     channelCount: Int = 2,
     spatialFormat: StoredSpatialFormat = .stereo,
-    replayGainTrackGain: Double? = nil
+    replayGainTrackGain: Double? = nil,
+    artworkID: UUID? = nil
 ) -> ResolvedPlaybackTrack {
     ResolvedPlaybackTrack(
         track: PlaybackTrack(
@@ -234,7 +235,7 @@ func playbackTestTrack(
             spatialFormat: spatialFormat,
             relativeMediaPath: "Media/\(id).\(container)",
             lyricRelativePath: nil,
-            artworkID: nil,
+            artworkID: artworkID,
             replayGainTrackGain: replayGainTrackGain,
             replayGainTrackPeak: nil
         ),

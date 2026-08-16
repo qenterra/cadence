@@ -18,6 +18,16 @@ extension CadenceAppModel {
         let importRuntime = importRuntime(librarySession: librarySession)
         let remote = remoteRuntime(librarySession: librarySession)
         let externalAudioSession = ExternalAudioSession()
+        let systemMediaArtworkProvider = SystemMediaArtworkProvider { id in
+            if let asset = externalAudioSession.artwork(id: id) {
+                return asset
+            }
+            return await librarySession.store.artworkAsset(
+                id: id,
+                location: librarySession.location,
+                variant: .original
+            )
+        }
         let playbackCoordinator = PlaybackCoordinator(
             resolver: CompositePlaybackTrackResolver(
                 external: externalAudioSession,
@@ -30,7 +40,9 @@ extension CadenceAppModel {
                 PCMPlaybackBackend(),
                 NativePlaybackBackend(),
             ],
-            systemMediaSession: SystemMediaSession(),
+            systemMediaSession: SystemMediaSession(
+                artworkProvider: systemMediaArtworkProvider
+            ),
             audioRouteProvider: SystemAudioRouteProvider()
         )
         let model = CadenceAppModel(

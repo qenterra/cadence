@@ -2,9 +2,18 @@ import Foundation
 import MediaPlayer
 
 @MainActor
+protocol NowPlayingInfoPublishing: AnyObject {
+    var nowPlayingInfo: [String: Any]? { get set }
+    var playbackState: MPNowPlayingPlaybackState { get set }
+}
+
+extension MPNowPlayingInfoCenter: NowPlayingInfoPublishing {}
+
+@MainActor
 final class SystemMediaSession: SystemMediaSessionControlling {
     private let commandCenter: MPRemoteCommandCenter
-    private let nowPlayingInfoCenter: MPNowPlayingInfoCenter
+    private let nowPlayingInfoCenter: any NowPlayingInfoPublishing
+    private let artworkProvider: (any SystemMediaArtworkProviding)?
     private var handler: ((SystemMediaCommand) -> Void)?
     private var registrations: [(MPRemoteCommand, Any)] = []
     private var lastTrackID: UUID?
@@ -12,13 +21,20 @@ final class SystemMediaSession: SystemMediaSessionControlling {
     private var lastQueue: PlaybackQueueState?
     private var lastElapsedTime: TimeInterval = 0
     private var lastUpdateUptime: TimeInterval = 0
+    private var requestedArtworkID: UUID?
+    private var publishedArtworkID: UUID?
+    private var publishedArtwork: MPMediaItemArtwork?
+    private var artworkTask: Task<Void, Never>?
 
     init(
         commandCenter: MPRemoteCommandCenter = .shared(),
-        nowPlayingInfoCenter: MPNowPlayingInfoCenter = .default()
+        nowPlayingInfoCenter: any NowPlayingInfoPublishing =
+            MPNowPlayingInfoCenter.default(),
+        artworkProvider: (any SystemMediaArtworkProviding)? = nil
     ) {
         self.commandCenter = commandCenter
         self.nowPlayingInfoCenter = nowPlayingInfoCenter
+        self.artworkProvider = artworkProvider
     }
 
     func activate(
@@ -75,7 +91,8 @@ final class SystemMediaSession: SystemMediaSessionControlling {
             return
         }
         let uptime = ProcessInfo.processInfo.systemUptime
-        let requiresImmediateUpdate = track.id != lastTrackID
+        let trackChanged = track.id != lastTrackID
+        let requiresImmediateUpdate = trackChanged
             || state.transport != lastTransport
             || state.queue != lastQueue
             || abs(state.currentTime - lastElapsedTime) > 2
@@ -100,6 +117,12 @@ final class SystemMediaSession: SystemMediaSessionControlling {
             info[MPNowPlayingInfoPropertyPlaybackQueueCount] =
                 queue.orderedTrackIDs.count
         }
+        if
+            track.artworkID == publishedArtworkID,
+            let publishedArtwork
+        {
+            info[MPMediaItemPropertyArtwork] = publishedArtwork
+        }
         nowPlayingInfoCenter.nowPlayingInfo = info
         nowPlayingInfoCenter.playbackState = state.isPlaying
             ? .playing
@@ -109,9 +132,14 @@ final class SystemMediaSession: SystemMediaSessionControlling {
         lastQueue = state.queue
         lastElapsedTime = state.currentTime
         lastUpdateUptime = uptime
+        if trackChanged || track.artworkID != requestedArtworkID {
+            requestArtwork(for: track)
+        }
     }
 
     func clear() {
+        artworkTask?.cancel()
+        artworkTask = nil
         nowPlayingInfoCenter.nowPlayingInfo = nil
         nowPlayingInfoCenter.playbackState = .stopped
         lastTrackID = nil
@@ -119,6 +147,9 @@ final class SystemMediaSession: SystemMediaSessionControlling {
         lastQueue = nil
         lastElapsedTime = 0
         lastUpdateUptime = 0
+        requestedArtworkID = nil
+        publishedArtworkID = nil
+        publishedArtwork = nil
     }
 
     func shutdown() {
@@ -149,5 +180,50 @@ final class SystemMediaSession: SystemMediaSessionControlling {
             return .success
         }
         registrations.append((command, token))
+    }
+
+    private func requestArtwork(
+        for track: PlaybackTrack
+    ) {
+        artworkTask?.cancel()
+        artworkTask = nil
+        requestedArtworkID = track.artworkID
+
+        guard
+            let artworkID = track.artworkID,
+            let artworkProvider
+        else {
+            publishedArtworkID = nil
+            publishedArtwork = nil
+            return
+        }
+        guard publishedArtworkID != artworkID else {
+            return
+        }
+
+        publishedArtworkID = nil
+        publishedArtwork = nil
+        let trackID = track.id
+        artworkTask = Task { @MainActor [weak self] in
+            let artwork = await artworkProvider.artwork(for: artworkID)
+            guard
+                !Task.isCancelled,
+                let self,
+                lastTrackID == trackID,
+                requestedArtworkID == artworkID
+            else {
+                return
+            }
+
+            publishedArtworkID = artwork == nil ? nil : artworkID
+            publishedArtwork = artwork
+            var info = nowPlayingInfoCenter.nowPlayingInfo ?? [:]
+            if let artwork {
+                info[MPMediaItemPropertyArtwork] = artwork
+            } else {
+                info.removeValue(forKey: MPMediaItemPropertyArtwork)
+            }
+            nowPlayingInfoCenter.nowPlayingInfo = info
+        }
     }
 }
