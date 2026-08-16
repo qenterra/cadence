@@ -3,9 +3,11 @@ import SwiftUI
 struct CadenceRootView: View {
     @Environment(\.visualRegressionUsesStableSystemControls)
     private var usesStableSystemControls
+    @Environment(\.colorScheme) private var colorScheme
     @Bindable var model: CadenceAppModel
     @State var isSearchPresented = false
     @State private var cadenceModeSession: CadenceModeSession
+    @State private var folderIconController = LibraryFolderIconController()
     @AppStorage(CadenceModePreferences.staysActiveKey)
     private var staysInCadenceMode = false
 
@@ -203,6 +205,15 @@ struct CadenceRootView: View {
                 trackID: trackID
             )
         }
+        .task(id: folderIconRefreshID) {
+            guard let packageURL = model.librarySession.location?.packageURL else {
+                return
+            }
+            folderIconController.applyIcon(
+                to: packageURL,
+                appearance: LibraryFolderAppearance(colorScheme: colorScheme)
+            )
+        }
         .onDisappear {
             cadenceModeSession.deactivate()
             model.shutdownPlayback()
@@ -255,6 +266,13 @@ struct CadenceRootView: View {
 }
 
 private extension CadenceRootView {
+    var folderIconRefreshID: String {
+        let path = model.librarySession.location?.packageURL.path ?? "none"
+        let appearance = colorScheme == .dark ? "dark" : "light"
+        let availability = String(describing: model.librarySession.availability)
+        return "\(path)|\(appearance)|\(availability)|\(model.libraryResetRevision)"
+    }
+
     private func commandResult(
         _ command: AppCommand,
         keyPress: KeyPress? = nil,
