@@ -46,8 +46,10 @@ opt-in test harness backed by an in-memory SwiftData repository.
 `LibraryRepository` owns the SwiftData model container and migrations.
 `LibraryStore` provides paged catalog access and derived counts to the UI.
 Production state does not load the complete music library into a second
-in-memory cache. The live SwiftData store stays inside the managed Cadence
-folder and is the single canonical catalog.
+in-memory cache. The live SwiftData store and derived lyrics-search database
+stay in the app container's Application Support directory, keyed by the
+managed folder's stable library identity. This keeps SQLite and its WAL files
+off external volumes and file-provider storage.
 
 The current schema stores tracks, albums, artists, artwork, tags, assignments,
 exclusions, playlists, smart collections, lyrics references, playback fields,
@@ -67,9 +69,22 @@ Cadence/
   Lyrics/
   Artwork/
   Metadata/
+    LibraryIdentity.json
   Staging/
   Trash/
 ```
+
+The local catalog is stored separately:
+
+```text
+Application Support/Cadence/Libraries/<Library-ID>/Metadata/
+  Library.store
+  Search.sqlite
+```
+
+An older in-package `Library.store` is copied into Application Support and
+opened successfully before Cadence removes the old copy. A failed open rolls
+the local copy back and leaves the package store intact.
 
 Import inspection is read-only. Confirmed work enters `Staging`, validates
 copied content, writes the SwiftData transaction, and moves complete artifacts
@@ -79,7 +94,10 @@ Original source files remain untouched.
 The package location is persisted as a security-scoped bookmark and may point
 to this Mac or a connected local drive. Stale bookmarks are refreshed after
 successful resolution. The package's stable library identity prevents a moved
-folder from being mistaken for a different library.
+folder from being mistaken for a different library and reconnects it to the
+correct local catalog. Relocation recovery treats the active destination and
+its parent journal as authoritative after switching; an inaccessible journal
+or cleanup failure in the old folder cannot invalidate the active library.
 
 ## Playback
 

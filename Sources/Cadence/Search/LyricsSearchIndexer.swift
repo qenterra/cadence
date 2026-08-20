@@ -13,8 +13,16 @@ actor LyricsSearchIndexer {
     ) throws {
         self.package = package
         self.repository = repository
+        let identity = try package.readIdentity()
+        let localCatalog = try LocalLibraryCatalogLocation.currentUser(
+            identity: identity
+        )
+        try FileManager.default.createDirectory(
+            at: localCatalog.metadataDirectoryURL,
+            withIntermediateDirectories: true
+        )
         index = try LyricsSearchIndex(
-            databaseURL: package.lyricsSearchDatabaseURL
+            databaseURL: localCatalog.lyricsSearchDatabaseURL
         )
         self.hasher = hasher
     }

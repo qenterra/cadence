@@ -20,6 +20,7 @@ enum ManagedLibraryResetError: Error, LocalizedError, Sendable {
 struct PreparedLibraryReset: Sendable {
     let location: ManagedLibraryLocation
     let identity: LibraryIdentity
+    let originalIdentity: LibraryIdentity
     let backupURL: URL
 }
 
@@ -32,7 +33,7 @@ actor ManagedLibraryResetter {
     init(
         fileManager: FileManager = .default,
         validate: @escaping Validator = { package in
-            _ = try LibraryContainerFactory.persistent(package: package)
+            _ = try LibraryContainerFactory.persistentLocal(package: package)
         }
     ) {
         self.fileManager = fileManager
@@ -42,10 +43,7 @@ actor ManagedLibraryResetter {
     func prepare(
         location: ManagedLibraryLocation
     ) throws -> PreparedLibraryReset {
-        let activePackage = ManagedLibraryPackage(location: location)
-        guard fileManager.fileExists(atPath: activePackage.packageURL.path) else {
-            throw ManagedLibraryResetError.unavailable(activePackage.packageURL)
-        }
+        let (activePackage, originalIdentity) = try existingLibrary(at: location)
 
         let operationID = UUID()
         let stagingParent = location.musicDirectory.appending(
@@ -88,10 +86,11 @@ actor ManagedLibraryResetter {
             return PreparedLibraryReset(
                 location: location,
                 identity: identity,
+                originalIdentity: originalIdentity,
                 backupURL: backupURL
             )
         } catch {
-            try? fileManager.removeItem(at: stagingParent)
+            cleanupFailedPreparation(at: stagingParent, identity: identity)
             throw ManagedLibraryResetError.invalidPackage(
                 error.localizedDescription
             )
@@ -105,6 +104,7 @@ actor ManagedLibraryResetter {
                 at: prepared.backupURL,
                 resultingItemURL: &trashedURL
             )
+            removeLocalCatalog(for: prepared.originalIdentity)
             return true
         } catch {
             return false
@@ -124,11 +124,45 @@ actor ManagedLibraryResetter {
                 to: activePackage.packageURL
             )
             try validate(activePackage)
+            removeLocalCatalog(for: prepared.identity)
             return true
         } catch {
             throw ManagedLibraryResetError.rollbackFailed(
                 error.localizedDescription
             )
         }
+    }
+
+    private func removeLocalCatalog(
+        for identity: LibraryIdentity
+    ) {
+        guard
+            let localCatalog = try? LocalLibraryCatalogLocation.currentUser(
+                identity: identity,
+                fileManager: fileManager
+            ),
+            fileManager.fileExists(atPath: localCatalog.rootURL.path)
+        else {
+            return
+        }
+        try? fileManager.removeItem(at: localCatalog.rootURL)
+    }
+
+    private func existingLibrary(
+        at location: ManagedLibraryLocation
+    ) throws -> (ManagedLibraryPackage, LibraryIdentity) {
+        let package = ManagedLibraryPackage(location: location)
+        guard fileManager.fileExists(atPath: package.packageURL.path) else {
+            throw ManagedLibraryResetError.unavailable(package.packageURL)
+        }
+        return try (package, package.readIdentity())
+    }
+
+    private func cleanupFailedPreparation(
+        at stagingParent: URL,
+        identity: LibraryIdentity
+    ) {
+        try? fileManager.removeItem(at: stagingParent)
+        removeLocalCatalog(for: identity)
     }
 }

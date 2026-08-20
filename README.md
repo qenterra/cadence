@@ -170,6 +170,12 @@ Google OAuth state stay in Keychain, while remote audio uses a bounded local
 cache. Cadence does not synchronize the managed library through iCloud.
 External project links open only when you select one in Settings.
 
+The selected Cadence folder contains managed audio, artwork, lyrics, Trash,
+and recovery records. Its SwiftData catalog and derived search index remain in
+the sandboxed Application Support directory, keyed by the folder's stable
+library identity. Moving the folder therefore does not move a live SQLite
+database onto a removable disk or file-provider volume.
+
 - [Privacy](PRIVACY.md)
 - [Terms of Use](TERMS_OF_USE.md)
 - [Security](SECURITY.md)

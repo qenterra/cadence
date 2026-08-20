@@ -135,22 +135,11 @@ final class LibrarySession {
         fileManager: FileManager,
         locationController: LibraryLocationController?
     ) -> LibrarySession {
-        let replicaMigration = LegacyLocalLibraryReplicaMigration()
-        var preparedMigration: PreparedReplicaMigration?
         do {
-            preparedMigration = try replicaMigration.prepareIfNeeded(
+            let container = try LibraryContainerFactory.persistentLocal(
                 package: package,
                 fileManager: fileManager
             )
-            let container = try LibraryContainerFactory.persistent(
-                package: package
-            )
-            if let preparedMigration {
-                try replicaMigration.commit(
-                    preparedMigration,
-                    fileManager: fileManager
-                )
-            }
             return LibrarySession(
                 location: location,
                 store: LibraryStore(
@@ -161,12 +150,6 @@ final class LibrarySession {
                 locationController: locationController
             )
         } catch {
-            if let preparedMigration {
-                try? replicaMigration.rollback(
-                    preparedMigration,
-                    fileManager: fileManager
-                )
-            }
             return failed(
                 location: location,
                 kind: .openFailed,
@@ -300,17 +283,23 @@ private extension LibrarySession {
                 )
             )
         }
-        guard fileManager.fileExists(atPath: package.metadataStoreURL.path) else {
-            return .failed(
-                LibrarySessionFailure(
-                    kind: .missingMetadataStore,
-                    message: "The Cadence folder is missing its metadata store.",
-                    revealURL: package.packageURL
-                )
-            )
-        }
         do {
-            _ = try package.readIdentity()
+            let identity = try package.readIdentity()
+            let localCatalog = try LocalLibraryCatalogLocation.currentUser(
+                identity: identity,
+                fileManager: fileManager
+            )
+            guard fileManager.fileExists(atPath: localCatalog.storeURL.path)
+                || fileManager.fileExists(atPath: package.metadataStoreURL.path)
+            else {
+                return .failed(
+                    LibrarySessionFailure(
+                        kind: .missingMetadataStore,
+                        message: "The local Cadence catalog is missing.",
+                        revealURL: localCatalog.rootURL
+                    )
+                )
+            }
             return .valid
         } catch {
             return .failed(

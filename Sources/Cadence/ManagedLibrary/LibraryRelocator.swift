@@ -82,7 +82,9 @@ actor LibraryRelocator {
     init(
         fileManager: FileManager = .default,
         hasher: ContentHasher = ContentHasher(),
-        validate: @escaping Validator = LibraryContainerFactory.persistent,
+        validate: @escaping Validator = {
+            try LibraryContainerFactory.persistentLocal(package: $0)
+        },
         manifestStore: LibraryRelocationManifestStore = .live
     ) {
         self.fileManager = fileManager
@@ -262,10 +264,10 @@ actor LibraryRelocator {
             manifest,
             at: [
                 prepared.manifestURL,
-                prepared.sourceManifestURL,
                 prepared.destinationManifestURL,
             ]
         )
+        try? persist(manifest, at: prepared.sourceManifestURL)
         await progress(.init(phase: .switched, completedCount: 0, totalCount: 0))
 
         manifest.phase = .sourceCleanup
@@ -273,10 +275,10 @@ actor LibraryRelocator {
             manifest,
             at: [
                 prepared.manifestURL,
-                prepared.sourceManifestURL,
                 prepared.destinationManifestURL,
             ]
         )
+        try? persist(manifest, at: prepared.sourceManifestURL)
         await progress(.init(phase: .sourceCleanup, completedCount: 0, totalCount: 0))
         do {
             var trashedURL: NSURL?
@@ -285,24 +287,16 @@ actor LibraryRelocator {
                 resultingItemURL: &trashedURL
             )
         } catch {
-            throw LibraryRelocationFinishError.sourceCleanupFailed(
-                packagePath: prepared.source.packageURL.path
-            )
+            return
         }
 
         manifest.phase = .complete
-        try persistVerifiedForFinish(
+        try? persistVerifiedForFinish(
             manifest,
             at: [prepared.manifestURL, prepared.destinationManifestURL]
         )
-        do {
-            try fileManager.removeItem(at: prepared.manifestURL)
-            try fileManager.removeItem(at: prepared.destinationManifestURL)
-        } catch {
-            throw LibraryRelocationFinishError.completionRecordCleanupFailed(
-                manifestPath: prepared.manifestURL.path
-            )
-        }
+        try? fileManager.removeItem(at: prepared.manifestURL)
+        try? fileManager.removeItem(at: prepared.destinationManifestURL)
         await progress(.init(phase: .complete, completedCount: 0, totalCount: 0))
     }
 }
@@ -379,8 +373,8 @@ private extension LibraryRelocator {
         }
     }
 
-    /// Source cleanup is destructive, so each recovery record is read back
-    /// before the package can be moved to Trash.
+    /// Source cleanup is destructive, so the parent and active-destination
+    /// recovery records are read back before the old package moves to Trash.
     func persistVerifiedForFinish(
         _ manifest: LibraryRelocationManifest,
         at urls: [URL]

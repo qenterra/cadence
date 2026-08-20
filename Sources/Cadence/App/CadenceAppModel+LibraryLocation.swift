@@ -57,7 +57,7 @@ extension CadenceAppModel {
                 )
                 let location = ManagedLibraryLocation(musicDirectory: parent)
                 let package = ManagedLibraryPackage(location: location)
-                let container = try LibraryContainerFactory.persistent(
+                let container = try LibraryContainerFactory.persistentLocal(
                     package: package
                 )
                 let repository = LibraryRepository(modelContainer: container)
@@ -144,7 +144,7 @@ extension CadenceAppModel {
             let location = ManagedLibraryLocation(musicDirectory: parent)
             let package = ManagedLibraryPackage(location: location)
             let identity = try package.readIdentity()
-            let container = try LibraryContainerFactory.persistent(package: package)
+            let container = try LibraryContainerFactory.persistentLocal(package: package)
             let repository = LibraryRepository(modelContainer: container)
             let activation = try controller.prepareActivation(
                 parentURL: parent,
@@ -252,7 +252,7 @@ private extension CadenceAppModel {
         try package.bootstrapForConfirmedImport()
         let identity = LibraryIdentity()
         try package.writeIdentity(identity)
-        let container = try LibraryContainerFactory.persistent(package: package)
+        let container = try LibraryContainerFactory.persistentLocal(package: package)
         let repository = LibraryRepository(modelContainer: container)
         let activation = try controller.prepareActivation(
             parentURL: destinationParent,

@@ -17,6 +17,11 @@ struct LyricsSearchLifecycleTests {
         )
         try await indexer.synchronize()
         #expect(try await indexer.search(query: "first", limit: 10).count == 1)
+        #expect(
+            !FileManager.default.fileExists(
+                atPath: fixture.package.lyricsSearchDatabaseURL.path
+            )
+        )
 
         try await fixture.service.save(
             document(trackID: fixture.trackID, text: "second horizon")

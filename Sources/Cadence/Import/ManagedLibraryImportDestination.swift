@@ -18,7 +18,7 @@ actor ManagedLibraryImportDestination {
         }
         try package.bootstrapForConfirmedImport()
         try package.createIdentityIfNeeded()
-        let container = try LibraryContainerFactory.persistent(
+        let container = try LibraryContainerFactory.persistentLocal(
             package: package
         )
         let repository = LibraryRepository(modelContainer: container)

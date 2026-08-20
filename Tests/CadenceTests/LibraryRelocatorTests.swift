@@ -78,8 +78,8 @@ struct LibraryRelocatorTests {
         #expect(try Data(contentsOf: marker) == Data("keep".utf8))
     }
 
-    @Test("A failed source manifest write prevents source cleanup")
-    func sourceManifestFailurePreventsCleanup() async throws {
+    @Test("An inaccessible stale source manifest does not block the active destination")
+    func sourceManifestFailureIsNonfatalAfterSwitch() async throws {
         let fixture = try relocationFixture()
         defer { try? FileManager.default.removeItem(at: fixture.root) }
         let relocator = LibraryRelocator(
@@ -94,15 +94,14 @@ struct LibraryRelocatorTests {
             destinationParent: fixture.destinationParent
         )
 
-        await #expect(
-            throws: LibraryRelocationFinishError.manifestPersistenceFailed(
-                phase: .switched,
-                manifestPath: prepared.sourceManifestURL.path
+        try await relocator.finishSwitch(prepared)
+
+        #expect(
+            FileManager.default.fileExists(
+                atPath: prepared.destination.packageURL.path
             )
-        ) {
-            try await relocator.finishSwitch(prepared)
-        }
-        #expect(FileManager.default.fileExists(atPath: fixture.source.packageURL.path))
+        )
+        #expect(!FileManager.default.fileExists(atPath: fixture.source.packageURL.path))
     }
 
     @Test("A failed destination cleanup manifest write preserves the source")
@@ -205,7 +204,7 @@ struct LibraryRelocatorTests {
         location: ManifestLocation
     ) -> LibraryRelocationManifestStore {
         LibraryRelocationManifestStore { manifest, url in
-            let isSource = url.path.contains("Cadence/Staging/Relocations")
+            let isSource = url.path.contains("/Source/Cadence/Staging/Relocations")
             let shouldFail = manifest.phase == phase && (location == .source ? isSource : !isSource)
             if shouldFail {
                 throw CocoaError(.fileWriteNoPermission)

@@ -28,6 +28,7 @@ struct SystemMediaArtworkProviderTests {
         }.value
 
         #expect(requestedImage != nil)
+        #expect(requestedImage?.size == NSSize(width: 16, height: 16))
     }
 
     @Test("System Now Playing publishes the current track artwork")

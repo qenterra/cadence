@@ -16,9 +16,11 @@ the app. After you confirm an import, it copies managed media into:
 ~/Music/Cadence
 ```
 
-The managed folder can contain audio, artwork, lyrics, import manifests,
-SwiftData records, and recoverable Trash data. Cadence also stores interface and
-playback preferences through macOS preferences.
+The managed folder can contain audio, artwork, lyrics, import manifests, a
+stable library identity, and recoverable Trash data. The SwiftData catalog and
+derived lyrics-search index stay in Cadence's sandboxed Application Support
+directory on this Mac. Cadence also stores interface and playback preferences
+through macOS preferences.
 
 ## Optional Remote Media
 
@@ -69,8 +71,8 @@ You can:
 
 - delete or restore managed items from Cadence Trash;
 - empty Cadence Trash;
-- remove `~/Music/Cadence` after quitting the app to delete the managed
-  library;
+- use **Delete Entire Library** to remove both the managed folder and its local
+  Application Support catalog;
 - reset Cadence preferences through macOS or by removing the app's preference
   data;
 - disconnect Remote Media to remove the provider configuration and its Keychain

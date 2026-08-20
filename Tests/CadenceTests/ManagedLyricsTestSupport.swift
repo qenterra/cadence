@@ -8,6 +8,7 @@ struct ManagedLyricsFixture {
     let repository: LibraryRepository
     let service: ManagedLyricsService
     let trackID: UUID
+    let localCatalogRootURL: URL
 
     init() throws {
         rootURL = FileManager.default.temporaryDirectory.appending(
@@ -26,6 +27,11 @@ struct ManagedLyricsFixture {
             location: ManagedLibraryLocation(musicDirectory: musicURL)
         )
         try package.bootstrapForConfirmedImport()
+        let identity = LibraryIdentity()
+        try package.writeIdentity(identity)
+        localCatalogRootURL = try LocalLibraryCatalogLocation.currentUser(
+            identity: identity
+        ).rootURL
 
         let container = try LibraryContainerFactory.inMemory()
         repository = LibraryRepository(modelContainer: container)
@@ -56,5 +62,6 @@ struct ManagedLyricsFixture {
 
     func remove() {
         try? FileManager.default.removeItem(at: rootURL)
+        try? FileManager.default.removeItem(at: localCatalogRootURL)
     }
 }

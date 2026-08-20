@@ -2,12 +2,12 @@
 import Foundation
 import Testing
 
-struct LegacyLocalLibraryReplicaMigrationTests {
-    @Test("Legacy Application Support replica is promoted into the local package")
-    func promotesLegacyReplica() throws {
+struct LocalLibraryCatalogMigrationTests {
+    @Test("Package catalog is promoted into Application Support")
+    func promotesPackageCatalog() throws {
         let fixture = try Fixture()
         defer { fixture.remove() }
-        let migration = LegacyLocalLibraryReplicaMigration()
+        let migration = LocalLibraryCatalogMigration()
 
         let candidate = try migration.prepareIfNeeded(
             package: fixture.package,
@@ -15,13 +15,14 @@ struct LegacyLocalLibraryReplicaMigrationTests {
         )
         let prepared = try #require(candidate)
         #expect(
-            try Data(contentsOf: fixture.package.metadataStoreURL)
-                == Data("replica".utf8)
+            try Data(contentsOf: fixture.localCatalog.storeURL)
+                == Data("package".utf8)
         )
 
         try migration.commit(prepared)
 
-        #expect(!FileManager.default.fileExists(atPath: fixture.legacy.rootURL.path))
+        #expect(FileManager.default.fileExists(atPath: fixture.localCatalog.storeURL.path))
+        #expect(!FileManager.default.fileExists(atPath: fixture.package.metadataStoreURL.path))
         #expect(
             try migration.prepareIfNeeded(
                 package: fixture.package,
@@ -30,11 +31,11 @@ struct LegacyLocalLibraryReplicaMigrationTests {
         )
     }
 
-    @Test("Failed replica promotion can restore the previous package store")
-    func rollbackRestoresPackage() throws {
+    @Test("Failed local catalog promotion restores the package store")
+    func rollbackRestoresPackageCatalog() throws {
         let fixture = try Fixture()
         defer { fixture.remove() }
-        let migration = LegacyLocalLibraryReplicaMigration()
+        let migration = LocalLibraryCatalogMigration()
         let candidate = try migration.prepareIfNeeded(
             package: fixture.package,
             applicationSupportDirectory: fixture.applicationSupportDirectory
@@ -47,6 +48,7 @@ struct LegacyLocalLibraryReplicaMigrationTests {
             try Data(contentsOf: fixture.package.metadataStoreURL)
                 == Data("package".utf8)
         )
+        #expect(!FileManager.default.fileExists(atPath: fixture.localCatalog.rootURL.path))
     }
 }
 
@@ -54,7 +56,7 @@ private struct Fixture {
     let root: URL
     let applicationSupportDirectory: URL
     let package: ManagedLibraryPackage
-    let legacy: LegacyLocalLibraryReplicaLocation
+    let localCatalog: LocalLibraryCatalogLocation
 
     init() throws {
         let root = FileManager.default.temporaryDirectory.appending(
@@ -77,19 +79,14 @@ private struct Fixture {
         let identity = LibraryIdentity()
         try package.writeIdentity(identity)
         try Data("package".utf8).write(to: package.metadataStoreURL)
-        let legacy = LegacyLocalLibraryReplicaLocation(
+        let localCatalog = LocalLibraryCatalogLocation(
             applicationSupportDirectory: applicationSupportDirectory,
             identity: identity
         )
-        try FileManager.default.createDirectory(
-            at: legacy.storeURL.deletingLastPathComponent(),
-            withIntermediateDirectories: true
-        )
-        try Data("replica".utf8).write(to: legacy.storeURL)
         self.root = root
         self.applicationSupportDirectory = applicationSupportDirectory
         self.package = package
-        self.legacy = legacy
+        self.localCatalog = localCatalog
     }
 
     func remove() {

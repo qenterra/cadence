@@ -25,6 +25,38 @@ enum LibraryContainerFactory {
         try persistent(storeURL: package.metadataStoreURL)
     }
 
+    static func persistentLocal(
+        package: ManagedLibraryPackage,
+        fileManager: FileManager = .default
+    ) throws -> ModelContainer {
+        let identity = try package.readIdentity()
+        let localCatalog = try LocalLibraryCatalogLocation.currentUser(
+            identity: identity,
+            fileManager: fileManager
+        )
+        let migration = LocalLibraryCatalogMigration()
+        let prepared = try migration.prepareIfNeeded(
+            package: package,
+            fileManager: fileManager
+        )
+        do {
+            try fileManager.createDirectory(
+                at: localCatalog.metadataDirectoryURL,
+                withIntermediateDirectories: true
+            )
+            let container = try persistent(storeURL: localCatalog.storeURL)
+            if let prepared {
+                try migration.commit(prepared, fileManager: fileManager)
+            }
+            return container
+        } catch {
+            if let prepared {
+                try? migration.rollback(prepared, fileManager: fileManager)
+            }
+            throw error
+        }
+    }
+
     private static func persistent(
         storeURL: URL
     ) throws -> ModelContainer {
