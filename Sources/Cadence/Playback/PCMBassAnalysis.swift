@@ -425,9 +425,6 @@ struct PlaybackBassAnalysisPolicy: Equatable, Sendable {
 }
 
 enum PlaybackBassEnvelopeAnalyzer {
-    static let samplesPerSecond = PlaybackBassAnalysisPolicy.production
-        .samplesPerSecond
-
     static func analyze(url: URL) throws -> PlaybackBassEnvelope {
         guard !Task.isCancelled else {
             throw CancellationError()

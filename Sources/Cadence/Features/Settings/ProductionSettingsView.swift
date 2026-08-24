@@ -50,8 +50,7 @@ struct ProductionSettingsView: View {
     let tab: CadenceSettingsTab
     let updateController: CadenceUpdateController?
     let openDestination: ((NavigationDestination) -> Void)?
-    @State private var defaultAudioApplication =
-        DefaultAudioApplicationController()
+    @State private var defaultAudioApplication: DefaultAudioApplicationController
     @AppStorage("appearance")
     private var appearanceRawValue = CadenceAppearance.system.rawValue
     @AppStorage("navigationRail.order")
@@ -66,12 +65,17 @@ struct ProductionSettingsView: View {
         model: CadenceAppModel,
         tab: CadenceSettingsTab = .general,
         updateController: CadenceUpdateController? = nil,
+        defaultAudioApplication: DefaultAudioApplicationController? = nil,
         openDestination: ((NavigationDestination) -> Void)? = nil
     ) {
         self.model = model
         self.tab = tab
         self.updateController = updateController
         self.openDestination = openDestination
+        _defaultAudioApplication = State(
+            initialValue: defaultAudioApplication
+                ?? DefaultAudioApplicationController()
+        )
     }
 
     var body: some View {

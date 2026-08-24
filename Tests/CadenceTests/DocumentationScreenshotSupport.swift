@@ -4,6 +4,7 @@ import Foundation
 import SwiftData
 import SwiftUI
 import Testing
+import UniformTypeIdentifiers
 
 @MainActor
 final class DocumentationScreenshotFixture {
@@ -139,6 +140,9 @@ final class DocumentationScreenshotFixture {
                 model: model,
                 updateController: CadenceUpdateController(
                     startsUpdater: false
+                ),
+                defaultAudioApplication: DefaultAudioApplicationController(
+                    workspace: DocumentationDefaultAudioWorkspace()
                 ),
                 selection: tab
             ),
@@ -292,6 +296,19 @@ final class DocumentationScreenshotFixture {
         }
         return data
     }
+}
+
+@MainActor
+private final class DocumentationDefaultAudioWorkspace:
+    DefaultAudioApplicationWorkspace {
+    func defaultApplicationURL(for _: UTType) -> URL? {
+        nil
+    }
+
+    func setDefaultApplication(
+        at _: URL,
+        for _: UTType
+    ) async throws {}
 }
 
 extension DocumentationScreenshotFixture {

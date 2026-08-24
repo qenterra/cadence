@@ -75,10 +75,6 @@ extension CadenceAppModel {
         }
     }
 
-    var productionSmartCollectionLiveTracks: [LibraryTrackProjection] {
-        productionSmartCollectionLiveTrackSource?.tracks ?? []
-    }
-
     var productionSmartCollectionLiveTrackSource:
         ProductionTrackTableSource? {
         guard
@@ -92,11 +88,6 @@ extension CadenceAppModel {
         return librarySession.store.smartCollectionTrackSource(
             for: smartCollectionDraft.rule
         )
-    }
-
-    var selectedProductionSmartCollectionTracks:
-        [LibraryTrackProjection] {
-        selectedProductionSmartCollectionTrackSource?.tracks ?? []
     }
 
     var selectedProductionSmartCollectionTrackSource:

@@ -228,15 +228,18 @@ struct CadenceSettingsWindow: View {
     @Environment(\.dismiss) private var dismiss
     @Bindable var model: CadenceAppModel
     let updateController: CadenceUpdateController
+    let defaultAudioApplication: DefaultAudioApplicationController?
     @State private var selection: CadenceSettingsTab
 
     init(
         model: CadenceAppModel,
         updateController: CadenceUpdateController,
+        defaultAudioApplication: DefaultAudioApplicationController? = nil,
         selection: CadenceSettingsTab = .general
     ) {
         self.model = model
         self.updateController = updateController
+        self.defaultAudioApplication = defaultAudioApplication
         _selection = State(initialValue: selection)
     }
 
@@ -256,6 +259,7 @@ struct CadenceSettingsWindow: View {
                 model: model,
                 tab: selection,
                 updateController: updateController,
+                defaultAudioApplication: defaultAudioApplication,
                 openDestination: { destination in
                     model.requestNavigationDestination(destination)
                     dismiss()

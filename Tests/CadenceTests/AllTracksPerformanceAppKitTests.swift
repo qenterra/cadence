@@ -449,12 +449,12 @@ extension AllTracksPerformanceTests {
         }
 
         configureNativeCell(cell, track: first, loader: artworkLoader)
-        for _ in 0 ..< 500 where !loader.hasStarted(firstArtworkID) {
-            await Task.yield()
+        for _ in 0 ..< 100 where !loader.hasStarted(firstArtworkID) {
+            try await Task.sleep(for: .milliseconds(10))
         }
         configureNativeCell(cell, track: second, loader: artworkLoader)
-        for _ in 0 ..< 500 where !loader.hasStarted(secondArtworkID) {
-            await Task.yield()
+        for _ in 0 ..< 100 where !loader.hasStarted(secondArtworkID) {
+            try await Task.sleep(for: .milliseconds(10))
         }
         loader.release(
             secondArtworkID,
@@ -464,9 +464,9 @@ extension AllTracksPerformanceTests {
                 variant: .trackRow
             )
         )
-        for _ in 0 ..< 500
+        for _ in 0 ..< 100
             where cell.publishedArtworkRequest?.artworkID != secondArtworkID {
-            await Task.yield()
+            try await Task.sleep(for: .milliseconds(10))
         }
         loader.release(
             firstArtworkID,
@@ -476,9 +476,9 @@ extension AllTracksPerformanceTests {
                 variant: .trackRow
             )
         )
-        for _ in 0 ..< 500
+        for _ in 0 ..< 100
             where loader.observedCancellation(for: firstArtworkID) == nil {
-            await Task.yield()
+            try await Task.sleep(for: .milliseconds(10))
         }
 
         #expect(loader.observedCancellation(for: firstArtworkID) == true)

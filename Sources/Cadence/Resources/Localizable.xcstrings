@@ -1315,6 +1315,16 @@
         }
       }
     },
+    "Choose Track Artwork" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выбрать обложку трека"
+          }
+        }
+      }
+    },
     "Cleaning Up Source" : {
       "localizations" : {
         "ru" : {
@@ -1651,6 +1661,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Не удалось загрузить избранное"
+          }
+        }
+      }
+    },
+    "Couldn’t Load Favorite Tracks" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось загрузить избранные треки"
           }
         }
       }
@@ -3031,6 +3051,16 @@
         }
       }
     },
+    "Loading Favorite Tracks" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Загрузка избранных треков"
+          }
+        }
+      }
+    },
     "Loading Home" : {
       "localizations" : {
         "ru" : {
@@ -3127,6 +3157,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Загрузка треков"
+          }
+        }
+      }
+    },
+    "Loading track" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Загрузка трека"
+          }
+        }
+      }
+    },
+    "Loading…" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Загрузка…"
           }
         }
       }
@@ -4531,6 +4581,16 @@
         }
       }
     },
+    "Remove Track Artwork" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Удалить обложку трека"
+          }
+        }
+      }
+    },
     "Removed Album" : {
       "localizations" : {
         "ru" : {
@@ -4677,6 +4737,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Заменить %@"
+          }
+        }
+      }
+    },
+    "Replace Track Artwork" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Заменить обложку трека"
           }
         }
       }
@@ -5883,6 +5953,36 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Неизвестно"
+          }
+        }
+      }
+    },
+    "Unknown Album" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Неизвестный альбом"
+          }
+        }
+      }
+    },
+    "Unknown Artist" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Неизвестный исполнитель"
+          }
+        }
+      }
+    },
+    "Untitled Track" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Трек без названия"
           }
         }
       }

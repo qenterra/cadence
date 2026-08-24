@@ -6,20 +6,6 @@ extension LibraryStore {
     }
 
     func synchronizeLyricsSearch(
-        trackIDs: Set<UUID>
-    ) async {
-        let context = captureLibraryContext()
-        guard let indexer = lyricsSearchIndexer else {
-            return
-        }
-        await synchronizeLyricsSearch(
-            trackIDs: trackIDs,
-            for: context,
-            indexer: indexer
-        )
-    }
-
-    func synchronizeLyricsSearch(
         trackIDs: Set<UUID>,
         for context: LibraryStoreContext,
         indexer: any LyricsSearchIndexing

@@ -153,7 +153,6 @@ final class TrackTableWorkProbe {
     private(set) var hostConfigurations = 0
     private(set) var virtualStampComparisons = 0
     private(set) var virtualStampReads = 0
-    private(set) var duplicatePageRequests = 0
     private(set) var tableFrameWrites = 0
     private(set) var columnWidthWrites = 0
     private(set) var pageTaskStarts = 0
@@ -186,7 +185,6 @@ final class TrackTableWorkProbe {
         hostConfigurations = 0
         virtualStampComparisons = 0
         virtualStampReads = 0
-        duplicatePageRequests = 0
         tableFrameWrites = 0
         columnWidthWrites = 0
         pageTaskStarts = 0
@@ -250,10 +248,6 @@ final class TrackTableWorkProbe {
 
     func recordVirtualStampRead() {
         virtualStampReads += 1
-    }
-
-    func recordDuplicatePageRequest() {
-        duplicatePageRequests += 1
     }
 
     func recordTableFrameWrite() {
@@ -347,13 +341,6 @@ struct TrackTableChanges: Equatable, Sendable {
         self.removedRows = removedRows
         self.movedRows = movedRows
         self.reloadedRows = reloadedRows
-    }
-
-    var isEmpty: Bool {
-        insertedRows.isEmpty
-            && removedRows.isEmpty
-            && movedRows.isEmpty
-            && reloadedRows.isEmpty
     }
 }
 

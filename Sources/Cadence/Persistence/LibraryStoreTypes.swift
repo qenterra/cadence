@@ -63,13 +63,6 @@ struct LibraryArtworkPublicationPayload: Equatable, Sendable {
     let albumsByID: [UUID: LibraryAlbumProjection]
     let artistsByID: [UUID: LibraryArtistProjection]
     let playlistsByID: [UUID: LibraryPlaylistProjection]
-
-    static let empty = LibraryArtworkPublicationPayload(
-        tracksByID: [:],
-        albumsByID: [:],
-        artistsByID: [:],
-        playlistsByID: [:]
-    )
 }
 
 struct LibraryArtworkPublication: Equatable, Sendable {
@@ -88,10 +81,6 @@ struct LibraryArtworkPublication: Equatable, Sendable {
 
     var artistsByID: [UUID: LibraryArtistProjection] {
         payload.artistsByID
-    }
-
-    var playlistsByID: [UUID: LibraryPlaylistProjection] {
-        payload.playlistsByID
     }
 
     @discardableResult

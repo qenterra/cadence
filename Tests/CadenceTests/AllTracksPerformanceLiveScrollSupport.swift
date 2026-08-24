@@ -240,16 +240,6 @@ final class BenchmarkTrackScrollFixture {
         #expect(trackIDsByHost.values.contains { $0.count > 1 })
     }
 
-    func verifyRepresentativeProfiles(expectedLiveScrolling: Bool) {
-        rowSource.verifyRepresentativeContext(
-            expectedLiveScrolling: expectedLiveScrolling
-        )
-        verifyProfiles()
-        rowSource.verifyConfiguredInteractionStates(
-            expectedLiveScrolling: expectedLiveScrolling
-        )
-    }
-
     func setLiveScrolling(_ isLiveScrolling: Bool) {
         let wasLiveScrolling = interactionState.isLiveScrolling
         let changesBefore = probe.liveScrollPresentationChanges
