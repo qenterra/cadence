@@ -98,6 +98,7 @@ extension LibraryStore {
     ) async throws -> LibraryTrackProjection {
         let repository = try requireRepository()
         let renamed = try await repository.renameTrack(id: id, title: title)
+        advanceAllTracksWindowContentVersion()
         await loadInitialLibrary()
         return renamed
     }
@@ -108,6 +109,7 @@ extension LibraryStore {
     ) async throws -> LibraryAlbumProjection {
         let repository = try requireRepository()
         let renamed = try await repository.renameAlbum(id: id, title: title)
+        advanceAllTracksWindowContentVersion()
         await loadInitialLibrary()
         return renamed
     }
@@ -118,6 +120,7 @@ extension LibraryStore {
     ) async throws -> LibraryArtistProjection {
         let repository = try requireRepository()
         let renamed = try await repository.renameArtist(id: id, name: name)
+        advanceAllTracksWindowContentVersion()
         await loadInitialLibrary()
         return renamed
     }
@@ -171,6 +174,11 @@ extension LibraryStore {
             throw CatalogLookupError.unavailable
         }
         return try await catalogLookupClient.allTrackIDs()
+    }
+
+    func orderedFavoriteTrackIDs() async throws -> [UUID] {
+        let repository = try requireRepository()
+        return try await repository.favoriteTrackIDs()
     }
 }
 

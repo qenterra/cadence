@@ -130,7 +130,8 @@ final class DocumentationScreenshotFixture {
         _ filename: String,
         contentSize: NSSize = .settings,
         appearance: DocumentationScreenshotAppearance = .dark,
-        tab: CadenceSettingsTab = .general
+        tab: CadenceSettingsTab = .general,
+        recordsOnly: Bool = false
     ) async throws {
         try await capture(
             filename,
@@ -143,7 +144,8 @@ final class DocumentationScreenshotFixture {
             ),
             contentSize: contentSize,
             appearance: appearance,
-            scene: .settings(tab)
+            scene: .settings(tab),
+            recordsOnly: recordsOnly
         )
     }
 
@@ -170,7 +172,8 @@ final class DocumentationScreenshotFixture {
         contentSize: NSSize,
         appearance: DocumentationScreenshotAppearance,
         scene: DocumentationScreenshotScene,
-        rhythmPulseVisualQAState: RhythmPulseVisualQAState? = nil
+        rhythmPulseVisualQAState: RhythmPulseVisualQAState? = nil,
+        recordsOnly: Bool = false
     ) async throws {
         let defaults = DocumentationScreenshotDefaults.userDefaults
         let previousAppearance = defaults.object(forKey: "appearance")
@@ -215,10 +218,14 @@ final class DocumentationScreenshotFixture {
         hostingView.layoutSubtreeIfNeeded()
         await Task.yield()
         let data = try pngData(for: window)
-        try Self.storeScreenshot(
-            data,
-            filename: filename
-        )
+        if recordsOnly {
+            Attachment.record([UInt8](data), named: filename)
+        } else {
+            try Self.storeScreenshot(
+                data,
+                filename: filename
+            )
+        }
         window.close()
     }
 
@@ -288,13 +295,9 @@ final class DocumentationScreenshotFixture {
 }
 
 extension DocumentationScreenshotFixture {
-    /// Tears down storage in dependency order: close SQLite, detach the model,
-    /// then remove the temporary managed-library package.
+    /// Tears down storage in dependency order before removing the package.
     func cleanup() async throws {
-        if let searchIndexer = model.librarySession.store.lyricsSearchIndexer {
-            try await searchIndexer.close()
-        }
-        model.librarySession.store.detach()
+        try await model.librarySession.store.detach()
         try FileManager.default.removeItem(at: temporaryMusicDirectory)
     }
 }
@@ -320,10 +323,9 @@ private struct DocumentationScreenshotLibrary {
         try package.bootstrapForConfirmedImport()
 
         let session = LibrarySession.preview()
-        await session.activate(repository: repository)
         // Screenshot fixtures exercise production lyrics without exposing a
         // real library location to startup repair tasks in CadenceRootView.
-        session.store.attach(repository: repository, package: package)
+        try await session.activate(repository: repository, package: package)
         return DocumentationScreenshotLibrary(
             session: session,
             temporaryMusicDirectory: directory

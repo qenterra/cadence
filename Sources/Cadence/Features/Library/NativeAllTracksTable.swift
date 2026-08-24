@@ -10,6 +10,7 @@ struct NativeAllTracksTable: View {
         ProductionTrackTable(
             model: model,
             tracks: [],
+            contentVersion: nil,
             queueSource: .allTracks,
             virtualWindow: window,
             repositorySortAction: repositorySortAction,

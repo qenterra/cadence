@@ -91,11 +91,63 @@ struct SystemMediaArtworkProviderTests {
         )
     }
 
+    @Test("Same-track artwork replacement bypasses the Now Playing throttle")
+    func sameTrackArtworkReplacementPublishesImmediately() async {
+        let trackID = UUID()
+        let firstArtworkID = UUID()
+        let secondArtworkID = UUID()
+        let firstArtwork = testArtwork(size: 24)
+        let secondArtwork = testArtwork(size: 48)
+        let center = NowPlayingInfoPublisherStub()
+        let provider = ImmediateSystemArtworkProvider(
+            artworks: [
+                firstArtworkID: firstArtwork,
+                secondArtworkID: secondArtwork,
+            ]
+        )
+        let session = SystemMediaSession(
+            nowPlayingInfoCenter: center,
+            artworkProvider: provider
+        )
+
+        session.update(state: state(trackID: trackID, artworkID: firstArtworkID))
+        await waitForArtwork(firstArtwork, in: center)
+        session.update(state: state(trackID: trackID, artworkID: secondArtworkID))
+        await waitForArtwork(secondArtwork, in: center)
+
+        #expect(
+            center.nowPlayingInfo?[MPMediaItemPropertyArtwork]
+                as? MPMediaItemArtwork === secondArtwork
+        )
+    }
+
+    @Test("Same-track artwork removal clears Now Playing without waiting")
+    func sameTrackArtworkRemovalPublishesImmediately() async {
+        let trackID = UUID()
+        let artworkID = UUID()
+        let artwork = testArtwork(size: 32)
+        let center = NowPlayingInfoPublisherStub()
+        let provider = ImmediateSystemArtworkProvider(
+            artworks: [artworkID: artwork]
+        )
+        let session = SystemMediaSession(
+            nowPlayingInfoCenter: center,
+            artworkProvider: provider
+        )
+
+        session.update(state: state(trackID: trackID, artworkID: artworkID))
+        await waitForArtwork(artwork, in: center)
+        session.update(state: state(trackID: trackID, artworkID: nil))
+
+        #expect(center.nowPlayingInfo?[MPMediaItemPropertyArtwork] == nil)
+    }
+
     private func state(
-        artworkID: UUID
+        trackID: UUID = UUID(),
+        artworkID: UUID?
     ) -> PlaybackCoordinatorState {
         let resolved = playbackTestTrack(
-            id: UUID(),
+            id: trackID,
             title: "Track",
             artworkID: artworkID
         )
@@ -121,6 +173,19 @@ struct SystemMediaArtworkProviderTests {
     ) async {
         for _ in 0 ..< 100 {
             if center.nowPlayingInfo?[MPMediaItemPropertyArtwork] != nil {
+                return
+            }
+            try? await Task.sleep(for: .milliseconds(1))
+        }
+    }
+
+    private func waitForArtwork(
+        _ expected: MPMediaItemArtwork,
+        in center: NowPlayingInfoPublisherStub
+    ) async {
+        for _ in 0 ..< 100 {
+            if center.nowPlayingInfo?[MPMediaItemPropertyArtwork]
+                as? MPMediaItemArtwork === expected {
                 return
             }
             try? await Task.sleep(for: .milliseconds(1))

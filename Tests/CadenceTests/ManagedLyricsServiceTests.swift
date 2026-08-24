@@ -130,6 +130,268 @@ struct ManagedLyricsServiceTests {
     }
 }
 
+@MainActor
+struct LibraryStoreLyricsProjectionTests {
+    @Test("Saving lyrics publishes each synchronization transition once")
+    func savePublishesSynchronizationTransitions() async throws {
+        let fixture = try ManagedLyricsFixture()
+        defer { fixture.remove() }
+        let store = LibraryStore()
+        try await store.attach(
+            repository: fixture.repository,
+            package: fixture.package
+        )
+        await store.loadInitialLibrary()
+        let window = try #require(store.allTracksWindow)
+        await configure(window, store: store)
+        let trackIndex = try #require(window.index(ofTrackID: fixture.trackID))
+        let initialRevision = window.revision
+
+        #expect(window.track(at: trackIndex)?.hasSynchronizedLyrics == false)
+
+        try await store.saveLyrics(
+            LyricDocument(
+                trackID: fixture.trackID,
+                lines: [LyricLine(text: "Synchronized", startTime: 1)]
+            )
+        )
+
+        #expect(window.track(at: trackIndex)?.hasSynchronizedLyrics == true)
+        #expect(window.revision == initialRevision + 1)
+
+        let clearedDocument = LyricDocument(
+            trackID: fixture.trackID,
+            lines: [LyricLine(text: "")]
+        )
+        try await store.saveLyrics(clearedDocument)
+
+        #expect(window.track(at: trackIndex)?.hasSynchronizedLyrics == false)
+        #expect(window.revision == initialRevision + 2)
+
+        try await store.saveLyrics(clearedDocument)
+
+        #expect(window.revision == initialRevision + 2)
+    }
+
+    @Test("Loading an orphaned lyric publishes the repaired projection once")
+    func orphanedLoadPublishesRepair() async throws {
+        let fixture = try ManagedLyricsFixture()
+        defer { fixture.remove() }
+        let store = LibraryStore()
+        try await store.attach(
+            repository: fixture.repository,
+            package: fixture.package
+        )
+        await store.loadInitialLibrary()
+        let window = try #require(store.allTracksWindow)
+        await configure(window, store: store)
+        let trackIndex = try #require(window.index(ofTrackID: fixture.trackID))
+        let initialRevision = window.revision
+        try Data("[00:02.000]Recovered orphan\n".utf8).write(
+            to: fixture.package.lyricURL(trackID: fixture.trackID)
+        )
+
+        _ = try await store.lyricsDocument(trackID: fixture.trackID)
+
+        #expect(window.track(at: trackIndex)?.hasSynchronizedLyrics == true)
+        #expect(window.revision == initialRevision + 1)
+
+        _ = try await store.lyricsDocument(trackID: fixture.trackID)
+
+        #expect(window.revision == initialRevision + 1)
+    }
+
+    @Test("Installed-file recovery publishes the repaired projection once")
+    func installedRecoveryPublishesRepair() async throws {
+        let fixture = try ManagedLyricsFixture()
+        defer { fixture.remove() }
+        let store = LibraryStore()
+        try await store.attach(
+            repository: fixture.repository,
+            package: fixture.package
+        )
+        await store.loadInitialLibrary()
+        let window = try #require(store.allTracksWindow)
+        await configure(window, store: store)
+        let trackIndex = try #require(window.index(ofTrackID: fixture.trackID))
+        let initialRevision = window.revision
+        let operationID = UUID()
+        let data = Data("[00:01.000]Recovered\n".utf8)
+        try data.write(
+            to: fixture.package.lyricURL(trackID: fixture.trackID)
+        )
+        try ManagedLyricEditManifestStore(package: fixture.package).save(
+            ManagedLyricEditManifest(
+                operationID: operationID,
+                trackID: fixture.trackID,
+                targetRelativePath: "Lyrics/\(fixture.trackID.uuidString).lrc",
+                previousContentHash: nil,
+                newContentHash: ContentHasher().sha256(of: data),
+                newTimingStatus: .synchronized,
+                state: .fileInstalled
+            )
+        )
+
+        let result = try await store.recoverLyricsEdits()
+
+        #expect(result.recoveredOperationIDs == [operationID])
+        #expect(result.affectedTrackIDs == [fixture.trackID])
+        #expect(window.track(at: trackIndex)?.hasSynchronizedLyrics == true)
+        #expect(window.revision == initialRevision + 1)
+
+        let emptyResult = try await store.recoverLyricsEdits()
+
+        #expect(emptyResult == .empty)
+        #expect(window.revision == initialRevision + 1)
+    }
+
+    @Test("Save publishes tracks repaired by its internal recovery")
+    func savePublishesInternalRecoveryTracks() async throws {
+        let fixture = try ManagedLyricsFixture(trackCount: 2)
+        defer { fixture.remove() }
+        let savedTrackID = try #require(fixture.additionalTrackIDs.first)
+        let store = LibraryStore()
+        try await store.attach(
+            repository: fixture.repository,
+            package: fixture.package
+        )
+        await store.loadInitialLibrary()
+        let window = try #require(store.allTracksWindow)
+        await configure(window, store: store)
+        let recoveredIndex = try #require(
+            window.index(ofTrackID: fixture.trackID)
+        )
+        let savedIndex = try #require(window.index(ofTrackID: savedTrackID))
+        let initialRevision = window.revision
+        let recoveryData = Data("[00:01.000]Recovered\n".utf8)
+        try recoveryData.write(
+            to: fixture.package.lyricURL(trackID: fixture.trackID)
+        )
+        try ManagedLyricEditManifestStore(package: fixture.package).save(
+            ManagedLyricEditManifest(
+                operationID: UUID(),
+                trackID: fixture.trackID,
+                targetRelativePath: "Lyrics/\(fixture.trackID.uuidString).lrc",
+                previousContentHash: nil,
+                newContentHash: ContentHasher().sha256(of: recoveryData),
+                newTimingStatus: .synchronized,
+                state: .fileInstalled
+            )
+        )
+
+        try await store.saveLyrics(
+            LyricDocument(
+                trackID: savedTrackID,
+                lines: [LyricLine(text: "Saved", startTime: 2)]
+            )
+        )
+
+        #expect(
+            window.track(at: recoveredIndex)?.hasSynchronizedLyrics == true
+        )
+        #expect(window.track(at: savedIndex)?.hasSynchronizedLyrics == true)
+        #expect(window.revision == initialRevision + 2)
+    }
+
+    @Test("Durable lyric save survives an unavailable projection refresh")
+    func saveProjectionRefreshIsBestEffort() async throws {
+        let fixture = try ManagedLyricsFixture()
+        defer { fixture.remove() }
+        let store = LibraryStore()
+        try await store.attach(
+            repository: fixture.repository,
+            package: fixture.package
+        )
+        store.repository = nil
+
+        try await store.saveLyrics(
+            LyricDocument(
+                trackID: fixture.trackID,
+                lines: [LyricLine(text: "Durable", startTime: 1)]
+            )
+        )
+
+        #expect(
+            try await fixture.repository.lyricMetadata(
+                trackID: fixture.trackID
+            )?.timingStatus == .synchronized
+        )
+    }
+
+    @Test("Recovery result survives an unavailable projection refresh")
+    func recoveryProjectionRefreshIsBestEffort() async throws {
+        let fixture = try ManagedLyricsFixture()
+        defer { fixture.remove() }
+        let store = LibraryStore()
+        try await store.attach(
+            repository: fixture.repository,
+            package: fixture.package
+        )
+        let operationID = UUID()
+        let data = Data("[00:01.000]Recovered\n".utf8)
+        try data.write(
+            to: fixture.package.lyricURL(trackID: fixture.trackID)
+        )
+        try ManagedLyricEditManifestStore(package: fixture.package).save(
+            ManagedLyricEditManifest(
+                operationID: operationID,
+                trackID: fixture.trackID,
+                targetRelativePath: "Lyrics/\(fixture.trackID.uuidString).lrc",
+                previousContentHash: nil,
+                newContentHash: ContentHasher().sha256(of: data),
+                newTimingStatus: .synchronized,
+                state: .fileInstalled
+            )
+        )
+        store.repository = nil
+
+        let result = try await store.recoverLyricsEdits()
+
+        #expect(result.recoveredOperationIDs == [operationID])
+        #expect(result.affectedTrackIDs == [fixture.trackID])
+        #expect(
+            try await fixture.repository.lyricMetadata(
+                trackID: fixture.trackID
+            )?.timingStatus == .synchronized
+        )
+    }
+
+    @Test("Ordinary lyric load does not require projection refresh")
+    func ordinaryLoadSkipsProjectionRefresh() async throws {
+        let fixture = try ManagedLyricsFixture()
+        defer { fixture.remove() }
+        try await fixture.service.save(
+            LyricDocument(
+                trackID: fixture.trackID,
+                lines: [LyricLine(text: "Existing", startTime: 1)]
+            )
+        )
+        let store = LibraryStore()
+        try await store.attach(
+            repository: fixture.repository,
+            package: fixture.package
+        )
+        store.repository = nil
+
+        let document = try await store.lyricsDocument(
+            trackID: fixture.trackID
+        )
+
+        #expect(document?.lines.map(\.text) == ["Existing"])
+    }
+
+    private func configure(
+        _ window: LibraryTrackWindow,
+        store: LibraryStore
+    ) async {
+        await window.configure(
+            totalCount: store.catalogCounts.liveTrackCount,
+            query: store.trackQuery,
+            contentVersion: store.allTracksWindowContentVersion
+        )
+    }
+}
+
 struct ManagedLyricsRecoveryTests {
     @Test("Recovery finalizes an installed file idempotently")
     func recoversInstalledFile() async throws {
@@ -242,11 +504,16 @@ struct ManagedLyricsRecoveryTests {
             to: target
         )
 
-        let document = try await fixture.service.load(
+        let loadResult = try await fixture.service.loadResult(
+            trackID: fixture.trackID
+        )
+        let secondLoadResult = try await fixture.service.loadResult(
             trackID: fixture.trackID
         )
 
-        #expect(document?.lines.map(\.text) == ["Recovered orphan"])
+        #expect(loadResult.document?.lines.map(\.text) == ["Recovered orphan"])
+        #expect(loadResult.didRepairMetadata)
+        #expect(!secondLoadResult.didRepairMetadata)
         #expect(
             try await fixture.repository.lyricMetadata(
                 trackID: fixture.trackID

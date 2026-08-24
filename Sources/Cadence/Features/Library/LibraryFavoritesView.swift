@@ -6,6 +6,7 @@ struct LibraryFavoritesView: View {
     @AppStorage("library.favoriteSection")
     private var sectionRawValue = FavoriteCatalogSection.songs.rawValue
     @State private var selection: Set<UUID> = []
+    @State private var favoriteSort = LibraryTrackSort.titleAscending
 
     var body: some View {
         VStack(spacing: 0) {
@@ -19,6 +20,16 @@ struct LibraryFavoritesView: View {
             alignment: .topLeading
         )
         .background(CadenceTheme.contentBackground)
+        .task(id: favoriteWindowConfigurationID) {
+            await store.favoriteTracksWindow?.configure(
+                totalCount: store.favoriteTrackIDs.count,
+                query: LibraryTrackQuery(
+                    scope: .favorites,
+                    sort: favoriteSort
+                ),
+                contentVersion: store.allTracksWindowContentVersion
+            )
+        }
     }
 
     private var header: some View {
@@ -26,7 +37,7 @@ struct LibraryFavoritesView: View {
             "Favorites",
             subtitle: "\(favoriteCount) saved"
         ) {
-            if section == .songs, !store.favoriteTracks.isEmpty {
+            if section == .songs, !store.favoriteTrackIDs.isEmpty {
                 Button("Shuffle", systemImage: "shuffle") {
                     guard let track = store.favoriteTracks.randomElement() else {
                         return
@@ -86,18 +97,60 @@ struct LibraryFavoritesView: View {
 
     @ViewBuilder
     private var favoriteSongs: some View {
-        if store.favoriteTracks.isEmpty {
+        if store.favoriteTrackIDs.isEmpty {
             emptyState(
                 title: "No Favorite Tracks",
                 description: "Tracks you favorite will appear here."
             )
+        } else if let window = store.favoriteTracksWindow {
+            favoriteWindowContent(window)
         } else {
             ProductionTrackTable(
                 model: model,
                 tracks: store.favoriteTracks,
+                contentVersion: store.favoriteTracksVersion,
                 queueSource: .favorites,
                 onReachEnd: {
                     await store.loadNextFavoriteTracks()
+                },
+                selection: $selection
+            )
+            .padding(.bottom, CadenceLayout.pageInset)
+        }
+    }
+
+    @ViewBuilder
+    private func favoriteWindowContent(
+        _ window: LibraryTrackWindow
+    ) -> some View {
+        switch window.firstPageState {
+        case .idle, .loading:
+            ProgressView("Loading Favorite Tracks")
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        case let .failed(message):
+            ContentUnavailableView(
+                "Couldn’t Load Favorite Tracks",
+                systemImage: "exclamationmark.triangle",
+                description: Text(message)
+            )
+            .overlay(alignment: .bottom) {
+                Button("Try Again") {
+                    Task {
+                        await window.retryFirstPage()
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+                .padding(.bottom, CadenceLayout.sectionGap)
+            }
+        case .ready:
+            ProductionTrackTable(
+                model: model,
+                tracks: [],
+                contentVersion: nil,
+                queueSource: .favorites,
+                virtualWindow: window,
+                repositorySortAction: { sort in
+                    favoriteSort = sort
                 },
                 selection: $selection
             )
@@ -181,9 +234,18 @@ struct LibraryFavoritesView: View {
     }
 
     private var favoriteCount: Int {
-        store.favoriteTracks.count
+        store.favoriteTrackIDs.count
             + store.favoriteAlbums.count
             + store.favoriteArtists.count
+    }
+
+    private var favoriteWindowConfigurationID:
+        FavoriteWindowConfigurationID {
+        FavoriteWindowConfigurationID(
+            totalCount: store.favoriteTrackIDs.count,
+            sort: favoriteSort,
+            contentVersion: store.allTracksWindowContentVersion
+        )
     }
 
     private var catalogGrid: [GridItem] {
@@ -206,4 +268,10 @@ struct LibraryFavoritesView: View {
         )
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
+}
+
+private struct FavoriteWindowConfigurationID: Equatable {
+    let totalCount: Int
+    let sort: LibraryTrackSort
+    let contentVersion: TrackTableContentVersion
 }

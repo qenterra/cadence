@@ -67,7 +67,7 @@ extension CadenceAppModel {
             }
             repairProductionNavigationAfterDeletion()
         } catch {
-            libraryOperationError = error.localizedDescription
+            publishOperationError(error, on: .libraryOperation)
         }
     }
 
@@ -77,7 +77,7 @@ extension CadenceAppModel {
                 location: librarySession.location
             )
         } catch {
-            libraryOperationError = error.localizedDescription
+            publishOperationError(error, on: .libraryOperation)
         }
     }
 
@@ -88,7 +88,7 @@ extension CadenceAppModel {
                 location: librarySession.location
             )
         } catch {
-            libraryOperationError = error.localizedDescription
+            publishOperationError(error, on: .libraryOperation)
         }
     }
 
@@ -99,7 +99,7 @@ extension CadenceAppModel {
                 location: librarySession.location
             )
         } catch {
-            libraryOperationError = error.localizedDescription
+            publishOperationError(error, on: .libraryOperation)
         }
     }
 

@@ -183,6 +183,7 @@ struct ProductionLibraryView: View {
             ProductionTrackTable(
                 model: model,
                 tracks: visibleTracks,
+                contentVersion: store.browserTracksVersion,
                 context: selectedAlbumID.map(TrackTableContext.album)
                     ?? .library,
                 showsHeader: false,

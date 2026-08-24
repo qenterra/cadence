@@ -1,6 +1,13 @@
 import Foundation
 
-actor LyricsSearchIndexer {
+protocol LyricsSearchIndexing: AnyObject, Sendable {
+    func synchronize() async throws
+    func synchronize(trackIDs: Set<UUID>) async throws
+    func search(query: String, limit: Int) async throws -> [LyricsSearchMatch]
+    func close() async throws
+}
+
+actor LyricsSearchIndexer: LyricsSearchIndexing {
     private let package: ManagedLibraryPackage
     private let repository: LibraryRepository
     private let index: LyricsSearchIndex

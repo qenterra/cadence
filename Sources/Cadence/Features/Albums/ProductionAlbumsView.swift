@@ -129,6 +129,8 @@ struct ProductionAlbumTile: View {
     @Bindable var model: CadenceAppModel
     @Bindable var store: LibraryStore
     let album: LibraryAlbumProjection
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @FocusState private var isFavoriteFocused: Bool
     @State private var isHovered = false
     @State private var isRenamePresented = false
     @State private var renameDraft = ""
@@ -164,6 +166,7 @@ struct ProductionAlbumTile: View {
             .frame(maxWidth: .infinity)
             .overlay(alignment: .leading) {
                 FavoriteButton(
+                    itemID: album.id,
                     isFavorite: album.isFavorite,
                     itemName: album.title,
                     controlSize: CatalogTileFavoriteLayout.controlSize
@@ -173,12 +176,15 @@ struct ProductionAlbumTile: View {
                         isFavorite: requestedValue
                     ) != nil
                 }
-                .opacity(isHovered ? 1 : 0)
-                .allowsHitTesting(isHovered)
-                .accessibilityHidden(!isHovered)
+                .focused($isFavoriteFocused)
+                .opacity(favoritePresentation.visualOpacity)
+                .allowsHitTesting(favoritePresentation.acceptsPointerInteraction)
+                .accessibilityHidden(!favoritePresentation.isAccessibilityVisible)
                 .animation(
-                    .easeOut(duration: CadenceTheme.motionHover),
-                    value: isHovered
+                    reduceMotion
+                        ? nil
+                        : .easeOut(duration: CadenceTheme.motionHover),
+                    value: favoritePresentation.visualOpacity
                 )
             }
 
@@ -221,6 +227,13 @@ struct ProductionAlbumTile: View {
                 )
             }
         }
+    }
+
+    private var favoritePresentation: FavoriteControlPresentation {
+        FavoriteControlPresentation.resolve(
+            isHovered: isHovered,
+            isFocused: isFavoriteFocused
+        )
     }
 
     @ViewBuilder

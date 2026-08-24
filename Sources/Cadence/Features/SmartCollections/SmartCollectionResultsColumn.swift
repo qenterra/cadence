@@ -57,17 +57,24 @@ struct SmartCollectionResultsColumn: View {
         .padding(.bottom, 10)
     }
 
+    @ViewBuilder
     private var results: some View {
-        ProductionTrackTable(
-            model: model,
-            tracks: model.productionSmartCollectionLiveTracks,
-            context: selectedTrackTableContext,
-            showsHeader: false,
-            compact: true,
-            queueSource: selectedProductionQueueSource,
-            onReachEnd: loadNextProductionPage
-        )
-        .padding(.bottom, 16)
+        if let source = model.productionSmartCollectionLiveTrackSource {
+            ProductionTrackTable(
+                model: model,
+                tracks: source.tracks,
+                contentVersion: source.contentVersion,
+                context: selectedTrackTableContext,
+                showsHeader: false,
+                compact: true,
+                queueSource: selectedProductionQueueSource,
+                onReachEnd: loadNextProductionPage
+            )
+            .padding(.bottom, 16)
+        } else {
+            ProgressView("Loading Results")
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
     }
 
     private var noSelection: some View {

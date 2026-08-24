@@ -51,6 +51,7 @@ private extension ProductionSearchResultsView {
             ProductionTrackTable(
                 model: model,
                 tracks: store.catalogSearchResults.tracks,
+                contentVersion: store.catalogSearchTracksVersion,
                 context: .search(store.catalogSearchQuery),
                 onReachEnd: {
                     await store.loadNextCatalogSearchGroup(.tracks)
@@ -269,6 +270,7 @@ private extension ProductionSearchResultsView {
                 ProductionTrackTable(
                     model: model,
                     tracks: store.catalogSearchResults.tracks,
+                    contentVersion: store.catalogSearchTracksVersion,
                     context: .search(store.catalogSearchQuery),
                     onReachEnd: expandedGroup == .tracks ? {
                         await store.loadNextCatalogSearchGroup(.tracks)

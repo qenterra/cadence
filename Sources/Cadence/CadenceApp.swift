@@ -245,6 +245,9 @@ struct CadenceSettingsWindow: View {
                 .frame(maxWidth: .infinity)
                 .padding(.horizontal, CadenceLayout.contentGap)
                 .padding(.vertical, CadenceLayout.compactGap)
+                .cadenceGlassSurface(
+                    cornerRadius: CadenceTheme.radiusControl
+                )
 
             CadenceSeparator()
 

@@ -2,6 +2,44 @@ import AVFoundation
 import Foundation
 import Observation
 
+enum PlaybackIntentTransport: Equatable, Sendable {
+    case failed
+    case idle
+    case paused
+    case playing
+
+    var state: PlaybackTransportState {
+        switch self {
+        case .failed:
+            .failed
+        case .idle:
+            .idle
+        case .paused:
+            .paused
+        case .playing:
+            .playing
+        }
+    }
+
+    var shouldAutoplay: Bool {
+        self == .playing
+    }
+}
+
+struct PlaybackIntentAuthority: Equatable, Sendable {
+    let generation: Int
+    let currentItemID: UUID?
+    let transport: PlaybackIntentTransport
+}
+
+struct PlaybackRouteFailureAuthority: Equatable, Sendable {
+    let failure: PlaybackFailure
+    let currentItemID: UUID
+    let requestedRoute: AudioRouteSnapshot
+    let routeGeneration: Int
+    let failureGeneration: Int
+}
+
 @MainActor
 @Observable
 final class PlaybackCoordinator {
@@ -15,9 +53,18 @@ final class PlaybackCoordinator {
     var loadGeneration = 0
     var routeGeneration = 0
     var pendingOutputRoute: AudioRouteSnapshot?
-    var routeFailureIsActive = false
+    @ObservationIgnored
+    var failureGeneration = 0
+    @ObservationIgnored
+    var routeFailureAuthority: PlaybackRouteFailureAuthority?
     @ObservationIgnored
     var routeTransitionTask: Task<Void, Never>?
+    @ObservationIgnored
+    var playbackIntent = PlaybackIntentAuthority(
+        generation: 0,
+        currentItemID: nil,
+        transport: .idle
+    )
 
     var state = PlaybackCoordinatorState()
     var playbackIndicator = PlaybackIndicatorState.idle
@@ -25,6 +72,19 @@ final class PlaybackCoordinator {
     var presentationClock = PlaybackPresentationClock()
     @ObservationIgnored
     var lastTimelinePublication: PlaybackTimelineSample?
+    @ObservationIgnored
+    var bassGeneration = 0
+    @ObservationIgnored
+    var bassEnvelopeWorker: Task<PlaybackBassEnvelope?, Never>?
+    @ObservationIgnored
+    var bassEnvelope: PlaybackBassEnvelope?
+    @ObservationIgnored
+    var bassEnvelopeTrackID: UUID?
+    @ObservationIgnored
+    var bassPresentationIsActive = false
+    @ObservationIgnored
+    var bassEnvelopeCache = PlaybackBassEnvelopeCache(capacity: 8)
+    let bassEnvelopeLoader: PlaybackBassEnvelopeLoading
     var repeatMode: RepeatMode = .off
     private(set) var volume: Float = 0.72
 
@@ -33,7 +93,9 @@ final class PlaybackCoordinator {
         resolver: any PlaybackTrackResolving,
         backends: [any PlaybackBackend],
         systemMediaSession: any SystemMediaSessionControlling,
-        audioRouteProvider: any AudioRouteProviding
+        audioRouteProvider: any AudioRouteProviding,
+        bassEnvelopeLoader: @escaping PlaybackBassEnvelopeLoading =
+            defaultPlaybackBassEnvelopeLoader
     ) {
         self.resolver = resolver
         self.backends = Dictionary(
@@ -41,6 +103,7 @@ final class PlaybackCoordinator {
         )
         self.systemMediaSession = systemMediaSession
         self.audioRouteProvider = audioRouteProvider
+        self.bassEnvelopeLoader = bassEnvelopeLoader
 
         for backend in backends {
             backend.onEvent = { [weak self] event in
@@ -102,15 +165,24 @@ final class PlaybackCoordinator {
         guard state.currentTrack != nil else {
             return
         }
-        if routeFailureIsActive {
-            retryAudioRouteAndPlay()
+        if retryableRouteFailureAuthority != nil {
+            let intent = advancePlaybackIntent(
+                currentItemID: state.currentTrack?.id,
+                transport: .playing
+            )
+            retryAudioRouteAndPlay(expectedIntent: intent)
             return
         }
         guard state.failure == nil else {
             return
         }
-        activeBackend?.play()
+        advancePlaybackIntent(
+            currentItemID: state.currentTrack?.id,
+            transport: .playing
+        )
         state.transport = .playing
+        activateBassSourceForCurrentTrack()
+        activeBackend?.play()
         publishState()
     }
 
@@ -118,7 +190,12 @@ final class PlaybackCoordinator {
         guard state.currentTrack != nil else {
             return
         }
+        advancePlaybackIntent(
+            currentItemID: state.currentTrack?.id,
+            transport: .paused
+        )
         state.currentTime = presentationTime()
+        invalidateBassState()
         activeBackend?.pause()
         state.transport = .paused
         publishState()
@@ -138,9 +215,13 @@ final class PlaybackCoordinator {
             return
         }
         let clampedTime = min(max(time, 0), state.duration)
+        invalidateBassState()
         do {
             try await activeBackend?.seek(to: clampedTime)
             state.currentTime = clampedTime
+            if state.isPlaying {
+                activateBassSourceForCurrentTrack()
+            }
             publishState()
         } catch {
             failCurrent(with: error)
@@ -186,11 +267,16 @@ final class PlaybackCoordinator {
     }
 
     func stop(resetQueue: Bool = true) {
+        advancePlaybackIntent(
+            currentItemID: nil,
+            transport: .idle
+        )
+        invalidateBassState()
         backends.values.forEach { $0.stop() }
         loadGeneration += 1
         routeGeneration += 1
         pendingOutputRoute = nil
-        routeFailureIsActive = false
+        invalidateRouteFailureAuthority()
         state.transport = .idle
         state.currentTrack = nil
         state.currentTime = 0
@@ -209,9 +295,15 @@ final class PlaybackCoordinator {
 
     func shutdown() {
         audioRouteProvider.stopMonitoring()
+        advancePlaybackIntent(
+            currentItemID: nil,
+            transport: .idle
+        )
         routeGeneration += 1
         pendingOutputRoute = nil
         routeTransitionTask?.cancel()
+        invalidateRouteFailureAuthority()
+        invalidateBassState()
         backends.values.forEach { $0.stop() }
         systemMediaSession.shutdown()
     }
@@ -235,6 +327,73 @@ final class PlaybackCoordinator {
 }
 
 extension PlaybackCoordinator {
+    var visibleRouteFailureAuthority: PlaybackRouteFailureAuthority? {
+        guard let authority = routeFailureAuthority,
+              authority.failureGeneration == failureGeneration,
+              authority.failure == state.failure,
+              authority.currentItemID == state.currentTrack?.id,
+              authority.currentItemID == state.queue?.currentTrackID
+        else {
+            return nil
+        }
+        return authority
+    }
+
+    var retryableRouteFailureAuthority: PlaybackRouteFailureAuthority? {
+        guard let authority = visibleRouteFailureAuthority,
+              authority.requestedRoute == audioRouteProvider.currentRoute(),
+              authority.routeGeneration == routeGeneration
+        else {
+            return nil
+        }
+        return authority
+    }
+
+    func acceptRouteFailure(
+        _ failure: PlaybackFailure,
+        currentItemID: UUID,
+        requestedRoute: AudioRouteSnapshot,
+        routeGeneration: Int
+    ) {
+        failureGeneration += 1
+        routeFailureAuthority = PlaybackRouteFailureAuthority(
+            failure: failure,
+            currentItemID: currentItemID,
+            requestedRoute: requestedRoute,
+            routeGeneration: routeGeneration,
+            failureGeneration: failureGeneration
+        )
+        state.failure = failure
+    }
+
+    func clearVisibleRouteFailureAuthority(currentItemID: UUID) {
+        let shouldClearFailure = visibleRouteFailureAuthority?.currentItemID
+            == currentItemID
+        invalidateRouteFailureAuthority()
+        if shouldClearFailure {
+            state.failure = nil
+        }
+    }
+
+    func invalidateRouteFailureAuthority() {
+        failureGeneration += 1
+        routeFailureAuthority = nil
+    }
+
+    @discardableResult
+    func advancePlaybackIntent(
+        currentItemID: UUID?,
+        transport: PlaybackIntentTransport
+    ) -> PlaybackIntentAuthority {
+        let next = PlaybackIntentAuthority(
+            generation: playbackIntent.generation + 1,
+            currentItemID: currentItemID,
+            transport: transport
+        )
+        playbackIntent = next
+        return next
+    }
+
     func setVolume(_ requestedVolume: Float) {
         let clampedVolume = min(max(requestedVolume, 0), 1)
         guard clampedVolume != volume else {

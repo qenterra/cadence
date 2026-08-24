@@ -26,6 +26,7 @@ struct AllTracksView: View {
                 ProductionTrackTable(
                     model: model,
                     tracks: store.tracks,
+                    contentVersion: store.tracksVersion,
                     queueSource: .allTracks,
                     onReachEnd: {
                         await store.loadNextTracks()
@@ -47,7 +48,8 @@ struct AllTracksView: View {
         .task(id: trackWindowConfigurationID) {
             await store.allTracksWindow?.configure(
                 totalCount: store.catalogCounts.liveTrackCount,
-                query: store.trackQuery
+                query: store.trackQuery,
+                contentVersion: store.allTracksWindowContentVersion
             )
         }
     }
@@ -92,10 +94,12 @@ struct AllTracksView: View {
         }
     }
 
-    private var trackWindowConfigurationID: String {
-        let sort = store.trackQuery.sort
-        return "\(store.catalogCounts.liveTrackCount)-\(sort.field.rawValue)-"
-            + "\(sort.direction.rawValue)-\(store.trackQuery.search)"
+    private var trackWindowConfigurationID: AllTracksWindowConfigurationID {
+        AllTracksWindowConfigurationID(
+            totalCount: store.catalogCounts.liveTrackCount,
+            query: store.trackQuery,
+            contentVersion: store.allTracksWindowContentVersion
+        )
     }
 
     private var header: some View {
@@ -132,4 +136,10 @@ struct AllTracksView: View {
         .padding(.top, CadenceLayout.pageInset)
         .padding(.bottom, CadenceLayout.contentGap)
     }
+}
+
+private struct AllTracksWindowConfigurationID: Equatable {
+    let totalCount: Int
+    let query: LibraryTrackQuery
+    let contentVersion: TrackTableContentVersion
 }

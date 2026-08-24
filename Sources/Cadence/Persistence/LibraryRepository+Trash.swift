@@ -24,6 +24,23 @@ enum LibraryTrashError: Error, LocalizedError, Sendable {
     }
 }
 
+struct LibraryTrashBatchError: Error, LocalizedError, Sendable {
+    let completedOperationIDs: [UUID]
+    let requestedTargetCount: Int
+    let failedTargetID: UUID
+    let cause: any Error
+
+    var completedTargetCount: Int {
+        completedOperationIDs.count
+    }
+
+    var errorDescription: String? {
+        "\(completedTargetCount) of \(requestedTargetCount) selected tracks "
+            + "moved to Trash before another item failed: "
+            + cause.localizedDescription
+    }
+}
+
 private extension TrashTargetKind {
     var fallbackTitle: String {
         switch self {
@@ -64,13 +81,25 @@ extension LibraryRepository {
         var seen: Set<UUID> = []
         var operationIDs: [UUID] = []
         for targetID in targetIDs where seen.insert(targetID).inserted {
-            try operationIDs.append(
-                trash(
-                    targetKind: .track,
-                    targetID: targetID,
-                    location: location
+            do {
+                try operationIDs.append(
+                    trash(
+                        targetKind: .track,
+                        targetID: targetID,
+                        location: location
+                    )
                 )
-            )
+            } catch {
+                guard !operationIDs.isEmpty else {
+                    throw error
+                }
+                throw LibraryTrashBatchError(
+                    completedOperationIDs: operationIDs,
+                    requestedTargetCount: Set(targetIDs).count,
+                    failedTargetID: targetID,
+                    cause: error
+                )
+            }
         }
         return operationIDs
     }

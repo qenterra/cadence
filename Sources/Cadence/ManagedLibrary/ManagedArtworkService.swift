@@ -1,15 +1,5 @@
 import Foundation
 
-struct ManagedArtworkRecoveryResult: Equatable, Sendable {
-    let recoveredOperationIDs: [UUID]
-    let rolledBackOperationIDs: [UUID]
-
-    static let empty = ManagedArtworkRecoveryResult(
-        recoveredOperationIDs: [],
-        rolledBackOperationIDs: []
-    )
-}
-
 actor ManagedArtworkService {
     private let package: ManagedLibraryPackage
     private let repository: LibraryRepository
@@ -30,30 +20,49 @@ actor ManagedArtworkService {
         self.fileManager = fileManager
     }
 
-    func setArtwork(_ request: ManagedArtworkEditRequest) async throws -> UUID {
-        _ = try await recover()
-        let manifest = try await prepareSet(request)
-        let installed = try install(manifest)
-        try await commit(installed)
-        guard let artworkID = manifest.newArtwork?.id else {
-            throw ManagedArtworkEditError.inconsistentRecovery(
-                manifest.operationID
+    @discardableResult
+    func setArtwork(
+        _ request: ManagedArtworkEditRequest
+    ) async throws -> ManagedArtworkMutationResult {
+        let recovery = try await recover()
+        do {
+            let manifest = try await prepareSet(request)
+            let installed = try install(manifest)
+            try await commit(installed)
+            guard let artworkID = manifest.newArtwork?.id else {
+                throw ManagedArtworkEditError.inconsistentRecovery(
+                    manifest.operationID
+                )
+            }
+            return ManagedArtworkMutationResult(
+                primaryArtworkID: artworkID,
+                effects: recovery.effects + [manifest.publicationEffect]
             )
+        } catch {
+            throw carryingRecovery(recovery, after: error)
         }
-        return artworkID
     }
 
+    @discardableResult
     func removeArtwork(
         ownerKind: ArtworkOwnerKind,
         ownerID: UUID
-    ) async throws {
-        _ = try await recover()
-        let manifest = try await prepareRemoval(
-            ownerKind: ownerKind,
-            ownerID: ownerID
-        )
-        let installed = try install(manifest)
-        try await commit(installed)
+    ) async throws -> ManagedArtworkMutationResult {
+        let recovery = try await recover()
+        do {
+            let manifest = try await prepareRemoval(
+                ownerKind: ownerKind,
+                ownerID: ownerID
+            )
+            let installed = try install(manifest)
+            try await commit(installed)
+            return ManagedArtworkMutationResult(
+                primaryArtworkID: nil,
+                effects: recovery.effects + [manifest.publicationEffect]
+            )
+        } catch {
+            throw carryingRecovery(recovery, after: error)
+        }
     }
 
     func recover() async throws -> ManagedArtworkRecoveryResult {
@@ -64,6 +73,7 @@ actor ManagedArtworkService {
 
         var recovered: [UUID] = []
         var rolledBack: [UUID] = []
+        var effects: [ManagedArtworkPublicationEffect] = []
         for manifest in manifests {
             do {
                 switch manifest.state {
@@ -71,6 +81,7 @@ actor ManagedArtworkService {
                     if try await preparedOperationWasInstalled(manifest) {
                         try await completeInstalledOperation(manifest)
                         recovered.append(manifest.operationID)
+                        effects.append(manifest.publicationEffect)
                     } else {
                         try manifestStore.remove(manifest.operationID)
                         rolledBack.append(manifest.operationID)
@@ -78,36 +89,60 @@ actor ManagedArtworkService {
                 case .fileInstalled:
                     try await completeInstalledOperation(manifest)
                     recovered.append(manifest.operationID)
+                    effects.append(manifest.publicationEffect)
                 case .metadataCommitted:
                     try await repository.applyArtworkEdit(manifest)
                     try await verifyInstalledFile(for: manifest)
                     try cleanup(manifest)
                     recovered.append(manifest.operationID)
+                    effects.append(manifest.publicationEffect)
                 }
             } catch {
-                var compensationFailures: [String] = []
-                do {
-                    try manifestStore.quarantine(manifest.operationID)
-                } catch {
-                    compensationFailures.append(error.localizedDescription)
-                }
-                throw managedFileError(
+                throw recoveryError(
                     preserving: error,
-                    subsystem: .artwork,
-                    operationID: manifest.operationID,
-                    compensationFailures: compensationFailures,
-                    recoveryDirectory: manifestStore.rootURL
+                    manifest: manifest
                 )
             }
         }
         return ManagedArtworkRecoveryResult(
             recoveredOperationIDs: recovered,
-            rolledBackOperationIDs: rolledBack
+            rolledBackOperationIDs: rolledBack,
+            effects: effects
+        )
+    }
+}
+
+private extension ManagedArtworkEditManifest {
+    var publicationEffect: ManagedArtworkPublicationEffect {
+        ManagedArtworkPublicationEffect(
+            ownerKind: ownerKind,
+            ownerID: ownerID,
+            previousArtworkID: previousArtwork?.id,
+            newArtworkID: newArtwork?.id
         )
     }
 }
 
 private extension ManagedArtworkService {
+    func recoveryError(
+        preserving error: any Error,
+        manifest: ManagedArtworkEditManifest
+    ) -> any Error {
+        var compensationFailures: [String] = []
+        do {
+            try manifestStore.quarantine(manifest.operationID)
+        } catch {
+            compensationFailures.append(error.localizedDescription)
+        }
+        return managedFileError(
+            preserving: error,
+            subsystem: .artwork,
+            operationID: manifest.operationID,
+            compensationFailures: compensationFailures,
+            recoveryDirectory: manifestStore.rootURL
+        )
+    }
+
     func prepareSet(
         _ request: ManagedArtworkEditRequest
     ) async throws -> ManagedArtworkEditManifest {

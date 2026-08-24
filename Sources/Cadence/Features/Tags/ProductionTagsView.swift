@@ -5,6 +5,7 @@ struct ProductionTagsView: View {
     @Bindable var store: LibraryStore
 
     @State private var taggedTracks: [LibraryTrackProjection] = []
+    @State private var tracksClock = TrackTableContentClock()
     @State private var isLoadingTracks = false
     @State private var trackLoadFailure: String?
     @State private var trackLoadGeneration = 0
@@ -62,18 +63,29 @@ struct ProductionTagsView: View {
                 + "\(store.tagRevision)-\(trackLoadGeneration)"
         ) {
             guard let selectedTagID else {
-                taggedTracks = []
+                if !taggedTracks.isEmpty {
+                    taggedTracks = []
+                    tracksClock.advance()
+                }
                 trackLoadFailure = nil
                 return
             }
             isLoadingTracks = true
             do {
-                taggedTracks = try await store.tracks(tagID: selectedTagID)
+                let loadedTracks = try await store.tracks(tagID: selectedTagID)
+                if taggedTracks != loadedTracks {
+                    taggedTracks = loadedTracks
+                    tracksClock.advance()
+                }
+                applyArtworkPublication()
                 trackLoadFailure = nil
             } catch {
                 trackLoadFailure = error.localizedDescription
             }
             isLoadingTracks = false
+        }
+        .onChange(of: store.artworkPublication?.generation) {
+            applyArtworkPublication()
         }
         .alert(
             tagDialog?.title ?? "Tag",
@@ -109,6 +121,17 @@ struct ProductionTagsView: View {
 }
 
 private extension ProductionTagsView {
+    func applyArtworkPublication() {
+        guard
+            let publication = store.artworkPublication,
+            publication.epoch == store.libraryEpoch,
+            publication.mergeTracks(into: &taggedTracks)
+        else {
+            return
+        }
+        tracksClock.advance()
+    }
+
     private var workspace: some View {
         CadenceResizableSplitView(
             fixedPane: .leading,
@@ -228,6 +251,7 @@ private extension ProductionTagsView {
                     ProductionTrackList(
                         model: model,
                         tracks: taggedTracks,
+                        contentVersion: tracksClock.version,
                         context: selectedTagID.map(TrackTableContext.tag)
                             ?? .library
                     )

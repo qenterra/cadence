@@ -184,3 +184,70 @@ struct CollapsedNavigationScreenshotTests {
         try await libraryFixture.cleanup()
     }
 }
+
+@MainActor
+struct AllTracksVisualAcceptanceTests {
+    @Test(
+        "All Tracks minimum viewport visual acceptance",
+        .appKitExclusive
+    )
+    func renderMinimumViewport() async throws {
+        try await render(
+            "qa-all-tracks-min-dark.png",
+            contentSize: .minimum
+        )
+    }
+
+    @Test(
+        "All Tracks wide viewport visual acceptance",
+        .appKitExclusive
+    )
+    func renderWideViewport() async throws {
+        try await render(
+            "qa-all-tracks-wide-dark.png",
+            contentSize: .wide
+        )
+    }
+
+    private func render(
+        _ filename: String,
+        contentSize: NSSize
+    ) async throws {
+        let navigationPreferences = NavigationScreenshotPreferences()
+        navigationPreferences.install()
+        defer { navigationPreferences.restore() }
+
+        let fixture = try await DocumentationScreenshotFixture.make()
+        fixture.model.selectedDestination = .allTracks
+        do {
+            try await fixture.capture(filename, contentSize: contentSize)
+        } catch {
+            try? await fixture.cleanup()
+            throw error
+        }
+        try await fixture.cleanup()
+    }
+}
+
+@MainActor
+struct SettingsVisualAcceptanceTests {
+    @Test(
+        "Settings keeps one stable strip across every tab and appearance",
+        .appKitExclusive
+    )
+    func renderSettingsMatrix() async throws {
+        #expect(
+            CadenceSettingsTab.allCases.count
+                * DocumentationScreenshotAppearance.allCases.count == 21
+        )
+
+        let fixture = try await DocumentationScreenshotFixture.make()
+        do {
+            try await fixture.captureSettingsMatrix(recordsOnly: true)
+        } catch {
+            try? await fixture.cleanup()
+            throw error
+        }
+        try await fixture.cleanup()
+    }
+}

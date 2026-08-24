@@ -6,6 +6,8 @@ struct CadenceModeBackground: NSViewRepresentable {
     let palette: RhythmAccentPalette
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.cadenceModeVisualQABackgroundReduceMotionOverride)
+    private var visualQAReduceMotionOverride
     @Environment(\.accessibilityReduceTransparency)
     private var reduceTransparency
     @Environment(\.colorSchemeContrast) private var colorSchemeContrast
@@ -21,7 +23,7 @@ struct CadenceModeBackground: NSViewRepresentable {
         view.update(
             palette: palette,
             appearance: .resolve(
-                reduceMotion: reduceMotion,
+                reduceMotion: visualQAReduceMotionOverride ?? reduceMotion,
                 reduceTransparency: reduceTransparency,
                 increasedContrast: colorSchemeContrast == .increased
             )

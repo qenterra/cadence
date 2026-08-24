@@ -56,6 +56,12 @@
 	</array>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>CadenceFullGateAttestationSHA256</key>
+	<string>$(CADENCE_FULL_GATE_ATTESTATION_SHA256)</string>
+	<key>CadenceReleaseTag</key>
+	<string>$(CADENCE_RELEASE_TAG)</string>
+	<key>CadenceSourceGitSHA</key>
+	<string>$(CADENCE_SOURCE_GIT_SHA)</string>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.music</string>
 	<key>LSMinimumSystemVersion</key>

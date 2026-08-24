@@ -92,7 +92,9 @@ final class SystemMediaSession: SystemMediaSessionControlling {
         }
         let uptime = ProcessInfo.processInfo.systemUptime
         let trackChanged = track.id != lastTrackID
+        let artworkChanged = track.artworkID != requestedArtworkID
         let requiresImmediateUpdate = trackChanged
+            || artworkChanged
             || state.transport != lastTransport
             || state.queue != lastQueue
             || abs(state.currentTime - lastElapsedTime) > 2
@@ -131,7 +133,7 @@ final class SystemMediaSession: SystemMediaSessionControlling {
         lastQueue = state.queue
         lastElapsedTime = state.currentTime
         lastUpdateUptime = uptime
-        if trackChanged || track.artworkID != requestedArtworkID {
+        if trackChanged || artworkChanged {
             requestArtwork(for: track)
         }
     }

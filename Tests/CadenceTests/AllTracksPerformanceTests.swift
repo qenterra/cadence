@@ -1,9 +1,14 @@
+import AppKit
 @testable import Cadence
 import Foundation
+import SwiftData
+import SwiftUI
 import Testing
 
 @MainActor
 struct AllTracksPerformanceTests {
+    let presentationModel = CadenceAppModel.testFixture()
+
     @Test("The track window evicts least-recently-used pages")
     func boundedTrackWindow() {
         var cache = TrackPageWindow<Int>(pageCapacity: 3)
@@ -94,7 +99,11 @@ struct AllTracksPerformanceTests {
 
         await window.configure(
             totalCount: 1_000_000,
-            query: .allTracks
+            query: .allTracks,
+            contentVersion: TrackTableContentVersion(
+                sourceID: deterministicUUID(60000),
+                generation: 0
+            )
         )
         await window.load(page: 10000)
 
@@ -114,7 +123,14 @@ struct AllTracksPerformanceTests {
             return []
         }
 
-        await window.configure(totalCount: 1000, query: .allTracks)
+        await window.configure(
+            totalCount: 1000,
+            query: .allTracks,
+            contentVersion: TrackTableContentVersion(
+                sourceID: deterministicUUID(60001),
+                generation: 0
+            )
+        )
         await window.load(page: 8, prefetchDirection: .before)
 
         #expect(await counter.requests == [0, 64, 512, 448])
@@ -132,26 +148,171 @@ struct AllTracksPerformanceTests {
         }
 
         #expect(window.firstPageState == .idle)
-        await window.configure(totalCount: 1, query: .allTracks)
+        await window.configure(
+            totalCount: 1,
+            query: .allTracks,
+            contentVersion: TrackTableContentVersion(
+                sourceID: deterministicUUID(60002),
+                generation: 0
+            )
+        )
 
         #expect(window.firstPageState == .ready)
         #expect(window.track(at: 0) == track)
     }
 
+    @Test("A superseded semantic refresh cannot publish its older version")
+    func supersededSemanticRefreshCannotRegressContentVersion() async {
+        let initial = makeTrack(title: "Initial")
+        let stale = replacingTitle(initial, with: "Stale")
+        let newest = replacingTitle(initial, with: "Newest")
+        let source = OverlappingTrackWindowSource(
+            initialRows: [initial],
+            suspendedRows: [stale],
+            newestRows: [newest]
+        )
+        let window = LibraryTrackWindow(
+            pageSize: 1,
+            pageCapacity: 1,
+            prefetchPages: 0
+        ) { _, offset, limit in
+            try await source.rows(offset: offset, limit: limit)
+        }
+        let initialVersion = TrackTableContentVersion(
+            sourceID: deterministicUUID(60003),
+            generation: 0
+        )
+        let staleVersion = initialVersion.advanced()
+        let newestVersion = staleVersion.advanced()
+        await window.configure(
+            totalCount: 1,
+            query: .allTracks,
+            contentVersion: initialVersion
+        )
+
+        let staleRefresh = Task { @MainActor in
+            await window.configure(
+                totalCount: 1,
+                query: .allTracks,
+                contentVersion: staleVersion
+            )
+        }
+        await source.waitUntilSuspended()
+        let newestRefresh = Task { @MainActor in
+            await window.configure(
+                totalCount: 1,
+                query: .allTracks,
+                contentVersion: newestVersion
+            )
+        }
+        await newestRefresh.value
+        await source.resumeSuspendedRequest()
+        await staleRefresh.value
+
+        #expect(window.contentVersion == newestVersion)
+        #expect(window.track(at: 0) == newest)
+    }
+}
+
+extension AllTracksPerformanceTests {
+    @Test("A same-count track rename refreshes the configured virtual page once")
+    func sameCountTrackRenameRefreshesVirtualPage() async throws {
+        let fixture = try VirtualTrackMutationFixture()
+        defer { fixture.remove() }
+        let store = LibraryStore(
+            container: fixture.container,
+            package: fixture.package
+        )
+        await store.loadInitialLibrary()
+        let window = try #require(store.allTracksWindow)
+        await configureAllTracksWindow(window, store: store)
+        let revisionBeforeRename = window.revision
+
+        _ = try await store.renameTrack(
+            id: fixture.trackID,
+            title: "Renamed Track"
+        )
+        await configureAllTracksWindow(window, store: store)
+
+        #expect(window.totalCount == 1)
+        #expect(window.query == .allTracks)
+        #expect(window.track(at: 0)?.title == "Renamed Track")
+        #expect(window.revision == revisionBeforeRename + 1)
+    }
+
+    @Test("A same-count track artwork replacement refreshes the virtual page once")
+    func sameCountTrackArtworkRefreshesVirtualPage() async throws {
+        let fixture = try VirtualTrackMutationFixture()
+        defer { fixture.remove() }
+        let store = LibraryStore(
+            container: fixture.container,
+            package: fixture.package
+        )
+        await store.loadInitialLibrary()
+        let window = try #require(store.allTracksWindow)
+        await configureAllTracksWindow(window, store: store)
+        let revisionBeforeArtwork = window.revision
+
+        try await store.setArtwork(
+            fixture.artworkRequest(
+                ownerKind: .track,
+                ownerID: fixture.trackID
+            ),
+            location: fixture.location
+        )
+        await configureAllTracksWindow(window, store: store)
+
+        #expect(window.totalCount == 1)
+        #expect(window.track(at: 0)?.artworkID != nil)
+        #expect(window.revision == revisionBeforeArtwork + 1)
+    }
+
+    @Test("An unrelated catalog artwork update performs no virtual track work")
+    func unrelatedArtworkDoesNotRefreshVirtualPage() async throws {
+        let fixture = try VirtualTrackMutationFixture()
+        defer { fixture.remove() }
+        let store = LibraryStore(
+            container: fixture.container,
+            package: fixture.package
+        )
+        await store.loadInitialLibrary()
+        let window = try #require(store.allTracksWindow)
+        await configureAllTracksWindow(window, store: store)
+        let trackBeforeArtwork = try #require(window.track(at: 0))
+        let revisionBeforeArtwork = window.revision
+
+        try await store.setArtwork(
+            fixture.artworkRequest(
+                ownerKind: .artist,
+                ownerID: fixture.artistID
+            ),
+            location: fixture.location
+        )
+        await configureAllTracksWindow(window, store: store)
+
+        #expect(window.track(at: 0) == trackBeforeArtwork)
+        #expect(window.revision == revisionBeforeArtwork)
+    }
+
     @Test("A zero-to-positive table transition requires a full reload")
     func firstPresentationRefreshPolicy() {
-        #expect(
-            TrackTableRefreshPolicy.requiresFullReload(
-                previousCount: 0,
-                count: 1
+        let snapshot = makeSnapshot(
+            rows: [makeTrack(title: "First")],
+            version: TrackTableContentVersion(
+                sourceID: deterministicUUID(100),
+                generation: 0
             )
         )
-        #expect(
-            !TrackTableRefreshPolicy.requiresFullReload(
-                previousCount: 10,
-                count: 10
-            )
+        let plan = TrackTableUpdatePlanner.plan(
+            previous: nil,
+            source: .materialized(snapshot),
+            selection: [],
+            presentation: presentation,
+            visibleRows: []
         )
+
+        #expect(plan.reload == .all)
+        #expect(plan.restoresSelection)
     }
 
     @Test("A favorite change reloads visible rows without rebuilding the table")
@@ -179,51 +340,262 @@ struct AllTracksPerformanceTests {
             hasSynchronizedLyrics: before.hasSynchronizedLyrics
         )
 
-        #expect(
-            TrackTableRefreshPolicy.requiresVisibleReload(
-                previous: [before],
-                current: [after]
-            )
+        let version = TrackTableContentVersion(
+            sourceID: deterministicUUID(101),
+            generation: 0
         )
-        #expect(
-            !TrackTableRefreshPolicy.requiresVisibleReload(
-                previous: [before],
-                current: [before]
-            )
+        let oldSnapshot = makeSnapshot(rows: [before], version: version)
+        let newSnapshot = makeSnapshot(
+            rows: [after],
+            version: version.advanced()
         )
+        let previous = TrackTableRenderedState(
+            source: .materialized(oldSnapshot),
+            selection: [],
+            presentation: presentation
+        )
+        let probe = TrackTableWorkProbe()
+        let plan = TrackTableUpdatePlanner.plan(
+            previous: previous,
+            source: .materialized(newSnapshot),
+            selection: [],
+            presentation: presentation,
+            visibleRows: [],
+            probe: probe
+        )
+
+        #expect(plan.reload == .rows(IndexSet(integer: 0)))
+        #expect(probe.rowComparisons == 1)
     }
 
-    private func makeTrack(title: String) -> LibraryTrackProjection {
-        LibraryTrackProjection(
-            id: UUID(),
-            title: title,
-            artistID: nil,
-            artist: "Artist",
-            albumID: nil,
-            album: "Album",
-            duration: 180,
-            year: 2026,
-            codec: "ALAC",
-            sampleRate: 48000,
-            channelCount: 2,
-            bitDepth: 24,
-            isFavorite: false,
-            customArtworkID: nil,
-            artworkID: nil,
-            relativeMediaPath: "first.m4a",
-            lastPlayedAt: nil,
-            hasSynchronizedLyrics: false
-        )
-    }
-}
+    @Test("Identical materialized updates perform no row work")
+    func unchangedUpdateDoesNoWork() {
+        for count in [1000, 10000] {
+            let tracks = makeTracks(count: count)
+            let probe = TrackTableWorkProbe()
+            let cache = TrackTableProjectionCache(probe: probe)
+            let version = TrackTableContentVersion(
+                sourceID: deterministicUUID(count + 20000),
+                generation: 0
+            )
+            let snapshot = cache.resolve(
+                rows: tracks,
+                contentVersion: version,
+                sortDescriptor: titleSort,
+                repositoryOrdered: false
+            )
+            var renderedState = TrackTableRenderedState(
+                source: .materialized(snapshot),
+                selection: [],
+                presentation: presentation
+            )
+            probe.reset()
 
-private actor TrackWindowLoadCounter {
-    private(set) var requests: [Int] = []
+            for _ in 0 ..< 100 {
+                let current = cache.resolve(
+                    rows: tracks,
+                    contentVersion: version,
+                    sortDescriptor: titleSort,
+                    repositoryOrdered: false
+                )
+                let plan = TrackTableUpdatePlanner.plan(
+                    previous: renderedState,
+                    source: .materialized(current),
+                    selection: [],
+                    presentation: presentation,
+                    visibleRows: [],
+                    probe: probe
+                )
+                #expect(plan == TrackTableUpdatePlan(
+                    reload: .none,
+                    reconcilesVirtualSelection: false,
+                    restoresSelection: false,
+                    requestsViewport: false,
+                    resetsEndPaging: false
+                ))
+                renderedState = TrackTableRenderedState(
+                    source: .materialized(current),
+                    selection: [],
+                    presentation: presentation
+                )
+            }
 
-    func record(offset: Int, limit: Int) {
-        guard limit == 64 else {
-            return
+            #expect(probe.sortPasses == 0)
+            #expect(probe.rowComparisons == 0)
+            #expect(probe.fullReloads == 0)
+            #expect(probe.reloadBatches == 0)
+            #expect(probe.reloadedRows == 0)
+            #expect(probe.selectionRestores == 0)
+            #expect(probe.viewportRequests == 0)
+            #expect(probe.hostConfigurations == 0)
         }
-        requests.append(offset)
+    }
+
+    @Test("A stable-ID mutation compares once and reloads one row")
+    func stableIdentityMutationReloadsOneRow() {
+        for count in [1000, 10000] {
+            let rows = makeTracks(count: count)
+            let changedIndex = count / 2
+            var changedRows = rows
+            changedRows[changedIndex] = togglingFavorite(rows[changedIndex])
+            let probe = TrackTableWorkProbe()
+            let cache = TrackTableProjectionCache(probe: probe)
+            let version = TrackTableContentVersion(
+                sourceID: deterministicUUID(count + 40000),
+                generation: 0
+            )
+            let before = cache.resolve(
+                rows: rows,
+                contentVersion: version,
+                sortDescriptor: titleSort,
+                repositoryOrdered: false
+            )
+            let renderedState = TrackTableRenderedState(
+                source: .materialized(before),
+                selection: [],
+                presentation: presentation
+            )
+            probe.reset()
+
+            let after = cache.resolve(
+                rows: changedRows,
+                contentVersion: version.advanced(),
+                sortDescriptor: titleSort,
+                repositoryOrdered: false
+            )
+            let plan = TrackTableUpdatePlanner.plan(
+                previous: renderedState,
+                source: .materialized(after),
+                selection: [],
+                presentation: presentation,
+                visibleRows: IndexSet(integer: changedIndex),
+                probe: probe
+            )
+
+            #expect(plan.reload == .rows(IndexSet(integer: changedIndex)))
+            #expect(!plan.restoresSelection)
+            #expect(!plan.requestsViewport)
+            #expect(!plan.resetsEndPaging)
+            #expect(probe.sortPasses == 1)
+            #expect(probe.rowComparisons == count)
+            #expect(probe.fullReloads == 0)
+        }
+    }
+
+    @Test("An order mutation moves and reloads only the changed row")
+    func orderMutationUsesIncrementalMove() {
+        let rows = makeTracks(count: 1000)
+        var changedRows = rows
+        changedRows[0] = replacingTitle(
+            rows[0],
+            with: "Track 99999"
+        )
+        let probe = TrackTableWorkProbe()
+        let cache = TrackTableProjectionCache(probe: probe)
+        let version = TrackTableContentVersion(
+            sourceID: deterministicUUID(50000),
+            generation: 0
+        )
+        let before = cache.resolve(
+            rows: rows,
+            contentVersion: version,
+            sortDescriptor: titleSort,
+            repositoryOrdered: false
+        )
+        let renderedState = TrackTableRenderedState(
+            source: .materialized(before),
+            selection: [],
+            presentation: presentation
+        )
+        probe.reset()
+        let after = cache.resolve(
+            rows: changedRows,
+            contentVersion: version.advanced(),
+            sortDescriptor: titleSort,
+            repositoryOrdered: false
+        )
+
+        let plan = TrackTableUpdatePlanner.plan(
+            previous: renderedState,
+            source: .materialized(after),
+            selection: [],
+            presentation: presentation,
+            visibleRows: IndexSet(integersIn: 0 ..< 24),
+            probe: probe
+        )
+
+        #expect(
+            plan.reload == .changes(
+                TrackTableChanges(
+                    movedRows: [TrackTableMove(from: 0, to: 999)],
+                    reloadedRows: IndexSet(integer: 999)
+                )
+            )
+        )
+        #expect(plan.resetsEndPaging)
+        #expect(probe.sortPasses == 1)
+    }
+
+    @Test("Projection sorting is memoized by semantic key")
+    func projectionCacheSortsOncePerSemanticKey() {
+        let rows = makeTracks(count: 1000)
+        let probe = TrackTableWorkProbe()
+        let cache = TrackTableProjectionCache(probe: probe)
+        let version = TrackTableContentVersion(
+            sourceID: deterministicUUID(50001),
+            generation: 0
+        )
+        let albumSort = TrackTableSortDescriptor(
+            field: .album,
+            direction: .ascending
+        )
+
+        _ = cache.resolve(
+            rows: rows,
+            contentVersion: version,
+            sortDescriptor: titleSort,
+            repositoryOrdered: false
+        )
+        _ = cache.resolve(
+            rows: rows,
+            contentVersion: version,
+            sortDescriptor: titleSort,
+            repositoryOrdered: false
+        )
+        #expect(probe.sortPasses == 1)
+
+        _ = cache.resolve(
+            rows: rows,
+            contentVersion: version,
+            sortDescriptor: albumSort,
+            repositoryOrdered: false
+        )
+        #expect(probe.sortPasses == 2)
+
+        _ = cache.resolve(
+            rows: rows,
+            contentVersion: version.advanced(),
+            sortDescriptor: albumSort,
+            repositoryOrdered: false
+        )
+        #expect(probe.sortPasses == 3)
+
+        let repositoryProbe = TrackTableWorkProbe()
+        let repositoryCache = TrackTableProjectionCache(
+            probe: repositoryProbe
+        )
+        _ = repositoryCache.resolve(
+            rows: rows,
+            contentVersion: version,
+            sortDescriptor: titleSort,
+            repositoryOrdered: true
+        )
+        _ = repositoryCache.resolve(
+            rows: rows,
+            contentVersion: version.advanced(),
+            sortDescriptor: albumSort,
+            repositoryOrdered: true
+        )
+        #expect(repositoryProbe.sortPasses == 0)
     }
 }

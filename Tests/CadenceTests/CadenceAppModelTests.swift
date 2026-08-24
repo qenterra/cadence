@@ -138,6 +138,38 @@ struct CadenceAppModelTests {
         )
     }
 
+    @Test("Stale favorite cancellation preserves the current library error")
+    func staleFavoriteCancellationDoesNotPublishError() {
+        assertOperationErrorPublication(
+            surface: .libraryOperation,
+            keyPath: \.libraryOperationError
+        )
+    }
+
+    @Test("Stale lyric cancellation preserves the current lyric error")
+    func staleLyricsCancellationDoesNotPublishError() {
+        assertOperationErrorPublication(
+            surface: .lyricPersistence,
+            keyPath: \.lyricPersistenceError
+        )
+    }
+
+    @Test("Stale artwork cancellation preserves the current artwork error")
+    func staleArtworkCancellationDoesNotPublishError() {
+        assertOperationErrorPublication(
+            surface: .artworkImport,
+            keyPath: \.artworkImportError
+        )
+    }
+
+    @Test("Stale Trash cancellation preserves the current library error")
+    func staleTrashCancellationDoesNotPublishError() {
+        assertOperationErrorPublication(
+            surface: .libraryOperation,
+            keyPath: \.libraryOperationError
+        )
+    }
+
     @Test("Current production favorite action requires an active production track")
     func currentProductionFavoriteRequiresTrack() async {
         let model = CadenceAppModel.testFixture()
@@ -165,5 +197,32 @@ struct CadenceAppModelTests {
             track.libraryPreviewMetadataText
                 == "Transient Lines · 2026 · 4:55 · FLAC"
         )
+    }
+
+    private func assertOperationErrorPublication(
+        surface: CadenceOperationErrorSurface,
+        keyPath: ReferenceWritableKeyPath<CadenceAppModel, String?>
+    ) {
+        let model = CadenceAppModel.testFixture()
+        model[keyPath: keyPath] = "Current library error"
+
+        model.publishOperationError(CancellationError(), on: surface)
+
+        #expect(model[keyPath: keyPath] == "Current library error")
+
+        model.publishOperationError(
+            AppModelOperationError.currentContext,
+            on: surface
+        )
+
+        #expect(model[keyPath: keyPath] == "Current operation failed.")
+    }
+}
+
+private enum AppModelOperationError: LocalizedError {
+    case currentContext
+
+    var errorDescription: String? {
+        "Current operation failed."
     }
 }

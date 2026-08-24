@@ -1,13 +1,16 @@
 import SwiftUI
 
 enum CadenceGlassSurfacePresentation: Equatable, Sendable {
-    case material
-    case opaque
+    case nativeGlass
+    case opaqueFallback
 
     static func resolve(
+        usesStableSystemControls: Bool,
         reduceTransparency: Bool
     ) -> Self {
-        reduceTransparency ? .opaque : .material
+        usesStableSystemControls || reduceTransparency
+            ? .opaqueFallback
+            : .nativeGlass
     }
 }
 
@@ -18,14 +21,17 @@ extension View {
 }
 
 private struct CadenceGlassSurfaceModifier: ViewModifier {
+    @Environment(\.visualRegressionUsesStableSystemControls)
+    private var usesStableSystemControls
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
     let cornerRadius: CGFloat
 
     func body(content: Content) -> some View {
         if CadenceGlassSurfacePresentation.resolve(
+            usesStableSystemControls: usesStableSystemControls,
             reduceTransparency: reduceTransparency
-        ) == .opaque {
+        ) == .opaqueFallback {
             content.background(
                 CadenceTheme.opaqueSurface,
                 in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)

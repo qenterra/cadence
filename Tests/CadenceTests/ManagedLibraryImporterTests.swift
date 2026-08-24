@@ -208,16 +208,17 @@ struct ManagedLibraryImporterTests {
         )
         let candidate = try await fixture.candidate(audioURL: audioURL)
         try fixture.package.bootstrapForConfirmedImport()
+        let destination = ManagedLibraryImportDestination(
+            package: fixture.package,
+            repository: nil
+        )
+        _ = try await destination.prepareRepository()
         let targetURL = try fixture.package.mediaURL(
             trackID: candidate.id,
             originalExtension: "flac"
         )
         let existingData = Data("already-owned".utf8)
         try existingData.write(to: targetURL)
-        let destination = ManagedLibraryImportDestination(
-            package: fixture.package,
-            repository: nil
-        )
         let importer = ManagedLibraryImporter(
             destination: destination,
             availableCapacity: { _ in .max }

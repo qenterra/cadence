@@ -61,7 +61,7 @@ extension CadenceAppModel {
         if let managed = target.managedOwner {
             Task { @MainActor in
                 do {
-                    try await librarySession.store.setArtwork(
+                    let result = try await librarySession.store.setArtwork(
                         ManagedArtworkEditRequest(
                             ownerKind: managed.kind,
                             ownerID: managed.id,
@@ -71,12 +71,9 @@ extension CadenceAppModel {
                         ),
                         location: librarySession.location
                     )
-                    artworkRevision += 1
-                    if managed.kind == .smartCollection {
-                        await loadPersistedSmartCollections()
-                    }
+                    applyManagedArtworkPublication(result.effects)
                 } catch {
-                    artworkImportError = error.localizedDescription
+                    publishOperationError(error, on: .artworkImport)
                 }
             }
             return
@@ -105,17 +102,14 @@ extension CadenceAppModel {
         if let managed = target.managedOwner {
             Task { @MainActor in
                 do {
-                    try await librarySession.store.removeArtwork(
+                    let result = try await librarySession.store.removeArtwork(
                         ownerKind: managed.kind,
                         ownerID: managed.id,
                         location: librarySession.location
                     )
-                    artworkRevision += 1
-                    if managed.kind == .smartCollection {
-                        await loadPersistedSmartCollections()
-                    }
+                    applyManagedArtworkPublication(result.effects)
                 } catch {
-                    artworkImportError = error.localizedDescription
+                    publishOperationError(error, on: .artworkImport)
                 }
             }
             return
@@ -185,6 +179,48 @@ extension CadenceAppModel {
 
     func dismissArtworkImportError() {
         artworkImportError = nil
+    }
+
+    func applyManagedArtworkPublication(
+        _ effects: [ManagedArtworkPublicationEffect]
+    ) {
+        let store = librarySession.store
+        guard
+            !effects.isEmpty,
+            let publication = store.artworkPublication,
+            publication.epoch == store.libraryEpoch,
+            publication.effects == effects
+        else {
+            return
+        }
+
+        artworkRevision += 1
+
+        for effect in effects where effect.ownerKind == .smartCollection {
+            guard let index = smartCollections.firstIndex(
+                where: { $0.id == effect.ownerID }
+            ) else {
+                continue
+            }
+            smartCollections[index].customArtworkID = effect.newArtworkID
+        }
+
+        if let target = lyricsSearchTarget,
+           let track = publication.tracksByID[target.track.id] {
+            lyricsSearchTarget = LyricsCatalogSearchResult(
+                track: track,
+                match: target.match
+            )
+        }
+
+        var artworkIDsByTrackID: [UUID: UUID?] = [:]
+        for track in publication.tracksByID.values {
+            artworkIDsByTrackID.updateValue(
+                track.artworkID,
+                forKey: track.id
+            )
+        }
+        playbackCoordinator?.refreshManagedArtwork(artworkIDsByTrackID)
     }
 
     func setCustomImage(

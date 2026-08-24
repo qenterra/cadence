@@ -14,13 +14,19 @@ extension PlaylistsView {
                 playPlaylist(playlist, shuffled: true)
             }
         }
+        .disabled(!store.ownsSelectedPlaylistTracks(for: playlist.id))
     }
 
     func playPlaylist(
         _ playlist: LibraryPlaylistProjection,
         shuffled: Bool
     ) {
-        let tracks = store.selectedPlaylistTracks
+        guard let source = store.selectedPlaylistTrackSource(
+            for: playlist.id
+        ) else {
+            return
+        }
+        let tracks = source.tracks
         guard let first = shuffled ? tracks.randomElement() : tracks.first else {
             return
         }

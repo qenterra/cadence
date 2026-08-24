@@ -37,6 +37,62 @@ struct ManagedArtworkEditRequest: Sendable {
 }
 
 extension LibraryRepository {
+    func artworkPublicationPayload(
+        for effects: [ManagedArtworkPublicationEffect]
+    ) throws -> LibraryArtworkPublicationPayload {
+        let directTrackIDs = Set(
+            effects.compactMap { effect in
+                effect.ownerKind == .track ? effect.ownerID : nil
+            }
+        )
+        let albumIDs = Set(
+            effects.compactMap { effect in
+                effect.ownerKind == .album ? effect.ownerID : nil
+            }
+        )
+        let artistIDs = Set(
+            effects.compactMap { effect in
+                effect.ownerKind == .artist ? effect.ownerID : nil
+            }
+        )
+        let playlistIDs = Set(
+            effects.compactMap { effect in
+                effect.ownerKind == .playlist ? effect.ownerID : nil
+            }
+        )
+
+        var trackRows = try tracks(ids: directTrackIDs)
+        for albumID in albumIDs {
+            var cursor: LibraryPageCursor?
+            repeat {
+                let page = try tracks(albumID: albumID, after: cursor)
+                trackRows.append(contentsOf: page.items)
+                cursor = page.nextCursor
+            } while cursor != nil
+        }
+        let albumRows = try albumIDs.compactMap { try album(id: $0) }
+        let artistRows = try artistIDs.compactMap { try artist(id: $0) }
+        let playlistRows = try playlists().filter {
+            playlistIDs.contains($0.id)
+        }
+
+        return LibraryArtworkPublicationPayload(
+            tracksByID: Dictionary(
+                trackRows.map { ($0.id, $0) },
+                uniquingKeysWith: { _, latest in latest }
+            ),
+            albumsByID: Dictionary(
+                uniqueKeysWithValues: albumRows.map { ($0.id, $0) }
+            ),
+            artistsByID: Dictionary(
+                uniqueKeysWithValues: artistRows.map { ($0.id, $0) }
+            ),
+            playlistsByID: Dictionary(
+                uniqueKeysWithValues: playlistRows.map { ($0.id, $0) }
+            )
+        )
+    }
+
     func artworkIDs(
         ownerKind: ArtworkOwnerKind
     ) throws -> [UUID: UUID] {

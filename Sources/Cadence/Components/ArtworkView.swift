@@ -112,10 +112,12 @@ private struct CustomArtworkContent: View {
     let cornerRadius: CGFloat
     let showsBorder: Bool
     @State private var image: CGImage?
+    @State private var activeCacheKey: ArtworkImageCacheKey?
+    @State private var loadedCacheKey: ArtworkImageCacheKey?
 
     var body: some View {
         Group {
-            if let image {
+            if let image, loadedCacheKey == assetCacheKey {
                 GeometryReader { geometry in
                     Image(decorative: image, scale: 1, orientation: .up)
                         .resizable()
@@ -155,12 +157,31 @@ private struct CustomArtworkContent: View {
             }
         }
         .task(id: assetCacheKey) {
-            image = await ArtworkImageCache.shared.image(for: asset)
+            let requestedKey = assetCacheKey
+            activeCacheKey = requestedKey
+            image = nil
+            loadedCacheKey = nil
+            guard !Task.isCancelled else {
+                return
+            }
+            let decodedImage = await ArtworkImageCache.shared.image(for: asset)
+            guard
+                !Task.isCancelled,
+                activeCacheKey == requestedKey
+            else {
+                return
+            }
+            image = decodedImage
+            loadedCacheKey = requestedKey
         }
     }
 
-    private var assetCacheKey: String {
-        "\(asset.id.uuidString)-\(asset.revision)-\(asset.variant)"
+    private var assetCacheKey: ArtworkImageCacheKey {
+        ArtworkImageCacheKey(
+            id: asset.id,
+            revision: asset.revision,
+            variant: asset.variant
+        )
     }
 }
 
@@ -223,35 +244,109 @@ private struct ArtworkPlaceholderView: View {
     }
 }
 
-private actor ArtworkImageCache {
-    static let shared = ArtworkImageCache()
+struct ArtworkImageCacheKey: Hashable, Sendable {
+    let id: UUID
+    let revision: Int
+    let variant: ArtworkAssetVariant
+}
 
-    private let cache = NSCache<NSString, CGImage>()
+struct ArtworkImageCacheMetrics: Equatable, Sendable {
+    let decodeInvocations: Int
+}
 
-    private init() {
-        cache.countLimit = 80
-        cache.totalCostLimit = 128 * 1024 * 1024
-    }
-
-    func image(for asset: ArtworkAsset) -> CGImage? {
-        let key = "\(asset.id.uuidString)-\(asset.revision)-\(asset.variant)"
-            as NSString
-        if let cached = cache.object(forKey: key) {
-            return cached
-        }
+enum ArtworkImageDecoder {
+    static func image(for asset: ArtworkAsset) -> CGImage? {
         guard
-            let source = CGImageSourceCreateWithData(asset.data as CFData, nil),
-            let image = CGImageSourceCreateImageAtIndex(source, 0, nil)
+            let source = CGImageSourceCreateWithData(asset.data as CFData, nil)
         else {
             return nil
         }
-        let pixelCost = image.width * image.height * 4
+        switch asset.variant {
+        case .original:
+            return CGImageSourceCreateImageAtIndex(source, 0, [
+                kCGImageSourceShouldCacheImmediately: true,
+            ] as CFDictionary)
+        case .thumbnail, .trackRow:
+            guard let maximumPixelDimension = asset.variant
+                .maximumPixelDimension else {
+                return nil
+            }
+            return CGImageSourceCreateThumbnailAtIndex(source, 0, [
+                kCGImageSourceCreateThumbnailFromImageAlways: true,
+                kCGImageSourceCreateThumbnailWithTransform: true,
+                kCGImageSourceShouldCacheImmediately: true,
+                kCGImageSourceThumbnailMaxPixelSize:
+                    maximumPixelDimension,
+            ] as CFDictionary)
+        }
+    }
+
+    static func decodedByteCost(of image: CGImage) -> Int {
+        let (pixels, pixelOverflow) = image.width.multipliedReportingOverflow(
+            by: image.height
+        )
+        let (bytes, byteOverflow) = pixels.multipliedReportingOverflow(by: 4)
+        guard !pixelOverflow, !byteOverflow else {
+            return .max
+        }
+        return max(bytes, 0)
+    }
+}
+
+actor ArtworkImageCache {
+    static let shared = ArtworkImageCache()
+
+    private let cache = NSCache<NSString, CGImage>()
+    private(set) var decodeInvocations = 0
+
+    init(
+        countLimit: Int = 80,
+        totalCostLimit: Int = 128 * 1024 * 1024
+    ) {
+        cache.countLimit = max(countLimit, 1)
+        cache.totalCostLimit = max(totalCostLimit, 1)
+    }
+
+    func image(for asset: ArtworkAsset) -> CGImage? {
+        let typedKey = ArtworkImageCacheKey(
+            id: asset.id,
+            revision: asset.revision,
+            variant: asset.variant
+        )
+        let key = Self.cacheKey(for: typedKey)
+        if let cached = cache.object(forKey: key) {
+            return cached
+        }
+        guard !Task.isCancelled else {
+            return nil
+        }
+        decodeInvocations += 1
+        guard let image = ArtworkImageDecoder.image(for: asset) else {
+            return nil
+        }
+        let pixelCost = ArtworkImageDecoder.decodedByteCost(of: image)
+        guard
+            pixelCost != .max,
+            pixelCost <= cache.totalCostLimit
+        else {
+            return image
+        }
         cache.setObject(
             image,
             forKey: key,
-            cost: max(pixelCost, asset.data.count)
+            cost: pixelCost
         )
         return image
+    }
+
+    func metrics() -> ArtworkImageCacheMetrics {
+        ArtworkImageCacheMetrics(decodeInvocations: decodeInvocations)
+    }
+
+    private static func cacheKey(
+        for key: ArtworkImageCacheKey
+    ) -> NSString {
+        "\(key.id.uuidString)-\(key.revision)-\(key.variant)" as NSString
     }
 }
 

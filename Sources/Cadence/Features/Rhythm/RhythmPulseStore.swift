@@ -195,6 +195,7 @@ struct RhythmPulseVisualQAState: Sendable {
     let isCadenceModeActive: Bool?
     let cadenceModeLyricDocument: LyricDocument?
     let cadenceModePresentationTime: TimeInterval?
+    let cadenceModeBassLevel: Float?
 
     init(
         palette: RhythmAccentPalette,
@@ -202,7 +203,8 @@ struct RhythmPulseVisualQAState: Sendable {
         lanes: [RhythmLane],
         isCadenceModeActive: Bool? = nil,
         cadenceModeLyricDocument: LyricDocument? = nil,
-        cadenceModePresentationTime: TimeInterval? = nil
+        cadenceModePresentationTime: TimeInterval? = nil,
+        cadenceModeBassLevel: Float? = nil
     ) {
         self.palette = palette
         self.seed = seed
@@ -210,6 +212,7 @@ struct RhythmPulseVisualQAState: Sendable {
         self.isCadenceModeActive = isCadenceModeActive
         self.cadenceModeLyricDocument = cadenceModeLyricDocument
         self.cadenceModePresentationTime = cadenceModePresentationTime
+        self.cadenceModeBassLevel = cadenceModeBassLevel
     }
 }
 

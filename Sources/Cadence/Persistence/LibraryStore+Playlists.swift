@@ -1,6 +1,7 @@
 import Foundation
 
 struct LibraryPlaylistClient: Sendable {
+    let attachmentID = UUID()
     let playlists: @Sendable () async throws -> [LibraryPlaylistProjection]
     let playlistTracks: @Sendable (UUID) async throws -> [LibraryTrackProjection]
     let create: @Sendable (String) async throws -> LibraryPlaylistProjection
@@ -62,18 +63,27 @@ struct LibraryPlaylistClient: Sendable {
 
 extension LibraryStore {
     func loadPlaylists() async {
-        guard let playlistClient else {
+        let context = captureLibraryContext()
+        guard attachmentPhase == .active else {
+            return
+        }
+        guard
+            let playlistClient,
+            ownsPlaylistLoad(context, client: playlistClient)
+        else {
             playlists = []
             selectedPlaylistID = nil
-            selectedPlaylistTracks = []
             playlistListState = .ready
-            selectedPlaylistTracksState = .ready
+            await loadSelectedPlaylistTracks()
             return
         }
 
         playlistListState = .loading
         do {
             let loadedPlaylists = try await playlistClient.playlists()
+            guard ownsPlaylistLoad(context, client: playlistClient) else {
+                return
+            }
             playlists = loadedPlaylists
             playlistListState = .ready
             if let selectedPlaylistID,
@@ -84,6 +94,9 @@ extension LibraryStore {
             }
             await loadSelectedPlaylistTracks()
         } catch {
+            guard ownsPlaylistLoad(context, client: playlistClient) else {
+                return
+            }
             let failure = LibraryStoreFailure(message: error.localizedDescription)
             playlistListState = .failed(failure)
             recordOperationFailure(.playlistList, error: error)
@@ -91,126 +104,269 @@ extension LibraryStore {
     }
 
     func createPlaylist(name: String = "Untitled Playlist") async {
-        guard let playlistClient else {
+        let context = captureLibraryContext()
+        guard
+            let playlistClient,
+            ownsPlaylistLoad(context, client: playlistClient)
+        else {
             return
         }
         do {
             let playlist = try await playlistClient.create(name)
+            guard ownsPlaylistLoad(context, client: playlistClient) else {
+                return
+            }
             selectedPlaylistID = playlist.id
             await loadPlaylists()
         } catch {
+            guard ownsPlaylistLoad(context, client: playlistClient) else {
+                return
+            }
             recordOperationFailure(.playlistCreate, error: error)
         }
     }
 
     func renameSelectedPlaylist(to name: String) async {
-        guard let playlistClient, let selectedPlaylistID else {
+        let context = captureLibraryContext()
+        guard
+            let playlistClient,
+            let selectedPlaylistID,
+            ownsPlaylistLoad(context, client: playlistClient)
+        else {
             return
         }
         do {
             try await playlistClient.rename(selectedPlaylistID, name)
+            guard ownsPlaylistLoad(context, client: playlistClient) else {
+                return
+            }
             await loadPlaylists()
         } catch {
+            guard ownsPlaylistLoad(context, client: playlistClient) else {
+                return
+            }
             recordOperationFailure(.playlistRename, error: error)
         }
     }
 
     func deleteSelectedPlaylist() async {
-        guard let playlistClient, let selectedPlaylistID else {
+        let context = captureLibraryContext()
+        guard
+            let playlistClient,
+            let selectedPlaylistID,
+            ownsPlaylistLoad(context, client: playlistClient)
+        else {
             return
         }
         do {
             try await playlistClient.delete(selectedPlaylistID)
+            guard ownsPlaylistLoad(context, client: playlistClient) else {
+                return
+            }
             self.selectedPlaylistID = nil
             await loadPlaylists()
         } catch {
+            guard ownsPlaylistLoad(context, client: playlistClient) else {
+                return
+            }
             recordOperationFailure(.playlistDelete, error: error)
         }
     }
 
     func selectPlaylist(_ id: UUID) async {
+        guard attachmentPhase == .active else {
+            return
+        }
         selectedPlaylistID = id
         await loadSelectedPlaylistTracks()
     }
 
     func addToPlaylist(playlistID: UUID, trackIDs: [UUID]) async {
-        guard let playlistClient else {
+        let context = captureLibraryContext()
+        guard
+            let playlistClient,
+            ownsPlaylistLoad(context, client: playlistClient)
+        else {
             return
         }
         do {
             try await playlistClient.add(playlistID, trackIDs)
+            guard ownsPlaylistLoad(context, client: playlistClient) else {
+                return
+            }
             await loadPlaylists()
         } catch {
+            guard ownsPlaylistLoad(context, client: playlistClient) else {
+                return
+            }
             recordOperationFailure(.playlistAdd, error: error)
         }
     }
 
-    func removeFromSelectedPlaylist(trackIDs: [UUID]) async {
-        guard let playlistClient, let selectedPlaylistID else {
+    func removeFromSelectedPlaylist(
+        playlistID: UUID,
+        trackIDs: [UUID]
+    ) async {
+        let context = captureLibraryContext()
+        guard
+            let playlistClient,
+            ownsPlaylistLoad(context, client: playlistClient),
+            ownsSelectedPlaylistTracks(for: playlistID)
+        else {
             return
         }
         do {
-            try await playlistClient.remove(selectedPlaylistID, trackIDs)
+            try await playlistClient.remove(playlistID, trackIDs)
+            guard
+                ownsPlaylistLoad(context, client: playlistClient),
+                ownsSelectedPlaylistTracks(for: playlistID)
+            else {
+                return
+            }
             await loadPlaylists()
         } catch {
+            guard
+                ownsPlaylistLoad(context, client: playlistClient),
+                ownsSelectedPlaylistTracks(for: playlistID)
+            else {
+                return
+            }
             recordOperationFailure(.playlistRemove, error: error)
         }
     }
 
-    func reorderSelectedPlaylist(trackIDs: [UUID]) async {
-        guard let playlistClient, let selectedPlaylistID else {
+    func reorderSelectedPlaylist(
+        playlistID: UUID,
+        trackIDs: [UUID]
+    ) async {
+        let context = captureLibraryContext()
+        guard
+            let playlistClient,
+            ownsPlaylistLoad(context, client: playlistClient),
+            ownsSelectedPlaylistTracks(for: playlistID)
+        else {
             return
         }
         do {
-            try await playlistClient.reorder(selectedPlaylistID, trackIDs)
+            try await playlistClient.reorder(playlistID, trackIDs)
+            guard
+                ownsPlaylistLoad(context, client: playlistClient),
+                ownsSelectedPlaylistTracks(for: playlistID)
+            else {
+                return
+            }
             await loadSelectedPlaylistTracks()
         } catch {
+            guard
+                ownsPlaylistLoad(context, client: playlistClient),
+                ownsSelectedPlaylistTracks(for: playlistID)
+            else {
+                return
+            }
             recordOperationFailure(.playlistReorder, error: error)
         }
     }
 
     func loadSelectedPlaylistTracks() async {
+        let context = captureLibraryContext()
+        guard attachmentPhase == .active else {
+            return
+        }
+        selectedPlaylistTracksGeneration &+= 1
+        let generation = selectedPlaylistTracksGeneration
         guard let playlistClient, let selectedPlaylistID else {
-            selectedPlaylistTracks = []
+            retireSelectedPlaylistTracksContent()
             selectedPlaylistTracksState = .ready
             return
         }
 
         selectedPlaylistTracksState = .loading
         do {
-            selectedPlaylistTracks = try await playlistClient.playlistTracks(
+            let loadedTracks = try await playlistClient.playlistTracks(
                 selectedPlaylistID
+            )
+            guard
+                ownsPlaylistLoad(context, client: playlistClient),
+                self.selectedPlaylistID == selectedPlaylistID,
+                selectedPlaylistTracksGeneration == generation
+            else {
+                return
+            }
+            replaceSelectedPlaylistTracksContent(
+                with: loadedTracks,
+                ownerID: selectedPlaylistID
             )
             selectedPlaylistTracksState = .ready
         } catch {
+            guard
+                ownsPlaylistLoad(context, client: playlistClient),
+                self.selectedPlaylistID == selectedPlaylistID,
+                selectedPlaylistTracksGeneration == generation
+            else {
+                return
+            }
             let failure = LibraryStoreFailure(message: error.localizedDescription)
             selectedPlaylistTracksState = .failed(failure)
             recordOperationFailure(.playlistTracks, error: error)
         }
     }
 
+    private func ownsPlaylistLoad(
+        _ context: LibraryStoreContext,
+        client: LibraryPlaylistClient
+    ) -> Bool {
+        isCurrentLibraryContext(context)
+            && playlistClient?.attachmentID == client.attachmentID
+    }
+
     func addAlbum(_ albumID: UUID, to playlistID: UUID) async {
-        guard let playlistClient else {
+        let context = captureLibraryContext()
+        guard
+            let playlistClient,
+            ownsPlaylistLoad(context, client: playlistClient)
+        else {
             return
         }
         do {
             let trackIDs = try await playlistClient.albumTrackIDs(albumID)
+            guard ownsPlaylistLoad(context, client: playlistClient) else {
+                return
+            }
             try await playlistClient.add(playlistID, trackIDs)
+            guard ownsPlaylistLoad(context, client: playlistClient) else {
+                return
+            }
             await loadPlaylists()
         } catch {
+            guard ownsPlaylistLoad(context, client: playlistClient) else {
+                return
+            }
             recordOperationFailure(.playlistAdd, error: error)
         }
     }
 
     func addArtist(_ artistID: UUID, to playlistID: UUID) async {
-        guard let playlistClient else {
+        let context = captureLibraryContext()
+        guard
+            let playlistClient,
+            ownsPlaylistLoad(context, client: playlistClient)
+        else {
             return
         }
         do {
             let trackIDs = try await playlistClient.artistTrackIDs(artistID)
+            guard ownsPlaylistLoad(context, client: playlistClient) else {
+                return
+            }
             try await playlistClient.add(playlistID, trackIDs)
+            guard ownsPlaylistLoad(context, client: playlistClient) else {
+                return
+            }
             await loadPlaylists()
         } catch {
+            guard ownsPlaylistLoad(context, client: playlistClient) else {
+                return
+            }
             recordOperationFailure(.playlistAdd, error: error)
         }
     }

@@ -7,6 +7,7 @@ struct ProductionArtistDetailView: View {
     @State private var artist: LibraryArtistProjection?
     @State private var releases = ArtistReleaseSections.empty
     @State private var tracks: [LibraryTrackProjection] = []
+    @State private var tracksClock = TrackTableContentClock()
     @State private var isLoading = true
     @State private var loadFailure: String?
     @State private var loadGeneration = 0
@@ -31,6 +32,7 @@ struct ProductionArtistDetailView: View {
                         ProductionTrackList(
                             model: model,
                             tracks: tracks,
+                            contentVersion: tracksClock.version,
                             context: .artist(artistID),
                             defaultSortDescriptor: TrackTableSortDescriptor(
                                 field: .year,
@@ -82,7 +84,11 @@ struct ProductionArtistDetailView: View {
                 )
                 artist = result.artist
                 releases = result.releases
-                tracks = result.tracks
+                if tracks != result.tracks {
+                    tracks = result.tracks
+                    tracksClock.advance()
+                }
+                applyArtworkPublication()
                 loadFailure = nil
             } catch {
                 loadFailure = error.localizedDescription
@@ -104,10 +110,29 @@ struct ProductionArtistDetailView: View {
                 }
             }
         }
+        .onChange(of: store.artworkPublication?.generation) {
+            applyArtworkPublication()
+        }
     }
 }
 
 private extension ProductionArtistDetailView {
+    func applyArtworkPublication() {
+        guard
+            let publication = store.artworkPublication,
+            publication.epoch == store.libraryEpoch
+        else {
+            return
+        }
+        if let replacement = publication.artistsByID[artistID] {
+            artist = replacement
+        }
+        releases = publication.mergingAlbums(in: releases)
+        if publication.mergeTracks(into: &tracks) {
+            tracksClock.advance()
+        }
+    }
+
     @ViewBuilder
     var refreshFailureNotice: some View {
         if let loadFailure {
@@ -131,6 +156,7 @@ private extension ProductionArtistDetailView {
             ProductionTrackList(
                 model: model,
                 tracks: favorites,
+                contentVersion: tracksClock.version,
                 context: .artist(artistID),
                 defaultSortDescriptor: TrackTableSortDescriptor(
                     field: .year,

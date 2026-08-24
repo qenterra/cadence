@@ -1,41 +1,5 @@
 import Foundation
 
-enum ManagedLyricsServiceError: Error, Equatable, LocalizedError, Sendable {
-    case wrongTrackIdentity
-    case invalidDocument(String)
-    case unavailable
-    case unreadableManagedLyrics
-    case contentHashMismatch
-    case inconsistentRecovery(UUID)
-
-    var errorDescription: String? {
-        switch self {
-        case .wrongTrackIdentity:
-            "The lyric draft no longer belongs to the selected track."
-        case let .invalidDocument(message):
-            "The lyric document is invalid: \(message)"
-        case .unavailable:
-            "Managed lyrics are unavailable for this library."
-        case .unreadableManagedLyrics:
-            "The managed lyric file could not be read as UTF-8."
-        case .contentHashMismatch:
-            "The managed lyric file changed outside Cadence."
-        case let .inconsistentRecovery(operationID):
-            "Lyrics recovery \(operationID.uuidString) is inconsistent."
-        }
-    }
-}
-
-struct ManagedLyricsRecoveryResult: Equatable, Sendable {
-    let recoveredOperationIDs: [UUID]
-    let rolledBackOperationIDs: [UUID]
-
-    static let empty = ManagedLyricsRecoveryResult(
-        recoveredOperationIDs: [],
-        rolledBackOperationIDs: []
-    )
-}
-
 actor ManagedLyricsService {
     private let package: ManagedLibraryPackage
     private let repository: LibraryRepository
@@ -59,6 +23,13 @@ actor ManagedLyricsService {
     func load(
         trackID: UUID
     ) async throws -> LyricDocument? {
+        let result = try await loadResult(trackID: trackID)
+        return result.document
+    }
+
+    func loadResult(
+        trackID: UUID
+    ) async throws -> ManagedLyricsLoadResult {
         let metadata = try await repository.lyricMetadata(
             trackID: trackID
         )
@@ -70,7 +41,10 @@ actor ManagedLyricsService {
         )
         guard fileManager.fileExists(atPath: url.path) else {
             if metadata == nil {
-                return nil
+                return ManagedLyricsLoadResult(
+                    document: nil,
+                    didRepairMetadata: false
+                )
             }
             throw ManagedLyricsServiceError.unreadableManagedLyrics
         }
@@ -85,7 +59,8 @@ actor ManagedLyricsService {
             throw ManagedLyricsServiceError.contentHashMismatch
         }
         let document = try LineLevelLRC.parse(source, trackID: trackID)
-        if metadata == nil {
+        let didRepairMetadata = metadata == nil
+        if didRepairMetadata {
             try await repository.applyLyricMutation(
                 trackID: trackID,
                 mutation: .upsert(
@@ -96,22 +71,34 @@ actor ManagedLyricsService {
                 )
             )
         }
-        return document
+        return ManagedLyricsLoadResult(
+            document: document,
+            didRepairMetadata: didRepairMetadata
+        )
     }
 
+    @discardableResult
     func save(
         _ document: LyricDocument
-    ) async throws {
+    ) async throws -> ManagedLyricsSaveResult {
         guard case let .managed(trackID) = document.trackID else {
             throw ManagedLyricsServiceError.wrongTrackIdentity
         }
-        _ = try await recover()
-        let manifest = try await prepareOperation(
-            document: document,
-            trackID: trackID
-        )
-        let installed = try installOperation(manifest)
-        try await commitOperation(installed)
+        let recovery = try await recover()
+        do {
+            let manifest = try await prepareOperation(
+                document: document,
+                trackID: trackID
+            )
+            let installed = try installOperation(manifest)
+            try await commitOperation(installed)
+            return ManagedLyricsSaveResult(
+                recovery: recovery,
+                savedTrackID: trackID
+            )
+        } catch {
+            throw carryingRecovery(recovery, after: error)
+        }
     }
 
     func recover() async throws -> ManagedLyricsRecoveryResult {
@@ -122,6 +109,8 @@ actor ManagedLyricsService {
 
         var recovered: [UUID] = []
         var rolledBack: [UUID] = []
+        var affectedTrackIDs: [UUID] = []
+        var affectedTrackIDSet: Set<UUID> = []
         for manifest in manifests {
             do {
                 switch manifest.state {
@@ -146,30 +135,44 @@ actor ManagedLyricsService {
                     try manifestStore.remove(manifest.operationID)
                     recovered.append(manifest.operationID)
                 }
-            } catch {
-                var compensationFailures: [String] = []
-                do {
-                    try manifestStore.quarantine(manifest.operationID)
-                } catch {
-                    compensationFailures.append(error.localizedDescription)
+                if affectedTrackIDSet.insert(manifest.trackID).inserted {
+                    affectedTrackIDs.append(manifest.trackID)
                 }
-                throw managedFileError(
+            } catch {
+                throw recoveryError(
                     preserving: error,
-                    subsystem: .lyrics,
-                    operationID: manifest.operationID,
-                    compensationFailures: compensationFailures,
-                    recoveryDirectory: manifestStore.rootURL
+                    manifest: manifest
                 )
             }
         }
         return ManagedLyricsRecoveryResult(
             recoveredOperationIDs: recovered,
-            rolledBackOperationIDs: rolledBack
+            rolledBackOperationIDs: rolledBack,
+            affectedTrackIDs: affectedTrackIDs
         )
     }
 }
 
 private extension ManagedLyricsService {
+    func recoveryError(
+        preserving error: any Error,
+        manifest: ManagedLyricEditManifest
+    ) -> any Error {
+        var compensationFailures: [String] = []
+        do {
+            try manifestStore.quarantine(manifest.operationID)
+        } catch {
+            compensationFailures.append(error.localizedDescription)
+        }
+        return managedFileError(
+            preserving: error,
+            subsystem: .lyrics,
+            operationID: manifest.operationID,
+            compensationFailures: compensationFailures,
+            recoveryDirectory: manifestStore.rootURL
+        )
+    }
+
     func prepareOperation(
         document: LyricDocument,
         trackID: UUID

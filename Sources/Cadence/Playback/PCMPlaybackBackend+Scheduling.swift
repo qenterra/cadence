@@ -123,6 +123,8 @@ extension PCMPlaybackBackend {
         let wasRunning = engine.isRunning
         scheduleGeneration &+= 1
         let generation = scheduleGeneration
+        bassAnalyzer.invalidateScheduleBoundary()
+        resetBassAnalysis()
         playerNode.stop()
 
         let currentItem = try scheduledItem(
@@ -131,17 +133,43 @@ extension PCMPlaybackBackend {
         )
         self.currentItem = currentItem
         preparedItem = nil
+        currentSegmentTicket = makeSegmentTicket()
+        preparedSegmentTicket = 0
         currentStartSample = 0
+        currentScheduledEndSample = AVAudioFramePosition(
+            currentItem.frameCount
+        )
         logicalStartTime = startTime
         lastKnownPlaybackTime = startTime
         applyGain()
-        schedule(currentItem, generation: generation)
+        schedule(
+            currentItem,
+            generation: generation,
+            segmentTicket: currentSegmentTicket,
+            startingSampleTime: 0
+        )
 
         if let next {
             let nextItem = try scheduledItem(next, startTime: 0)
             if isGaplessCompatible(currentItem, nextItem) {
                 preparedItem = nextItem
-                schedule(nextItem, generation: generation)
+                preparedSegmentTicket = makeSegmentTicket()
+                let successorStart = AVAudioFramePosition(
+                    currentItem.frameCount
+                )
+                bassAnalyzer.scheduleSuccessorBoundary(
+                    at: successorStart,
+                    scheduleGeneration: UInt64(
+                        truncatingIfNeeded: generation
+                    ),
+                    predecessorTicket: currentSegmentTicket
+                )
+                schedule(
+                    nextItem,
+                    generation: generation,
+                    segmentTicket: preparedSegmentTicket,
+                    startingSampleTime: successorStart
+                )
             }
         }
 
@@ -186,10 +214,16 @@ extension PCMPlaybackBackend {
 
     func schedule(
         _ item: ScheduledPCMItem,
-        generation: Int? = nil
+        generation: Int? = nil,
+        segmentTicket: UInt64,
+        startingSampleTime: AVAudioFramePosition? = nil
     ) {
         let trackID = item.resolved.track.id
         let generation = generation ?? scheduleGeneration
+        let segmentEndSample = startingSampleTime.map {
+            $0 + AVAudioFramePosition(item.frameCount)
+        }
+        let bassAnalyzer = bassAnalyzer
         playerNode.scheduleSegment(
             item.file,
             startingFrame: item.startingFrame,
@@ -197,10 +231,18 @@ extension PCMPlaybackBackend {
             at: nil,
             completionCallbackType: .dataPlayedBack
         ) { [weak self] _ in
+            bassAnalyzer.resetAtSuccessorBoundary(
+                segmentEndSample,
+                scheduleGeneration: UInt64(
+                    truncatingIfNeeded: generation
+                ),
+                predecessorTicket: segmentTicket
+            )
             Task { @MainActor [weak self] in
                 self?.handleFinished(
                     trackID: trackID,
-                    generation: generation
+                    generation: generation,
+                    segmentTicket: segmentTicket
                 )
             }
         }
@@ -217,19 +259,38 @@ extension PCMPlaybackBackend {
 
     func handleFinished(
         trackID: UUID,
-        generation: Int? = nil
+        generation: Int? = nil,
+        segmentTicket: UInt64? = nil
     ) {
-        guard generation ?? scheduleGeneration == scheduleGeneration else {
+        let acceptedGeneration = generation ?? scheduleGeneration
+        guard acceptedGeneration == scheduleGeneration else {
             return
         }
         guard currentItem?.resolved.track.id == trackID else {
             return
         }
-        let finishedFrameCount = currentItem?.frameCount ?? 0
+        let acceptedTicket = segmentTicket ?? currentSegmentTicket
+        guard acceptedTicket != 0,
+              acceptedTicket == currentSegmentTicket else {
+            return
+        }
         if let preparedItem {
+            let successorStartSample = currentScheduledEndSample
+            bassAnalyzer.resetAtSuccessorBoundary(
+                successorStartSample,
+                scheduleGeneration: UInt64(
+                    truncatingIfNeeded: acceptedGeneration
+                ),
+                predecessorTicket: acceptedTicket
+            )
+            resetBassAnalysis()
             currentItem = preparedItem
             self.preparedItem = nil
-            currentStartSample += AVAudioFramePosition(finishedFrameCount)
+            currentSegmentTicket = preparedSegmentTicket
+            preparedSegmentTicket = 0
+            currentStartSample = successorStartSample
+            currentScheduledEndSample = successorStartSample
+                + AVAudioFramePosition(preparedItem.frameCount)
             logicalStartTime = 0
             lastKnownPlaybackTime = 0
             applyGain()
@@ -247,6 +308,15 @@ extension PCMPlaybackBackend {
                 )
             )
         }
+    }
+
+    func makeSegmentTicket() -> UInt64 {
+        precondition(
+            nextSegmentTicket < UInt64.max,
+            "PCM schedule ticket space exhausted."
+        )
+        nextSegmentTicket += 1
+        return nextSegmentTicket
     }
 
     func applyGain() {

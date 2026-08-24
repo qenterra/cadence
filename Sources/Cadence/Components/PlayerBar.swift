@@ -179,11 +179,13 @@ private extension PlayerBar {
                     .accessibilityLabel("Add \(track.title) to Library")
                 } else {
                     FavoriteButton(
+                        itemID: track.id,
                         isFavorite: model.currentProductionTrackIsFavorite,
                         itemName: track.title
                     ) { requestedValue in
-                        await model.setCurrentProductionTrackFavorite(
-                            requestedValue
+                        await model.setProductionPlaybackTrackFavorite(
+                            id: track.id,
+                            isFavorite: requestedValue
                         )
                     }
                 }

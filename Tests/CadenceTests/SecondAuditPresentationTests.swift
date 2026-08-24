@@ -88,18 +88,93 @@ struct SecondAuditPresentationTests {
         #expect(SettingsLayoutMetrics.maximumContentWidth == 640)
     }
 
-    @Test("Settings tabs keep native glass outside deterministic captures")
+    @Test("Settings tabs keep one stable strip and deterministic glass policy")
     func settingsTabGlassPresentation() {
         #expect(
-            SettingsTabControlPresentation.resolve(
-                usesStableSystemControls: false
+            CadenceGlassSurfacePresentation.resolve(
+                usesStableSystemControls: false,
+                reduceTransparency: false
             ) == .nativeGlass
         )
         #expect(
-            SettingsTabControlPresentation.resolve(
-                usesStableSystemControls: true
-            ) == .stableOpaque
+            CadenceGlassSurfacePresentation.resolve(
+                usesStableSystemControls: true,
+                reduceTransparency: false
+            ) == .opaqueFallback
         )
+        #expect(
+            CadenceGlassSurfacePresentation.resolve(
+                usesStableSystemControls: false,
+                reduceTransparency: true
+            ) == .opaqueFallback
+        )
+        #expect(
+            CadenceGlassSurfacePresentation.resolve(
+                usesStableSystemControls: true,
+                reduceTransparency: true
+            ) == .opaqueFallback
+        )
+
+        #expect(SettingsTabStripMetrics.iconFrame == CGSize(width: 24, height: 22))
+        #expect(SettingsTabStripMetrics.minimumTabSize == CGSize(width: 76, height: 54))
+        #expect(SettingsTabStripMetrics.rowSpacing == CadenceLayout.compactGap)
+
+        let baseline = SettingsTabStripMetrics.metrics(for: .general)
+        for tab in CadenceSettingsTab.allCases {
+            #expect(SettingsTabStripMetrics.metrics(for: tab) == baseline)
+        }
+    }
+
+    @Test("Settings source keeps glass at the strip boundary")
+    func settingsTabSourceContract() throws {
+        let tabSource = try source(
+            at: "Sources/Cadence/Features/Settings/SettingsTabStrip.swift"
+        )
+        let appSource = try source(at: "Sources/Cadence/CadenceApp.swift")
+        let stripStart = try #require(
+            appSource.range(of: "SettingsTabStrip(selection: $selection)")
+        )
+        let separator = try #require(
+            appSource.range(
+                of: "CadenceSeparator()",
+                range: stripStart.lowerBound ..< appSource.endIndex
+            )
+        )
+        let stripSource = String(
+            appSource[
+                stripStart.lowerBound ..< separator.upperBound
+            ]
+        )
+
+        #expect(!tabSource.contains("GlassEffectContainer"))
+        #expect(!tabSource.contains(".buttonStyle(.glass"))
+        #expect(
+            tabSource.components(separatedBy: ".buttonStyle(.plain)").count
+                == 2
+        )
+        #expect(
+            stripSource.components(
+                separatedBy: ".cadenceGlassSurface("
+            ).count == 2
+        )
+
+        var cursor = stripSource.startIndex
+        for fragment in [
+            "SettingsTabStrip(selection: $selection)",
+            ".frame(maxWidth: .infinity)",
+            ".padding(.horizontal, CadenceLayout.contentGap)",
+            ".padding(.vertical, CadenceLayout.compactGap)",
+            ".cadenceGlassSurface(",
+            "CadenceSeparator()",
+        ] {
+            let match = try #require(
+                stripSource.range(
+                    of: fragment,
+                    range: cursor ..< stripSource.endIndex
+                )
+            )
+            cursor = match.upperBound
+        }
     }
 
     @Test("Every settings card symbol resolves on the supported macOS baseline")
@@ -130,5 +205,16 @@ struct SecondAuditPresentationTests {
                 "Missing SF Symbol: \(symbol)"
             )
         }
+    }
+
+    private func source(at relativePath: String) throws -> String {
+        let projectRoot = URL(filePath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+        return try String(
+            contentsOf: projectRoot.appending(path: relativePath),
+            encoding: .utf8
+        )
     }
 }

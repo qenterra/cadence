@@ -1,15 +1,35 @@
 import SwiftUI
 
-enum BrowserRowFillRole: Equatable, Sendable {
+enum BrowserRowSelectionAdornment: Equatable, Sendable {
     case none
-    case hover
-    case selected
-    case selectedStrong
+    case fill
+    case strongFill
+}
+
+enum BrowserRowOutlinePresentation: Equatable, Sendable {
+    case none
+    case focus
+}
+
+struct CadenceSymbolEffectPresentation: Equatable, Sendable {
+    let trigger: Int
+    let isEnabled: Bool
+
+    static func resolve(
+        trigger: Int,
+        reduceMotion: Bool
+    ) -> CadenceSymbolEffectPresentation {
+        CadenceSymbolEffectPresentation(
+            trigger: trigger,
+            isEnabled: !reduceMotion
+        )
+    }
 }
 
 struct BrowserRowVisualState: Equatable, Sendable {
-    let fillRole: BrowserRowFillRole
-    let showsBorder: Bool
+    let selectionAdornment: BrowserRowSelectionAdornment
+    let hasHoverFill: Bool
+    let outlinePresentation: BrowserRowOutlinePresentation
     let borderWidth: Double
 
     init(
@@ -18,20 +38,20 @@ struct BrowserRowVisualState: Equatable, Sendable {
         isFocused: Bool = false,
         isIncreasedContrast: Bool = false
     ) {
-        if isSelected {
-            fillRole = isIncreasedContrast ? .selectedStrong : .selected
-        } else if isHovered {
-            fillRole = .hover
+        selectionAdornment = if isSelected {
+            isIncreasedContrast ? .strongFill : .fill
         } else {
-            fillRole = .none
+            .none
         }
-        showsBorder = isFocused || isSelected
+        hasHoverFill = !isSelected && isHovered
+        outlinePresentation = isFocused ? .focus : .none
         borderWidth = isFocused && isIncreasedContrast ? 2 : 0.5
     }
 }
 
 struct BrowserRowSurface: View {
     @Environment(\.colorSchemeContrast) private var contrast
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     let isSelected: Bool
     let isHovered: Bool
@@ -45,26 +65,16 @@ struct BrowserRowSurface: View {
             isIncreasedContrast: contrast == .increased
         )
         Color.clear
-            .overlay(alignment: .leading) {
-                if isSelected {
-                    Capsule()
-                        .fill(.tint)
-                        .frame(width: 2, height: 20)
-                        .padding(.leading, 3)
-                }
-            }
             .contentShape(Rectangle())
-            .background(fill(for: state.fillRole))
+            .background(fill(for: state))
             .overlay {
-                if state.showsBorder {
+                if state.outlinePresentation == .focus {
                     RoundedRectangle(
                         cornerRadius: CadenceTheme.radiusControl,
                         style: .continuous
                     )
                     .stroke(
-                        isFocused
-                            ? CadenceTheme.primaryAccent
-                            : CadenceTheme.strongSeparator,
+                        CadenceTheme.primaryAccent,
                         lineWidth: state.borderWidth
                     )
                 }
@@ -76,19 +86,18 @@ struct BrowserRowSurface: View {
                 )
             )
             .animation(
-                .easeOut(duration: CadenceTheme.motionPress),
+                reduceMotion
+                    ? nil
+                    : .easeOut(duration: CadenceTheme.motionPress),
                 value: state
             )
     }
 
-    private func fill(
-        for role: BrowserRowFillRole
-    ) -> Color {
-        switch role {
-        case .none: .clear
-        case .hover: CadenceTheme.hoverFill
-        case .selected: CadenceTheme.selectionFill
-        case .selectedStrong: CadenceTheme.selectionStrongFill
+    private func fill(for state: BrowserRowVisualState) -> Color {
+        switch state.selectionAdornment {
+        case .fill: CadenceTheme.selectionFill
+        case .strongFill: CadenceTheme.selectionStrongFill
+        case .none: state.hasHoverFill ? CadenceTheme.hoverFill : .clear
         }
     }
 }

@@ -17,7 +17,7 @@ extension LibraryStore {
             async let albums = repository.favoriteAlbumsPage()
             async let artists = repository.favoriteArtistsPage()
             let snapshot = try await (tracks, trackIDs, albums, artists)
-            favoriteTracks = snapshot.0.items
+            replaceFavoriteTracksContent(with: snapshot.0.items)
             favoriteTrackCursor = snapshot.0.nextCursor
             favoriteTrackIDs = Set(snapshot.1)
             favoriteAlbums = snapshot.2.items
@@ -41,7 +41,9 @@ extension LibraryStore {
         do {
             let repository = try requireRepository()
             let page = try await repository.favoriteTracksPage(after: cursor)
-            favoriteTracks.appendUnique(contentsOf: page.items)
+            if favoriteTracks.appendUnique(contentsOf: page.items) {
+                favoriteTracksContentClock.advance()
+            }
             favoriteTrackCursor = page.nextCursor
         } catch {
             recordOperationFailure(.favoriteCatalog, error: error)
@@ -88,8 +90,11 @@ extension LibraryStore {
 }
 
 private extension Array where Element: Identifiable, Element.ID == UUID {
-    mutating func appendUnique(contentsOf elements: [Element]) {
+    @discardableResult
+    mutating func appendUnique(contentsOf elements: [Element]) -> Bool {
         var knownIDs = Set(map(\.id))
-        append(contentsOf: elements.filter { knownIDs.insert($0.id).inserted })
+        let additions = elements.filter { knownIDs.insert($0.id).inserted }
+        append(contentsOf: additions)
+        return !additions.isEmpty
     }
 }

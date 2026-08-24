@@ -9,19 +9,32 @@ final class PCMPlaybackBackend: PlaybackBackend {
     let engine = AVAudioEngine()
     let playerNode = AVAudioPlayerNode()
     let gainUnit = AVAudioUnitEQ(numberOfBands: 0)
+    let bassMeter: PCMBassLevelMeter
+    let bassAnalyzer: PCMBassAnalyzer
     var currentItem: ScheduledPCMItem?
     var preparedItem: ScheduledPCMItem?
     var progressTask: Task<Void, Never>?
     var currentStartSample: AVAudioFramePosition = 0
+    var currentScheduledEndSample: AVAudioFramePosition = 0
     var logicalStartTime: TimeInterval = 0
     var lastKnownPlaybackTime: TimeInterval = 0
     var isPlaying = false
     var userVolume: Float = 0.72
     var scheduleGeneration = 0
+    var nextSegmentTicket: UInt64 = 0
+    var currentSegmentTicket: UInt64 = 0
+    var preparedSegmentTicket: UInt64 = 0
     var presentationGain: Float = 1
     var gainRampGeneration = 0
 
+    var bassLevelProvider: (any PlaybackBassLevelProviding)? {
+        bassMeter
+    }
+
     init() {
+        let bassMeter = PCMBassLevelMeter()
+        self.bassMeter = bassMeter
+        bassAnalyzer = PCMBassAnalyzer(meter: bassMeter)
         engine.attach(playerNode)
         engine.attach(gainUnit)
         engine.connect(
@@ -33,6 +46,12 @@ final class PCMPlaybackBackend: PlaybackBackend {
             gainUnit,
             to: engine.mainMixerNode,
             format: nil
+        )
+        playerNode.installTap(
+            onBus: 0,
+            bufferSize: 1024,
+            format: nil,
+            block: makePCMBassTap(analyzer: bassAnalyzer)
         )
         engine.mainMixerNode.outputVolume = 1
     }
@@ -73,7 +92,20 @@ final class PCMPlaybackBackend: PlaybackBackend {
                 return
             }
             preparedItem = nextItem
-            schedule(nextItem)
+            preparedSegmentTicket = makeSegmentTicket()
+            let successorStart = currentScheduledEndSample
+            bassAnalyzer.scheduleSuccessorBoundary(
+                at: successorStart,
+                scheduleGeneration: UInt64(
+                    truncatingIfNeeded: scheduleGeneration
+                ),
+                predecessorTicket: currentSegmentTicket
+            )
+            schedule(
+                nextItem,
+                segmentTicket: preparedSegmentTicket,
+                startingSampleTime: successorStart
+            )
             return
         }
         try configureSchedule(
@@ -218,11 +250,20 @@ final class PCMPlaybackBackend: PlaybackBackend {
         engine.pause()
         currentItem = nil
         preparedItem = nil
+        currentSegmentTicket = 0
+        preparedSegmentTicket = 0
         currentStartSample = 0
+        currentScheduledEndSample = 0
         logicalStartTime = 0
         lastKnownPlaybackTime = 0
         isPlaying = false
         presentationGain = 1
+        bassAnalyzer.invalidateScheduleBoundary()
+        resetBassAnalysis()
+    }
+
+    func resetBassAnalysis() {
+        bassAnalyzer.resetAnalysisState()
     }
 
     private func rampPresentationGain(

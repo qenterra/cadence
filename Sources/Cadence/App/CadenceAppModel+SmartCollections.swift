@@ -76,28 +76,38 @@ extension CadenceAppModel {
     }
 
     var productionSmartCollectionLiveTracks: [LibraryTrackProjection] {
+        productionSmartCollectionLiveTrackSource?.tracks ?? []
+    }
+
+    var productionSmartCollectionLiveTrackSource:
+        ProductionTrackTableSource? {
         guard
             librarySession.availability != .preview,
             smartCollectionsPresentationMode == .editing,
             let smartCollectionDraft,
             smartCollectionValidation.isValid
         else {
-            return []
+            return nil
         }
-        return librarySession.store.smartCollectionTracks(
+        return librarySession.store.smartCollectionTrackSource(
             for: smartCollectionDraft.rule
         )
     }
 
     var selectedProductionSmartCollectionTracks:
         [LibraryTrackProjection] {
+        selectedProductionSmartCollectionTrackSource?.tracks ?? []
+    }
+
+    var selectedProductionSmartCollectionTrackSource:
+        ProductionTrackTableSource? {
         guard
             librarySession.availability != .preview,
             let selectedSmartCollection
         else {
-            return []
+            return nil
         }
-        return librarySession.store.smartCollectionTracks(
+        return librarySession.store.smartCollectionTrackSource(
             for: selectedSmartCollection.rule
         )
     }

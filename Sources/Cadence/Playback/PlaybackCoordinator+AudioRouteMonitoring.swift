@@ -6,7 +6,7 @@ extension PlaybackCoordinator {
             return
         }
         guard routeTransitionTask != nil
-            || routeFailureIsActive
+            || visibleRouteFailureAuthority != nil
             || route != outputRoute
         else {
             return
@@ -47,13 +47,15 @@ extension PlaybackCoordinator {
         }
         guard let currentTrack = state.currentTrack else {
             outputRoute = route
-            routeFailureIsActive = false
+            invalidateRouteFailureAuthority()
             publishState()
             return
         }
         guard let activeBackend = state.activeBackend else {
             reportAudioRouteFailure(
-                "Playback has no active audio backend."
+                "Playback has no active audio backend.",
+                route: route,
+                generation: generation
             )
             return
         }
@@ -66,36 +68,54 @@ extension PlaybackCoordinator {
             guard generation == routeGeneration else {
                 return
             }
+            let acceptedIntent = playbackIntent
+            let wasPlaying = state.isPlaying
+            invalidateBassState()
             outputRoute = route
-            routeFailureIsActive = false
-            state.failure = nil
+            clearVisibleRouteFailureAuthority(
+                currentItemID: currentTrack.id
+            )
+            state.transport = acceptedIntent.transport.state
+            if acceptedIntent.transport != .failed {
+                state.failure = nil
+            }
             state.audioPath = audioPath(
                 current: currentTrack,
                 backend: activeBackend,
                 next: nil,
                 route: route
             )
+            if acceptedIntent.transport == .playing {
+                if !wasPlaying {
+                    self.activeBackend?.play()
+                }
+                activateBassSourceForCurrentTrack()
+            }
             publishState()
-            await prepareFollowingTrack()
+            await prepareFollowingTrack(expectedIntent: acceptedIntent)
             return
         }
 
-        let didTransition = await transitionForAudioRoute(
+        let transitionResult = await transitionForAudioRoute(
             to: requestedBackend,
             route: route,
             generation: generation,
             reloadCurrentBackend: false
         )
-        if !didTransition,
+        if case .failed = transitionResult,
            generation == routeGeneration,
-           !routeFailureIsActive {
+           visibleRouteFailureAuthority == nil {
             reportAudioRouteFailure(
-                "No compatible playback backend is available."
+                "No compatible playback backend is available.",
+                route: route,
+                generation: generation
             )
         }
     }
 
-    func retryAudioRouteAndPlay() {
+    func retryAudioRouteAndPlay(
+        expectedIntent: PlaybackIntentAuthority
+    ) {
         receiveAudioRoute(audioRouteProvider.currentRoute())
         Task { @MainActor [weak self] in
             guard let self else {
@@ -103,27 +123,51 @@ extension PlaybackCoordinator {
             }
             await waitForAudioRouteTransitions()
             guard
-                !routeFailureIsActive,
-                state.currentTrack != nil
+                playbackIntent == expectedIntent,
+                visibleRouteFailureAuthority == nil,
+                state.currentTrack?.id == expectedIntent.currentItemID,
+                expectedIntent.transport == .playing
             else {
                 return
             }
-            activeBackend?.play()
-            state.transport = .playing
-            publishState()
+            if state.transport != .playing {
+                state.transport = .playing
+                activeBackend?.play()
+                activateBassSourceForCurrentTrack()
+                publishState()
+            }
         }
     }
 
-    private func reportAudioRouteFailure(_ message: String) {
+    private func reportAudioRouteFailure(
+        _ message: String,
+        route: AudioRouteSnapshot,
+        generation: Int
+    ) {
+        invalidateBassState()
         activeBackend?.pause()
-        routeFailureIsActive = true
+        advancePlaybackIntent(
+            currentItemID: state.currentTrack?.id,
+            transport: .paused
+        )
         state.transport = .paused
         state.isBuffering = false
-        state.failure = PlaybackFailure(
+        let failure = PlaybackFailure(
             trackID: state.currentTrack?.id,
             message: "The new audio output could not be activated: "
                 + message
         )
+        if let currentItemID = state.currentTrack?.id {
+            acceptRouteFailure(
+                failure,
+                currentItemID: currentItemID,
+                requestedRoute: route,
+                routeGeneration: generation
+            )
+        } else {
+            invalidateRouteFailureAuthority()
+            state.failure = failure
+        }
         publishState()
     }
 }

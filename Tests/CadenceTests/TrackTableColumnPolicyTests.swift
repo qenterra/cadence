@@ -88,4 +88,31 @@ struct TrackTableColumnPolicyTests {
         )
         #expect(TrackTableColumnPolicy.songContentSpacing == 8)
     }
+
+    @Test("Track selection chrome keeps a compact horizontal inset")
+    func selectionChromeInset() {
+        #expect(TrackTableColumnPolicy.selectionHorizontalInset == 8)
+    }
+
+    @Test("Column separators appear only during a resize interaction")
+    func columnSeparatorVisibility() {
+        #expect(
+            !TrackTableColumnPolicy.showsColumnSeparator(
+                isHovered: false,
+                isDragging: false
+            )
+        )
+        #expect(
+            TrackTableColumnPolicy.showsColumnSeparator(
+                isHovered: true,
+                isDragging: false
+            )
+        )
+        #expect(
+            TrackTableColumnPolicy.showsColumnSeparator(
+                isHovered: false,
+                isDragging: true
+            )
+        )
+    }
 }

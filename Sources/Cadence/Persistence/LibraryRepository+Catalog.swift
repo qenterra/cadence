@@ -37,12 +37,13 @@ extension LibraryRepository {
     func recordRecentlyPlayed(
         trackID: UUID,
         at date: Date = .now
-    ) throws {
+    ) throws -> LibraryTrackProjection? {
         guard let track = try trackRecord(id: trackID) else {
-            return
+            return nil
         }
         track.lastPlayedAt = date
         try modelContext.save()
+        return try trackProjection(track)
     }
 
     func renameTrack(

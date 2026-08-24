@@ -85,7 +85,9 @@ struct ProductionNowPlayingView: View {
                                 .cadenceModeLyricDocument
                                 ?? cadenceModeLyricDocument,
                             visualQAPresentationTime: rhythmPulseVisualQAState?
-                                .cadenceModePresentationTime
+                                .cadenceModePresentationTime,
+                            visualQABassLevel: rhythmPulseVisualQAState?
+                                .cadenceModeBassLevel
                         )
                     }
                     .environment(\.colorScheme, .dark)
@@ -287,10 +289,14 @@ extension ProductionNowPlayingView {
                 .controlSize(.small)
             } else {
                 FavoriteButton(
+                    itemID: track.id,
                     isFavorite: model.currentProductionTrackIsFavorite,
                     itemName: displayedTrackTitle
                 ) { requestedValue in
-                    await model.setCurrentProductionTrackFavorite(requestedValue)
+                    await model.setProductionPlaybackTrackFavorite(
+                        id: track.id,
+                        isFavorite: requestedValue
+                    )
                 }
                 .padding(.top, 2)
             }

@@ -217,20 +217,311 @@ struct SynchronizedLyricTimeline: Sendable {
     }
 
     func activeLineID(at time: TimeInterval) -> LyricLine.ID? {
+        observation(at: time).activeLineID
+    }
+}
+
+struct SynchronizedLyricObservation: Equatable, Sendable {
+    let activeLineID: LyricLine.ID?
+    let nextBoundaryTime: TimeInterval?
+}
+
+extension SynchronizedLyricTimeline {
+    func observation(
+        at presentationTime: TimeInterval
+    ) -> SynchronizedLyricObservation {
         var lower = 0
         var upper = entries.count
         while lower < upper {
             let middle = lower + (upper - lower) / 2
-            if entries[middle].time <= time {
+            if entries[middle].time <= presentationTime {
                 lower = middle + 1
             } else {
                 upper = middle
             }
         }
-        guard lower > 0 else {
+        return SynchronizedLyricObservation(
+            activeLineID: lower > 0 ? entries[lower - 1].id : nil,
+            nextBoundaryTime: lower < entries.count
+                ? entries[lower].time
+                : nil
+        )
+    }
+}
+
+struct LyricObservationStep: Equatable, Sendable {
+    let activeLineID: LyricLine.ID?
+    let nextUpdateAfter: TimeInterval?
+}
+
+enum LyricObservationPolicy {
+    static let minimumSleep: TimeInterval = 0.010
+
+    static func step(
+        timeline: SynchronizedLyricTimeline,
+        presentationTime: TimeInterval,
+        isAdvancing: Bool
+    ) -> LyricObservationStep {
+        let observation = timeline.observation(at: presentationTime)
+        guard isAdvancing,
+              let nextBoundaryTime = observation.nextBoundaryTime else {
+            return LyricObservationStep(
+                activeLineID: observation.activeLineID,
+                nextUpdateAfter: nil
+            )
+        }
+
+        let delay = nextBoundaryTime - presentationTime
+        guard delay.isFinite else {
+            return LyricObservationStep(
+                activeLineID: observation.activeLineID,
+                nextUpdateAfter: nil
+            )
+        }
+        return LyricObservationStep(
+            activeLineID: observation.activeLineID,
+            nextUpdateAfter: max(delay, minimumSleep)
+        )
+    }
+}
+
+struct LyricLineEmissionState: Equatable, Sendable {
+    private(set) var activeLineID: LyricLine.ID?
+
+    init(activeLineID: LyricLine.ID? = nil) {
+        self.activeLineID = activeLineID
+    }
+
+    @discardableResult
+    mutating func update(
+        to candidate: LyricLine.ID?
+    ) -> Bool {
+        guard candidate != activeLineID else {
+            return false
+        }
+        activeLineID = candidate
+        return true
+    }
+}
+
+struct LyricMotionBehavior: Equatable, Sendable {
+    let animatesEmphasis: Bool
+    let animatesScroll: Bool
+
+    static func resolve(
+        reduceMotion: Bool
+    ) -> LyricMotionBehavior {
+        LyricMotionBehavior(
+            animatesEmphasis: !reduceMotion,
+            animatesScroll: !reduceMotion
+        )
+    }
+}
+
+enum LyricDocumentLineProjection {
+    static func activeLineID(
+        _ candidate: LyricLine.ID?,
+        in document: LyricDocument
+    ) -> LyricLine.ID? {
+        guard let candidate,
+              document.lines.contains(where: {
+                  !$0.isBlank && $0.id == candidate
+              }) else {
             return nil
         }
-        return entries[lower - 1].id
+        return candidate
+    }
+}
+
+struct LyricDocumentLoadRequest: Equatable, Sendable {
+    let trackID: UUID
+    let lyricsRevision: Int
+    let generation: UInt64
+}
+
+struct AcceptedLyricDocument: Equatable, Sendable {
+    let request: LyricDocumentLoadRequest
+    let document: LyricDocument?
+}
+
+struct LyricDocumentEditRequest: Equatable, Sendable {
+    let trackID: UUID
+    let lineID: LyricLine.ID
+    let sourceGeneration: UInt64
+    let sourceLyricsRevision: Int
+    let expectedLyricsRevision: Int
+}
+
+struct LyricDocumentPresentationState: Equatable, Sendable {
+    private(set) var pendingRequest: LyricDocumentLoadRequest?
+    private(set) var acceptedDocument: AcceptedLyricDocument?
+    private(set) var activeLineID: LyricLine.ID?
+    private var nextGeneration: UInt64 = 0
+
+    var acceptedRequest: LyricDocumentLoadRequest? {
+        acceptedDocument?.request
+    }
+
+    var acceptedGeneration: UInt64? {
+        acceptedRequest?.generation
+    }
+
+    var document: LyricDocument? {
+        acceptedDocument?.document
+    }
+
+    func acceptedPresentation(
+        expectedTrackID: UUID,
+        currentTrackID: UUID?,
+        currentLyricsRevision: Int,
+        isExternal: Bool
+    ) -> AcceptedLyricDocument? {
+        guard !isExternal,
+              currentTrackID == expectedTrackID,
+              acceptedDocument?.request.trackID == expectedTrackID,
+              acceptedDocument?.request.lyricsRevision
+              == currentLyricsRevision else {
+            return nil
+        }
+        return acceptedDocument
+    }
+
+    @discardableResult
+    mutating func beginLoad(
+        trackID: UUID,
+        lyricsRevision: Int
+    ) -> LyricDocumentLoadRequest {
+        let request = makeRequest(
+            trackID: trackID,
+            lyricsRevision: lyricsRevision
+        )
+        pendingRequest = request
+        acceptedDocument = nil
+        activeLineID = nil
+        return request
+    }
+
+    @discardableResult
+    mutating func acceptLoad(
+        _ document: LyricDocument?,
+        for request: LyricDocumentLoadRequest,
+        currentTrackID: UUID?,
+        currentLyricsRevision: Int,
+        isCancelled: Bool,
+        presentationTime: TimeInterval
+    ) -> Bool {
+        guard !isCancelled,
+              pendingRequest == request,
+              currentTrackID == request.trackID,
+              currentLyricsRevision == request.lyricsRevision,
+              documentBelongsToRequest(document, request: request) else {
+            return false
+        }
+
+        pendingRequest = nil
+        acceptedDocument = AcceptedLyricDocument(
+            request: request,
+            document: document
+        )
+        let candidate = document.flatMap {
+            SynchronizedLyricTimeline(document: $0).activeLineID(
+                at: presentationTime
+            )
+        }
+        activeLineID = document.flatMap {
+            LyricDocumentLineProjection.activeLineID(candidate, in: $0)
+        }
+        return true
+    }
+
+    @discardableResult
+    mutating func updateActiveLineID(
+        _ candidate: LyricLine.ID?,
+        fromAcceptedGeneration sourceGeneration: UInt64
+    ) -> Bool {
+        guard acceptedGeneration == sourceGeneration else {
+            return false
+        }
+        activeLineID = document.flatMap {
+            LyricDocumentLineProjection.activeLineID(candidate, in: $0)
+        }
+        return true
+    }
+
+    func editRequest(
+        lineID: LyricLine.ID
+    ) -> LyricDocumentEditRequest? {
+        guard let acceptedDocument,
+              let document = acceptedDocument.document,
+              document.lines.contains(where: { $0.id == lineID }) else {
+            return nil
+        }
+        let nextRevision = acceptedDocument.request.lyricsRevision
+            .addingReportingOverflow(1)
+        guard !nextRevision.overflow else {
+            return nil
+        }
+        return LyricDocumentEditRequest(
+            trackID: acceptedDocument.request.trackID,
+            lineID: lineID,
+            sourceGeneration: acceptedDocument.request.generation,
+            sourceLyricsRevision: acceptedDocument.request.lyricsRevision,
+            expectedLyricsRevision: nextRevision.partialValue
+        )
+    }
+
+    @discardableResult
+    mutating func publishEditedDocument(
+        _ document: LyricDocument,
+        for edit: LyricDocumentEditRequest,
+        currentTrackID: UUID?,
+        currentLyricsRevision: Int,
+        isCancelled: Bool
+    ) -> Bool {
+        guard !isCancelled,
+              currentTrackID == edit.trackID,
+              currentLyricsRevision == edit.expectedLyricsRevision,
+              acceptedRequest?.trackID == edit.trackID,
+              acceptedRequest?.lyricsRevision == edit.sourceLyricsRevision,
+              acceptedGeneration == edit.sourceGeneration,
+              document.trackID == .managed(edit.trackID),
+              document.lines.contains(where: { $0.id == edit.lineID }) else {
+            return false
+        }
+
+        let request = makeRequest(
+            trackID: edit.trackID,
+            lyricsRevision: currentLyricsRevision
+        )
+        pendingRequest = nil
+        acceptedDocument = AcceptedLyricDocument(
+            request: request,
+            document: document
+        )
+        activeLineID = LyricDocumentLineProjection.activeLineID(
+            activeLineID,
+            in: document
+        )
+        return true
+    }
+
+    private mutating func makeRequest(
+        trackID: UUID,
+        lyricsRevision: Int
+    ) -> LyricDocumentLoadRequest {
+        nextGeneration += 1
+        return LyricDocumentLoadRequest(
+            trackID: trackID,
+            lyricsRevision: lyricsRevision,
+            generation: nextGeneration
+        )
+    }
+
+    private func documentBelongsToRequest(
+        _ document: LyricDocument?,
+        request: LyricDocumentLoadRequest
+    ) -> Bool {
+        document == nil || document?.trackID == .managed(request.trackID)
     }
 }
 

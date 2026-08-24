@@ -4,6 +4,27 @@ set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 project_root="$(cd "$script_dir/.." && pwd)"
+release_contract=(python3 -I -B "$project_root/scripts/release_contract.py")
+release_attestation_mode=0
+
+if [[ $# -gt 1 || ( $# -eq 1 && "$1" != "--release-attestation" ) ]]; then
+    echo "Usage: $0 [--release-attestation]" >&2
+    exit 64
+fi
+if [[ $# -eq 1 ]]; then
+    release_attestation_mode=1
+    gate_environment="$(
+        "${release_contract[@]}" \
+            gate-begin \
+            --gate-owner-pid "$$" \
+            --root "$project_root"
+    )"
+    eval "$gate_environment"
+    if [[ "${CADENCE_SKIP_XCODEBUILD:-0}" == "1" ]]; then
+        echo "A release attestation requires the full local Xcode gate; CADENCE_SKIP_XCODEBUILD=1 is forbidden." >&2
+        exit 64
+    fi
+fi
 
 if [[ -n "${DEVELOPER_DIR:-}" ]]; then
     developer_dir="$DEVELOPER_DIR"
@@ -40,10 +61,13 @@ icon_manifest="$icon_source/icon.json"
 
 xcodegen generate --spec project.yml
 
-python3 "$project_root/scripts/release_contract.py" check
-python3 -m unittest "$project_root/Tests/ReleaseContractTests/test_release_contract.py" -v
+"${release_contract[@]}" check
+python3 -B -m unittest \
+    Tests/ReleaseContractTests/test_release_contract.py \
+    Tests/ReleaseContractTests/test_release_provenance.py \
+    -v
 image_python="${CADENCE_IMAGE_PYTHON:-python3}"
-"$image_python" -m unittest "$project_root/Tests/ReleaseContractTests/test_dmg_background.py" -v
+"$image_python" -B -m unittest Tests/ReleaseContractTests/test_dmg_background.py -v
 
 swiftformat Sources Tests --lint
 swiftlint lint \
@@ -51,7 +75,11 @@ swiftlint lint \
     --cache-path "$project_root/.build/swiftlint-cache"
 
 if [[ "${CADENCE_SKIP_XCODEBUILD:-0}" == "1" ]]; then
-    echo "Skipping xcodebuild because CADENCE_SKIP_XCODEBUILD=1."
+    partial_result="PARTIAL HOSTED CHECKS PASSED. Xcode build/tests, localization, Periphery, and built-product checks were NOT RUN. This is not the full release gate; no release attestation was written."
+    echo "$partial_result"
+    if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
+        echo "$partial_result" >> "$GITHUB_STEP_SUMMARY"
+    fi
     exit 0
 fi
 
@@ -105,3 +133,18 @@ asset_catalog_info="$(DEVELOPER_DIR="$developer_dir" xcrun assetutil --info "$as
 [[ "$asset_catalog_info" == *'"Appearance" : "NSAppearanceNameDarkAqua"'* ]]
 [[ "$asset_catalog_info" == *'"Name" : "Cadence_Assets\/system-light"'* ]]
 [[ "$asset_catalog_info" == *'"Name" : "Cadence_Assets\/system-dark"'* ]]
+
+if [[ "$release_attestation_mode" == "1" ]]; then
+    "${release_contract[@]}" \
+        gate-complete \
+        --source-sha "$SOURCE_SHA" \
+        --gate-session "$RELEASE_GATE_SESSION" \
+        --gate-owner-pid "$$" \
+        --gate-receipt xcode-tests \
+        --gate-receipt localization \
+        --gate-receipt periphery \
+        --gate-receipt built-product \
+        --gate-receipt asset-catalog \
+        --root "$project_root"
+    echo "Full release gate attestation written for $SOURCE_SHA."
+fi

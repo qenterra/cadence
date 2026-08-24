@@ -1,6 +1,16 @@
 import Foundation
 import SwiftData
 
+struct LibraryContainerMigrationRollbackError: Error, LocalizedError, Sendable {
+    let openFailure: String
+    let rollbackFailure: String
+
+    var errorDescription: String? {
+        "The local catalog could not be opened (\(openFailure)); "
+            + "rollback also failed (\(rollbackFailure))."
+    }
+}
+
 enum LibraryContainerFactory {
     static func inMemory() throws -> ModelContainer {
         let schema = Schema(versionedSchema: CadenceSchemaV5.self)
@@ -27,16 +37,35 @@ enum LibraryContainerFactory {
 
     static func persistentLocal(
         package: ManagedLibraryPackage,
-        fileManager: FileManager = .default
+        fileManager: FileManager = .default,
+        applicationSupportDirectory: URL? = nil,
+        migration: LocalLibraryCatalogMigration = LocalLibraryCatalogMigration(),
+        openStore: ((URL) throws -> ModelContainer)? = nil
     ) throws -> ModelContainer {
-        let identity = try package.readIdentity()
-        let localCatalog = try LocalLibraryCatalogLocation.currentUser(
-            identity: identity,
+        let identity = try readLocalCatalogIdentity(
+            package: package,
             fileManager: fileManager
         )
-        let migration = LocalLibraryCatalogMigration()
+        let localCatalog = if let applicationSupportDirectory {
+            LocalLibraryCatalogLocation(
+                applicationSupportDirectory: applicationSupportDirectory,
+                identity: identity
+            )
+        } else {
+            try LocalLibraryCatalogLocation.currentUser(
+                identity: identity,
+                fileManager: fileManager
+            )
+        }
+        let transactionLock = try LocalCatalogTransactionLock.acquire(
+            at: localCatalog.transactionLockURL,
+            trustedRoot: localCatalog.applicationSupportDirectoryURL,
+            fileManager: fileManager
+        )
+        defer { withExtendedLifetime(transactionLock) {} }
         let prepared = try migration.prepareIfNeeded(
             package: package,
+            applicationSupportDirectory: applicationSupportDirectory,
             fileManager: fileManager
         )
         do {
@@ -44,14 +73,30 @@ enum LibraryContainerFactory {
                 at: localCatalog.metadataDirectoryURL,
                 withIntermediateDirectories: true
             )
-            let container = try persistent(storeURL: localCatalog.storeURL)
+            let container = if let openStore {
+                try openStore(localCatalog.storeURL)
+            } else {
+                try persistent(storeURL: localCatalog.storeURL)
+            }
+            try migration.recordSuccessfulCatalogOpen(
+                package: package,
+                libraryID: identity.id,
+                fileManager: fileManager
+            )
             if let prepared {
                 try migration.commit(prepared, fileManager: fileManager)
             }
             return container
         } catch {
             if let prepared {
-                try? migration.rollback(prepared, fileManager: fileManager)
+                do {
+                    try migration.rollback(prepared, fileManager: fileManager)
+                } catch let rollbackError {
+                    throw LibraryContainerMigrationRollbackError(
+                        openFailure: error.localizedDescription,
+                        rollbackFailure: rollbackError.localizedDescription
+                    )
+                }
             }
             throw error
         }

@@ -8,6 +8,7 @@ struct ProductionAlbumDetailView: View {
 
     @State private var album: LibraryAlbumProjection?
     @State private var tracks: [LibraryTrackProjection] = []
+    @State private var tracksClock = TrackTableContentClock()
     @State private var albumTags: [LibraryTagProjection] = []
     @State private var isLoading = true
     @State private var loadFailure: String?
@@ -26,6 +27,7 @@ struct ProductionAlbumDetailView: View {
                         ProductionTrackList(
                             model: model,
                             tracks: tracks,
+                            contentVersion: tracksClock.version,
                             context: .album(albumID)
                         )
                         .frame(
@@ -88,6 +90,9 @@ struct ProductionAlbumDetailView: View {
             id: "\(albumID.uuidString)-\(store.tagRevision)-\(loadGeneration)"
         ) {
             await loadContent()
+        }
+        .onChange(of: store.artworkPublication?.generation) {
+            applyArtworkPublication()
         }
     }
 
@@ -287,8 +292,12 @@ private extension ProductionAlbumDetailView {
                 tags: loadedTags
             )
             album = result.album
-            tracks = result.tracks
+            if tracks != result.tracks {
+                tracks = result.tracks
+                tracksClock.advance()
+            }
             albumTags = result.tags
+            applyArtworkPublication()
             loadFailure = nil
         } catch {
             loadFailure = error.localizedDescription
@@ -313,5 +322,20 @@ private extension ProductionAlbumDetailView {
             parts.append(year.formatted(.number.grouping(.never)))
         }
         return parts.joined(separator: " · ")
+    }
+
+    func applyArtworkPublication() {
+        guard
+            let publication = store.artworkPublication,
+            publication.epoch == store.libraryEpoch
+        else {
+            return
+        }
+        if let replacement = publication.albumsByID[albumID] {
+            album = replacement
+        }
+        if publication.mergeTracks(into: &tracks) {
+            tracksClock.advance()
+        }
     }
 }

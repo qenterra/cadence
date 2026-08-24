@@ -1,5 +1,11 @@
 import Foundation
 
+enum PlaybackBackendTransitionResult {
+    case committed
+    case failed
+    case superseded
+}
+
 private struct PlaybackBackendTransition {
     let currentTrack: PlaybackTrack
     let currentID: UUID
@@ -7,7 +13,7 @@ private struct PlaybackBackendTransition {
     let previousBackend: any PlaybackBackend
     let requestedKind: PlaybackBackendKind
     let requestedBackend: any PlaybackBackend
-    let wasPlaying: Bool
+    let expectedIntent: PlaybackIntentAuthority
     let currentTime: TimeInterval
     let previousAudioPath: AudioPathSnapshot?
     let candidateRoute: AudioRouteSnapshot?
@@ -16,6 +22,7 @@ private struct PlaybackBackendTransition {
 
 private struct PlaybackBackendTransitionExpectation {
     let routeGeneration: Int?
+    let intent: PlaybackIntentAuthority
 }
 
 extension PlaybackCoordinator {
@@ -24,12 +31,13 @@ extension PlaybackCoordinator {
         route: AudioRouteSnapshot,
         generation: Int,
         reloadCurrentBackend: Bool
-    ) async -> Bool {
+    ) async -> PlaybackBackendTransitionResult {
         await performBackendTransition(
             to: requestedKind,
             candidateRoute: route,
             expectation: PlaybackBackendTransitionExpectation(
-                routeGeneration: generation
+                routeGeneration: generation,
+                intent: playbackIntent
             ),
             reloadCurrentBackend: reloadCurrentBackend
         )
@@ -40,18 +48,19 @@ extension PlaybackCoordinator {
         candidateRoute: AudioRouteSnapshot?,
         expectation: PlaybackBackendTransitionExpectation,
         reloadCurrentBackend: Bool
-    ) async -> Bool {
+    ) async -> PlaybackBackendTransitionResult {
         guard
             let currentTrack = state.currentTrack,
             let currentID = state.queue?.currentTrackID,
+            currentID == expectation.intent.currentItemID,
             let previousKind = state.activeBackend,
             let previousBackend = backends[previousKind],
             let requestedBackend = backends[requestedKind]
         else {
-            return false
+            return .failed
         }
         guard requestedKind != previousKind || reloadCurrentBackend else {
-            return true
+            return .committed
         }
 
         let transition = PlaybackBackendTransition(
@@ -61,7 +70,7 @@ extension PlaybackCoordinator {
             previousBackend: previousBackend,
             requestedKind: requestedKind,
             requestedBackend: requestedBackend,
-            wasPlaying: state.isPlaying,
+            expectedIntent: expectation.intent,
             currentTime: presentationTime(),
             previousAudioPath: state.audioPath,
             candidateRoute: candidateRoute,
@@ -71,24 +80,29 @@ extension PlaybackCoordinator {
 
         do {
             let prepared = try await prepare(transition)
+            guard routeTransitionIsCurrent(transition) else {
+                rejectSuperseded(transition)
+                return .superseded
+            }
             try await requestedBackend.load(prepared.request)
             guard routeTransitionIsCurrent(transition) else {
-                requestedBackend.stop()
-                return false
+                rejectSuperseded(transition)
+                return .superseded
             }
             commit(transition, next: prepared.next)
-            return true
+            return .committed
         } catch {
             guard routeTransitionIsCurrent(transition) else {
-                requestedBackend.stop()
-                return false
+                rejectSuperseded(transition)
+                return .superseded
             }
             handleFailure(transition, after: error)
-            return false
+            return .failed
         }
     }
 
     private func begin(_ transition: PlaybackBackendTransition) {
+        invalidateBassState()
         transition.previousBackend.pause()
         state.transport = .loading
         state.isBuffering = true
@@ -121,7 +135,7 @@ extension PlaybackCoordinator {
             current: current,
             next: repeatMode == .one ? nil : next,
             startTime: transition.currentTime,
-            autoplay: transition.wasPlaying,
+            autoplay: false,
             volume: volume
         )
         return (request, next)
@@ -153,21 +167,32 @@ extension PlaybackCoordinator {
         loadGeneration += 1
         if let candidateRoute = transition.candidateRoute {
             outputRoute = candidateRoute
-            routeFailureIsActive = false
         }
+        clearVisibleRouteFailureAuthority(
+            currentItemID: transition.currentID
+        )
         state.currentTrack = transition.currentTrack
         state.currentTime = transition.currentTime
         state.duration = transition.currentTrack.duration
         state.activeBackend = transition.requestedKind
-        state.transport = transition.wasPlaying ? .playing : .paused
+        let intendedTransport = transition.expectedIntent.transport
+        state.transport = intendedTransport.state
         state.isBuffering = false
-        state.failure = nil
+        if intendedTransport != .failed {
+            state.failure = nil
+        }
         state.audioPath = audioPath(
             current: transition.currentTrack,
             backend: transition.requestedKind,
             next: next,
             route: transition.candidateRoute
         )
+        if intendedTransport == .playing {
+            transition.requestedBackend.play()
+            activateBassSourceForCurrentTrack()
+        } else {
+            invalidateBassState()
+        }
         publishState()
     }
 
@@ -177,14 +202,25 @@ extension PlaybackCoordinator {
     ) {
         transition.requestedBackend.stop()
         transition.previousBackend.pause()
-        routeFailureIsActive = true
+        advancePlaybackIntent(
+            currentItemID: transition.currentID,
+            transport: .paused
+        )
         state.activeBackend = transition.previousKind
         state.transport = .paused
         state.isBuffering = false
-        state.failure = PlaybackFailure(
+        let failure = PlaybackFailure(
             trackID: transition.currentID,
             message: "The new audio output could not be activated: "
                 + error.localizedDescription
+        )
+        acceptRouteFailure(
+            failure,
+            currentItemID: transition.currentID,
+            requestedRoute: transition.candidateRoute
+                ?? audioRouteProvider.currentRoute(),
+            routeGeneration: transition.expectedRouteGeneration
+                ?? routeGeneration
         )
         state.audioPath = transition.previousAudioPath
         publishState()
@@ -193,8 +229,28 @@ extension PlaybackCoordinator {
     private func routeTransitionIsCurrent(
         _ transition: PlaybackBackendTransition
     ) -> Bool {
-        transition.expectedRouteGeneration.map {
+        let routeIsCurrent = transition.expectedRouteGeneration.map {
             $0 == routeGeneration
         } ?? true
+        return routeIsCurrent
+            && transition.expectedIntent == playbackIntent
+            && transition.currentID == state.currentTrack?.id
+            && transition.currentID == state.queue?.currentTrackID
+    }
+
+    private func rejectSuperseded(
+        _ transition: PlaybackBackendTransition
+    ) {
+        transition.requestedBackend.stop()
+        guard transition.expectedRouteGeneration == routeGeneration,
+              let candidateRoute = transition.candidateRoute,
+              playbackIntent.currentItemID == state.currentTrack?.id,
+              playbackIntent.currentItemID == state.queue?.currentTrackID,
+              playbackIntent.transport == .playing
+              || playbackIntent.transport == .paused
+        else {
+            return
+        }
+        pendingOutputRoute = candidateRoute
     }
 }

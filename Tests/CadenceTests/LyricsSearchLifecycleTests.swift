@@ -55,7 +55,7 @@ struct LyricsSearchLifecycleTests {
             document(trackID: fixture.trackID, text: "constellation signal")
         )
         let store = LibraryStore()
-        store.attach(
+        try await store.attach(
             repository: fixture.repository,
             package: fixture.package
         )

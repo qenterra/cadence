@@ -1,5 +1,20 @@
 import Foundation
 
+struct LibraryRecentPlaybackResult: Sendable {
+    let projection: LibraryTrackProjection?
+    let recentlyPlayedTracks: [LibraryTrackProjection]
+}
+
+typealias LibraryRecentPlaybackOperation = @Sendable (
+    _ repository: LibraryRepository,
+    _ trackID: UUID,
+    _ date: Date
+) async throws -> LibraryRecentPlaybackResult
+
+typealias LibraryRecentlyPlayedTracksLoader = @Sendable (
+    _ repository: LibraryRepository
+) async throws -> [LibraryTrackProjection]
+
 extension LibraryStore {
     func loadInitialTracks() async {
         await replaceTracks(query: trackQuery)
@@ -38,6 +53,7 @@ extension LibraryStore {
             return
         }
 
+        let context = captureLibraryContext()
         let generation = trackRequestGeneration
         let query = trackQuery
         isLoadingNextTracks = true
@@ -46,7 +62,8 @@ extension LibraryStore {
             let page = try await trackPageLoader(query, trackCursor)
             guard
                 generation == trackRequestGeneration,
-                query == trackQuery
+                query == trackQuery,
+                isCurrentLibraryContext(context)
             else {
                 return
             }
@@ -55,7 +72,10 @@ extension LibraryStore {
             isLoadingNextTracks = false
             availability = .ready
         } catch {
-            guard generation == trackRequestGeneration else {
+            guard
+                generation == trackRequestGeneration,
+                isCurrentLibraryContext(context)
+            else {
                 return
             }
             isLoadingNextTracks = false
@@ -65,6 +85,7 @@ extension LibraryStore {
     }
 
     func replaceTracks(query: LibraryTrackQuery) async {
+        let context = captureLibraryContext()
         trackRequestGeneration += 1
         let generation = trackRequestGeneration
         trackQuery = query
@@ -72,7 +93,7 @@ extension LibraryStore {
         isLoadingNextTracks = false
 
         guard let trackPageLoader else {
-            tracks = []
+            replaceTracksContent(with: [])
             trackCursor = nil
             availability = .empty
             return
@@ -83,15 +104,21 @@ extension LibraryStore {
             let page = try await trackPageLoader(query, nil)
             guard
                 generation == trackRequestGeneration,
-                query == trackQuery
+                query == trackQuery,
+                isCurrentLibraryContext(context)
             else {
                 return
             }
-            tracks = deduplicatedTracks(page.items)
+            replaceTracksContent(
+                with: deduplicatedTracks(page.items)
+            )
             trackCursor = page.nextCursor
             availability = .ready
         } catch {
-            guard generation == trackRequestGeneration else {
+            guard
+                generation == trackRequestGeneration,
+                isCurrentLibraryContext(context)
+            else {
                 return
             }
             availability = .ready
@@ -102,19 +129,34 @@ extension LibraryStore {
     func showImportedTracks(
         importID: UUID
     ) async {
+        let context = captureLibraryContext()
         availability = .loading
         trackRequestGeneration += 1
+        let generation = trackRequestGeneration
         isLoadingNextTracks = false
         do {
             let repository = try requireRepository()
-            tracks = try await repository.importedTracks(
+            let importedTracks = try await repository.importedTracks(
                 importID: importID
             )
+            guard
+                generation == trackRequestGeneration,
+                isCurrentLibraryContext(context)
+            else {
+                return
+            }
+            replaceTracksContent(with: importedTracks)
             trackCursor = nil
             trackQuery = .allTracks
             searchQuery = ""
             availability = .ready
         } catch {
+            guard
+                generation == trackRequestGeneration,
+                isCurrentLibraryContext(context)
+            else {
+                return
+            }
             availability = .ready
             recordOperationFailure(.trackPage, error: error)
         }
@@ -123,23 +165,86 @@ extension LibraryStore {
     @discardableResult
     func recordRecentlyPlayed(
         trackID: UUID,
-        at date: Date = .now
+        at date: Date = .now,
+        operation: LibraryRecentPlaybackOperation? = nil,
+        recentTracksLoader: LibraryRecentlyPlayedTracksLoader? = nil
     ) async -> Bool {
+        let context = captureLibraryContext()
+        let repository: LibraryRepository
         do {
-            let repository = try requireRepository()
-            try await repository.recordRecentlyPlayed(
+            repository = try requireRepository()
+        } catch {
+            guard isCurrentLibraryContext(context) else {
+                return false
+            }
+            recordOperationFailure(.recentPlayback, error: error)
+            return false
+        }
+
+        if let operation {
+            do {
+                let result = try await operation(
+                    repository,
+                    trackID,
+                    date
+                )
+                guard isCurrentLibraryContext(context) else {
+                    return true
+                }
+                if let projection = result.projection {
+                    publishTrackProjection(projection)
+                }
+                recentlyPlayedTracks = result.recentlyPlayedTracks
+                return true
+            } catch {
+                guard isCurrentLibraryContext(context) else {
+                    return false
+                }
+                recordOperationFailure(.recentPlayback, error: error)
+                return false
+            }
+        }
+
+        let projection: LibraryTrackProjection?
+        do {
+            projection = try await repository.recordRecentlyPlayed(
                 trackID: trackID,
                 at: date
             )
-            recentlyPlayedTracks = try await repository.recentlyPlayedTracks()
-            let recentByID = Dictionary(
-                uniqueKeysWithValues: recentlyPlayedTracks.map { ($0.id, $0) }
-            )
-            tracks = tracks.map { recentByID[$0.id] ?? $0 }
-            return true
         } catch {
+            guard isCurrentLibraryContext(context) else {
+                return false
+            }
             recordOperationFailure(.recentPlayback, error: error)
             return false
+        }
+
+        guard isCurrentLibraryContext(context) else {
+            return true
+        }
+        do {
+            let recentTracks = if let recentTracksLoader {
+                try await recentTracksLoader(repository)
+            } else {
+                try await repository.recentlyPlayedTracks()
+            }
+            guard isCurrentLibraryContext(context) else {
+                return true
+            }
+            if let projection {
+                publishTrackProjection(projection)
+            }
+            recentlyPlayedTracks = recentTracks
+            return true
+        } catch {
+            guard isCurrentLibraryContext(context) else {
+                return true
+            }
+            if let projection {
+                publishTrackProjection(projection)
+            }
+            recordOperationFailure(.recentPlayback, error: error)
+            return true
         }
     }
 }
@@ -156,10 +261,13 @@ extension LibraryStore {
         _ projections: [LibraryTrackProjection]
     ) {
         var existingIDs = Set(tracks.map(\.id))
-        tracks.append(
-            contentsOf: projections.filter {
-                existingIDs.insert($0.id).inserted
-            }
-        )
+        let additions = projections.filter {
+            existingIDs.insert($0.id).inserted
+        }
+        guard !additions.isEmpty else {
+            return
+        }
+        tracks.append(contentsOf: additions)
+        tracksContentClock.advance()
     }
 }

@@ -239,6 +239,10 @@ final class CadenceAppModel {
     var importCoordinator: ImportCoordinator?
     var importDestination: ManagedLibraryImportDestination?
     var importRecovery: ManagedLibraryImportRecovery?
+    @ObservationIgnored let managedArtworkRecoveryOperation:
+        ManagedArtworkRecoveryOperation?
+    @ObservationIgnored let managedRecoveryCheckpoint:
+        ManagedRecoveryCheckpoint
     let playbackCoordinator: PlaybackCoordinator?
     let externalAudioSession: ExternalAudioSession?
     let libraryRelocator: LibraryRelocator
@@ -256,6 +260,9 @@ final class CadenceAppModel {
         importCoordinator: ImportCoordinator? = nil,
         importDestination: ManagedLibraryImportDestination? = nil,
         importRecovery: ManagedLibraryImportRecovery? = nil,
+        managedArtworkRecoveryOperation:
+        ManagedArtworkRecoveryOperation? = nil,
+        managedRecoveryCheckpoint: @escaping ManagedRecoveryCheckpoint = { _ in },
         playbackCoordinator: PlaybackCoordinator? = nil,
         externalAudioSession: ExternalAudioSession? = nil,
         remoteLibraryController: RemoteLibraryController? = nil,
@@ -284,6 +291,8 @@ final class CadenceAppModel {
         self.importCoordinator = importCoordinator
         self.importDestination = importDestination
         self.importRecovery = importRecovery
+        self.managedArtworkRecoveryOperation = managedArtworkRecoveryOperation
+        self.managedRecoveryCheckpoint = managedRecoveryCheckpoint
         self.playbackCoordinator = playbackCoordinator
         self.externalAudioSession = externalAudioSession
         self.remoteLibraryController = remoteLibraryController

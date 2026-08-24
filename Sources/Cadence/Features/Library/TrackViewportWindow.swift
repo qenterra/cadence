@@ -33,6 +33,10 @@ struct TrackPageWindow<Element> {
         pages.count
     }
 
+    var cachedPageIndexes: [Int] {
+        recency
+    }
+
     mutating func item(
         at index: Int,
         pageSize: Int
@@ -122,19 +126,21 @@ struct TrackViewportPageRequests {
         self.pageSize = max(pageSize, 1)
     }
 
+    func needsRequest(containing row: Int) -> Bool {
+        guard row >= 0 else {
+            return false
+        }
+        let page = row / pageSize
+        return !loadingPages.contains(page) && !completedPages.contains(page)
+    }
+
     mutating func beginRequest(
         containing row: Int
     ) -> Int? {
-        guard row >= 0 else {
+        guard needsRequest(containing: row) else {
             return nil
         }
         let page = row / pageSize
-        guard
-            !loadingPages.contains(page),
-            !completedPages.contains(page)
-        else {
-            return nil
-        }
         loadingPages.insert(page)
         return page
     }
@@ -168,6 +174,7 @@ final class LibraryTrackWindow {
 
     private(set) var totalCount = 0
     private(set) var query = LibraryTrackQuery.allTracks
+    private(set) var contentVersion: TrackTableContentVersion?
     private(set) var revision = 0
     private(set) var firstPageState = TrackViewportLoadState.idle
 
@@ -199,19 +206,92 @@ final class LibraryTrackWindow {
         return (totalCount + pageSize - 1) / pageSize
     }
 
+    func needsLoad(page: Int) -> Bool {
+        guard page >= 0, page < pageCount else {
+            return false
+        }
+        return requests.needsRequest(containing: page * pageSize)
+    }
+
+    func desiredPages(for visibleRows: IndexSet) -> [Int] {
+        guard
+            pageCount > 0,
+            let firstRow = visibleRows.first,
+            let lastRow = visibleRows.last
+        else {
+            return []
+        }
+        let firstPage = max(firstRow / pageSize, 0)
+        let lastPage = min(lastRow / pageSize, pageCount - 1)
+        guard firstPage <= lastPage else {
+            return []
+        }
+        return Array(firstPage ... lastPage)
+    }
+
+    func prefetchCandidates(
+        around page: Int,
+        direction: TrackViewportPrefetchDirection
+    ) -> [Int] {
+        TrackViewportPrefetch.pages(
+            around: page,
+            pageCount: pageCount,
+            prefetchPages: prefetchPages,
+            direction: direction
+        )
+    }
+
     func configure(
         totalCount: Int,
-        query: LibraryTrackQuery
+        query: LibraryTrackQuery,
+        contentVersion: TrackTableContentVersion
     ) async {
         let boundedCount = max(totalCount, 0)
-        guard boundedCount != self.totalCount || query != self.query else {
-            if boundedCount > 0 {
+        let replacesSource = self.contentVersion?.sourceID
+            != contentVersion.sourceID
+        guard
+            boundedCount != self.totalCount
+            || query != self.query
+            || replacesSource
+        else {
+            guard self.contentVersion != contentVersion else {
+                if boundedCount == 0 {
+                    firstPageState = .ready
+                } else if firstPageState == .idle {
+                    await retryFirstPage()
+                }
+                return
+            }
+            generation &+= 1
+            let configurationGeneration = generation
+            requests.invalidate()
+            let cachedPageIndexes = pages.cachedPageIndexes
+            if cachedPageIndexes.isEmpty, boundedCount > 0 {
                 await load(page: 0)
-            } else {
+                guard generation == configurationGeneration else {
+                    return
+                }
+                self.contentVersion = contentVersion
+                return
+            }
+            for page in cachedPageIndexes {
+                await load(
+                    page: page,
+                    allowsPrefetch: false,
+                    prefetchDirection: .none,
+                    reportsFirstPageLoading: false
+                )
+                guard generation == configurationGeneration else {
+                    return
+                }
+            }
+            self.contentVersion = contentVersion
+            if boundedCount == 0 {
                 firstPageState = .ready
             }
             return
         }
+        self.contentVersion = contentVersion
         self.totalCount = boundedCount
         self.query = query
         generation &+= 1
@@ -257,9 +337,11 @@ final class LibraryTrackWindow {
     func load(
         page: Int,
         allowsPrefetch: Bool = true,
-        prefetchDirection: TrackViewportPrefetchDirection = .after
+        prefetchDirection: TrackViewportPrefetchDirection = .after,
+        reportsFirstPageLoading: Bool = true
     ) async {
         guard
+            !Task.isCancelled,
             page >= 0,
             page < pageCount,
             let requestedPage = requests.beginRequest(
@@ -270,15 +352,17 @@ final class LibraryTrackWindow {
         }
         let requestQuery = query
         let requestGeneration = generation
-        if requestedPage == 0 {
+        if requestedPage == 0, reportsFirstPageLoading {
             firstPageState = .loading
         }
         do {
+            try Task.checkCancellation()
             let items = try await loader(
                 requestQuery,
                 requestedPage * pageSize,
                 pageSize
             )
+            try Task.checkCancellation()
             guard
                 requestGeneration == generation,
                 requestQuery == query
@@ -291,6 +375,17 @@ final class LibraryTrackWindow {
                 allowsPrefetch: allowsPrefetch,
                 prefetchDirection: prefetchDirection
             )
+        } catch is CancellationError where Task.isCancelled {
+            guard
+                requestGeneration == generation,
+                requestQuery == query
+            else {
+                return
+            }
+            requests.failRequest(page: requestedPage)
+            if requestedPage == 0, reportsFirstPageLoading {
+                firstPageState = .idle
+            }
         } catch {
             guard
                 requestGeneration == generation,
@@ -299,7 +394,7 @@ final class LibraryTrackWindow {
                 return
             }
             requests.failRequest(page: requestedPage)
-            if requestedPage == 0 {
+            if requestedPage == 0, reportsFirstPageLoading {
                 firstPageState = .failed(error.localizedDescription)
             }
         }

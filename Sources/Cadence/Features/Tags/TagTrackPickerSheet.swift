@@ -43,6 +43,9 @@ struct TagTrackPickerSheet: View {
         .task(id: SearchNormalizer.normalize(searchQuery)) {
             await loadFirstPage()
         }
+        .onChange(of: store.artworkPublication?.generation) {
+            applyArtworkPublication()
+        }
         .alert(
             "Couldn’t Add Tracks",
             isPresented: errorPresented
@@ -239,6 +242,7 @@ private extension TagTrackPickerSheet {
             tracks = page.items
             nextCursor = page.nextCursor
             directlyAssignedIDs = assignedIDs
+            applyArtworkPublication()
         } catch {
             guard generation == loadGeneration else {
                 return
@@ -276,6 +280,7 @@ private extension TagTrackPickerSheet {
                 }
             )
             self.nextCursor = page.nextCursor
+            applyArtworkPublication()
         } catch {
             guard generation == loadGeneration else {
                 return
@@ -299,5 +304,15 @@ private extension TagTrackPickerSheet {
                 errorMessage = error.localizedDescription
             }
         }
+    }
+
+    func applyArtworkPublication() {
+        guard
+            let publication = store.artworkPublication,
+            publication.epoch == store.libraryEpoch
+        else {
+            return
+        }
+        publication.mergeTracks(into: &tracks)
     }
 }

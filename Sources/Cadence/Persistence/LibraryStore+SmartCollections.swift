@@ -110,7 +110,11 @@ extension LibraryStore {
                 rule: ProductionSmartCollectionStoreResult(
                     evaluation: evaluation,
                     tracks: page.items,
-                    nextOffset: page.nextOffset
+                    nextOffset: page.nextOffset,
+                    contentVersion: TrackTableContentVersion(
+                        sourceID: UUID(),
+                        generation: 0
+                    )
                 ),
             ]
         } catch {
@@ -147,11 +151,13 @@ extension LibraryStore {
                 return
             }
             let existingIDs = Set(result.tracks.map(\.id))
-            result.tracks.append(
-                contentsOf: page.items.filter {
-                    !existingIDs.contains($0.id)
-                }
-            )
+            let additions = page.items.filter {
+                !existingIDs.contains($0.id)
+            }
+            if !additions.isEmpty {
+                result.tracks.append(contentsOf: additions)
+                result.contentVersion = result.contentVersion.advanced()
+            }
             result.nextOffset = page.nextOffset
             smartCollectionResults[rule] = result
         } catch {
@@ -169,6 +175,18 @@ extension LibraryStore {
         for rule: SmartCollectionRuleGroup
     ) -> [LibraryTrackProjection] {
         smartCollectionResults[rule]?.tracks ?? []
+    }
+
+    func smartCollectionTrackSource(
+        for rule: SmartCollectionRuleGroup
+    ) -> ProductionTrackTableSource? {
+        guard let result = smartCollectionResults[rule] else {
+            return nil
+        }
+        return ProductionTrackTableSource(
+            tracks: result.tracks,
+            contentVersion: result.contentVersion
+        )
     }
 
     func completeSmartCollectionTracks(

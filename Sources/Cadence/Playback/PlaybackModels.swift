@@ -96,6 +96,35 @@ struct ResolvedPlaybackTrack: Hashable, Sendable {
     let mediaURL: URL
 }
 
+extension PlaybackTrack {
+    func replacingArtworkID(_ artworkID: UUID?) -> PlaybackTrack {
+        PlaybackTrack(
+            id: id,
+            title: title,
+            artistID: artistID,
+            artist: artist,
+            albumID: albumID,
+            album: album,
+            duration: duration,
+            codec: codec,
+            container: container,
+            sampleRate: sampleRate,
+            channelCount: channelCount,
+            bitrate: bitrate,
+            bitDepth: bitDepth,
+            spatialFormat: spatialFormat,
+            relativeMediaPath: relativeMediaPath,
+            lyricRelativePath: lyricRelativePath,
+            artworkID: artworkID,
+            replayGainTrackGain: replayGainTrackGain,
+            replayGainTrackPeak: replayGainTrackPeak,
+            year: year,
+            discNumber: discNumber,
+            trackNumber: trackNumber
+        )
+    }
+}
+
 struct PlaybackCoordinatorState: Equatable, Sendable {
     var transport: PlaybackTransportState = .idle
     var queue: PlaybackQueueState?

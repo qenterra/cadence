@@ -8,6 +8,22 @@ extension CadenceAppModel {
         isShuffled: Bool = false,
         startingAt time: TimeInterval? = nil
     ) {
+        playProductionTrack(
+            track,
+            withinTrackIDs: queueTracks.map(\.id),
+            source: requestedSource,
+            isShuffled: isShuffled,
+            startingAt: time
+        )
+    }
+
+    func playProductionTrack(
+        _ track: LibraryTrackProjection,
+        withinTrackIDs queueTrackIDs: [UUID],
+        source requestedSource: PlaybackQueueSource? = nil,
+        isShuffled: Bool = false,
+        startingAt time: TimeInterval? = nil
+    ) {
         guard let playbackCoordinator else {
             return
         }
@@ -18,10 +34,14 @@ extension CadenceAppModel {
         Task {
             let trackIDs: [UUID]
             do {
-                trackIDs = if source == .allTracks {
-                    try await librarySession.store.allTrackIDs()
-                } else {
-                    queueTracks.map(\.id)
+                switch source {
+                case .allTracks:
+                    trackIDs = try await librarySession.store.allTrackIDs()
+                case .favorites:
+                    trackIDs = try await librarySession.store
+                        .orderedFavoriteTrackIDs()
+                default:
+                    trackIDs = queueTrackIDs
                 }
             } catch {
                 libraryOperationError = error.localizedDescription
@@ -42,7 +62,11 @@ extension CadenceAppModel {
     func isCurrentProductionTrack(
         _ trackID: UUID
     ) -> Bool {
-        playbackCoordinator?.playbackIndicator.currentTrackID == trackID
+        currentProductionTrackID == trackID
+    }
+
+    var currentProductionTrackID: UUID? {
+        playbackCoordinator?.playbackIndicator.currentTrackID
     }
 
     var isCurrentProductionTrackPlaying: Bool {
@@ -63,6 +87,17 @@ extension CadenceAppModel {
         guard let trackID = currentPlaybackTrack?.id else {
             return false
         }
+        return await setProductionPlaybackTrackFavorite(
+            id: trackID,
+            isFavorite: isFavorite
+        )
+    }
+
+    @discardableResult
+    func setProductionPlaybackTrackFavorite(
+        id trackID: UUID,
+        isFavorite: Bool
+    ) async -> Bool {
         do {
             _ = try await librarySession.store.setTrackFavorite(
                 id: trackID,
@@ -70,7 +105,7 @@ extension CadenceAppModel {
             )
             return true
         } catch {
-            libraryOperationError = error.localizedDescription
+            publishOperationError(error, on: .libraryOperation)
             return false
         }
     }
@@ -243,7 +278,7 @@ extension CadenceAppModel {
                 trackID: track.id
             )
         } catch {
-            libraryOperationError = error.localizedDescription
+            publishOperationError(error, on: .libraryOperation)
             return nil
         }
     }
@@ -261,7 +296,7 @@ extension CadenceAppModel {
             lyricsRevision += 1
             return updated
         } catch {
-            libraryOperationError = error.localizedDescription
+            publishOperationError(error, on: .libraryOperation)
             return nil
         }
     }

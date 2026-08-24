@@ -130,15 +130,19 @@ private extension PlaylistsView {
     @ViewBuilder
     private var detail: some View {
         if let playlist = selectedPlaylist {
+            let trackSource = store.selectedPlaylistTrackSource(
+                for: playlist.id
+            )
+            let tracks = trackSource?.tracks ?? []
             VStack(spacing: 0) {
                 playlistHeader(playlist)
 
                 if store.selectedPlaylistTracksState == .loading,
-                   store.selectedPlaylistTracks.isEmpty {
+                   tracks.isEmpty {
                     ProgressView("Loading Playlist")
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else if let failure = store.selectedPlaylistTracksState.failure,
-                          store.selectedPlaylistTracks.isEmpty {
+                          tracks.isEmpty {
                     ContentUnavailableView {
                         Label(
                             "Couldn’t Load Playlist",
@@ -154,7 +158,7 @@ private extension PlaylistsView {
                         }
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else if store.selectedPlaylistTracks.isEmpty {
+                } else if tracks.isEmpty {
                     ContentUnavailableView(
                         "Empty Playlist",
                         systemImage: "music.note.list",
@@ -163,16 +167,18 @@ private extension PlaylistsView {
                         )
                     )
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else {
+                } else if let trackSource {
                     ProductionTrackTable(
                         model: model,
-                        tracks: store.selectedPlaylistTracks,
+                        tracks: trackSource.tracks,
+                        contentVersion: trackSource.contentVersion,
                         context: .playlist(playlist.id),
                         playlistID: playlist.id,
                         queueSource: .playlist(playlist.id),
                         reorderAction: { trackIDs in
                             Task {
                                 await store.reorderSelectedPlaylist(
+                                    playlistID: playlist.id,
                                     trackIDs: trackIDs
                                 )
                             }
@@ -209,13 +215,17 @@ private extension PlaylistsView {
         }
         .contentShape(Rectangle())
         .onTapGesture(count: 2) {
-            guard store.selectedPlaylistID == playlist.id,
-                  let first = store.selectedPlaylistTracks.first else {
+            guard
+                let source = store.selectedPlaylistTrackSource(
+                    for: playlist.id
+                ),
+                let first = source.tracks.first
+            else {
                 return
             }
             model.playProductionTrack(
                 first,
-                within: store.selectedPlaylistTracks,
+                within: source.tracks,
                 source: .playlist(playlist.id)
             )
         }

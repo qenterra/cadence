@@ -1,5 +1,11 @@
 import Foundation
 
+enum CadenceOperationErrorSurface {
+    case libraryOperation
+    case lyricPersistence
+    case artworkImport
+}
+
 extension CadenceAppModel {
     func renameProductionTrack(
         id: UUID,
@@ -88,7 +94,7 @@ extension CadenceAppModel {
                 isFavorite: isFavorite
             )
         } catch {
-            libraryOperationError = error.localizedDescription
+            publishOperationError(error, on: .libraryOperation)
             return nil
         }
     }
@@ -103,7 +109,7 @@ extension CadenceAppModel {
                 isFavorite: isFavorite
             )
         } catch {
-            libraryOperationError = error.localizedDescription
+            publishOperationError(error, on: .libraryOperation)
             return nil
         }
     }
@@ -118,8 +124,25 @@ extension CadenceAppModel {
                 isFavorite: isFavorite
             )
         } catch {
-            libraryOperationError = error.localizedDescription
+            publishOperationError(error, on: .libraryOperation)
             return nil
+        }
+    }
+
+    func publishOperationError(
+        _ error: any Error,
+        on surface: CadenceOperationErrorSurface
+    ) {
+        guard !(error is CancellationError) else {
+            return
+        }
+        switch surface {
+        case .libraryOperation:
+            libraryOperationError = error.localizedDescription
+        case .lyricPersistence:
+            lyricPersistenceError = error.localizedDescription
+        case .artworkImport:
+            artworkImportError = error.localizedDescription
         }
     }
 }

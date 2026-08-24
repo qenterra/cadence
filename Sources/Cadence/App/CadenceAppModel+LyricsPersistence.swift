@@ -141,7 +141,10 @@ extension CadenceAppModel {
             else {
                 return
             }
-            lyricPersistenceError = error.localizedDescription
+            publishOperationError(error, on: .lyricPersistence)
+            guard !(error is CancellationError) else {
+                return
+            }
             lyricDraft = nil
         }
     }
@@ -160,7 +163,7 @@ private extension CadenceAppModel {
             lyricsRevision += 1
             return true
         } catch {
-            lyricPersistenceError = error.localizedDescription
+            publishOperationError(error, on: .lyricPersistence)
             return false
         }
     }

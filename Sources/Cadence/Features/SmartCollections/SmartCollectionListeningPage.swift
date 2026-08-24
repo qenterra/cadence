@@ -16,15 +16,20 @@ struct SmartCollectionListeningPage: View {
 
                 if model.selectedProductionSmartCollectionSummary.isEmpty {
                     noMatches
-                } else {
+                } else if let source = model
+                    .selectedProductionSmartCollectionTrackSource {
                     ProductionTrackTable(
                         model: model,
-                        tracks: model.selectedProductionSmartCollectionTracks,
+                        tracks: source.tracks,
+                        contentVersion: source.contentVersion,
                         context: selectedTrackTableContext,
                         queueSource: selectedProductionQueueSource,
                         onReachEnd: loadNextProductionPage
                     )
                     .padding(.bottom, 24)
+                } else {
+                    ProgressView("Loading Results")
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             }
         }

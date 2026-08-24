@@ -1,5 +1,20 @@
 import Foundation
 
+typealias ManagedArtworkRecoveryOperation = @MainActor @Sendable (
+    _ store: LibraryStore
+) async throws -> ManagedArtworkRecoveryResult
+
+enum ManagedRecoveryCheckpointPhase: Equatable, Sendable {
+    case beforeAttachment
+    case beforePublication
+}
+
+typealias ManagedRecoveryCheckpoint = @MainActor @Sendable (
+    ManagedRecoveryCheckpointPhase
+) async -> Void
+
+typealias ManagedImportActivationFailureCheckpoint = @MainActor @Sendable () async -> Void
+
 extension CadenceAppModel {
     func applyImportCoordinatorState(
         _ state: ImportCoordinatorState
@@ -60,30 +75,106 @@ extension CadenceAppModel {
         guard let importRecovery, let importDestination else {
             return
         }
-        librarySession.beginRecovery()
         do {
-            if let location = librarySession.location {
-                try await LibraryRelocationRecovery().recover(
-                    activeLocation: location
-                )
+            try await librarySession.performTransition { transition in
+                do {
+                    try await self.recoverManagedLibrary(
+                        importRecovery: importRecovery,
+                        importDestination: importDestination,
+                        transition: transition
+                    )
+                } catch is CancellationError {
+                    throw CancellationError()
+                } catch {
+                    try self.librarySession.publishFailure(
+                        kind: .recoveryFailed,
+                        message: error.localizedDescription,
+                        transition: transition
+                    )
+                    throw error
+                }
             }
-            let repository = try await importDestination.prepareRepository()
-            if let location = librarySession.location {
-                _ = try await repository.reconcileTrash(location: location)
-            }
-            librarySession.store.attach(
-                repository: repository,
-                package: librarySession.location.map(
-                    ManagedLibraryPackage.init
-                )
-            )
-            _ = try await importRecovery.recover()
-            _ = try await librarySession.store.recoverLyricsEdits()
-            _ = try await librarySession.store.recoverArtworkEdits()
-            await librarySession.activate(repository: repository)
         } catch {
-            librarySession.fail(message: error.localizedDescription)
+            return
         }
+    }
+
+    private func recoverManagedLibrary(
+        importRecovery: ManagedLibraryImportRecovery,
+        importDestination: ManagedLibraryImportDestination,
+        transition: LibrarySessionTransitionToken
+    ) async throws {
+        let repository = try await prepareManagedRecoveryRepository(
+            importDestination: importDestination,
+            transition: transition
+        )
+        let artworkRecovery = try await recoverManagedLibraryState(
+            importRecovery: importRecovery,
+            repository: repository,
+            transition: transition
+        )
+        try await publishManagedRecovery(
+            artworkRecovery,
+            transition: transition
+        )
+    }
+
+    private func prepareManagedRecoveryRepository(
+        importDestination: ManagedLibraryImportDestination,
+        transition: LibrarySessionTransitionToken
+    ) async throws -> LibraryRepository {
+        if let location = librarySession.location {
+            try await LibraryRelocationRecovery().recover(
+                activeLocation: location
+            )
+        }
+        try librarySession.requireTransitionOwnership(transition)
+        let repository = try await importDestination.prepareRepository()
+        try librarySession.requireTransitionOwnership(transition)
+        if let location = librarySession.location {
+            _ = try await repository.reconcileTrash(location: location)
+        }
+        try librarySession.requireTransitionOwnership(transition)
+        await managedRecoveryCheckpoint(.beforeAttachment)
+        try librarySession.requireTransitionOwnership(transition)
+        return repository
+    }
+
+    private func recoverManagedLibraryState(
+        importRecovery: ManagedLibraryImportRecovery,
+        repository: LibraryRepository,
+        transition: LibrarySessionTransitionToken
+    ) async throws -> ManagedArtworkRecoveryResult {
+        try await librarySession.store.attach(
+            repository: repository,
+            package: librarySession.location.map(ManagedLibraryPackage.init)
+        )
+        try librarySession.requireTransitionOwnership(transition)
+        _ = try await importRecovery.recover()
+        try librarySession.requireTransitionOwnership(transition)
+        _ = try await librarySession.store.recoverLyricsEdits()
+        try librarySession.requireTransitionOwnership(transition)
+        let artworkRecovery = if let managedArtworkRecoveryOperation {
+            try await managedArtworkRecoveryOperation(librarySession.store)
+        } else {
+            try await librarySession.store.recoverArtworkEdits()
+        }
+        try librarySession.requireTransitionOwnership(transition)
+        await managedRecoveryCheckpoint(.beforePublication)
+        try librarySession.requireTransitionOwnership(transition)
+        return artworkRecovery
+    }
+
+    private func publishManagedRecovery(
+        _ artworkRecovery: ManagedArtworkRecoveryResult,
+        transition: LibrarySessionTransitionToken
+    ) async throws {
+        try await librarySession.finishActivationLocked(
+            transition: transition
+        )
+        try librarySession.requireTransitionOwnership(transition)
+        applyManagedArtworkPublication(artworkRecovery.effects)
+        try librarySession.requireTransitionOwnership(transition)
     }
 
     func startImportScan(
@@ -131,12 +222,22 @@ extension CadenceAppModel {
         selectFirstVisibleImportCandidate()
     }
 
-    private func activateManagedLibraryAfterImport() async {
+    func activateManagedLibraryAfterImport(
+        failureCheckpoint: ManagedImportActivationFailureCheckpoint? = nil
+    ) async {
         guard
             let repository = await importDestination?.currentRepository()
         else {
             return
         }
-        await librarySession.activate(repository: repository)
+        do {
+            try await librarySession.activate(repository: repository)
+        } catch is CancellationError {
+            return
+        } catch {
+            if let failureCheckpoint {
+                await failureCheckpoint()
+            }
+        }
     }
 }

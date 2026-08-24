@@ -8,9 +8,10 @@ struct ManagedLyricsFixture {
     let repository: LibraryRepository
     let service: ManagedLyricsService
     let trackID: UUID
+    let additionalTrackIDs: [UUID]
     let localCatalogRootURL: URL
 
-    init() throws {
+    init(trackCount: Int = 1) throws {
         rootURL = FileManager.default.temporaryDirectory.appending(
             path: "CadenceLyricsTests-\(UUID().uuidString)",
             directoryHint: .isDirectory
@@ -35,24 +36,33 @@ struct ManagedLyricsFixture {
 
         let container = try LibraryContainerFactory.inMemory()
         repository = LibraryRepository(modelContainer: container)
-        trackID = UUID()
+        let trackIDs = (0 ..< max(trackCount, 1)).map { _ in UUID() }
+        trackID = trackIDs[0]
+        additionalTrackIDs = Array(trackIDs.dropFirst())
         let context = ModelContext(container)
-        context.insert(
-            TrackRecord(
-                id: trackID,
-                originalFilename: "Track.flac",
-                title: "Track",
-                duration: 180,
-                codec: "FLAC",
-                container: "FLAC",
-                sampleRate: 48000,
-                channelCount: 2,
-                bitDepth: 24,
-                contentHash: String(repeating: "a", count: 64),
-                relativeMediaPath: "Media/\(trackID.uuidString).flac",
-                importSessionID: UUID()
+        for (index, id) in trackIDs.enumerated() {
+            let isPrimaryTrack = index == 0
+            context.insert(
+                TrackRecord(
+                    id: id,
+                    originalFilename: isPrimaryTrack
+                        ? "Track.flac"
+                        : "Track \(index + 1).flac",
+                    title: isPrimaryTrack ? "Track" : "Track \(index + 1)",
+                    duration: 180,
+                    codec: "FLAC",
+                    container: "FLAC",
+                    sampleRate: 48000,
+                    channelCount: 2,
+                    bitDepth: 24,
+                    contentHash: isPrimaryTrack
+                        ? String(repeating: "a", count: 64)
+                        : String(format: "%064x", index + 1),
+                    relativeMediaPath: "Media/\(id.uuidString).flac",
+                    importSessionID: UUID()
+                )
             )
-        )
+        }
         try context.save()
         service = ManagedLyricsService(
             package: package,

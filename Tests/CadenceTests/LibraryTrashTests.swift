@@ -81,6 +81,157 @@ struct LibraryTrashTests {
         try verifyRestoredSharedArtist(context: context, fixture: fixture)
     }
 
+    @MainActor
+    @Test("Trashing a shared artist refreshes the retained virtual track once")
+    func storeTrashSharedArtistRefreshesResidentWindow() async throws {
+        let fixture = try SharedArtistTrashFixture()
+        defer { fixture.remove() }
+        let store = LibraryStore(
+            container: fixture.container,
+            package: ManagedLibraryPackage(location: fixture.location)
+        )
+        await store.loadInitialLibrary()
+        let window = try #require(store.allTracksWindow)
+        await window.configure(
+            totalCount: store.catalogCounts.liveTrackCount,
+            query: store.trackQuery,
+            contentVersion: store.allTracksWindowContentVersion
+        )
+        let initialRevision = window.revision
+
+        try await store.moveToTrash(
+            targetKind: .artist,
+            targetID: fixture.primaryArtistID,
+            location: fixture.location
+        )
+        await window.configure(
+            totalCount: store.catalogCounts.liveTrackCount,
+            query: store.trackQuery,
+            contentVersion: store.allTracksWindowContentVersion
+        )
+
+        #expect(store.catalogCounts.liveTrackCount == 1)
+        #expect(window.track(at: 0)?.artist == "темный принц")
+        #expect(window.track(at: 0)?.artistID != fixture.primaryArtistID)
+        #expect(window.revision == initialRevision + 1)
+    }
+
+    @MainActor
+    @Test("Restoring a shared artist refreshes the retained virtual track once")
+    func storeRestoreSharedArtistRefreshesResidentWindow() async throws {
+        let fixture = try SharedArtistTrashFixture()
+        defer { fixture.remove() }
+        let repository = LibraryRepository(modelContainer: fixture.container)
+        let operationID = try await repository.trash(
+            targetKind: .artist,
+            targetID: fixture.primaryArtistID,
+            location: fixture.location
+        )
+        let store = LibraryStore(
+            container: fixture.container,
+            package: ManagedLibraryPackage(location: fixture.location)
+        )
+        await store.loadInitialLibrary()
+        let window = try #require(store.allTracksWindow)
+        await window.configure(
+            totalCount: store.catalogCounts.liveTrackCount,
+            query: store.trackQuery,
+            contentVersion: store.allTracksWindowContentVersion
+        )
+        let initialRevision = window.revision
+
+        #expect(window.track(at: 0)?.artist == "темный принц")
+
+        try await store.restoreTrash(
+            operationID: operationID,
+            location: fixture.location
+        )
+        await window.configure(
+            totalCount: store.catalogCounts.liveTrackCount,
+            query: store.trackQuery,
+            contentVersion: store.allTracksWindowContentVersion
+        )
+
+        #expect(store.catalogCounts.liveTrackCount == 1)
+        #expect(window.track(at: 0)?.artist == "madkid, темный принц")
+        #expect(window.track(at: 0)?.artistID == fixture.primaryArtistID)
+        #expect(window.revision == initialRevision + 1)
+
+        try await store.emptyTrash(location: fixture.location)
+        await window.configure(
+            totalCount: store.catalogCounts.liveTrackCount,
+            query: store.trackQuery,
+            contentVersion: store.allTracksWindowContentVersion
+        )
+
+        #expect(window.revision == initialRevision + 1)
+    }
+
+    @MainActor
+    @Test("Shared-artist Trash refreshes every active resident track source")
+    func sharedArtistTrashRefreshesActiveResidentSources() async throws {
+        let fixture = try SharedArtistTrashFixture()
+        defer { fixture.remove() }
+        let store = LibraryStore(
+            container: fixture.container,
+            package: ManagedLibraryPackage(location: fixture.location)
+        )
+        await store.loadInitialLibrary()
+        let repository = try #require(store.repository)
+        let track = try #require(store.tracks.first)
+        let albumID = try #require(track.albumID)
+        let playlist = try await repository.createPlaylist(
+            name: "Semantic Refresh"
+        )
+        try await repository.addToPlaylist(
+            playlistID: playlist.id,
+            trackIDs: [track.id]
+        )
+        await store.loadPlaylists()
+        await store.browseTracks(albumID: albumID)
+        await store.searchCatalog("Joint Signal")
+        await store.loadPlaybackQueueTracks(ids: [track.id])
+        let rule = primaryArtistRule()
+        await store.loadSmartCollectionSummaries(rules: [rule])
+        await store.loadSmartCollectionResult(rule: rule)
+
+        requireResidentTrackSources(
+            store,
+            trackID: track.id,
+            artist: "madkid, темный принц"
+        )
+        #expect(store.smartCollectionTracks(for: rule).map(\.id) == [track.id])
+        #expect(store.smartCollectionSummary(for: rule).count == 1)
+
+        try await store.moveToTrash(
+            targetKind: .artist,
+            targetID: fixture.primaryArtistID,
+            location: fixture.location
+        )
+
+        requireResidentTrackSources(
+            store,
+            trackID: track.id,
+            artist: "темный принц"
+        )
+        #expect(store.smartCollectionTracks(for: rule).isEmpty)
+        #expect(store.smartCollectionSummary(for: rule).isEmpty)
+        let operationID = try #require(store.trashOperations.first?.id)
+
+        try await store.restoreTrash(
+            operationID: operationID,
+            location: fixture.location
+        )
+
+        requireResidentTrackSources(
+            store,
+            trackID: track.id,
+            artist: "madkid, темный принц"
+        )
+        #expect(store.smartCollectionTracks(for: rule).map(\.id) == [track.id])
+        #expect(store.smartCollectionSummary(for: rule).count == 1)
+    }
+
     @Test("A captured confirmation still deletes after the dialog binding clears pending state")
     @MainActor
     func capturedDeletionConfirmation() async throws {
@@ -184,5 +335,38 @@ struct LibraryTrashTests {
         #expect(operationIDs.count == 2)
         #expect(try await repository.tracksPage().items.count == 1)
         #expect(try await repository.trashOperations().count == 2)
+    }
+
+    private func primaryArtistRule() -> SmartCollectionRuleGroup {
+        SmartCollectionRuleGroup(
+            combinator: .all,
+            children: [
+                .condition(
+                    SmartCollectionRuleCondition(
+                        field: .artist,
+                        operator: .contains,
+                        value: .text("madkid")
+                    )
+                ),
+            ]
+        )
+    }
+
+    @MainActor
+    private func requireResidentTrackSources(
+        _ store: LibraryStore,
+        trackID: UUID,
+        artist: String
+    ) {
+        #expect(store.browserTracks.map(\.id) == [trackID])
+        #expect(store.browserTracks.map(\.artist) == [artist])
+        #expect(store.selectedPlaylistTracks.map(\.id) == [trackID])
+        #expect(store.selectedPlaylistTracks.map(\.artist) == [artist])
+        #expect(store.catalogSearchResults.tracks.map(\.id) == [trackID])
+        #expect(store.catalogSearchResults.tracks.map(\.artist) == [artist])
+        #expect(store.playbackQueueTracks.compactMap(\.track?.id) == [trackID])
+        #expect(
+            store.playbackQueueTracks.compactMap(\.track?.artist) == [artist]
+        )
     }
 }

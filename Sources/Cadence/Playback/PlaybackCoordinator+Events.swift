@@ -1,5 +1,13 @@
 import Foundation
 
+private struct PlaybackCompletionExpectation {
+    let backend: PlaybackBackendKind
+    let currentItemID: UUID
+    let intent: PlaybackIntentAuthority
+    let loadGeneration: Int
+    let routeGeneration: Int
+}
+
 extension PlaybackCoordinator {
     enum MoveReason {
         case completion
@@ -23,8 +31,22 @@ extension PlaybackCoordinator {
             guard state.currentTrack?.id == trackID else {
                 return
             }
-            Task {
-                await handleFinishedItem(successorStarted: successorStarted)
+            if let successorStarted,
+               reconcileStartedSuccessor(
+                   predecessorID: trackID,
+                   successorID: successorStarted
+               ) {
+                return
+            }
+            let expectation = PlaybackCompletionExpectation(
+                backend: backend,
+                currentItemID: trackID,
+                intent: playbackIntent,
+                loadGeneration: loadGeneration,
+                routeGeneration: routeGeneration
+            )
+            Task { @MainActor [weak self] in
+                await self?.handleFinishedItem(expectation: expectation)
             }
         case let .timeline(sample):
             presentationClock.update(sample)
@@ -82,7 +104,8 @@ extension PlaybackCoordinator {
 
     func move(
         by offset: Int,
-        reason: MoveReason
+        reason: MoveReason,
+        autoplay: Bool = true
     ) async {
         guard var queue = state.queue else {
             return
@@ -103,7 +126,7 @@ extension PlaybackCoordinator {
             )
         }
         state.queue = queue
-        _ = await loadCurrent(startTime: 0, autoplay: true)
+        _ = await loadCurrent(startTime: 0, autoplay: autoplay)
     }
 
     func publishState(
@@ -128,7 +151,43 @@ extension PlaybackCoordinator {
         systemMediaSession.update(state: state)
     }
 
+    func refreshManagedArtwork(
+        _ artworkIDsByTrackID: [UUID: UUID?]
+    ) {
+        guard
+            !artworkIDsByTrackID.isEmpty,
+            state.queue?.source != .externalFiles
+        else {
+            return
+        }
+
+        for (trackID, artworkID) in artworkIDsByTrackID {
+            guard
+                let resolved = resolvedTracks[trackID],
+                resolved.track.artworkID != artworkID
+            else {
+                continue
+            }
+            resolvedTracks[trackID] = ResolvedPlaybackTrack(
+                track: resolved.track.replacingArtworkID(artworkID),
+                mediaURL: resolved.mediaURL
+            )
+        }
+
+        guard
+            let current = state.currentTrack,
+            let artworkID = artworkIDsByTrackID[current.id],
+            current.artworkID != artworkID
+        else {
+            return
+        }
+        state.currentTrack = current.replacingArtworkID(artworkID)
+        publishState(reanchorPresentationClock: false)
+    }
+
     func failCurrent(with error: Error) {
+        invalidateBassState()
+        invalidateRouteFailureAuthority()
         let failure = error as? PlaybackFailure
             ?? PlaybackFailure(
                 trackID: state.currentTrack?.id,
@@ -137,6 +196,10 @@ extension PlaybackCoordinator {
         if let trackID = failure.trackID ?? state.currentTrack?.id {
             failedTrackIDs.insert(trackID)
         }
+        advancePlaybackIntent(
+            currentItemID: state.currentTrack?.id,
+            transport: .failed
+        )
         state.failure = failure
         state.transport = .failed
         state.isBuffering = false
@@ -146,9 +209,15 @@ extension PlaybackCoordinator {
     func pauseForSilentStartFailure(
         _ failure: PlaybackFailure
     ) {
+        invalidateBassState()
+        invalidateRouteFailureAuthority()
         if let trackID = failure.trackID ?? state.currentTrack?.id {
             failedTrackIDs.insert(trackID)
         }
+        advancePlaybackIntent(
+            currentItemID: state.currentTrack?.id,
+            transport: .paused
+        )
         state.failure = failure
         state.transport = .paused
         state.isBuffering = false
@@ -156,29 +225,77 @@ extension PlaybackCoordinator {
     }
 
     private func handleFinishedItem(
-        successorStarted: UUID?
+        expectation: PlaybackCompletionExpectation
     ) async {
+        guard completionIsCurrent(expectation),
+              expectation.intent.transport == .playing
+        else {
+            return
+        }
+        let autoplay = expectation.intent.transport.shouldAutoplay
         if repeatMode == .one {
-            _ = await loadCurrent(startTime: 0, autoplay: true)
+            _ = await loadCurrent(startTime: 0, autoplay: autoplay)
             return
         }
+        await move(
+            by: 1,
+            reason: .completion,
+            autoplay: autoplay
+        )
+    }
 
-        if let successorStarted,
-           var queue = state.queue,
-           queue.move(to: successorStarted),
-           let successor = resolvedTracks[successorStarted] {
-            state.queue = queue
-            state.currentTrack = successor.track
-            state.currentTime = 0
-            state.duration = successor.track.duration
-            state.transport = .playing
+    private func reconcileStartedSuccessor(
+        predecessorID: UUID,
+        successorID: UUID
+    ) -> Bool {
+        guard playbackIntent.currentItemID == predecessorID,
+              state.queue?.currentTrackID == predecessorID,
+              var queue = state.queue,
+              queue.move(to: successorID),
+              let successor = resolvedTracks[successorID]
+        else {
+            return false
+        }
+
+        let intendedTransport = playbackIntent.transport
+        clearVisibleRouteFailureAuthority(
+            currentItemID: predecessorID
+        )
+        state.queue = queue
+        state.currentTrack = successor.track
+        state.currentTime = 0
+        state.duration = successor.track.duration
+        state.transport = intendedTransport.state
+        state.isBuffering = false
+        if intendedTransport == .playing {
             state.failure = nil
-            publishState()
-            await prepareFollowingTrack()
-            return
         }
+        let adoptedIntent = advancePlaybackIntent(
+            currentItemID: successorID,
+            transport: intendedTransport
+        )
+        if intendedTransport == .playing {
+            activateBassSourceForCurrentTrack()
+        } else {
+            invalidateBassState()
+            activeBackend?.pause()
+        }
+        publishState()
+        Task { @MainActor [weak self] in
+            await self?.prepareFollowingTrack(expectedIntent: adoptedIntent)
+        }
+        return true
+    }
 
-        await move(by: 1, reason: .completion)
+    private func completionIsCurrent(
+        _ expectation: PlaybackCompletionExpectation
+    ) -> Bool {
+        expectation.backend == state.activeBackend
+            && expectation.currentItemID == state.currentTrack?.id
+            && expectation.currentItemID == state.queue?.currentTrackID
+            && expectation.intent == playbackIntent
+            && expectation.loadGeneration == loadGeneration
+            && expectation.routeGeneration == routeGeneration
     }
 
     func skipFailedCurrent() async {
@@ -189,6 +306,10 @@ extension PlaybackCoordinator {
             stop(resetQueue: false)
             state.failure = failure
             state.transport = .failed
+            advancePlaybackIntent(
+                currentItemID: state.queue?.currentTrackID,
+                transport: .failed
+            )
             publishState()
             return
         }
@@ -203,8 +324,12 @@ extension PlaybackCoordinator {
         else {
             return false
         }
-        if routeFailureIsActive {
-            retryAudioRouteAndPlay()
+        if retryableRouteFailureAuthority != nil {
+            let intent = advancePlaybackIntent(
+                currentItemID: currentID,
+                transport: .playing
+            )
+            retryAudioRouteAndPlay(expectedIntent: intent)
             return true
         }
         let startTime = state.currentTrack?.id == currentID

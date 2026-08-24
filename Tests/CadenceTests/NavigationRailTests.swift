@@ -1,5 +1,6 @@
 import AppKit
 @testable import Cadence
+import Foundation
 import Testing
 
 struct NavigationRailTests {
@@ -241,5 +242,87 @@ struct NavigationRailTests {
             NavigationRailMetrics.iconCenterX(isExpanded: false)
                 == NavigationRailMetrics.collapsedWidth / 2
         )
+    }
+
+    @Test("Navigation rail metrics retain row size, spacing, and chrome inset")
+    func navigationRailMetrics() {
+        #expect(NavigationRailMetrics.rowHeight == 48)
+        #expect(NavigationRailMetrics.rowSpacing > 0)
+        #expect(NavigationRailMetrics.rowSurfaceInset > 0)
+    }
+
+    @Test("Symbol effect presentation preserves its trigger while Reduce Motion is toggled")
+    func optionalSymbolEffectPresentation() {
+        let beforeReduction = CadenceSymbolEffectPresentation.resolve(
+            trigger: 3,
+            reduceMotion: false
+        )
+        let reducedMotion = CadenceSymbolEffectPresentation.resolve(
+            trigger: beforeReduction.trigger,
+            reduceMotion: true
+        )
+        let restoredMotion = CadenceSymbolEffectPresentation.resolve(
+            trigger: reducedMotion.trigger,
+            reduceMotion: false
+        )
+
+        #expect(beforeReduction.isEnabled)
+        #expect(!reducedMotion.isEnabled)
+        #expect(reducedMotion.trigger == beforeReduction.trigger)
+        #expect(restoredMotion == beforeReduction)
+    }
+
+    @Test("Navigation rail source keeps one bounce and insets only its chrome")
+    func navigationRailSourceContract() throws {
+        let source = try navigationRailSource()
+        let railLabelStart = try #require(
+            source.range(of: "private func railLabel")
+        )
+        let railIconStart = try #require(
+            source.range(of: "private func railIcon")
+        )
+        let railLabelSource = String(
+            source[railLabelStart.lowerBound ..< railIconStart.lowerBound]
+        )
+        let railLabelFramePattern =
+            #"\.frame\(\s*width:\s*NavigationRailMetrics\.rowWidth\(isExpanded:\s*isExpanded\),"#
+                + #"\s*height:\s*NavigationRailMetrics\.rowHeight\s*\)"#
+        let surfaceInsetPattern =
+            #"\.background\s*\{\s*BrowserRowSurface\([\s\S]*?\)\s*"#
+                + #"\.padding\(\.horizontal,\s*NavigationRailMetrics\.rowSurfaceInset\)\s*\}"#
+
+        #expect(
+            source.components(separatedBy: ".symbolEffect(.bounce").count
+                == 2
+        )
+        #expect(!source.contains(".buttonStyle(CadenceRowButtonStyle())"))
+        #expect(
+            railLabelSource.range(
+                of: railLabelFramePattern,
+                options: .regularExpression
+            ) != nil
+        )
+        #expect(
+            source.components(
+                separatedBy: "NavigationRailMetrics.rowSurfaceInset"
+            ).count == 2
+        )
+        #expect(
+            source.range(
+                of: surfaceInsetPattern,
+                options: .regularExpression
+            ) != nil
+        )
+    }
+
+    private func navigationRailSource() throws -> String {
+        let sourceURL = URL(filePath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appending(
+                path: "Sources/Cadence/Components/NavigationRail.swift"
+            )
+        return try String(contentsOf: sourceURL, encoding: .utf8)
     }
 }

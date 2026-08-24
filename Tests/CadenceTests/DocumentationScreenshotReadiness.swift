@@ -123,13 +123,16 @@ extension DocumentationScreenshotFixture {
         }
     }
 
-    func captureSettingsMatrix() async throws {
+    func captureSettingsMatrix(
+        recordsOnly: Bool = false
+    ) async throws {
         for tab in CadenceSettingsTab.allCases {
             for appearance in DocumentationScreenshotAppearance.allCases {
                 try await captureSettings(
                     "qa-settings-\(tab.rawValue)-\(appearance.slug).png",
                     appearance: appearance,
-                    tab: tab
+                    tab: tab,
+                    recordsOnly: recordsOnly
                 )
             }
         }
@@ -139,6 +142,10 @@ extension DocumentationScreenshotFixture {
         _ data: Data,
         filename: String
     ) throws {
+        if filename.hasPrefix("qa-all-tracks-") {
+            Attachment.record([UInt8](data), named: filename)
+        }
+
         let baseline = projectRoot.appending(path: "docs/images/\(filename)")
         let workspace = FileManager.default.temporaryDirectory.appending(
             path: "CadenceVisualRegression",

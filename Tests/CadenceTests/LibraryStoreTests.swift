@@ -25,7 +25,7 @@ struct LibraryStoreTests {
         #expect(!store.artists.isEmpty)
         #expect(!store.albums.isEmpty)
 
-        store.detach()
+        try await store.detach()
 
         #expect(store.repository == nil)
         #expect(store.availability == .empty)
@@ -202,11 +202,18 @@ extension LibraryStoreTests {
 
         let store = LibraryStore(container: container)
         await store.loadInitialLibrary()
+        let window = try #require(store.allTracksWindow)
+        await window.configure(
+            totalCount: store.catalogCounts.liveTrackCount,
+            query: store.trackQuery,
+            contentVersion: store.allTracksWindowContentVersion
+        )
 
         #expect(store.recentlyPlayedTracks.map(\.title) == ["Second", "First"])
 
         let thirdID = records[2].id
         let newestDate = Date(timeIntervalSince1970: 300)
+        let revisionBeforePlayback = window.revision
         #expect(
             await store.recordRecentlyPlayed(
                 trackID: thirdID,
@@ -216,6 +223,117 @@ extension LibraryStoreTests {
 
         #expect(store.recentlyPlayedTracks.first?.id == thirdID)
         #expect(store.recentlyPlayedTracks.first?.lastPlayedAt == newestDate)
+        let residentIndex = try #require(window.index(ofTrackID: thirdID))
+        #expect(window.track(at: residentIndex)?.lastPlayedAt == newestDate)
+        #expect(window.revision == revisionBeforePlayback + 1)
+
+        #expect(
+            await store.recordRecentlyPlayed(
+                trackID: thirdID,
+                at: newestDate
+            )
+        )
+        #expect(window.revision == revisionBeforePlayback + 1)
+    }
+
+    @Test("Projection publication only refreshes resident favorite rows")
+    func projectionPublicationRespectsFavoritePageBoundary() async throws {
+        let container = try makeContainer(trackCount: 201)
+        let context = ModelContext(container)
+        let records = try context.fetch(
+            FetchDescriptor<TrackRecord>(
+                sortBy: [SortDescriptor(\.normalizedTitle)]
+            )
+        )
+        for record in records {
+            record.isFavorite = true
+        }
+        try context.save()
+
+        let residentID = try #require(records.first?.id)
+        let offPageID = try #require(records.last?.id)
+        let store = LibraryStore(container: container)
+        await store.loadInitialLibrary()
+
+        #expect(store.favoriteTracks.count == 200)
+        #expect(!store.favoriteTracks.contains { $0.id == offPageID })
+        let initialCursor = try #require(store.favoriteTrackCursor)
+        let initialVersion = store.favoriteTracksVersion
+        let residentDate = Date(timeIntervalSince1970: 400)
+
+        #expect(
+            await store.recordRecentlyPlayed(
+                trackID: residentID,
+                at: residentDate
+            )
+        )
+
+        #expect(
+            store.favoriteTracks.first { $0.id == residentID }?.lastPlayedAt
+                == residentDate
+        )
+        #expect(store.favoriteTracks.count == 200)
+        #expect(store.favoriteTrackCursor == initialCursor)
+        #expect(store.favoriteTracksVersion != initialVersion)
+        let residentVersion = store.favoriteTracksVersion
+        let residentIDs = store.favoriteTracks.map(\.id)
+
+        #expect(
+            await store.recordRecentlyPlayed(
+                trackID: offPageID,
+                at: Date(timeIntervalSince1970: 500)
+            )
+        )
+
+        #expect(store.favoriteTracks.map(\.id) == residentIDs)
+        #expect(store.favoriteTrackCursor == initialCursor)
+        #expect(store.favoriteTracksVersion == residentVersion)
+    }
+
+    @Test("Favoriting ahead of a page boundary reloads that boundary")
+    func favoriteMutationReloadsPageBoundary() async throws {
+        let pagedTitles = (0 ... 200).map {
+            "B \(String(format: "%03d", $0))"
+        }
+        let container = try makeContainer(
+            titles: ["A New Favorite"] + pagedTitles
+        )
+        let context = ModelContext(container)
+        let records = try context.fetch(FetchDescriptor<TrackRecord>())
+        let newFavorite = try #require(
+            records.first { $0.title == "A New Favorite" }
+        )
+        for record in records where record.id != newFavorite.id {
+            record.isFavorite = true
+        }
+        try context.save()
+
+        let store = LibraryStore(container: container)
+        await store.loadInitialLibrary()
+        let initialCursor = try #require(store.favoriteTrackCursor)
+        let initialVersion = store.favoriteTracksVersion
+
+        #expect(store.favoriteTracks.count == 200)
+        #expect(store.favoriteTracks.first?.title == "B 000")
+        #expect(store.favoriteTracks.last?.title == "B 199")
+
+        _ = try await store.setTrackFavorite(
+            id: newFavorite.id,
+            isFavorite: true
+        )
+
+        #expect(store.favoriteTracks.count == 200)
+        #expect(store.favoriteTracks.first?.title == "A New Favorite")
+        #expect(store.favoriteTracks.last?.title == "B 198")
+        #expect(store.favoriteTrackCursor != initialCursor)
+        #expect(store.favoriteTracksVersion != initialVersion)
+        #expect(store.favoriteTrackIDs.count == 202)
+
+        await store.loadNextFavoriteTracks()
+
+        #expect(store.favoriteTracks.count == 202)
+        #expect(Set(store.favoriteTracks.map(\.id)).count == 202)
+        #expect(store.favoriteTrackCursor == nil)
     }
 
     @Test("Favorite catalog stays coherent when tracks, albums, and artists change")

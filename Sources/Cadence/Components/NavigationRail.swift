@@ -58,7 +58,7 @@ struct NavigationRail: View {
     private var hiddenRawValue = ""
 
     var body: some View {
-        VStack(spacing: CadenceLayout.compactGap) {
+        VStack(spacing: NavigationRailMetrics.rowSpacing) {
             primaryNavigation
 
             Spacer(minLength: CadenceLayout.controlGap)
@@ -86,7 +86,7 @@ struct NavigationRail: View {
     }
 
     private var primaryNavigation: some View {
-        VStack(spacing: 0) {
+        VStack(spacing: NavigationRailMetrics.rowSpacing) {
             expansionButton
                 .padding(.bottom, CadenceLayout.controlGap)
 
@@ -142,7 +142,7 @@ struct NavigationRail: View {
             .foregroundStyle(.secondary)
             .contentShape(Rectangle())
         }
-        .buttonStyle(CadenceRowButtonStyle())
+        .buttonStyle(.plain)
         .help(isExpanded ? "Collapse Sidebar" : "Expand Sidebar")
         .accessibilityLabel(accessibility.label)
         .accessibilityHint(accessibility.hint)
@@ -162,9 +162,7 @@ struct NavigationRail: View {
             railLabel(
                 systemName: destination.symbolName,
                 title: destination.title,
-                animationValue: reduceMotion
-                    ? 0
-                    : activationCounts[destination, default: 0]
+                animationValue: activationCounts[destination, default: 0]
             )
             .foregroundStyle(isSelected ? .primary : .secondary)
             .background {
@@ -173,9 +171,10 @@ struct NavigationRail: View {
                     isHovered: hoveredDestination == destination,
                     isFocused: focusedDestination == destination
                 )
+                .padding(.horizontal, NavigationRailMetrics.rowSurfaceInset)
             }
         }
-        .buttonStyle(CadenceRowButtonStyle())
+        .buttonStyle(.plain)
         .focused($focusedDestination, equals: destination)
         .onHover { isInside in
             hoveredDestination = isInside ? destination : nil
@@ -236,11 +235,23 @@ struct NavigationRail: View {
     ) -> some View {
         Group {
             if animatesSymbolReplacement {
-                Image(systemName: systemName)
-                    .contentTransition(.symbolEffect(.replace))
+                if reduceMotion {
+                    Image(systemName: systemName)
+                } else {
+                    Image(systemName: systemName)
+                        .contentTransition(.symbolEffect(.replace))
+                }
             } else {
-                Image(systemName: systemName)
-                    .symbolEffect(.bounce, value: animationValue)
+                let motion = CadenceSymbolEffectPresentation.resolve(
+                    trigger: animationValue,
+                    reduceMotion: reduceMotion
+                )
+                if motion.isEnabled {
+                    Image(systemName: systemName)
+                        .symbolEffect(.bounce.up, value: motion.trigger)
+                } else {
+                    Image(systemName: systemName)
+                }
             }
         }
         .font(.system(size: 15, weight: .medium))
@@ -258,6 +269,8 @@ enum NavigationRailMetrics {
     static let horizontalInset = CadenceLayout.compactGap
     static let verticalInset = CadenceLayout.controlGap
     static let rowInset = CadenceLayout.compactGap
+    static let rowSpacing = CadenceLayout.textStack
+    static let rowSurfaceInset: CGFloat = 2
     static let rowHeight = CadenceLayout.rowHeight
     static let iconSlotWidth: CGFloat = 32
 

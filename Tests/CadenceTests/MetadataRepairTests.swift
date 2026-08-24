@@ -107,6 +107,102 @@ struct MetadataRepairTests {
         #expect(tracks.map(\.id) == [trackID])
     }
 
+    @Test("A successful repair refreshes every active resident track source")
+    func successfulRepairRefreshesActiveResidentSources() async throws {
+        let (container, trackID) = try makeLegacyStore()
+        let store = LibraryStore(container: container)
+        await store.loadInitialLibrary()
+        let repository = try #require(store.repository)
+        let window = try #require(store.allTracksWindow)
+        await configure(window, store: store)
+        let initialRevision = window.revision
+        let playlist = try await repository.createPlaylist(
+            name: "Metadata Repair"
+        )
+        try await repository.addToPlaylist(
+            playlistID: playlist.id,
+            trackIDs: [trackID]
+        )
+        await store.loadPlaylists()
+        await store.searchCatalog("BLUE")
+        await store.loadPlaybackQueueTracks(ids: [trackID])
+        let rule = SmartCollectionRuleGroup(
+            combinator: .all,
+            children: [
+                .condition(
+                    SmartCollectionRuleCondition(
+                        field: .artist,
+                        operator: .contains,
+                        value: .text("Billie")
+                    )
+                ),
+            ]
+        )
+        await store.loadSmartCollectionSummaries(rules: [rule])
+        await store.loadSmartCollectionResult(rule: rule)
+        #expect(store.smartCollectionTracks(for: rule).isEmpty)
+        #expect(store.smartCollectionSummary(for: rule).isEmpty)
+        let metadata = ManagedImportManifest.Metadata(
+            title: "BLUE",
+            artist: "Billie Eilish",
+            album: "HIT ME HARD AND SOFT",
+            year: 2024,
+            trackNumber: 10,
+            discNumber: 1,
+            duration: 343,
+            codec: "FLAC",
+            container: "FLAC",
+            sampleRate: 44100,
+            channelCount: 2,
+            bitrate: 900_000,
+            bitDepth: 24,
+            spatialFormat: .stereo
+        )
+        let repairedCount = try await repository.applyMetadataRepairs([
+            ManagedMetadataRepair(
+                trackID: trackID,
+                metadata: metadata,
+                sourceMetadata: JSONEncoder().encode(metadata)
+            ),
+        ])
+
+        await store.refreshAfterMetadataRepair(repairedCount: repairedCount)
+        await configure(window, store: store)
+
+        let repairedTrack = try #require(window.track(at: 0))
+        #expect(repairedTrack.id == trackID)
+        #expect(repairedTrack.title == "BLUE")
+        #expect(repairedTrack.artist == "Billie Eilish")
+        #expect(repairedTrack.album == "HIT ME HARD AND SOFT")
+        #expect(repairedTrack.year == 2024)
+        #expect(repairedTrack.duration == 343)
+        #expect(repairedTrack.bitDepth == 24)
+        #expect(window.revision == initialRevision + 1)
+        #expect(store.selectedPlaylistTracks.map(\.title) == ["BLUE"])
+        #expect(store.catalogSearchResults.tracks.map(\.title) == ["BLUE"])
+        #expect(
+            store.playbackQueueTracks.compactMap(\.track?.title) == ["BLUE"]
+        )
+        #expect(store.smartCollectionTracks(for: rule).map(\.id) == [trackID])
+        #expect(store.smartCollectionSummary(for: rule).count == 1)
+
+        await store.refreshAfterMetadataRepair(repairedCount: 0)
+        await configure(window, store: store)
+
+        #expect(window.revision == initialRevision + 1)
+    }
+
+    private func configure(
+        _ window: LibraryTrackWindow,
+        store: LibraryStore
+    ) async {
+        await window.configure(
+            totalCount: store.catalogCounts.liveTrackCount,
+            query: store.trackQuery,
+            contentVersion: store.allTracksWindowContentVersion
+        )
+    }
+
     private func makeLegacyStore() throws -> (ModelContainer, UUID) {
         let container = try LibraryContainerFactory.inMemory()
         let context = ModelContext(container)

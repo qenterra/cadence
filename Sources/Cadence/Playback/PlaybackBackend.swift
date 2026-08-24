@@ -38,6 +38,7 @@ enum PlaybackStartObservation: Equatable, Sendable {
 protocol PlaybackBackend: AnyObject {
     var kind: PlaybackBackendKind { get }
     var onEvent: ((PlaybackBackendEvent) -> Void)? { get set }
+    var bassLevelProvider: (any PlaybackBassLevelProviding)? { get }
 
     func load(_ request: PlaybackBackendLoadRequest) async throws
     func verifyStart(timeout: Duration) async -> PlaybackStartObservation
@@ -50,14 +51,21 @@ protocol PlaybackBackend: AnyObject {
         _ gain: Float,
         duration: Duration
     ) async
+    func resetBassAnalysis()
     func stop()
 }
 
 extension PlaybackBackend {
+    var bassLevelProvider: (any PlaybackBassLevelProviding)? {
+        nil
+    }
+
     func setPresentationGain(
         _: Float,
         duration _: Duration
     ) async {}
+
+    func resetBassAnalysis() {}
 }
 
 /// Resolves stable catalog or transient queue identities into playable media.

@@ -1,5 +1,10 @@
 import Foundation
 
+typealias LibraryCatalogSearchLoader = @Sendable (
+    _ repository: LibraryRepository,
+    _ query: String
+) async throws -> CatalogSearchResults
+
 extension LibraryStore {
     func loadNextCatalogSearchGroup(
         _ group: CatalogSearchGroup
@@ -91,7 +96,10 @@ extension LibraryStore {
             guard isCurrentCatalogSearch(query, generation: generation) else {
                 return
             }
-            catalogSearchResults.tracks.append(contentsOf: page.items)
+            if !page.items.isEmpty {
+                catalogSearchResults.tracks.append(contentsOf: page.items)
+                catalogSearchTracksContentClock.advance()
+            }
             catalogSearchResults.trackCursor = page.nextCursor
         case .lyrics:
             break

@@ -50,6 +50,10 @@ struct NowPlayingLayoutTests {
             isActive: false,
             isSynchronized: true
         )
+        let unsynchronized = ProductionLyricLineAppearance.resolve(
+            isActive: false,
+            isSynchronized: false
+        )
 
         #expect(active.tone == .primary)
         #expect(active.opacity == 1)
@@ -57,37 +61,8 @@ struct NowPlayingLayoutTests {
         #expect(inactive.tone == .secondary)
         #expect(inactive.opacity == 0.58)
         #expect(!inactive.usesShimmer)
-    }
-
-    @Test("Only inactive synchronized lyrics use a soft blur")
-    func inactiveLyricBlur() {
-        #expect(
-            ProductionLyricLineAppearance.blurRadius(
-                isActive: false,
-                isSynchronized: true,
-                isIncreasedContrast: false
-            ) == 0.7
-        )
-        #expect(
-            ProductionLyricLineAppearance.blurRadius(
-                isActive: true,
-                isSynchronized: true,
-                isIncreasedContrast: false
-            ) == 0
-        )
-        #expect(
-            ProductionLyricLineAppearance.blurRadius(
-                isActive: false,
-                isSynchronized: false,
-                isIncreasedContrast: false
-            ) == 0
-        )
-        #expect(
-            ProductionLyricLineAppearance.blurRadius(
-                isActive: false,
-                isSynchronized: true,
-                isIncreasedContrast: true
-            ) == 0
-        )
+        #expect(unsynchronized.tone == .primary)
+        #expect(unsynchronized.opacity == 1)
+        #expect(!unsynchronized.usesShimmer)
     }
 }

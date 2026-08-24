@@ -1,55 +1,40 @@
 import SwiftUI
 
-enum SettingsTabControlPresentation: Equatable, Sendable {
-    case nativeGlass
-    case stableOpaque
+struct SettingsTabStripMetrics: Equatable, Sendable {
+    let iconFrame: CGSize
+    let minimumTabSize: CGSize
+    let rowSpacing: CGFloat
 
-    static func resolve(
-        usesStableSystemControls: Bool
-    ) -> Self {
-        usesStableSystemControls ? .stableOpaque : .nativeGlass
+    static let standard = Self(
+        iconFrame: CGSize(width: 24, height: 22),
+        minimumTabSize: CGSize(width: 76, height: 54),
+        rowSpacing: CadenceLayout.compactGap
+    )
+
+    static var iconFrame: CGSize {
+        standard.iconFrame
+    }
+
+    static var minimumTabSize: CGSize {
+        standard.minimumTabSize
+    }
+
+    static var rowSpacing: CGFloat {
+        standard.rowSpacing
+    }
+
+    static func metrics(for _: CadenceSettingsTab) -> Self {
+        standard
     }
 }
 
 struct SettingsTabStrip: View {
-    @Environment(\.visualRegressionUsesStableSystemControls)
-    private var usesStableSystemControls
     @Binding var selection: CadenceSettingsTab
 
     var body: some View {
-        switch SettingsTabControlPresentation.resolve(
-            usesStableSystemControls: usesStableSystemControls
-        ) {
-        case .nativeGlass:
-            GlassEffectContainer(spacing: CadenceLayout.compactGap) {
-                tabRow(usesNativeGlass: true)
-            }
-        case .stableOpaque:
-            tabRow(usesNativeGlass: false)
-        }
-    }
-
-    private func tabRow(
-        usesNativeGlass: Bool
-    ) -> some View {
-        HStack(spacing: CadenceLayout.compactGap) {
+        HStack(spacing: SettingsTabStripMetrics.rowSpacing) {
             ForEach(CadenceSettingsTab.allCases) { tab in
-                if usesNativeGlass, selection == tab {
-                    tabButton(tab)
-                        .buttonStyle(.glass)
-                } else {
-                    tabButton(tab)
-                        .buttonStyle(.plain)
-                        .background {
-                            if !usesNativeGlass, selection == tab {
-                                RoundedRectangle(
-                                    cornerRadius: CadenceTheme.radiusControl,
-                                    style: .continuous
-                                )
-                                .fill(CadenceTheme.secondarySurface)
-                            }
-                        }
-                }
+                tabButton(tab)
             }
         }
     }
@@ -63,15 +48,24 @@ struct SettingsTabStrip: View {
             VStack(spacing: CadenceLayout.textStack) {
                 Image(systemName: tab.symbolName)
                     .font(.system(size: 17, weight: .medium))
-                    .frame(width: 24, height: 22)
+                    .frame(
+                        width: SettingsTabStripMetrics.iconFrame.width,
+                        height: SettingsTabStripMetrics.iconFrame.height
+                    )
                 Text(tab.title)
                     .font(.caption)
                     .lineLimit(1)
             }
-            .foregroundStyle(selection == tab ? .primary : .secondary)
-            .frame(minWidth: 76, minHeight: 54)
+            .foregroundStyle(
+                selection == tab ? CadenceTheme.primaryAccent : .secondary
+            )
+            .frame(
+                minWidth: SettingsTabStripMetrics.minimumTabSize.width,
+                minHeight: SettingsTabStripMetrics.minimumTabSize.height
+            )
             .contentShape(Rectangle())
         }
+        .buttonStyle(.plain)
         .accessibilityValue(selection == tab ? "Selected" : "")
     }
 }

@@ -2,93 +2,20 @@ import Foundation
 import Observation
 import SwiftData
 
-enum LibraryAvailability: Equatable, Sendable {
-    case empty
-    case loading
-    case ready
-    case failed(LibraryStoreFailure)
-}
-
-struct LibraryStoreFailure: Equatable, Sendable {
-    let message: String
-}
-
-enum LibraryContentLoadState: Equatable, Sendable {
-    case idle
-    case loading
-    case ready
-    case failed(LibraryStoreFailure)
-
-    var isFailure: Bool {
-        if case .failed = self {
-            return true
-        }
-        return false
-    }
-
-    var failure: LibraryStoreFailure? {
-        if case let .failed(failure) = self {
-            return failure
-        }
-        return nil
-    }
-}
-
-struct ProductionSmartCollectionSummary: Sendable {
-    let count: Int
-    let totalDuration: TimeInterval
-
-    static let empty = ProductionSmartCollectionSummary(
-        count: 0,
-        totalDuration: 0
-    )
-
-    var isEmpty: Bool {
-        count < 1
-    }
-}
-
-struct ProductionSmartCollectionStoreResult: Sendable {
-    let evaluation: ProductionSmartCollectionEvaluation
-    var tracks: [LibraryTrackProjection]
-    var nextOffset: Int?
-}
-
-enum LyricsSearchIndexState: Equatable, Sendable {
-    case unavailable
-    case idle
-    case indexing
-    case ready
-    case failed(String)
-}
-
-enum LibraryStoreMode: Equatable, Sendable {
-    case unavailable
-    case production
-    case trackPageFixture
-    case playlistFixture
-    case catalogLookupFixture
-}
-
-enum LibraryStoreAccessError: Error, Equatable, LocalizedError, Sendable {
-    case repositoryUnavailable
-
-    var errorDescription: String? {
-        String(
-            localized: "The managed library is unavailable. Import music or reopen the library, then try again."
-        )
-    }
-}
-
 @MainActor
 @Observable
 final class LibraryStore {
     var mode: LibraryStoreMode
     var repository: LibraryRepository?
+    @ObservationIgnored private(set) var libraryEpoch: UInt64 = 1
+    @ObservationIgnored var attachmentPhase = LibraryAttachmentPhase.detached
+    @ObservationIgnored var attachmentTasks:
+        [UUID: LibraryAttachmentTaskEntry] = [:]
+    @ObservationIgnored var initialLibraryLoadGeneration: UInt64 = 0
     var lyricsService: ManagedLyricsService?
     var artworkService: ManagedArtworkService?
     @ObservationIgnored var managedPackage: ManagedLibraryPackage?
-    @ObservationIgnored var lyricsSearchIndexer: LyricsSearchIndexer?
+    @ObservationIgnored var lyricsSearchIndexer: (any LyricsSearchIndexing)?
     var trackCursor: LibraryPageCursor?
     var trackRequestGeneration = 0
     var tagCursor: LibraryPageCursor?
@@ -100,8 +27,28 @@ final class LibraryStore {
     @ObservationIgnored var playlistClient: LibraryPlaylistClient?
     @ObservationIgnored var catalogLookupClient: LibraryCatalogLookupClient?
     @ObservationIgnored var allTracksWindow: LibraryTrackWindow?
-    @ObservationIgnored let artworkAssetCache = ArtworkAssetCache()
-    @ObservationIgnored var artworkDataLoads: [ArtworkAssetCache.Key: Task<Data, Error>] = [:]
+    @ObservationIgnored var favoriteTracksWindow: LibraryTrackWindow?
+    @ObservationIgnored let tracksContentClock = TrackTableContentClock()
+    @ObservationIgnored let favoriteTracksContentClock = TrackTableContentClock()
+    @ObservationIgnored let browserTracksContentClock = TrackTableContentClock()
+    @ObservationIgnored let selectedPlaylistTracksContentClock =
+        TrackTableContentClock()
+    @ObservationIgnored let catalogSearchTracksContentClock =
+        TrackTableContentClock()
+    private(set) var allTracksWindowContentVersion = TrackTableContentVersion(
+        sourceID: UUID(),
+        generation: 0
+    )
+    @ObservationIgnored var artworkAssetCache = ArtworkAssetCache()
+    @ObservationIgnored var artworkLookupGenerations: [UUID: UInt64] = [:]
+    @ObservationIgnored var artworkMetadataResults =
+        ArtworkMetadataResultCache()
+    @ObservationIgnored var artworkMetadataLoads:
+        [UUID: ArtworkMetadataLoadEntry] = [:]
+    @ObservationIgnored var artworkDataLoads:
+        [ArtworkAssetCache.Key: ArtworkDataLoadEntry] = [:]
+    @ObservationIgnored var artworkPublicationGeneration: UInt64 = 0
+    var artworkPublication: LibraryArtworkPublication?
     var artistCursor: LibraryPageCursor?
     var albumCursor: LibraryPageCursor?
     var isLoadingNextArtists = false
@@ -139,7 +86,18 @@ final class LibraryStore {
     var smartCollectionResultGeneration = 0
     var isLoadingNextSmartCollectionResult = false
     var isLoadingSmartCollectionData = false
-    var selectedPlaylistID: UUID?
+    @ObservationIgnored var selectedPlaylistTracksGeneration: UInt64 = 0
+    var selectedPlaylistID: UUID? {
+        didSet {
+            if oldValue != selectedPlaylistID {
+                selectedPlaylistTracksGeneration &+= 1
+                retireSelectedPlaylistTracksContent()
+                selectedPlaylistTracksState = .idle
+            }
+        }
+    }
+
+    private(set) var selectedPlaylistTracksOwnerID: UUID?
     var selectedPlaylistTracks: [LibraryTrackProjection] = []
     var selectedPlaylistTracksState = LibraryContentLoadState.idle
     var tagRevision = 0
@@ -172,119 +130,38 @@ final class LibraryStore {
         container: ModelContainer? = nil,
         package: ManagedLibraryPackage? = nil
     ) {
-        managedPackage = package
-        if let container {
-            mode = .production
-            let repository = LibraryRepository(modelContainer: container)
-            self.repository = repository
-            playlistClient = LibraryPlaylistClient(repository: repository)
-            catalogLookupClient = LibraryCatalogLookupClient(
-                repository: repository
-            )
-            trackPageLoader = { query, cursor in
-                try await repository.tracksPage(
-                    query: query,
-                    after: cursor
-                )
-            }
-            allTracksWindow = LibraryTrackWindow { query, offset, limit in
-                try await repository.tracksWindow(
-                    query: query,
-                    offset: offset,
-                    limit: limit
-                )
-            }
-            lyricsService = package.map {
-                ManagedLyricsService(
-                    package: $0,
-                    repository: repository
-                )
-            }
-            artworkService = package.map {
-                ManagedArtworkService(
-                    package: $0,
-                    repository: repository
-                )
-            }
-            availability = .ready
-            configureLyricsSearch(package: package, repository: repository)
-        } else {
-            mode = .unavailable
-            repository = nil
-            playlistClient = nil
-            catalogLookupClient = nil
-            trackPageLoader = nil
-            allTracksWindow = nil
-            lyricsService = nil
-            artworkService = nil
-            lyricsSearchIndexer = nil
-            availability = .empty
-        }
-    }
-
-    init(trackPageLoader: @escaping LibraryTrackPageLoader) {
-        mode = .trackPageFixture
+        mode = .unavailable
         repository = nil
-        playlistClient = nil
-        catalogLookupClient = nil
         lyricsService = nil
-        self.trackPageLoader = trackPageLoader
-        allTracksWindow = nil
-        availability = .ready
-    }
-
-    init(playlistClient: LibraryPlaylistClient) {
-        mode = .playlistFixture
-        repository = nil
-        self.playlistClient = playlistClient
-        catalogLookupClient = nil
-        trackPageLoader = nil
-        allTracksWindow = nil
-        availability = .ready
-    }
-
-    init(catalogLookupClient: LibraryCatalogLookupClient) {
-        mode = .catalogLookupFixture
-        repository = nil
-        playlistClient = nil
-        self.catalogLookupClient = catalogLookupClient
-        trackPageLoader = nil
-        allTracksWindow = nil
-        availability = .ready
-    }
-
-    var canLoadMoreTracks: Bool {
-        trackCursor != nil
-    }
-
-    /// Repository-backed features use this boundary instead of interpreting
-    /// missing production dependencies as a successful empty result.
-    func requireRepository() throws -> LibraryRepository {
-        guard mode == .production, let repository else {
-            throw LibraryStoreAccessError.repositoryUnavailable
+        artworkService = nil
+        availability = .empty
+        if let container {
+            let repository = LibraryRepository(modelContainer: container)
+            installAttachment(repository: repository, package: package)
         }
-        return repository
+    }
+}
+
+extension LibraryStore {
+    func advanceAllTracksWindowContentVersion() {
+        allTracksWindowContentVersion = allTracksWindowContentVersion.advanced()
     }
 
-    var canLoadMoreArtists: Bool {
-        artistCursor != nil
+    func advanceLibraryEpoch() {
+        libraryEpoch &+= 1
     }
 
-    var canLoadMoreAlbums: Bool {
-        albumCursor != nil
-    }
-
-    var canLoadMoreTags: Bool {
-        tagCursor != nil
-    }
-
-    func searchCatalog(_ query: String) async {
+    func searchCatalog(
+        _ query: String,
+        loader: LibraryCatalogSearchLoader? = nil
+    ) async {
+        let context = captureLibraryContext()
         catalogSearchGeneration += 1
         let generation = catalogSearchGeneration
         catalogSearchQuery = query
 
         guard !SearchNormalizer.normalize(query).isEmpty else {
-            catalogSearchResults = .empty
+            replaceCatalogSearchResults(with: .empty)
             isCatalogSearching = false
             return
         }
@@ -292,20 +169,29 @@ final class LibraryStore {
         isCatalogSearching = true
         do {
             let repository = try requireRepository()
-            async let catalog = repository.catalogSearch(query: query)
+            let loader = loader ?? { repository, query in
+                try await repository.catalogSearch(query: query)
+            }
+            async let catalog = loader(repository, query)
             async let lyricMatches = lyricsCatalogResults(
                 query: query,
                 limit: 40
             )
             var results = try await catalog
             results.lyrics = await lyricMatches
-            guard generation == catalogSearchGeneration else {
+            guard
+                generation == catalogSearchGeneration,
+                isCurrentLibraryContext(context)
+            else {
                 return
             }
-            catalogSearchResults = results
+            replaceCatalogSearchResults(with: results)
             isCatalogSearching = false
         } catch {
-            guard generation == catalogSearchGeneration else {
+            guard
+                generation == catalogSearchGeneration,
+                isCurrentLibraryContext(context)
+            else {
                 return
             }
             isCatalogSearching = false
@@ -319,14 +205,24 @@ final class LibraryStore {
     func clearCatalogSearch() {
         catalogSearchGeneration += 1
         catalogSearchQuery = ""
-        catalogSearchResults = .empty
+        replaceCatalogSearchResults(with: .empty)
         isCatalogSearching = false
     }
 
-    func restoreCatalogSearch(_ query: String) {
+    func retireCatalogSearchForArtworkPublication() {
+        catalogSearchGeneration &+= 1
+        isCatalogSearching = false
+        loadingCatalogSearchGroups = []
+    }
+
+    func restoreCatalogSearch(
+        _ query: String,
+        loader: LibraryCatalogSearchLoader? = nil
+    ) {
         catalogSearchGeneration += 1
+        let generation = catalogSearchGeneration
         catalogSearchQuery = query
-        catalogSearchResults = .empty
+        replaceCatalogSearchResults(with: .empty)
         isCatalogSearching = false
 
         guard
@@ -335,8 +231,181 @@ final class LibraryStore {
         else {
             return
         }
-        Task {
-            await searchCatalog(query)
+        let context = captureLibraryContext()
+        _ = startAttachmentTask(context: context) { [weak self] in
+            guard
+                let self,
+                catalogSearchGeneration == generation,
+                catalogSearchQuery == query
+            else {
+                return
+            }
+            await searchCatalog(query, loader: loader)
+        }
+    }
+
+    func attach(
+        repository: LibraryRepository,
+        package: ManagedLibraryPackage? = nil,
+        lyricsSearchIndexer injectedLyricsSearchIndexer:
+        (any LyricsSearchIndexing)? = nil
+    ) async throws {
+        try await retireCurrentAttachment()
+        installAttachment(
+            repository: repository,
+            package: package,
+            lyricsSearchIndexer: injectedLyricsSearchIndexer
+        )
+    }
+
+    func detach() async throws {
+        try await retireCurrentAttachment()
+        clearAttachment()
+    }
+}
+
+private extension LibraryStore {
+    func installAttachment(
+        repository: LibraryRepository,
+        package: ManagedLibraryPackage?,
+        lyricsSearchIndexer injectedLyricsSearchIndexer:
+        (any LyricsSearchIndexing)? = nil
+    ) {
+        resetAttachmentPublishedState(availability: .ready)
+        mode = .production
+        managedPackage = package
+        self.repository = repository
+        playlistClient = LibraryPlaylistClient(repository: repository)
+        catalogLookupClient = LibraryCatalogLookupClient(
+            repository: repository
+        )
+        trackPageLoader = { query, cursor in
+            try await repository.tracksPage(
+                query: query,
+                after: cursor
+            )
+        }
+        allTracksWindow = LibraryTrackWindow { query, offset, limit in
+            try await repository.tracksWindow(
+                query: query,
+                offset: offset,
+                limit: limit
+            )
+        }
+        favoriteTracksWindow = LibraryTrackWindow { query, offset, limit in
+            try await repository.tracksWindow(
+                query: query,
+                offset: offset,
+                limit: limit
+            )
+        }
+        lyricsService = package.map {
+            ManagedLyricsService(package: $0, repository: repository)
+        }
+        artworkService = package.map {
+            ManagedArtworkService(package: $0, repository: repository)
+        }
+        if let injectedLyricsSearchIndexer {
+            lyricsSearchIndexer = injectedLyricsSearchIndexer
+            lyricsSearchIndexState = .idle
+        } else {
+            configureLyricsSearch(package: package, repository: repository)
+        }
+        attachmentPhase = .active
+    }
+
+    func clearAttachment() {
+        resetAttachmentPublishedState(availability: .empty)
+        mode = .unavailable
+        repository = nil
+        playlistClient = nil
+        catalogLookupClient = nil
+        trackPageLoader = nil
+        allTracksWindow = nil
+        favoriteTracksWindow = nil
+        lyricsService = nil
+        artworkService = nil
+        managedPackage = nil
+        lyricsSearchIndexer = nil
+        lyricsSearchIndexState = .unavailable
+        attachmentPhase = .detached
+    }
+
+    func resetAttachmentPublishedState(
+        availability: LibraryAvailability
+    ) {
+        catalogSearchGeneration &+= 1
+        catalogSearchQuery = ""
+        isCatalogSearching = false
+        loadingCatalogSearchGroups = []
+        operationFailure = nil
+        resetLibraryContent(availability: availability)
+    }
+}
+
+extension LibraryStore {
+    @discardableResult
+    func replaceTracksContent(
+        with rows: [LibraryTrackProjection]
+    ) -> Bool {
+        guard tracks != rows else {
+            return false
+        }
+        tracks = rows
+        tracksContentClock.advance()
+        return true
+    }
+
+    @discardableResult
+    func replaceFavoriteTracksContent(
+        with rows: [LibraryTrackProjection]
+    ) -> Bool {
+        guard favoriteTracks != rows else {
+            return false
+        }
+        favoriteTracks = rows
+        favoriteTracksContentClock.advance()
+        return true
+    }
+
+    @discardableResult
+    func replaceBrowserTracksContent(
+        with rows: [LibraryTrackProjection]
+    ) -> Bool {
+        guard browserTracks != rows else {
+            return false
+        }
+        browserTracks = rows
+        browserTracksContentClock.advance()
+        return true
+    }
+
+    @discardableResult
+    func replaceSelectedPlaylistTracksContent(
+        with rows: [LibraryTrackProjection],
+        ownerID: UUID?
+    ) -> Bool {
+        guard selectedPlaylistTracks != rows
+            || selectedPlaylistTracksOwnerID != ownerID else {
+            return false
+        }
+        selectedPlaylistTracks = rows
+        selectedPlaylistTracksOwnerID = ownerID
+        selectedPlaylistTracksContentClock.advance()
+        return true
+    }
+
+    func retireSelectedPlaylistTracksContent() {
+        replaceSelectedPlaylistTracksContent(with: [], ownerID: nil)
+    }
+
+    func replaceCatalogSearchResults(
+        with results: CatalogSearchResults
+    ) {
+        let tracksChanged = catalogSearchResults.tracks != results.tracks
+        catalogSearchResults = results
+        if tracksChanged {
+            catalogSearchTracksContentClock.advance()
         }
     }
 }

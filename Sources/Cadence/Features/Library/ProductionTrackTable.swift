@@ -6,6 +6,7 @@ struct ProductionTrackTable: View {
 
     @Bindable var model: CadenceAppModel
     let tracks: [LibraryTrackProjection]
+    let contentVersion: TrackTableContentVersion?
     var context: TrackTableContext = .library
     var showsHeader = true
     var compact = false
@@ -20,6 +21,7 @@ struct ProductionTrackTable: View {
 
     @State private var localSelection: Set<UUID> = []
     @State private var usesDefaultSort = true
+    @State private var projectionCache = TrackTableProjectionCache()
 
     @AppStorage("trackTable.visibleColumns")
     private var visibleColumnsRaw = TrackTableColumn.defaultRawValue
@@ -39,6 +41,7 @@ struct ProductionTrackTable: View {
     private var timeWidth = TrackTableWidth.time.defaultValue
 
     var body: some View {
+        let snapshot = resolvedSnapshot
         GeometryReader { geometry in
             let availableWidth = max(geometry.size.width, 1)
             let useCompactLayout = compact
@@ -68,7 +71,7 @@ struct ProductionTrackTable: View {
                 TrackTableCore(
                     model: model,
                     context: context,
-                    tracks: displayedTracks,
+                    snapshot: snapshot,
                     virtualWindow: virtualWindow,
                     columns: columns,
                     widths: resolvedWidths,
@@ -76,6 +79,9 @@ struct ProductionTrackTable: View {
                     queueSource: queueSource,
                     reorderAction: reorderAction,
                     onReachEnd: onReachEnd,
+                    currentTrackID: model.currentProductionTrackID,
+                    isCurrentTrackPlaying:
+                    model.isCurrentProductionTrackPlaying,
                     selection: selectedTrackIDs
                 )
             }
@@ -97,12 +103,12 @@ struct ProductionTrackTable: View {
             visibleColumnsRaw = migrated.rawValue
             columnDefaultsVersion = migrated.version
         }
-        .onChange(of: displayedTracks.map(\.id), initial: true) {
-            guard virtualWindow == nil else {
+        .onChange(of: snapshot?.identity, initial: true) {
+            guard let snapshot else {
                 return
             }
             selectedTrackIDs.wrappedValue.formIntersection(
-                displayedTracks.map(\.id)
+                Set(snapshot.orderedIDs)
             )
         }
         .onChange(of: context) {
@@ -117,11 +123,25 @@ private extension ProductionTrackTable {
         TrackTableColumn.decode(visibleColumnsRaw)
     }
 
-    var displayedTracks: [LibraryTrackProjection] {
-        guard repositorySortAction == nil else {
-            return tracks
+    var resolvedSnapshot: TrackTableProjectionSnapshot? {
+        if virtualWindow != nil {
+            precondition(
+                contentVersion == nil,
+                "Virtual track tables must not supply a materialized content version"
+            )
+            return nil
         }
-        return effectiveSortDescriptor.sorted(tracks)
+        guard let contentVersion else {
+            preconditionFailure(
+                "Materialized track tables require a producer-owned content version"
+            )
+        }
+        return projectionCache.resolve(
+            rows: tracks,
+            contentVersion: contentVersion,
+            sortDescriptor: effectiveSortDescriptor,
+            repositoryOrdered: repositorySortAction != nil
+        )
     }
 
     var selectedTrackIDs: Binding<Set<UUID>> {

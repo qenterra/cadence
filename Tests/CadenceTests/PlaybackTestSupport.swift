@@ -33,20 +33,38 @@ final class PlaybackTestBackend: PlaybackBackend {
     var onEvent: ((PlaybackBackendEvent) -> Void)?
     var loadError: Error?
     var shouldSuspendNextLoad = false
+    var shouldSuspendNextSeek = false
+    var simulatesAutoplayDuringLoad = false
     var loadDelay: Duration?
     var startObservations: [PlaybackStartObservation] = [.started]
+    let bassMeter = PCMBassLevelMeter()
+    var exposesRealtimeBass: Bool
     private(set) var loadRequests: [PlaybackBackendLoadRequest] = []
     private(set) var preparedTracks: [ResolvedPlaybackTrack?] = []
     private(set) var seekTimes: [TimeInterval] = []
     private(set) var playCount = 0
+    private(set) var loadAutoplayStartCount = 0
+    private(set) var verifyStartCount = 0
+    private(set) var resetBassCountAtLastPlay: Int?
     private(set) var pauseCount = 0
     private(set) var stopCount = 0
     private(set) var volumes: [Float] = []
     private(set) var suspendedLoadCount = 0
+    private(set) var suspendedSeekCount = 0
+    private(set) var resetBassCount = 0
     private var loadContinuations: [CheckedContinuation<Void, Never>] = []
+    private var seekContinuations: [CheckedContinuation<Void, Never>] = []
 
-    init(kind: PlaybackBackendKind) {
+    init(
+        kind: PlaybackBackendKind,
+        exposesRealtimeBass: Bool? = nil
+    ) {
         self.kind = kind
+        self.exposesRealtimeBass = exposesRealtimeBass ?? (kind == .pcm)
+    }
+
+    var bassLevelProvider: (any PlaybackBassLevelProviding)? {
+        exposesRealtimeBass ? bassMeter : nil
     }
 
     func load(
@@ -56,6 +74,10 @@ final class PlaybackTestBackend: PlaybackBackend {
             throw loadError
         }
         loadRequests.append(request)
+        if request.autoplay, simulatesAutoplayDuringLoad {
+            loadAutoplayStartCount += 1
+            play()
+        }
         if let loadDelay {
             try await Task.sleep(for: loadDelay)
         }
@@ -77,6 +99,7 @@ final class PlaybackTestBackend: PlaybackBackend {
     func verifyStart(
         timeout _: Duration
     ) async -> PlaybackStartObservation {
+        verifyStartCount += 1
         guard !startObservations.isEmpty else {
             return .started
         }
@@ -84,6 +107,7 @@ final class PlaybackTestBackend: PlaybackBackend {
     }
 
     func play() {
+        resetBassCountAtLastPlay = resetBassCount
         playCount += 1
     }
 
@@ -93,6 +117,13 @@ final class PlaybackTestBackend: PlaybackBackend {
 
     func seek(to time: TimeInterval) async throws {
         seekTimes.append(time)
+        if shouldSuspendNextSeek {
+            shouldSuspendNextSeek = false
+            suspendedSeekCount += 1
+            await withCheckedContinuation { continuation in
+                seekContinuations.append(continuation)
+            }
+        }
     }
 
     func setVolume(_ volume: Float) {
@@ -101,6 +132,11 @@ final class PlaybackTestBackend: PlaybackBackend {
 
     func stop() {
         stopCount += 1
+    }
+
+    func resetBassAnalysis() {
+        resetBassCount += 1
+        bassMeter.resetPublication()
     }
 
     func emit(_ event: PlaybackBackendEvent) {
@@ -112,6 +148,38 @@ final class PlaybackTestBackend: PlaybackBackend {
             return
         }
         loadContinuations.removeFirst().resume()
+    }
+
+    func resumeNextSeek() {
+        guard !seekContinuations.isEmpty else {
+            return
+        }
+        seekContinuations.removeFirst().resume()
+    }
+}
+
+actor PlaybackTestBassEnvelopeLoader {
+    private(set) var requestedURLs: [URL] = []
+    private var continuations: [
+        CheckedContinuation<PlaybackBassEnvelope?, Never>
+    ] = []
+
+    func load(_ url: URL) async -> PlaybackBassEnvelope? {
+        requestedURLs.append(url)
+        return await withCheckedContinuation { continuation in
+            continuations.append(continuation)
+        }
+    }
+
+    func requestCount() -> Int {
+        requestedURLs.count
+    }
+
+    func resumeNext(with envelope: PlaybackBassEnvelope?) {
+        guard !continuations.isEmpty else {
+            return
+        }
+        continuations.removeFirst().resume(returning: envelope)
     }
 }
 
@@ -186,6 +254,12 @@ final class PlaybackTestAudioRouteProvider: AudioRouteProviding {
         self.route = route
         changeHandler?(route)
     }
+
+    func setCurrentRouteWithoutNotification(
+        _ route: AudioRouteSnapshot
+    ) {
+        self.route = route
+    }
 }
 
 @MainActor
@@ -195,14 +269,54 @@ func makePlaybackCoordinator(
     systemMediaSession: any SystemMediaSessionControlling =
         PlaybackTestSystemMediaSession(),
     audioRouteProvider: any AudioRouteProviding =
-        PlaybackTestAudioRouteProvider()
+        PlaybackTestAudioRouteProvider(),
+    bassEnvelopeLoader: @escaping PlaybackBassEnvelopeLoading =
+        defaultPlaybackBassEnvelopeLoader
 ) -> PlaybackCoordinator {
     PlaybackCoordinator(
         resolver: resolver,
         backends: backends,
         systemMediaSession: systemMediaSession,
-        audioRouteProvider: audioRouteProvider
+        audioRouteProvider: audioRouteProvider,
+        bassEnvelopeLoader: bassEnvelopeLoader
     )
+}
+
+func waitForBassEnvelopeRequests(
+    _ expectedCount: Int,
+    loader: PlaybackTestBassEnvelopeLoader
+) async -> Bool {
+    for _ in 0 ..< 100 {
+        if await loader.requestCount() >= expectedCount {
+            return true
+        }
+        try? await Task.sleep(for: .milliseconds(1))
+    }
+    return false
+}
+
+func playbackTestBassEnvelope(
+    level: Float,
+    duration: Int = 180
+) -> PlaybackBassEnvelope {
+    PlaybackBassEnvelope(
+        samplesPerSecond: 1,
+        levels: Array(repeating: level, count: duration + 1)
+    )
+}
+
+@MainActor
+func waitForBassLevel(
+    _ expectedLevel: Float,
+    coordinator: PlaybackCoordinator
+) async -> Bool {
+    for _ in 0 ..< 100 {
+        if abs(coordinator.currentBassLevel() - expectedLevel) < 0.000_001 {
+            return true
+        }
+        try? await Task.sleep(for: .milliseconds(1))
+    }
+    return false
 }
 
 func playbackTestTrack(
@@ -241,4 +355,62 @@ func playbackTestTrack(
         ),
         mediaURL: URL(filePath: "/tmp/\(id).\(container)")
     )
+}
+
+@MainActor
+final class CadenceModeVisualReadinessTracker {
+    private var artworkReadyTrackIDs: Set<UUID> = []
+    private var latestSnapshot: CadenceModeArtworkRenderSnapshot?
+    private var firstAcceptedSnapshots: [
+        UUID: CadenceModeArtworkRenderSnapshot
+    ] = [:]
+
+    lazy var observer = CadenceModeVisualReadinessObserver(
+        artworkReady: { [weak self] trackID in
+            self?.artworkReadyTrackIDs.insert(trackID)
+        },
+        render: { [weak self] snapshot in
+            self?.latestSnapshot = snapshot
+            guard snapshot.artworkFrame.width > 0,
+                  snapshot.artworkFrame.height > 0,
+                  self?.firstAcceptedSnapshots[snapshot.trackID] == nil else {
+                return
+            }
+            self?.firstAcceptedSnapshots[snapshot.trackID] = snapshot
+        }
+    )
+
+    func waitUntilReady(
+        trackID: UUID,
+        expectedArtworkScale: ClosedRange<CGFloat>
+    ) async throws -> CadenceModeArtworkRenderSnapshot {
+        let clock = ContinuousClock()
+        let deadline = clock.now.advanced(by: .seconds(3))
+        while clock.now < deadline {
+            if artworkReadyTrackIDs.contains(trackID),
+               let latestSnapshot,
+               latestSnapshot.trackID == trackID,
+               latestSnapshot.artworkFrame.width > 0,
+               latestSnapshot.artworkFrame.height > 0,
+               expectedArtworkScale.contains(latestSnapshot.artworkScale) {
+                return latestSnapshot
+            }
+            try await Task.sleep(for: .milliseconds(5))
+        }
+        throw CadenceModeScreenshotError.visualReadinessTimedOut
+    }
+
+    func waitForFirstAcceptedRender(
+        trackID: UUID
+    ) async throws -> CadenceModeArtworkRenderSnapshot {
+        let clock = ContinuousClock()
+        let deadline = clock.now.advanced(by: .seconds(3))
+        while clock.now < deadline {
+            if let snapshot = firstAcceptedSnapshots[trackID] {
+                return snapshot
+            }
+            try await Task.sleep(for: .milliseconds(5))
+        }
+        throw CadenceModeScreenshotError.visualReadinessTimedOut
+    }
 }

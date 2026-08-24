@@ -15,23 +15,123 @@ struct TrackTableResolvedWidths: Equatable, Sendable {
     }
 }
 
+enum TrackRowActionMenuMaterializationPolicy: Equatable, Sendable {
+    case always
+    case whenEngaged
+
+    static let production: Self = .whenEngaged
+
+    func materializesFullActions(
+        isHovered: Bool,
+        isSelected: Bool,
+        isFocused: Bool,
+        isKeyboardFocused: Bool = false,
+        isAccessibilityFocused: Bool = false,
+        isLiveScrolling: Bool = false
+    ) -> Bool {
+        switch self {
+        case .always:
+            true
+        case .whenEngaged:
+            isKeyboardFocused
+                || isAccessibilityFocused
+                || (isSelected && isFocused)
+                || (isHovered && !isLiveScrolling)
+        }
+    }
+}
+
+enum TrackRowLiveScrollPresentation: Equatable, Sendable {
+    case interactive
+    case pointerScrolling
+
+    static func resolve(
+        isLiveScrolling: Bool,
+        isSelected: Bool,
+        isFocused: Bool,
+        isControlFocused: Bool,
+        isAccessibilityFocused: Bool,
+        isAssistiveTechnologyEnabled: Bool
+    ) -> Self {
+        guard isLiveScrolling,
+              !(isSelected && isFocused),
+              !isControlFocused,
+              !isAccessibilityFocused,
+              !isAssistiveTechnologyEnabled else {
+            return .interactive
+        }
+        return .pointerScrolling
+    }
+}
+
 struct ProductionTrackTableRow: View {
     @Bindable var model: CadenceAppModel
     let track: LibraryTrackProjection
-    let queue: [LibraryTrackProjection]
+    let queueIDProvider: TrackTableQueueIDProvider
     let columns: [TrackTableColumn]
     let widths: TrackTableResolvedWidths
     let playlistID: UUID?
     let queueSource: PlaybackQueueSource?
     let reorderAction: (([UUID]) -> Void)?
+    let resolveDraggedTrackIDs: (Set<UUID>) -> Set<UUID>
     let actionTrackIDs: [UUID]
     let isSelected: Bool
     let isFocused: Bool
+    let artworkLoader: ProductionArtworkLoader?
+    let artworkWorkProbe: ProductionArtworkWorkProbe?
     let select: () -> Void
+    var interactionState: TrackTableInteractionState?
+    var workProbe: TrackTableWorkProbe?
+    var actionMenuMaterializationPolicy =
+        TrackRowActionMenuMaterializationPolicy.production
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilitySwitchControlEnabled)
+    private var switchControlEnabled
+    @Environment(\.accessibilityVoiceOverEnabled)
+    private var voiceOverEnabled
+    @FocusState private var isFavoriteFocused: Bool
+    @FocusState private var isActionControlFocused: Bool
+    @FocusState var isContentControlFocused: Bool
+    @AccessibilityFocusState private var isActionControlAccessibilityFocused: Bool
     @State private var isHovered = false
+    @State private var artworkLoadState = ProductionArtworkLoadState()
 
     var body: some View {
+        Group {
+            switch liveScrollPresentation {
+            case .interactive:
+                interactiveRow
+            case .pointerScrolling:
+                lightweightPointerScrollRow
+            }
+        }
+        .transaction { transaction in
+            guard isLiveScrolling else {
+                return
+            }
+            transaction.animation = nil
+            transaction.disablesAnimations = true
+        }
+        .onChange(of: track.id) {
+            isHovered = Self.hoverStateAfterTrackIdentityChange(
+                isHovered: isHovered,
+                isLiveScrolling: isLiveScrolling
+            )
+            isFavoriteFocused = false
+            isActionControlFocused = false
+            isContentControlFocused = false
+            isActionControlAccessibilityFocused = false
+        }
+        .onChange(of: liveScrollPresentation) {
+            workProbe?.recordLiveScrollPresentationChange(
+                usesLightweightPresentation:
+                liveScrollPresentation == .pointerScrolling
+            )
+        }
+    }
+
+    private var rowLayout: some View {
         HStack(spacing: TrackTableColumnPolicy.columnSpacing) {
             song
                 .frame(width: CGFloat(widths.song), alignment: .leading)
@@ -46,20 +146,7 @@ struct ProductionTrackTableRow: View {
 
             Spacer(minLength: 0)
 
-            Menu {
-                actions
-            } label: {
-                Image(systemName: "ellipsis")
-                    .foregroundStyle(isHovered ? .primary : .tertiary)
-                    .frame(
-                        width: TrackTableColumnPolicy.actionWidth,
-                        height: TrackTableColumnPolicy.actionWidth
-                    )
-                    .contentShape(Rectangle())
-            }
-            .menuIndicator(.hidden)
-            .menuStyle(.borderlessButton)
-            .help("Track Actions")
+            actionControl
         }
         .padding(.horizontal, TrackTableColumnPolicy.horizontalInset)
         .frame(height: 58)
@@ -70,49 +157,95 @@ struct ProductionTrackTableRow: View {
                 isFocused: isFocused
             )
             .padding(.vertical, 3)
+            .padding(
+                .horizontal,
+                TrackTableColumnPolicy.selectionHorizontalInset
+            )
         }
-        .contentShape(Rectangle())
-        .onHover { isHovered = $0 }
-        .onTapGesture(count: 1, perform: select)
         .accessibilityAddTraits(isSelected ? .isSelected : [])
-        .contextMenu {
-            actions
+    }
+
+    private var interactiveRow: some View {
+        rowLayout
+            .contentShape(Rectangle())
+            .onHover { isHovered = $0 }
+            .onTapGesture(count: 1, perform: select)
+            .contextMenu {
+                actionMenuContent
+            }
+            .draggable(dragPayload)
+            .dropDestination(for: String.self) { values, _ in
+                _ = reorder(values)
+            }
+    }
+
+    private var lightweightPointerScrollRow: some View {
+        HStack(spacing: TrackTableColumnPolicy.columnSpacing) {
+            lightweightSong
+                .frame(width: CGFloat(widths.song), alignment: .leading)
+
+            ForEach(columns) { column in
+                lightweightColumnValue(column)
+                    .frame(
+                        width: CGFloat(widths[column]),
+                        alignment: column == .album ? .leading : .trailing
+                    )
+            }
+
+            Spacer(minLength: 0)
+
+            Image(systemName: Self.lightweightActionSymbolName)
+                .foregroundStyle(.tertiary)
+                .frame(
+                    width: TrackTableColumnPolicy.actionWidth,
+                    height: TrackTableColumnPolicy.actionWidth
+                )
+                .accessibilityHidden(true)
         }
-        .draggable(
-            actionTrackIDs.map(\.uuidString).joined(separator: ",")
-        )
-        .dropDestination(for: String.self) { values, _ in
-            _ = reorder(values)
+        .padding(.horizontal, TrackTableColumnPolicy.horizontalInset)
+        .frame(height: 58)
+        .background {
+            BrowserRowSurface(
+                isSelected: isSelected,
+                isHovered: false,
+                isFocused: isFocused
+            )
+            .padding(.vertical, 3)
+            .padding(
+                .horizontal,
+                TrackTableColumnPolicy.selectionHorizontalInset
+            )
         }
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+        .onHover { isHovered = $0 }
+    }
+
+    private var actionControl: some View {
+        Menu {
+            actionMenuContent
+        } label: {
+            Image(systemName: "ellipsis")
+                .foregroundStyle(isHovered ? .primary : .tertiary)
+                .frame(
+                    width: TrackTableColumnPolicy.actionWidth,
+                    height: TrackTableColumnPolicy.actionWidth
+                )
+                .contentShape(Rectangle())
+        }
+        .menuIndicator(.hidden)
+        .menuStyle(.borderlessButton)
+        .focused($isActionControlFocused)
+        .accessibilityFocused($isActionControlAccessibilityFocused)
+        .accessibilityLabel("Track Actions")
+        .help("Track Actions")
+        .disabled(!ownsPlaylistContext)
     }
 
     private var song: some View {
         HStack(spacing: TrackTableColumnPolicy.songContentSpacing) {
-            FavoriteButton(
-                isFavorite: track.isFavorite,
-                itemName: track.title,
-                controlSize: TrackTableColumnPolicy.favoriteControlWidth
-            ) { requestedValue in
-                await model.setProductionTrackFavorite(
-                    track,
-                    isFavorite: requestedValue
-                ) != nil
-            }
-            .opacity(isHovered ? 1 : 0)
-            .allowsHitTesting(isHovered)
-            .accessibilityHidden(!isHovered)
-            .animation(
-                .easeOut(duration: CadenceTheme.motionHover),
-                value: isHovered
-            )
+            favoriteControl
 
-            Button {
-                play()
-            } label: {
-                artwork
-            }
-            .buttonStyle(.plain)
-            .help("Play \(track.title)")
+            artworkControl
 
             songMetadata
 
@@ -120,265 +253,191 @@ struct ProductionTrackTableRow: View {
         }
     }
 
-    private var artwork: some View {
+    private var lightweightSong: some View {
+        HStack(spacing: TrackTableColumnPolicy.songContentSpacing) {
+            Image(
+                systemName: Self.lightweightFavoriteSymbolName(
+                    isFavorite: track.isFavorite
+                )
+            )
+            .foregroundStyle(
+                track.isFavorite ? Color.accentColor : Color.secondary
+            )
+            .frame(
+                width: TrackTableColumnPolicy.favoriteControlWidth,
+                height: TrackTableColumnPolicy.favoriteControlWidth
+            )
+            .accessibilityHidden(true)
+
+            artwork(
+                showsHoverOverlay: false,
+                animatesCurrentTrack: false
+            )
+
+            lightweightSongMetadata
+
+            Spacer(minLength: 0)
+        }
+    }
+
+    private var favoriteControl: some View {
+        FavoriteButton(
+            itemID: track.id,
+            isFavorite: track.isFavorite,
+            itemName: track.title,
+            controlSize: TrackTableColumnPolicy.favoriteControlWidth
+        ) { requestedValue in
+            await model.setProductionTrackFavorite(
+                track,
+                isFavorite: requestedValue
+            ) != nil
+        }
+        .focused($isFavoriteFocused)
+        .opacity(favoritePresentation.visualOpacity)
+        .allowsHitTesting(favoritePresentation.acceptsPointerInteraction)
+        .accessibilityHidden(!favoritePresentation.isAccessibilityVisible)
+        .animation(
+            reduceMotion
+                ? nil
+                : .easeOut(duration: CadenceTheme.motionHover),
+            value: favoritePresentation.visualOpacity
+        )
+    }
+
+    private var artworkControl: some View {
+        Button {
+            play()
+        } label: {
+            artwork(
+                showsHoverOverlay: true,
+                animatesCurrentTrack: !isLiveScrolling
+            )
+        }
+        .buttonStyle(.plain)
+        .focused($isContentControlFocused)
+        .help("Play \(track.title)")
+        .disabled(!ownsPlaylistContext)
+    }
+
+    private var favoritePresentation: FavoriteControlPresentation {
+        FavoriteControlPresentation.resolve(
+            isHovered: isHovered,
+            isFocused: isFavoriteFocused
+        )
+    }
+
+    private var isLiveScrolling: Bool {
+        interactionState?.isLiveScrolling ?? false
+    }
+
+    private var liveScrollPresentation: TrackRowLiveScrollPresentation {
+        TrackRowLiveScrollPresentation.resolve(
+            isLiveScrolling: isLiveScrolling,
+            isSelected: isSelected,
+            isFocused: isFocused,
+            isControlFocused: isFavoriteFocused
+                || isActionControlFocused
+                || isContentControlFocused,
+            isAccessibilityFocused: isActionControlAccessibilityFocused,
+            isAssistiveTechnologyEnabled: voiceOverEnabled
+                || switchControlEnabled
+        )
+    }
+
+    private func artwork(
+        showsHoverOverlay: Bool,
+        animatesCurrentTrack: Bool
+    ) -> some View {
         ProductionArtworkView(
             model: model,
             artworkID: track.artworkID,
             title: track.title,
             placeholder: .track,
             variant: .trackRow,
-            cornerRadius: CadenceTheme.radiusControl
+            cornerRadius: CadenceTheme.radiusControl,
+            artworkLoader: artworkLoader,
+            workProbe: artworkWorkProbe,
+            sharedLoadState: artworkLoadState
         )
         .frame(width: 40, height: 40)
         .overlay {
-            if isHovered || model.isCurrentProductionTrack(track.id) {
-                let isPlayingCurrentTrack = model.isCurrentProductionTrack(track.id)
-                    && model.isCurrentProductionTrackPlaying
+            if (showsHoverOverlay && isHovered)
+                || model.isCurrentProductionTrack(track.id) {
+                let isPlayingCurrentTrack = model.isCurrentProductionTrack(
+                    track.id
+                ) && model.isCurrentProductionTrackPlaying
                 RoundedRectangle(
                     cornerRadius: CadenceTheme.radiusControl,
                     style: .continuous
                 )
                 .fill(.black.opacity(0.34))
-                Image(
-                    systemName: Self.artworkOverlaySymbolName(
-                        isCurrentTrack: model.isCurrentProductionTrack(track.id),
-                        isPlaying: model.isCurrentProductionTrackPlaying
-                    )
-                )
-                .contentTransition(.symbolEffect(.replace))
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(.white)
-                .symbolEffect(
-                    .variableColor.iterative,
-                    options: .repeating,
-                    isActive: isPlayingCurrentTrack
-                )
-            }
-        }
-    }
-
-    private var songMetadata: some View {
-        VStack(alignment: .leading, spacing: 3) {
-            HStack(spacing: 7) {
-                Text(track.title)
-                    .font(
-                        .body.weight(
-                            model.isCurrentProductionTrack(track.id)
-                                ? .semibold
-                                : .regular
+                if reduceMotion || !animatesCurrentTrack {
+                    Image(
+                        systemName: Self.artworkOverlaySymbolName(
+                            isCurrentTrack: model.isCurrentProductionTrack(
+                                track.id
+                            ),
+                            isPlaying: model.isCurrentProductionTrackPlaying
                         )
                     )
-                    .foregroundStyle(.primary)
-                    .lineLimit(1)
-
-                Text(Self.formatPillTitle(track.codec))
-                    .font(.system(size: 9, weight: .semibold))
-                    .foregroundStyle(.secondary)
-                    .padding(.horizontal, 5)
-                    .frame(height: 16)
-                    .background(
-                        CadenceTheme.subduedFill,
-                        in: Capsule()
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.white)
+                } else {
+                    Image(
+                        systemName: Self.artworkOverlaySymbolName(
+                            isCurrentTrack: model.isCurrentProductionTrack(
+                                track.id
+                            ),
+                            isPlaying: model.isCurrentProductionTrackPlaying
+                        )
                     )
-
-                if track.isExplicit {
-                    Text("E")
-                        .font(.system(size: 9, weight: .bold))
-                        .foregroundStyle(.secondary)
-                        .frame(width: 16, height: 16)
-                        .background(
-                            CadenceTheme.subduedFill,
-                            in: RoundedRectangle(
-                                cornerRadius: CadenceTheme.radiusControl,
-                                style: .continuous
-                            )
-                        )
-                        .accessibilityLabel("Explicit")
-                }
-
-                if track.hasSynchronizedLyrics {
-                    Text("LRC")
-                        .font(.system(size: 9, weight: .semibold))
-                        .foregroundStyle(.secondary)
-                        .padding(.horizontal, 5)
-                        .frame(height: 16)
-                        .background(
-                            CadenceTheme.subduedFill,
-                            in: Capsule()
-                        )
-                        .accessibilityLabel("Synchronized lyrics")
+                    .contentTransition(.symbolEffect(.replace))
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.white)
+                    .symbolEffect(
+                        .variableColor.iterative,
+                        options: .repeating,
+                        isActive: isPlayingCurrentTrack
+                    )
                 }
             }
-
-            Button {
-                guard let artistID = track.artistID else {
-                    return
-                }
-                model.requestOpenProductionArtistContextually(
-                    id: artistID
-                )
-            } label: {
-                Text(track.artist)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-            }
-            .buttonStyle(.plain)
-            .disabled(track.artistID == nil)
         }
-    }
-
-    @ViewBuilder
-    private func columnValue(
-        _ column: TrackTableColumn
-    ) -> some View {
-        switch column {
-        case .album:
-            Button {
-                guard let albumID = track.albumID else {
-                    return
-                }
-                model.requestOpenProductionAlbumContextually(id: albumID)
-            } label: {
-                Text(track.album)
-                    .lineLimit(1)
-            }
-            .buttonStyle(.plain)
-            .disabled(track.albumID == nil)
-        case .year:
-            Text(
-                track.year?.formatted(.number.grouping(.never))
-                    ?? "—"
-            )
-        case .time:
-            Text(timeText(track.duration))
-                .monospacedDigit()
-        }
-    }
-}
-
-extension ProductionTrackTableRow {
-    static func formatPillTitle(_ codec: String) -> String {
-        codec
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-            .drop(while: { $0 == "." })
-            .uppercased()
-    }
-
-    static func artworkOverlaySymbolName(
-        isCurrentTrack: Bool,
-        isPlaying: Bool
-    ) -> String {
-        isCurrentTrack && isPlaying ? "waveform" : "play.fill"
     }
 }
 
 private extension ProductionTrackTableRow {
     @ViewBuilder
-    var actions: some View {
-        Button("Play", systemImage: "play.fill") {
-            play()
-        }
-        if playlistID != nil {
-            Button(
-                "Remove from Playlist",
-                systemImage: "minus.circle"
-            ) {
-                Task {
-                    await model.librarySession.store
-                        .removeFromSelectedPlaylist(trackIDs: actionTrackIDs)
-                }
-            }
-        }
-        Button("Play Next", systemImage: "text.line.first.and.arrowtriangle.forward") {
-            model.playProductionNext(actionTrackIDs)
-        }
-        Button("Add to Queue", systemImage: "text.badge.plus") {
-            model.addToProductionQueue(actionTrackIDs)
-        }
-        if actionTrackIDs.count == 1 {
-            Button(
-                track.isFavorite ? "Remove from Favorites" : "Add to Favorites",
-                systemImage: track.isFavorite ? "heart.slash" : "heart"
-            ) {
-                Task {
-                    await model.setProductionTrackFavorite(
-                        track,
-                        isFavorite: !track.isFavorite
-                    )
-                }
-            }
-            Button("Edit Tags…", systemImage: "tag.badge.plus") {
-                model.openProductionTagEditor(trackID: track.id)
-            }
-        }
-        QuickTrackTagMenuItems(
-            store: model.librarySession.store,
-            trackIDs: actionTrackIDs
-        )
-        AddToPlaylistMenuItems(
-            store: model.librarySession.store,
-            trackIDs: actionTrackIDs
-        )
-        if actionTrackIDs.count == 1 {
-            ArtworkMenuItems(
-                model: model,
-                target: .managedTrack(track.id),
-                label: "Track Artwork"
-            )
-        }
-        Divider()
-        Button(
-            "Move to Trash…",
-            systemImage: "trash",
-            role: .destructive
+    var actionMenuContent: some View {
+        if actionMenuMaterializationPolicy.materializesFullActions(
+            isHovered: isHovered,
+            isSelected: isSelected,
+            isFocused: isFocused,
+            isKeyboardFocused: isActionControlFocused,
+            isAccessibilityFocused: isActionControlAccessibilityFocused,
+            isLiveScrolling: isLiveScrolling
         ) {
-            model.requestLibraryDeletion(
-                trackIDs: actionTrackIDs,
-                title: actionTrackIDs.count == 1
-                    ? track.title
-                    : "\(actionTrackIDs.count) selected tracks"
-            )
+            actions
+        } else {
+            Button("Track Actions") {}
+                .disabled(true)
+                .accessibilityLabel("Track Actions")
         }
     }
+}
 
-    func reorder(_ values: [String]) -> Bool {
-        guard let reorderAction else {
-            return false
-        }
-        let movingIDs = Set(
-            values
-                .flatMap { $0.split(separator: ",") }
-                .compactMap { UUID(uuidString: String($0)) }
-        )
-        guard !movingIDs.isEmpty else {
-            return false
-        }
-        var orderedIDs = queue.map(\.id).filter {
-            !movingIDs.contains($0)
-        }
-        let targetIndex = orderedIDs.firstIndex(of: track.id)
-            ?? orderedIDs.endIndex
-        orderedIDs.insert(
-            contentsOf: queue.map(\.id).filter(movingIDs.contains),
-            at: targetIndex
-        )
-        reorderAction(orderedIDs)
-        return true
-    }
+extension ProductionTrackTableRow {
+    static let lightweightActionSymbolName = "ellipsis"
 
-    func timeText(
-        _ duration: TimeInterval
+    static func lightweightFavoriteSymbolName(
+        isFavorite: Bool
     ) -> String {
-        let seconds = max(Int(duration.rounded()), 0)
-        return String(format: "%d:%02d", seconds / 60, seconds % 60)
+        isFavorite ? "heart.fill" : "heart"
     }
 
-    func play() {
-        model.playProductionTrack(
-            track,
-            within: queue,
-            source: queueSource
-        )
+    static func hoverStateAfterTrackIdentityChange(
+        isHovered: Bool,
+        isLiveScrolling: Bool
+    ) -> Bool {
+        isLiveScrolling ? isHovered : false
     }
 }

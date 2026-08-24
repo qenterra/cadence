@@ -20,7 +20,7 @@ extension LibraryStore {
 
         browserTrackGeneration += 1
         browserAlbumID = nil
-        browserTracks = []
+        replaceBrowserTracksContent(with: [])
         browserTracksState = .idle
         browserTrackCursor = nil
         isLoadingNextBrowserTracks = false
@@ -102,7 +102,7 @@ extension LibraryStore {
         if let sort {
             browserTrackSort = sort
         }
-        browserTracks = []
+        replaceBrowserTracksContent(with: [])
         browserTracksState = albumID == nil ? .idle : .loading
         browserTrackCursor = nil
         isLoadingNextBrowserTracks = false
@@ -124,7 +124,9 @@ extension LibraryStore {
             else {
                 return
             }
-            browserTracks = deduplicatedBrowserTracks(page.items)
+            replaceBrowserTracksContent(
+                with: deduplicatedBrowserTracks(page.items)
+            )
             browserTrackCursor = page.nextCursor
             browserTracksState = .ready
         } catch {
@@ -173,11 +175,13 @@ extension LibraryStore {
                 return
             }
             var existingIDs = Set(browserTracks.map(\.id))
-            browserTracks.append(
-                contentsOf: page.items.filter {
-                    existingIDs.insert($0.id).inserted
-                }
-            )
+            let additions = page.items.filter {
+                existingIDs.insert($0.id).inserted
+            }
+            if !additions.isEmpty {
+                browserTracks.append(contentsOf: additions)
+                browserTracksContentClock.advance()
+            }
             browserTrackCursor = page.nextCursor
             isLoadingNextBrowserTracks = false
         } catch {

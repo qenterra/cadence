@@ -5,18 +5,26 @@ struct ProductionLyricsPanel: View {
     let track: PlaybackTrack
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var document: LyricDocument?
+    @State private var presentation = LyricDocumentPresentationState()
     @State private var editingLineID: LyricLine.ID?
     @State private var editingText = ""
-    @State private var activeLineID: LyricLine.ID?
     @FocusState private var focusedEditingLineID: LyricLine.ID?
 
     var body: some View {
+        let acceptedPresentation = presentation.acceptedPresentation(
+            expectedTrackID: track.id,
+            currentTrackID: model.currentPlaybackTrack?.id,
+            currentLyricsRevision: model.lyricsRevision,
+            isExternal: model.isCurrentPlaybackExternal
+        )
         VStack(spacing: 0) {
             HStack {
-                Text(document?.timingStatus.title ?? "Lyrics")
-                    .font(.caption.weight(.medium))
-                    .foregroundStyle(.tertiary)
+                Text(
+                    acceptedPresentation?.document?.timingStatus.title
+                        ?? "Lyrics"
+                )
+                .font(.caption.weight(.medium))
+                .foregroundStyle(.tertiary)
 
                 Spacer()
 
@@ -46,20 +54,35 @@ struct ProductionLyricsPanel: View {
                             model.addCurrentExternalAudioToLibrary()
                         }
                     }
-                } else if let document {
-                    lyrics(document, activeLineID: activeLineID)
-                        .overlay {
-                            if document.timingStatus == .synchronized {
-                                PlaybackLyricActiveLineObserver(
-                                    model: model,
-                                    document: document
-                                ) { lineID in
-                                    activeLineID = lineID
-                                }
-                                .allowsHitTesting(false)
-                                .accessibilityHidden(true)
-                            }
+                } else if let accepted = acceptedPresentation,
+                          let document = accepted.document {
+                    lyrics(
+                        document,
+                        activeLineID: presentation.activeLineID
+                    )
+                    .overlay {
+                        if document.timingStatus == .synchronized {
+                            PlaybackLyricActiveLineObserver(
+                                model: model,
+                                trackID: track.id,
+                                document: document,
+                                acceptedDocumentGeneration: accepted
+                                    .request.generation,
+                                activeLineID: Binding(
+                                    get: { presentation.activeLineID },
+                                    set: {
+                                        presentation.updateActiveLineID(
+                                            $0,
+                                            fromAcceptedGeneration: accepted
+                                                .request.generation
+                                        )
+                                    }
+                                )
+                            )
+                            .allowsHitTesting(false)
+                            .accessibilityHidden(true)
                         }
+                    }
                 } else {
                     ContentUnavailableView {
                         Label("No Lyrics", systemImage: "quote.bubble")
@@ -74,19 +97,30 @@ struct ProductionLyricsPanel: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .task(id: "\(track.id)-\(model.lyricsRevision)") {
+        .task(
+            id: ProductionLyricsDocumentTaskKey(
+                trackID: track.id,
+                lyricsRevision: model.lyricsRevision,
+                isExternal: model.isCurrentPlaybackExternal
+            )
+        ) {
+            let request = presentation.beginLoad(
+                trackID: track.id,
+                lyricsRevision: model.lyricsRevision
+            )
+            cancelLineEdit()
             guard !model.isCurrentPlaybackExternal else {
-                document = nil
                 return
             }
-            document = await model.loadProductionLyrics(for: track)
-            activeLineID = document.flatMap {
-                SynchronizedLyricTimeline(document: $0).activeLineID(
-                    at: model.playbackPresentationTime()
-                )
-            }
-            editingLineID = nil
-            focusedEditingLineID = nil
+            let loadedDocument = await model.loadProductionLyrics(for: track)
+            presentation.acceptLoad(
+                loadedDocument,
+                for: request,
+                currentTrackID: model.currentPlaybackTrack?.id,
+                currentLyricsRevision: model.lyricsRevision,
+                isCancelled: Task.isCancelled,
+                presentationTime: model.playbackPresentationTime()
+            )
         }
     }
 
@@ -94,7 +128,10 @@ struct ProductionLyricsPanel: View {
         _ document: LyricDocument,
         activeLineID: LyricLine.ID?
     ) -> some View {
-        ScrollViewReader { proxy in
+        let motion = LyricMotionBehavior.resolve(
+            reduceMotion: reduceMotion
+        )
+        return ScrollViewReader { proxy in
             ScrollView(.vertical) {
                 LazyVStack(alignment: .leading, spacing: 18) {
                     ForEach(document.lines) { line in
@@ -103,7 +140,8 @@ struct ProductionLyricsPanel: View {
                         } else {
                             lyricLine(
                                 line,
-                                isActive: activeLineID == line.id
+                                isActive: activeLineID == line.id,
+                                motion: motion
                             )
                             .id(line.id)
                         }
@@ -120,12 +158,12 @@ struct ProductionLyricsPanel: View {
                 guard let lineID else {
                     return
                 }
-                if reduceMotion {
-                    proxy.scrollTo(lineID, anchor: .center)
-                } else {
+                if motion.animatesScroll {
                     withAnimation(.smooth(duration: CadenceTheme.motionPresent)) {
                         proxy.scrollTo(lineID, anchor: .center)
                     }
+                } else {
+                    proxy.scrollTo(lineID, anchor: .center)
                 }
             }
         }
@@ -134,7 +172,8 @@ struct ProductionLyricsPanel: View {
     @ViewBuilder
     private func lyricLine(
         _ line: LyricLine,
-        isActive: Bool
+        isActive: Bool,
+        motion: LyricMotionBehavior
     ) -> some View {
         if editingLineID == line.id {
             TextField("Lyric Line", text: $editingText, axis: .vertical)
@@ -165,7 +204,9 @@ struct ProductionLyricsPanel: View {
             }
             .buttonStyle(.plain)
             .animation(
-                reduceMotion ? nil : .smooth(duration: CadenceTheme.motionPresent),
+                motion.animatesEmphasis
+                    ? .smooth(duration: CadenceTheme.motionPresent)
+                    : nil,
                 value: isActive
             )
             .contextMenu {
@@ -177,15 +218,23 @@ struct ProductionLyricsPanel: View {
     }
 
     private func beginLineEdit(_ line: LyricLine) {
+        guard let generation = presentation.acceptedGeneration else {
+            return
+        }
         editingLineID = line.id
         editingText = line.text
         Task { @MainActor in
+            guard presentation.acceptedGeneration == generation,
+                  editingLineID == line.id else {
+                return
+            }
             focusedEditingLineID = line.id
         }
     }
 
     private func commitLineEdit(lineID: LyricLine.ID) {
-        guard let document else {
+        guard let document = presentation.document,
+              let edit = presentation.editRequest(lineID: lineID) else {
             return
         }
         let text = editingText
@@ -197,7 +246,15 @@ struct ProductionLyricsPanel: View {
             ) else {
                 return
             }
-            self.document = updated
+            guard presentation.publishEditedDocument(
+                updated,
+                for: edit,
+                currentTrackID: model.currentPlaybackTrack?.id,
+                currentLyricsRevision: model.lyricsRevision,
+                isCancelled: Task.isCancelled
+            ) else {
+                return
+            }
             cancelLineEdit()
         }
     }
@@ -209,23 +266,72 @@ struct ProductionLyricsPanel: View {
     }
 }
 
+@MainActor
 struct PlaybackLyricActiveLineObserver: View {
     @Bindable var model: CadenceAppModel
+    let trackID: PlaybackTrack.ID
     let document: LyricDocument
-    let update: (LyricLine.ID?) -> Void
+    let acceptedDocumentGeneration: UInt64?
+    @Binding var activeLineID: LyricLine.ID?
+
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
-        let timeline = SynchronizedLyricTimeline(document: document)
-        TimelineView(.animation(minimumInterval: 1.0 / 120.0, paused: false)) { _ in
-            let lineID = timeline.activeLineID(
-                at: model.playbackPresentationTime()
-            )
-            Color.clear
-                .onChange(of: lineID, initial: true) { _, lineID in
-                    update(lineID)
+        let key = PlaybackLyricObservationKey(
+            expectedTrackID: trackID,
+            currentTrackID: model.currentPlaybackTrack?.id,
+            playbackAnchor: model.playbackCurrentTime,
+            isAdvancing: model.currentPlaybackTrack?.id == trackID
+                && model.isPlaying
+                && scenePhase == .active,
+            acceptedDocumentGeneration: acceptedDocumentGeneration
+        )
+        Color.clear
+            .task(id: key) {
+                let timeline = SynchronizedLyricTimeline(document: document)
+                var emissionState = LyricLineEmissionState(
+                    activeLineID: activeLineID
+                )
+
+                while !Task.isCancelled {
+                    let step = LyricObservationPolicy.step(
+                        timeline: timeline,
+                        presentationTime: model.playbackPresentationTime(),
+                        isAdvancing: key.isAdvancing
+                    )
+
+                    if emissionState.update(to: step.activeLineID) {
+                        activeLineID = step.activeLineID
+                    }
+
+                    guard let delay = step.nextUpdateAfter else {
+                        return
+                    }
+
+                    do {
+                        try await Task.sleep(for: .seconds(delay))
+                    } catch is CancellationError {
+                        return
+                    } catch {
+                        return
+                    }
                 }
-        }
+            }
     }
+}
+
+struct PlaybackLyricObservationKey: Equatable {
+    let expectedTrackID: PlaybackTrack.ID
+    let currentTrackID: PlaybackTrack.ID?
+    let playbackAnchor: TimeInterval
+    let isAdvancing: Bool
+    let acceptedDocumentGeneration: UInt64?
+}
+
+private struct ProductionLyricsDocumentTaskKey: Equatable {
+    let trackID: PlaybackTrack.ID
+    let lyricsRevision: Int
+    let isExternal: Bool
 }
 
 private extension LyricTimingStatus {
@@ -265,17 +371,6 @@ enum ProductionLyricLineAppearance {
             usesShimmer: false
         )
     }
-
-    static func blurRadius(
-        isActive: Bool,
-        isSynchronized: Bool,
-        isIncreasedContrast: Bool
-    ) -> CGFloat {
-        guard isSynchronized, !isActive, !isIncreasedContrast else {
-            return 0
-        }
-        return 0.7
-    }
 }
 
 struct ProductionLyricLineLabel: View {
@@ -299,8 +394,6 @@ struct ProductionLyricLineLabel: View {
         self.lineLimit = lineLimit
     }
 
-    @Environment(\.colorSchemeContrast) private var contrast
-
     var body: some View {
         let appearance = ProductionLyricLineAppearance.resolve(
             isActive: isActive,
@@ -318,12 +411,5 @@ struct ProductionLyricLineLabel: View {
                     : Color.secondary
             )
             .opacity(appearance.opacity)
-            .blur(
-                radius: ProductionLyricLineAppearance.blurRadius(
-                    isActive: isActive,
-                    isSynchronized: isSynchronized,
-                    isIncreasedContrast: contrast == .increased
-                )
-            )
     }
 }
