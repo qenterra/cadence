@@ -63,6 +63,7 @@ DEVELOPER_DIR="$developer_dir" xcodebuild \
     -configuration Debug \
     -derivedDataPath "$project_root/.build/ScreenshotDerivedData" \
     -destination 'platform=macOS' \
+    -jobs 2 \
     -only-testing:CadenceTests/DocumentationScreenshotTests \
     -only-testing:CadenceTests/CollapsedNavigationScreenshotTests \
     -only-testing:CadenceTests/CadenceModeScreenshotTests \
