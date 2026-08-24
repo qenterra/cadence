@@ -44,9 +44,10 @@ Worktree: temporary isolated feature worktree
 - Additional active Cadence Mode renders at 1080×844 and 2200×1300 were inspected; the temporary harness and marker were removed afterward.
 - `scripts/verify_localization.sh <derived-data>`: passed with 630 active keys.
 - `swiftformat Sources Tests --lint`: passed, 0 of 572 files require formatting.
-- Strict SwiftLint: passed.
+- SwiftLint gate completed with 0 serious violations; the configured warning baseline remains visible.
 - Periphery: passed with no unused code detected.
 - `git diff --check`: passed.
+- The canonical gate passed again after fast-forwarding the implementation commit into `main`; this documentation-only wording correction does not change build inputs.
 
 ## Required installed-app acceptance
 
