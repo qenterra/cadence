@@ -2,11 +2,20 @@ import SwiftUI
 
 struct ManagedLibrarySettingsCard: View {
     @Bindable var model: CadenceAppModel
+    let openDestination: ((NavigationDestination) -> Void)?
     @State private var libraryStorageSize = "Calculating…"
     @State private var isDeleteConfirmationPresented = false
 
     private var store: LibraryStore {
         model.librarySession.store
+    }
+
+    init(
+        model: CadenceAppModel,
+        openDestination: ((NavigationDestination) -> Void)? = nil
+    ) {
+        self.model = model
+        self.openDestination = openDestination
     }
 
     var body: some View {
@@ -82,10 +91,10 @@ struct ManagedLibrarySettingsCard: View {
     private var libraryActions: some View {
         HStack {
             Button("Import Music…", systemImage: "folder.badge.plus") {
-                model.requestNavigationDestination(.importMusic)
+                navigate(to: .importMusic)
             }
             Button("Open Trash", systemImage: "trash") {
-                model.requestNavigationDestination(.trash)
+                navigate(to: .trash)
             }
             Button("Move Library…", systemImage: "externaldrive.badge.plus") {
                 model.chooseLibraryLocation()
@@ -139,5 +148,13 @@ struct ManagedLibrarySettingsCard: View {
     private var libraryPath: String {
         model.librarySession.location?.packageURL.path
             ?? "~/Music/Cadence"
+    }
+
+    private func navigate(to destination: NavigationDestination) {
+        if let openDestination {
+            openDestination(destination)
+        } else {
+            model.requestNavigationDestination(destination)
+        }
     }
 }

@@ -153,6 +153,7 @@ struct CadenceModeView: View {
                 placeholder: .track,
                 variant: .original,
                 cornerRadius: CadenceTheme.radiusHero,
+                showsBorder: false,
                 onReady: {
                     visualReadinessObserver?.notifyArtworkReady(
                         trackID: track.id
@@ -252,20 +253,33 @@ struct CadenceModeView: View {
     }
 
     private var unavailableLyrics: some View {
-        VStack(spacing: 7) {
+        VStack(spacing: CadenceLayout.controlGap) {
             Text(trackTitle)
-                .font(.title2.weight(.semibold))
-                .lineLimit(1)
+                .font(
+                    .system(
+                        size: CadenceModeUnavailableLyricsMetrics.titleSize,
+                        weight: .semibold,
+                        design: .rounded
+                    )
+                )
+                .lineLimit(2)
+                .minimumScaleFactor(0.72)
             Text(artist)
-                .font(.body.weight(.medium))
+                .font(
+                    .system(
+                        size: CadenceModeUnavailableLyricsMetrics.artistSize,
+                        weight: .medium
+                    )
+                )
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
             Text(unavailableLyricsCaption)
                 .font(.caption)
                 .foregroundStyle(.tertiary)
-                .padding(.top, 4)
+                .padding(.top, CadenceLayout.textStack)
         }
         .multilineTextAlignment(.center)
+        .padding(.horizontal, CadenceLayout.pageInset)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
@@ -281,6 +295,11 @@ struct CadenceModeView: View {
             ""
         }
     }
+}
+
+enum CadenceModeUnavailableLyricsMetrics {
+    static let titleSize: CGFloat = 36
+    static let artistSize: CGFloat = 17
 }
 
 struct CadenceModeBassResponse: Equatable, Sendable {

@@ -478,6 +478,15 @@ struct CadenceModeRegressionTests {
         #expect(normal.animatesScroll)
     }
 
+    @Test("Unavailable lyrics reserve display-scale type for the track")
+    func unavailableLyricsTypography() {
+        #expect(CadenceModeUnavailableLyricsMetrics.titleSize >= 32)
+        #expect(
+            CadenceModeUnavailableLyricsMetrics.titleSize
+                > CadenceModeUnavailableLyricsMetrics.artistSize
+        )
+    }
+
     @Test("Cadence Mode keeps a hard 60 FPS floor and 110 FPS ProMotion target")
     func performancePolicyKeepsSupportedFloor() {
         #expect(

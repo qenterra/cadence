@@ -14,6 +14,13 @@ enum TrackTableColumnPolicy {
     static let favoriteControlWidth = CatalogTileFavoriteLayout.controlSize
     static let songContentSpacing = CadenceLayout.compactGap
 
+    static func showsColumnSeparator(
+        isHovered: Bool,
+        isDragging: Bool
+    ) -> Bool {
+        isHovered || isDragging
+    }
+
     static func rowChromeWidth(
         columnCount: Int
     ) -> Double {
@@ -37,13 +44,6 @@ enum TrackTableColumnPolicy {
         availableWidth: Double
     ) -> TrackTableLayoutMode {
         availableWidth < compactThreshold ? .compact : .full
-    }
-
-    static func showsColumnSeparator(
-        isHovered: Bool,
-        isDragging: Bool
-    ) -> Bool {
-        isHovered || isDragging
     }
 
     static func layout(

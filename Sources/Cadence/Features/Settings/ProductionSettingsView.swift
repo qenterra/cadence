@@ -49,6 +49,7 @@ struct ProductionSettingsView: View {
     @Bindable var model: CadenceAppModel
     let tab: CadenceSettingsTab
     let updateController: CadenceUpdateController?
+    let openDestination: ((NavigationDestination) -> Void)?
     @State private var defaultAudioApplication =
         DefaultAudioApplicationController()
     @AppStorage("appearance")
@@ -64,11 +65,13 @@ struct ProductionSettingsView: View {
     init(
         model: CadenceAppModel,
         tab: CadenceSettingsTab = .general,
-        updateController: CadenceUpdateController? = nil
+        updateController: CadenceUpdateController? = nil,
+        openDestination: ((NavigationDestination) -> Void)? = nil
     ) {
         self.model = model
         self.tab = tab
         self.updateController = updateController
+        self.openDestination = openDestination
     }
 
     var body: some View {
@@ -133,7 +136,10 @@ struct ProductionSettingsView: View {
             appearanceCard
             cadenceModeCard
         case .library:
-            ManagedLibrarySettingsCard(model: model)
+            ManagedLibrarySettingsCard(
+                model: model,
+                openDestination: openDestination
+            )
         case .sidebar:
             SettingsSidebarCard(
                 orderRawValue: $navigationOrderRawValue,

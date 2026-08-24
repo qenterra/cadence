@@ -156,11 +156,11 @@ struct ProductionTrackTableRow: View {
                 isHovered: isHovered,
                 isFocused: isFocused
             )
-            .padding(.vertical, 3)
             .padding(
                 .horizontal,
                 TrackTableColumnPolicy.selectionHorizontalInset
             )
+            .padding(.vertical, 3)
         }
         .accessibilityAddTraits(isSelected ? .isSelected : [])
     }

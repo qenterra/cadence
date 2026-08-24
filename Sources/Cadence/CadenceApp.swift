@@ -225,6 +225,7 @@ struct CadenceApp: App {
 }
 
 struct CadenceSettingsWindow: View {
+    @Environment(\.dismiss) private var dismiss
     @Bindable var model: CadenceAppModel
     let updateController: CadenceUpdateController
     @State private var selection: CadenceSettingsTab
@@ -254,7 +255,11 @@ struct CadenceSettingsWindow: View {
             ProductionSettingsView(
                 model: model,
                 tab: selection,
-                updateController: updateController
+                updateController: updateController,
+                openDestination: { destination in
+                    model.requestNavigationDestination(destination)
+                    dismiss()
+                }
             )
         }
         .frame(width: 760, height: 640, alignment: .top)

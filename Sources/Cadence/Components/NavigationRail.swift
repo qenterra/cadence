@@ -269,7 +269,7 @@ enum NavigationRailMetrics {
     static let horizontalInset = CadenceLayout.compactGap
     static let verticalInset = CadenceLayout.controlGap
     static let rowInset = CadenceLayout.compactGap
-    static let rowSpacing = CadenceLayout.textStack
+    static let rowSpacing: CGFloat = 2
     static let rowSurfaceInset: CGFloat = 2
     static let rowHeight = CadenceLayout.rowHeight
     static let iconSlotWidth: CGFloat = 32
