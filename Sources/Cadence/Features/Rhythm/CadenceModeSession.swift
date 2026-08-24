@@ -9,6 +9,7 @@ final class CadenceModeSession {
     private(set) var activationIsPending = false
 
     @ObservationIgnored private var inputState = CadenceModeInputState()
+    @ObservationIgnored private var isEnabled = true
     @ObservationIgnored private let automatesTiming: Bool
     @ObservationIgnored private let deadlineController =
         CadenceModeDeadlineController()
@@ -31,7 +32,7 @@ final class CadenceModeSession {
         let action = nextState.keyDown(
             lane: lane,
             at: time,
-            canActivate: canActivate
+            canActivate: isEnabled && canActivate
         )
         inputState = nextState
         publishPresentationState()
@@ -41,6 +42,35 @@ final class CadenceModeSession {
         }
         scheduleDeadlineIfNeeded()
         return action
+    }
+
+    @discardableResult
+    func requestActivation(
+        canActivate: Bool,
+        at time: TimeInterval = ProcessInfo.processInfo.systemUptime
+    ) -> CadenceModeInputAction {
+        guard isEnabled else {
+            return .none
+        }
+        var nextState = inputState
+        let action = nextState.requestActivation(
+            at: time,
+            canActivate: canActivate
+        )
+        inputState = nextState
+        publishPresentationState()
+        scheduleDeadlineIfNeeded()
+        return action
+    }
+
+    func setEnabled(_ isEnabled: Bool) {
+        guard self.isEnabled != isEnabled else {
+            return
+        }
+        self.isEnabled = isEnabled
+        if !isEnabled {
+            deactivate()
+        }
     }
 
     func keyUp(lane: RhythmLane) {

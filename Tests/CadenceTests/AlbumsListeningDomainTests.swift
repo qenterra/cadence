@@ -131,17 +131,18 @@ struct AlbumsListeningDomainTests {
         )
     }
 
-    @Test("Adaptive album metrics stay readable at supported widths")
+    @Test("Album metrics keep cards fixed while supported widths add columns")
     func layoutMetrics() {
         let minimum = AlbumsLayoutMetrics(totalWidth: 1005)
         let standard = AlbumsLayoutMetrics(totalWidth: 1440)
         let wide = AlbumsLayoutMetrics(totalWidth: 1900)
 
-        #expect(minimum.columnCount == 5)
-        #expect(standard.columnCount == 8)
+        #expect(minimum.columnCount == 4)
+        #expect(standard.columnCount == 6)
         #expect(wide.columnCount > standard.columnCount)
-        #expect(minimum.tileWidth >= AlbumsLayoutMetrics.minimumTileWidth)
-        #expect(standard.tileWidth <= AlbumsLayoutMetrics.maximumTileWidth)
+        #expect(minimum.tileWidth == 196)
+        #expect(standard.tileWidth == 196)
+        #expect(wide.tileWidth == 196)
         #expect(minimum.shelfCapacity == minimum.columnCount)
     }
 

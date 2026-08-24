@@ -91,7 +91,7 @@ enum NavigationRailConfiguration {
     ) -> [NavigationDestination] {
         guard
             source != target,
-            source.navigationGroup == target.navigationGroup,
+            source != .home,
             let sourceIndex = destinations.firstIndex(of: source),
             let targetIndex = destinations.firstIndex(of: target)
         else {
@@ -100,10 +100,17 @@ enum NavigationRailConfiguration {
 
         var reordered = destinations
         let destination = reordered.remove(at: sourceIndex)
+        let insertionIndex = target == .home
+            ? min(1, reordered.endIndex)
+            : min(targetIndex, reordered.endIndex)
         reordered.insert(
             destination,
-            at: min(targetIndex, reordered.endIndex)
+            at: insertionIndex
         )
+        if let homeIndex = reordered.firstIndex(of: .home), homeIndex != 0 {
+            let home = reordered.remove(at: homeIndex)
+            reordered.insert(home, at: 0)
+        }
         return reordered
     }
 

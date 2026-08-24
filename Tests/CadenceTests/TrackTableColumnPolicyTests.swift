@@ -8,8 +8,7 @@ struct TrackTableColumnPolicyTests {
         let columns: [TrackTableColumn] = [.album, .year, .time]
         let widths = TrackTableColumnPolicy.layout(
             availableWidth: 920,
-            columns: columns,
-            preferred: nil
+            columns: columns
         )
 
         let contentWidth = widths.song + columns.reduce(0) {
@@ -18,27 +17,66 @@ struct TrackTableColumnPolicyTests {
         #expect(abs(contentWidth - 920) < 0.5)
     }
 
-    @Test("Every surface uses the same proportional defaults")
-    func commonDefaultProportions() {
+    @Test("Every surface uses the same deterministic column widths")
+    func commonFixedWidths() {
         let columns: [TrackTableColumn] = [.album, .year, .time]
         let library = TrackTableColumnPolicy.layout(
             availableWidth: 860,
-            columns: columns,
-            preferred: nil
+            columns: columns
         )
         let playlist = TrackTableColumnPolicy.layout(
             availableWidth: 860,
-            columns: columns,
-            preferred: nil
+            columns: columns
         )
 
         #expect(library == playlist)
+        #expect(library.album == 190)
+        #expect(library.year == 64)
+        #expect(library.time == 64)
+        #expect(library.song == 542)
     }
 
     @Test("Narrow surfaces collapse secondary columns")
     func narrowWidthUsesCompactMode() {
         #expect(TrackTableColumnPolicy.mode(availableWidth: 620) == .compact)
         #expect(TrackTableColumnPolicy.mode(availableWidth: 920) == .full)
+    }
+
+    @Test("The minimum full viewport protects a 360 point Track column")
+    func minimumFullViewportProtectsTrack() {
+        let columns: [TrackTableColumn] = [.album, .year, .time]
+        let viewport = TrackTableColumnPolicy.compactThreshold
+        let content = TrackTableColumnPolicy.contentWidth(
+            availableWidth: viewport,
+            columns: columns
+        )
+        let widths = TrackTableColumnPolicy.layout(
+            availableWidth: content,
+            columns: columns
+        )
+
+        #expect(TrackTableColumnPolicy.mode(availableWidth: viewport) == .full)
+        #expect(widths.song >= 360)
+    }
+
+    @Test("Optional columns collapse before active columns are crushed")
+    func compactModeCollapsesOptionalColumns() {
+        let viewport = TrackTableColumnPolicy.compactThreshold - 1
+        let columns: [TrackTableColumn] = []
+        let content = TrackTableColumnPolicy.contentWidth(
+            availableWidth: viewport,
+            columns: columns
+        )
+        let widths = TrackTableColumnPolicy.layout(
+            availableWidth: content,
+            columns: columns
+        )
+
+        #expect(TrackTableColumnPolicy.mode(availableWidth: viewport) == .compact)
+        #expect(widths.album == 0)
+        #expect(widths.year == 0)
+        #expect(widths.time == 0)
+        #expect(widths.song == content)
     }
 
     @Test("Row chrome and columns fit without horizontal scrolling")
@@ -52,19 +90,21 @@ struct TrackTableColumnPolicyTests {
 
         for available in viewports {
             for columns in columnSets {
+                let activeColumns = TrackTableColumnPolicy.mode(
+                    availableWidth: available
+                ) == .compact ? [] : columns
                 let content = TrackTableColumnPolicy.contentWidth(
                     availableWidth: available,
-                    columns: columns
+                    columns: activeColumns
                 )
                 let widths = TrackTableColumnPolicy.layout(
                     availableWidth: content,
-                    columns: columns,
-                    preferred: nil
+                    columns: activeColumns
                 )
-                let occupied = widths.song + columns.reduce(0) {
+                let occupied = widths.song + activeColumns.reduce(0) {
                     $0 + widths[$1]
                 } + TrackTableColumnPolicy.rowChromeWidth(
-                    columnCount: columns.count
+                    columnCount: activeColumns.count
                 )
 
                 #expect(abs(occupied - available) < 0.5)
@@ -92,27 +132,5 @@ struct TrackTableColumnPolicyTests {
     @Test("Track selection chrome keeps a compact horizontal inset")
     func selectionChromeInset() {
         #expect(TrackTableColumnPolicy.selectionHorizontalInset == 8)
-    }
-
-    @Test("Column separators appear only during a resize interaction")
-    func columnSeparatorVisibility() {
-        #expect(
-            !TrackTableColumnPolicy.showsColumnSeparator(
-                isHovered: false,
-                isDragging: false
-            )
-        )
-        #expect(
-            TrackTableColumnPolicy.showsColumnSeparator(
-                isHovered: true,
-                isDragging: false
-            )
-        )
-        #expect(
-            TrackTableColumnPolicy.showsColumnSeparator(
-                isHovered: false,
-                isDragging: true
-            )
-        )
     }
 }

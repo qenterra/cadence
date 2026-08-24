@@ -6,7 +6,6 @@ extension ProductionHomeView {
         let recentTrackIDs = Set(
             HomeListeningSelection.recentItems(
                 store.recentlyPlayedTracks,
-                excludingID: model.currentPlaybackTrack?.id,
                 limit: 6
             ).map(\.id)
         )

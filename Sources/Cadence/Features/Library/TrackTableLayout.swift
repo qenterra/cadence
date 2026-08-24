@@ -1,4 +1,4 @@
-import AppKit
+import Foundation
 import SwiftUI
 
 enum TrackTableSortField: String, CaseIterable, Codable, Sendable {
@@ -71,48 +71,13 @@ struct TrackTableSortDescriptor: Equatable, Hashable, Sendable {
     }
 }
 
-struct TrackTableWidthRange {
-    let minimum: Double
-    let defaultValue: Double
-    let maximum: Double
-}
-
-enum TrackTableWidth {
-    static let song = TrackTableWidthRange(
-        minimum: 220.0,
-        defaultValue: 360.0,
-        maximum: 720.0
-    )
-    static let album = TrackTableWidthRange(
-        minimum: 130.0,
-        defaultValue: 220.0,
-        maximum: 520.0
-    )
-    static let year = TrackTableWidthRange(
-        minimum: 54.0,
-        defaultValue: 72.0,
-        maximum: 120.0
-    )
-    static let time = TrackTableWidthRange(
-        minimum: 54.0,
-        defaultValue: 72.0,
-        maximum: 120.0
-    )
-}
-
 struct TrackTableHeaderCell: View {
     let title: String
     let alignment: Alignment
     let isSorted: Bool
     let direction: TrackTableSortDirection
-    let minimumWidth: Double
-    let maximumWidth: Double
     let resolvedWidth: Double
-    @Binding var preferredWidth: Double
     let sortAction: () -> Void
-
-    @State private var dragStartWidth: Double?
-    @State private var isResizerHovered = false
 
     var body: some View {
         Button(action: sortAction) {
@@ -138,71 +103,10 @@ struct TrackTableHeaderCell: View {
         }
         .buttonStyle(.plain)
         .frame(width: CGFloat(resolvedWidth), alignment: alignment)
-        .overlay(alignment: .trailing) {
-            Rectangle()
-                .fill(.clear)
-                .frame(width: 9)
-                .contentShape(Rectangle())
-                .overlay {
-                    Rectangle()
-                        .fill(
-                            TrackTableColumnPolicy.showsColumnSeparator(
-                                isHovered: isResizerHovered,
-                                isDragging: dragStartWidth != nil
-                            )
-                                ? CadenceTheme.strongSeparator
-                                : .clear
-                        )
-                        .frame(width: 1)
-                }
-                .gesture(
-                    DragGesture(
-                        minimumDistance: 1,
-                        coordinateSpace: .global
-                    )
-                    .onChanged { value in
-                        if dragStartWidth == nil {
-                            dragStartWidth = preferredWidth
-                        }
-                        let start = dragStartWidth ?? preferredWidth
-                        preferredWidth = min(
-                            max(
-                                start + Double(value.translation.width),
-                                minimumWidth
-                            ),
-                            maximumWidth
-                        )
-                    }
-                    .onEnded { _ in
-                        dragStartWidth = nil
-                    }
-                )
-                .onHover { isInside in
-                    if isInside, !isResizerHovered {
-                        NSCursor.resizeLeftRight.push()
-                    } else if !isInside, isResizerHovered {
-                        NSCursor.pop()
-                    }
-                    isResizerHovered = isInside
-                }
-                .onDisappear {
-                    if isResizerHovered {
-                        NSCursor.pop()
-                        isResizerHovered = false
-                    }
-                }
-        }
         .accessibilityValue(
             isSorted
                 ? direction == .ascending ? "Ascending" : "Descending"
                 : "Not sorted"
         )
-        .accessibilityAdjustableAction { direction in
-            let delta = direction == .increment ? 16.0 : -16.0
-            preferredWidth = min(
-                max(preferredWidth + delta, minimumWidth),
-                maximumWidth
-            )
-        }
     }
 }

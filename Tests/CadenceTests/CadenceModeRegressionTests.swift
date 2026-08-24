@@ -33,6 +33,11 @@ struct CadenceModeBassAnalysisTests {
             reduceMotion: false,
             isPlaying: false
         )
+        let disabled = CadenceModeBassResponse.resolve(
+            level: 1,
+            reduceMotion: false,
+            reactsToBass: false
+        )
 
         #expect(negative == .identity)
         #expect(silence == .identity)
@@ -41,6 +46,7 @@ struct CadenceModeBassAnalysisTests {
         #expect(overdriven == peak)
         #expect(reduced == .identity)
         #expect(paused == .identity)
+        #expect(disabled == .identity)
     }
 
     @MainActor

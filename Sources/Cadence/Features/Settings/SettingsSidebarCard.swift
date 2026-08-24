@@ -14,47 +14,36 @@ struct SettingsSidebarCard: View {
         ) {
             Text(
                 "Choose which destinations appear. Drag a row to change "
-                    + "its position within a section."
+                    + "its sidebar position."
             )
             .font(.caption)
             .foregroundStyle(.secondary)
 
-            VStack(spacing: 14) {
-                ForEach(orderedSections) { section in
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text(section.group.title)
-                            .font(.caption.weight(.semibold))
-                            .foregroundStyle(.secondary)
-                            .accessibilityAddTraits(.isHeader)
+            VStack(spacing: 0) {
+                ForEach(orderedDestinations) { destination in
+                    sidebarRow(destination)
 
-                        VStack(spacing: 0) {
-                            ForEach(section.destinations) { destination in
-                                sidebarRow(destination)
-
-                                if destination != section.destinations.last {
-                                    Rectangle()
-                                        .fill(CadenceTheme.separator)
-                                        .frame(height: 0.5)
-                                }
-                            }
-                        }
-                        .background(CadenceTheme.subduedFill)
-                        .clipShape(
-                            RoundedRectangle(
-                                cornerRadius: CadenceTheme.radiusGroup
-                            )
-                        )
-                        .overlay {
-                            RoundedRectangle(
-                                cornerRadius: CadenceTheme.radiusGroup
-                            )
-                            .strokeBorder(
-                                CadenceTheme.separator,
-                                lineWidth: 0.5
-                            )
-                        }
+                    if destination != orderedDestinations.last {
+                        Rectangle()
+                            .fill(CadenceTheme.separator)
+                            .frame(height: 0.5)
                     }
                 }
+            }
+            .background(CadenceTheme.subduedFill)
+            .clipShape(
+                RoundedRectangle(
+                    cornerRadius: CadenceTheme.radiusGroup
+                )
+            )
+            .overlay {
+                RoundedRectangle(
+                    cornerRadius: CadenceTheme.radiusGroup
+                )
+                .strokeBorder(
+                    CadenceTheme.separator,
+                    lineWidth: 0.5
+                )
             }
         }
     }
@@ -62,13 +51,6 @@ struct SettingsSidebarCard: View {
     private var orderedDestinations: [NavigationDestination] {
         NavigationRailConfiguration.orderedDestinations(
             from: orderRawValue
-        )
-    }
-
-    private var orderedSections: [NavigationRailSection] {
-        NavigationRailConfiguration.visibleSections(
-            orderRawValue: orderRawValue,
-            hiddenRawValue: ""
         )
     }
 
@@ -80,8 +62,8 @@ struct SettingsSidebarCard: View {
             isVisible: visibilityBinding(for: destination),
             isDragging: draggedDestination == destination,
             isDropTarget: dropTarget == destination,
-            canMoveUp: destinations(in: destination).first != destination,
-            canMoveDown: destinations(in: destination).last != destination,
+            canMoveUp: canMove(destination, offset: -1),
+            canMoveDown: canMove(destination, offset: 1),
             moveUp: {
                 move(destination, offset: -1)
             },
@@ -95,7 +77,7 @@ struct SettingsSidebarCard: View {
                 let source = NavigationDestination(rawValue: rawValue),
                 NavigationRailConfiguration.configurableDestinations
                 .contains(source),
-                source.navigationGroup == destination.navigationGroup
+                source != .home
             else {
                 return false
             }
@@ -146,25 +128,30 @@ struct SettingsSidebarCard: View {
         _ destination: NavigationDestination,
         offset: Int
     ) {
-        let destinations = destinations(in: destination)
         guard
-            let sourceIndex = destinations.firstIndex(of: destination),
-            destinations.indices.contains(sourceIndex + offset)
+            canMove(destination, offset: offset),
+            let sourceIndex = orderedDestinations.firstIndex(of: destination)
         else {
             return
         }
         reorder(
             destination,
-            to: destinations[sourceIndex + offset]
+            to: orderedDestinations[sourceIndex + offset]
         )
     }
 
-    private func destinations(
-        in destination: NavigationDestination
-    ) -> [NavigationDestination] {
-        orderedSections.first {
-            $0.group == destination.navigationGroup
-        }?.destinations ?? []
+    private func canMove(
+        _ destination: NavigationDestination,
+        offset: Int
+    ) -> Bool {
+        guard
+            destination != .home,
+            let sourceIndex = orderedDestinations.firstIndex(of: destination),
+            orderedDestinations.indices.contains(sourceIndex + offset)
+        else {
+            return false
+        }
+        return orderedDestinations[sourceIndex + offset] != .home
     }
 
     private func reorder(

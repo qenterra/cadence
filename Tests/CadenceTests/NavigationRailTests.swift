@@ -177,7 +177,7 @@ struct NavigationRailTests {
         )
     }
 
-    @Test("Navigation rail destinations move only within their semantic section")
+    @Test("Navigation rail destinations move freely while Home stays first")
     func navigationReordering() throws {
         let favorites = try #require(
             NavigationDestination(rawValue: "favorites")
@@ -191,22 +191,22 @@ struct NavigationRailTests {
 
         #expect(
             NavigationRailConfiguration.moving(
+                .allTracks,
+                to: favorites,
+                in: destinations
+            ) == [.home, .allTracks, favorites, .library]
+        )
+        #expect(
+            NavigationRailConfiguration.moving(
                 .library,
+                to: .home,
+                in: destinations
+            ) == [.home, .library, favorites, .allTracks]
+        )
+        #expect(
+            NavigationRailConfiguration.moving(
+                .home,
                 to: .allTracks,
-                in: destinations
-            ) == [.home, favorites, .allTracks, .library]
-        )
-        #expect(
-            NavigationRailConfiguration.moving(
-                favorites,
-                to: .home,
-                in: destinations
-            ) == [favorites, .home, .library, .allTracks]
-        )
-        #expect(
-            NavigationRailConfiguration.moving(
-                .library,
-                to: .home,
                 in: destinations
             ) == destinations
         )
@@ -217,6 +217,27 @@ struct NavigationRailTests {
                 in: destinations
             ) == destinations
         )
+    }
+
+    @Test("Cross-category navigation order is persisted without duplicates")
+    func crossCategoryNavigationReordering() throws {
+        let original = NavigationRailConfiguration.configurableDestinations
+        let tagsBeforeAlbums = NavigationRailConfiguration.moving(
+            .tags,
+            to: .albums,
+            in: original
+        )
+        let artistsAfterImport = NavigationRailConfiguration.moving(
+            .artists,
+            to: .importMusic,
+            in: tagsBeforeAlbums
+        )
+
+        #expect(try #require(tagsBeforeAlbums.firstIndex(of: .tags)) < tagsBeforeAlbums.firstIndex(of: .albums)!)
+        #expect(artistsAfterImport.first == .home)
+        #expect(artistsAfterImport.last == .artists)
+        #expect(Set(artistsAfterImport).count == original.count)
+        #expect(Set(artistsAfterImport) == Set(original))
     }
 
     @Test("Collapsed navigation selection is a symmetric square")
@@ -277,7 +298,7 @@ struct NavigationRailTests {
         #expect(restoredMotion == beforeReduction)
     }
 
-    @Test("Navigation rail source keeps one bounce and insets only its chrome")
+    @Test("Navigation rail icons are static and chrome stays inset")
     func navigationRailSourceContract() throws {
         let source = try navigationRailSource()
         let railLabelStart = try #require(
@@ -296,10 +317,9 @@ struct NavigationRailTests {
             #"\.background\s*\{\s*BrowserRowSurface\([\s\S]*?\)\s*"#
                 + #"\.padding\(\.horizontal,\s*NavigationRailMetrics\.rowSurfaceInset\)\s*\}"#
 
-        #expect(
-            source.components(separatedBy: ".symbolEffect(.bounce").count
-                == 2
-        )
+        #expect(!source.contains("activationCounts"))
+        #expect(!source.contains(".symbolEffect("))
+        #expect(!source.contains(".contentTransition("))
         #expect(!source.contains(".buttonStyle(CadenceRowButtonStyle())"))
         #expect(
             railLabelSource.range(

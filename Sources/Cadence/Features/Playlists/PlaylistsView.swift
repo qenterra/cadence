@@ -123,6 +123,9 @@ private extension PlaylistsView {
                     .padding(.top, WorkspaceLayout.listInset)
                     .padding(.bottom, 16)
                 }
+                .refreshable {
+                    await store.refresh(.playlists)
+                }
             }
         }
     }
@@ -182,6 +185,9 @@ private extension PlaylistsView {
                                     trackIDs: trackIDs
                                 )
                             }
+                        },
+                        refreshAction: {
+                            await store.refresh(.playlists)
                         }
                     )
                     .padding(.bottom, 24)

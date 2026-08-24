@@ -68,7 +68,12 @@ struct SmartCollectionResultsColumn: View {
                 showsHeader: false,
                 compact: true,
                 queueSource: selectedProductionQueueSource,
-                onReachEnd: loadNextProductionPage
+                onReachEnd: loadNextProductionPage,
+                refreshAction: {
+                    await model.librarySession.store.refresh(
+                        .smartCollections
+                    )
+                }
             )
             .padding(.bottom, 16)
         } else {

@@ -74,6 +74,38 @@ enum NavigationDestination: String, CaseIterable, Hashable, Identifiable, Sendab
     }
 }
 
+enum LibraryRefreshScope: Hashable, Sendable {
+    case home
+    case library
+    case allTracks
+    case albums
+    case artists
+    case favorites
+    case playlists
+    case tags
+    case smartCollections
+    case search
+    case trash
+}
+
+extension NavigationDestination {
+    var refreshScope: LibraryRefreshScope? {
+        switch self {
+        case .home: .home
+        case .library: .library
+        case .allTracks: .allTracks
+        case .albums: .albums
+        case .artists: .artists
+        case .favorites: .favorites
+        case .playlists: .playlists
+        case .tags: .tags
+        case .smartCollections: .smartCollections
+        case .trash: .trash
+        case .importMusic: nil
+        }
+    }
+}
+
 enum NavigationRailGroup: String, CaseIterable, Hashable, Identifiable, Sendable {
     case listen
     case library

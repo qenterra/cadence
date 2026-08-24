@@ -74,6 +74,19 @@ struct CadenceModeInputState: Sendable {
         return action == .activated ? .requestPresentation : .none
     }
 
+    mutating func requestActivation(
+        at time: TimeInterval,
+        canActivate: Bool
+    ) -> CadenceModeInputAction {
+        guard canActivate, !modeState.isActive else {
+            return .none
+        }
+        guard modeState.activate(at: time) == .activated else {
+            return .none
+        }
+        return .requestPresentation
+    }
+
     mutating func keyUp(lane: RhythmLane) {
         heldLanes.remove(lane)
     }
@@ -161,6 +174,16 @@ struct CadenceModeState: Sendable {
 
         isActive = true
         deadline = timeoutPolicy.deadline(after: time)
+        return .activated
+    }
+
+    mutating func activate(at time: TimeInterval) -> CadenceModeAction {
+        guard !isActive else {
+            return .none
+        }
+        isActive = true
+        deadline = timeoutPolicy.deadline(after: time)
+        previousHit = nil
         return .activated
     }
 

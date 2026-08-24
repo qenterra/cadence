@@ -17,6 +17,11 @@ enum ShortcutKey: String, Identifiable, Equatable, Sendable {
     case `return`
     case delete
     case click
+    // Physical key labels intentionally match the product-facing glyphs.
+    // swiftlint:disable:next identifier_name
+    case z
+    // swiftlint:disable:next identifier_name
+    case x
 
     var id: String {
         rawValue
@@ -34,6 +39,8 @@ enum ShortcutKey: String, Identifiable, Equatable, Sendable {
         case .return: "↩"
         case .delete: "⌫"
         case .click: "Click"
+        case .z: "Z"
+        case .x: "X"
         }
     }
 
@@ -47,7 +54,7 @@ enum ShortcutKey: String, Identifiable, Equatable, Sendable {
         case .return: "return"
         case .delete: "delete.left"
         case .click: "cursorarrow.click"
-        case .command, .shift: nil
+        case .command, .shift, .z, .x: nil
         }
     }
 }
@@ -58,6 +65,11 @@ enum ShortcutCatalog {
             id: "play-pause",
             title: "Play or Pause",
             keys: [.space]
+        ),
+        ShortcutReference(
+            id: "cadence-mode",
+            title: String(localized: "Cadence Mode"),
+            keys: [.z, .x]
         ),
         ShortcutReference(
             id: "previous",

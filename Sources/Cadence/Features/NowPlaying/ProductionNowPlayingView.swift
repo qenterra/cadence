@@ -28,6 +28,7 @@ struct ProductionNowPlayingView: View {
     @Bindable var model: CadenceAppModel
     let track: PlaybackTrack
     @Bindable var cadenceModeSession: CadenceModeSession
+    let cadenceModeOptions: CadenceModeOptions
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.nowPlayingReadinessObserver) private var readinessObserver
@@ -41,7 +42,7 @@ struct ProductionNowPlayingView: View {
     @State private var isRenamePresented = false
     @State private var renameDraft = ""
     @State var isAudioDetailsPresented = false
-    @State private var cadenceModeLyricDocument: LyricDocument?
+    @State var nowPlayingLyricDocument: LyricDocument?
     @Namespace private var cadenceModeNamespace
 
     var body: some View {
@@ -51,7 +52,8 @@ struct ProductionNowPlayingView: View {
             )
             let cadenceModeLayout = CadenceModeLayout(
                 canvasSize: geometry.size,
-                contextWidth: layout.contextWidth
+                contextWidth: layout.contextWidth,
+                options: cadenceModeOptions
             )
             let isCadenceModeActive = rhythmPulseVisualQAState?.isCadenceModeActive
                 ?? cadenceModeSession.isActive
@@ -80,15 +82,16 @@ struct ProductionNowPlayingView: View {
                             trackTitle: displayedTrackTitle,
                             artist: track.artist,
                             layout: cadenceModeLayout,
+                            options: cadenceModeOptions,
                             artworkNamespace: cadenceModeNamespace,
-                            lyricDocument: rhythmPulseVisualQAState?
-                                .cadenceModeLyricDocument
-                                ?? cadenceModeLyricDocument,
+                            lyricDocument: displayedLyricDocument,
                             visualQAPresentationTime: rhythmPulseVisualQAState?
                                 .cadenceModePresentationTime,
                             visualQABassLevel: rhythmPulseVisualQAState?
                                 .cadenceModeBassLevel
                         )
+
+                        cadenceModeBackButton
                     }
                     .environment(\.colorScheme, .dark)
                     .transition(reduceMotion ? .opacity : .cadenceModeLayer)
@@ -155,15 +158,15 @@ struct ProductionNowPlayingView: View {
         }
         .task(id: cadenceLyricsTaskID) {
             guard rhythmPulseVisualQAState == nil else {
-                cadenceModeLyricDocument = nil
+                nowPlayingLyricDocument = nil
                 return
             }
-            cadenceModeLyricDocument = nil
+            nowPlayingLyricDocument = nil
             let loadedDocument = await model.loadProductionLyrics(for: track)
             guard !Task.isCancelled else {
                 return
             }
-            cadenceModeLyricDocument = loadedDocument
+            nowPlayingLyricDocument = loadedDocument
         }
         .catalogRenameAlert(
             "Rename Track",
@@ -217,7 +220,13 @@ extension ProductionNowPlayingView {
             audioQuality
             playbackFailure
             Spacer(minLength: 8)
-            CadenceModeHint()
+            if cadenceModeOptions.isEnabled {
+                CadenceModeHint {
+                    cadenceModeSession.requestActivation(
+                        canActivate: model.hasCurrentPlaybackItem
+                    )
+                }
+            }
         }
         .padding(42)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -255,6 +264,32 @@ extension ProductionNowPlayingView {
                 )
             }
         }
+    }
+
+    private var cadenceModeBackButton: some View {
+        VStack {
+            HStack {
+                Button("Back", systemImage: "chevron.backward") {
+                    cadenceModeSession.deactivate()
+                }
+                .labelStyle(.titleAndIcon)
+                .font(.callout.weight(.medium))
+                .foregroundStyle(.white)
+                .padding(.horizontal, 12)
+                .frame(height: 34)
+                .background(.black.opacity(0.28), in: Capsule())
+                .overlay {
+                    Capsule()
+                        .strokeBorder(.white.opacity(0.22), lineWidth: 0.5)
+                }
+                .buttonStyle(.plain)
+                .help("Return to Now Playing")
+
+                Spacer()
+            }
+            Spacer()
+        }
+        .padding(24)
     }
 
     private var trackIdentity: some View {
@@ -360,6 +395,11 @@ extension ProductionNowPlayingView {
 
     var displayedTrackTitle: String {
         renamedTrackTitle ?? track.title
+    }
+
+    var displayedLyricDocument: LyricDocument? {
+        rhythmPulseVisualQAState?.cadenceModeLyricDocument
+            ?? nowPlayingLyricDocument
     }
 
     private var rhythmArtworkTaskID: String {

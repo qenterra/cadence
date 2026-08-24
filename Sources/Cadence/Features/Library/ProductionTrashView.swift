@@ -32,6 +32,9 @@ struct ProductionTrashView: View {
                     }
                     .padding(24)
                 }
+                .refreshable {
+                    await store.refresh(.trash)
+                }
             }
         }
         .background(CadenceTheme.contentBackground)

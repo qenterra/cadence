@@ -3,6 +3,7 @@ import SwiftUI
 struct NowPlayingView: View {
     @Bindable var model: CadenceAppModel
     let cadenceModeSession: CadenceModeSession
+    var cadenceModeOptions: CadenceModeOptions = .default
 
     var body: some View {
         Group {
@@ -10,7 +11,8 @@ struct NowPlayingView: View {
                 ProductionNowPlayingView(
                     model: model,
                     track: track,
-                    cadenceModeSession: cadenceModeSession
+                    cadenceModeSession: cadenceModeSession,
+                    cadenceModeOptions: cadenceModeOptions
                 )
             } else {
                 ContentUnavailableView {

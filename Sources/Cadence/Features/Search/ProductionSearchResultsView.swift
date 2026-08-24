@@ -34,6 +34,9 @@ struct ProductionSearchResultsView: View {
                     .padding(.horizontal, 28)
                     .padding(.vertical, 24)
                 }
+                .refreshable {
+                    await store.refresh(.search)
+                }
             }
         }
         .background(CadenceTheme.contentBackground)
@@ -55,6 +58,9 @@ private extension ProductionSearchResultsView {
                 context: .search(store.catalogSearchQuery),
                 onReachEnd: {
                     await store.loadNextCatalogSearchGroup(.tracks)
+                },
+                refreshAction: {
+                    await store.refresh(.search)
                 }
             )
         }
@@ -274,7 +280,10 @@ private extension ProductionSearchResultsView {
                     context: .search(store.catalogSearchQuery),
                     onReachEnd: expandedGroup == .tracks ? {
                         await store.loadNextCatalogSearchGroup(.tracks)
-                    } : nil
+                    } : nil,
+                    refreshAction: {
+                        await store.refresh(.search)
+                    }
                 )
                 .frame(
                     height: min(
@@ -337,12 +346,7 @@ private extension ProductionSearchResultsView {
         @ViewBuilder content: () -> some View
     ) -> some View {
         LazyVGrid(
-            columns: [
-                GridItem(
-                    .adaptive(minimum: 260, maximum: 420),
-                    spacing: 12
-                ),
-            ],
+            columns: CatalogCardLayoutMetrics.layoutColumns(spacing: 12),
             alignment: .leading,
             spacing: 12
         ) {

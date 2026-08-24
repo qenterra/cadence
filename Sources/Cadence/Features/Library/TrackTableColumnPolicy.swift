@@ -6,20 +6,21 @@ enum TrackTableLayoutMode: Equatable, Sendable {
 }
 
 enum TrackTableColumnPolicy {
-    static let compactThreshold = 720.0
     static let horizontalInset = CadenceLayout.pageInset
     static let selectionHorizontalInset = CadenceLayout.compactGap
     static let columnSpacing = CadenceLayout.controlGap
     static let actionWidth: CGFloat = 28
     static let favoriteControlWidth = CatalogTileFavoriteLayout.controlSize
     static let songContentSpacing = CadenceLayout.compactGap
-
-    static func showsColumnSeparator(
-        isHovered: Bool,
-        isDragging: Bool
-    ) -> Bool {
-        isHovered || isDragging
-    }
+    static let minimumSongWidth = 360.0
+    static let albumWidth = 190.0
+    static let yearWidth = 64.0
+    static let timeWidth = 64.0
+    static let compactThreshold = minimumSongWidth
+        + albumWidth
+        + yearWidth
+        + timeWidth
+        + rowChromeWidth(columnCount: TrackTableColumn.allCases.count)
 
     static func rowChromeWidth(
         columnCount: Int
@@ -48,108 +49,37 @@ enum TrackTableColumnPolicy {
 
     static func layout(
         availableWidth: Double,
-        columns: [TrackTableColumn],
-        preferred: TrackTableResolvedWidths?
+        columns: [TrackTableColumn]
     ) -> TrackTableResolvedWidths {
         let available = max(availableWidth, 1)
-        let preferred = preferred ?? defaultWidths
-        let active = [Column.song] + columns.map(Column.init)
-        let minimumTotal = active.reduce(0) { $0 + $1.minimum }
-        let preferredTotal = active.reduce(0) {
-            $0 + $1.value(in: preferred)
-        }
-
-        var values: [Column: Double] = [:]
-        if available < minimumTotal {
-            let scale = available / minimumTotal
-            for column in active {
-                values[column] = column.minimum * scale
-            }
-        } else if available < preferredTotal {
-            let flexibleTotal = preferredTotal - minimumTotal
-            let remaining = available - minimumTotal
-            for column in active {
-                let flexible = column.value(in: preferred) - column.minimum
-                values[column] = column.minimum
-                    + remaining * flexible / max(flexibleTotal, 1)
-            }
-        } else {
-            let extra = available - preferredTotal
-            let weightTotal = active.reduce(0) {
-                $0 + $1.expansionWeight
-            }
-            for column in active {
-                values[column] = column.value(in: preferred)
-                    + extra * column.expansionWeight / weightTotal
-            }
-        }
-
-        let resolved = TrackTableResolvedWidths(
-            song: values[.song] ?? 0,
-            album: values[.album] ?? 0,
-            year: values[.year] ?? 0,
-            time: values[.time] ?? 0
-        )
-        let actual = resolved.song + columns.reduce(0) {
-            $0 + resolved[$1]
+        let secondaryWidth = columns.reduce(0.0) { partial, column in
+            partial + fixedWidth(for: column)
         }
         return TrackTableResolvedWidths(
-            song: resolved.song + available - actual,
-            album: resolved.album,
-            year: resolved.year,
-            time: resolved.time
+            song: max(available - secondaryWidth, 1),
+            album: columns.contains(.album) ? albumWidth : 0,
+            year: columns.contains(.year) ? yearWidth : 0,
+            time: columns.contains(.time) ? timeWidth : 0
         )
     }
 
     static let defaultWidths = TrackTableResolvedWidths(
-        song: TrackTableWidth.song.defaultValue,
-        album: TrackTableWidth.album.defaultValue,
-        year: TrackTableWidth.year.defaultValue,
-        time: TrackTableWidth.time.defaultValue
+        song: minimumSongWidth,
+        album: albumWidth,
+        year: yearWidth,
+        time: timeWidth
     )
-}
 
-private extension TrackTableColumnPolicy {
-    enum Column: Hashable {
-        case song
-        case album
-        case year
-        case time
-
-        init(_ column: TrackTableColumn) {
-            self = switch column {
-            case .album: .album
-            case .year: .year
-            case .time: .time
-            }
-        }
-
-        var minimum: Double {
-            switch self {
-            case .song: TrackTableWidth.song.minimum
-            case .album: TrackTableWidth.album.minimum
-            case .year: TrackTableWidth.year.minimum
-            case .time: TrackTableWidth.time.minimum
-            }
-        }
-
-        var expansionWeight: Double {
-            switch self {
-            case .song: 3
-            case .album: 2
-            case .year, .time: 0.5
-            }
-        }
-
-        func value(
-            in widths: TrackTableResolvedWidths
-        ) -> Double {
-            switch self {
-            case .song: widths.song
-            case .album: widths.album
-            case .year: widths.year
-            case .time: widths.time
-            }
+    private static func fixedWidth(
+        for column: TrackTableColumn
+    ) -> Double {
+        switch column {
+        case .album:
+            albumWidth
+        case .year:
+            yearWidth
+        case .time:
+            timeWidth
         }
     }
 }

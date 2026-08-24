@@ -132,7 +132,7 @@ private extension PlayerBar {
         if let track = model.currentPlaybackTrack {
             HStack(spacing: CadenceLayout.controlGap) {
                 Button {
-                    model.presentNowPlaying()
+                    model.presentNowPlaying(panel: .lyrics)
                 } label: {
                     ProductionArtworkView(
                         model: model,

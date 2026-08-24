@@ -3,10 +3,12 @@ import SwiftUI
 struct CadenceModeInputCapture: View {
     @Bindable var model: CadenceAppModel
     @Bindable var session: CadenceModeSession
+    let isEnabled: Bool
 
     var body: some View {
         RhythmKeyboardCapture(
-            canActivateCadenceMode: model.hasCurrentPlaybackItem,
+            canActivateCadenceMode: isEnabled
+                && model.hasCurrentPlaybackItem,
             isCadenceModeActive: { session.isActive },
             onKeyDown: { lane in
                 handleKeyDown(lane)
@@ -21,6 +23,12 @@ struct CadenceModeInputCapture: View {
                 session.releaseAllKeys()
             }
         )
+        .task {
+            session.setEnabled(isEnabled)
+        }
+        .onChange(of: isEnabled) { _, enabled in
+            session.setEnabled(enabled)
+        }
         .onChange(of: model.playbackWorkspace) { _, workspace in
             synchronizePresentation(with: workspace)
         }
@@ -32,7 +40,7 @@ struct CadenceModeInputCapture: View {
     private func handleKeyDown(_ lane: RhythmLane) {
         let action = session.keyDown(
             lane: lane,
-            canActivate: model.hasCurrentPlaybackItem
+            canActivate: isEnabled && model.hasCurrentPlaybackItem
         )
         guard action == .requestPresentation else {
             return

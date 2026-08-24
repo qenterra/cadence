@@ -175,6 +175,9 @@ private extension ProductionTagsView {
                 .padding(.top, WorkspaceLayout.listInset)
                 .padding(.bottom, 16)
             }
+            .refreshable {
+                await store.refresh(.tags)
+            }
         }
     }
 
@@ -253,7 +256,11 @@ private extension ProductionTagsView {
                         tracks: taggedTracks,
                         contentVersion: tracksClock.version,
                         context: selectedTagID.map(TrackTableContext.tag)
-                            ?? .library
+                            ?? .library,
+                        refreshAction: {
+                            await store.refresh(.tags)
+                            trackLoadGeneration &+= 1
+                        }
                     )
                 }
             }

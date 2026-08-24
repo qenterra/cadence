@@ -43,12 +43,10 @@ extension AllTracksPerformanceTests {
         #expect(projection.title == "Fixture Track")
         #expect(projection.artist == "Fixture Artist")
         #expect(projection.album == "Fixture Album")
-        #expect(projection.codec == "FLAC")
         #expect(projection.year == "2024")
         #expect(projection.duration == "1:05")
         #expect(projection.isFavorite)
         #expect(projection.isExplicit)
-        #expect(projection.hasSynchronizedLyrics)
         #expect(projection.isCurrentTrack)
         #expect(projection.isPlaying)
         #expect(projection.artworkRequest == ProductionArtworkRequest(
@@ -58,6 +56,268 @@ extension AllTracksPerformanceTests {
         #expect(
             projection.accessibilityLabel
                 == "Fixture Track, Fixture Artist, Fixture Album, 1:05"
+        )
+    }
+
+    @Test("Cell reuse clears hover-only controls for the new track")
+    func nativeCellReuseClearsHoverState() throws {
+        let first = nativeInteractionProjection(index: 1)
+        let second = nativeInteractionProjection(index: 2)
+        let cell = NativeTrackTableCell()
+
+        configureInteractionCell(cell, projection: first)
+        cell.updatePointerHover(isHovered: true)
+        let favorite = try nativeFavoriteButton(in: cell)
+        #expect(!favorite.isHidden)
+
+        configureInteractionCell(cell, projection: second)
+
+        #expect(cell.representedTrackID == second.id)
+        #expect(favorite.isHidden)
+    }
+
+    @Test("Track title consumes the complete remaining metadata width")
+    func nativeTitleConsumesRemainingWidth() throws {
+        let cell = NativeTrackTableCell(
+            frame: NSRect(x: 0, y: 0, width: 620, height: 58)
+        )
+        configureInteractionCell(
+            cell,
+            projection: nativeInteractionProjection(index: 3),
+            widths: TrackTableResolvedWidths(
+                song: 400,
+                album: 190,
+                year: 64,
+                time: 64
+            )
+        )
+        cell.layout()
+
+        let title = try nativeTextField(
+            in: cell,
+            value: "A deliberately long track title"
+        )
+        let expectedOrigin = TrackTableColumnPolicy.horizontalInset
+            + TrackTableColumnPolicy.favoriteControlWidth
+            + TrackTableColumnPolicy.columnSpacing
+            + 40
+            + TrackTableColumnPolicy.songContentSpacing
+        let expectedWidth = TrackTableColumnPolicy.horizontalInset
+            + 400
+            - expectedOrigin
+
+        #expect(abs(title.frame.width - expectedWidth) < 0.5)
+        #expect(title.toolTip == title.stringValue)
+    }
+
+    @Test("Production rows do not render codec or synchronized lyric badges")
+    func nativeRowsOmitTechnicalBadges() {
+        let cell = NativeTrackTableCell(
+            frame: NSRect(x: 0, y: 0, width: 900, height: 58)
+        )
+        configureInteractionCell(
+            cell,
+            projection: nativeInteractionProjection(index: 4)
+        )
+        cell.layout()
+
+        let strings = cell.subviews.flatMap { view -> [String] in
+            if let field = view as? NSTextField {
+                return [field.stringValue]
+            }
+            if let button = view as? NSButton {
+                return [button.title]
+            }
+            return []
+        }
+
+        #expect(!strings.contains("FLAC"))
+        #expect(!strings.contains("LRC"))
+    }
+
+    @Test("Artist and album controls end with their rendered text")
+    func nativeMetadataLinksUseIntrinsicHitRegions() throws {
+        let cell = NativeTrackTableCell(
+            frame: NSRect(x: 0, y: 0, width: 900, height: 58)
+        )
+        configureInteractionCell(
+            cell,
+            projection: nativeInteractionProjection(index: 5),
+            columns: [.album],
+            widths: TrackTableResolvedWidths(
+                song: 520,
+                album: 190,
+                year: 0,
+                time: 0
+            )
+        )
+        cell.layout()
+
+        let artist = try nativeButton(in: cell, title: "Veilr")
+        let album = try nativeButton(in: cell, title: "Artificial Minds")
+        #expect(artist.frame.width < 100)
+        #expect(album.frame.width < 150)
+
+        let artistOutside = NSPoint(
+            x: artist.frame.maxX + 8,
+            y: artist.frame.midY
+        )
+        let albumOutside = NSPoint(
+            x: album.frame.maxX + 8,
+            y: album.frame.midY
+        )
+        #expect(cell.hitTest(artistOutside) !== artist)
+        #expect(cell.hitTest(albumOutside) !== album)
+        #expect(
+            cell.hitTest(
+                NSPoint(x: artist.frame.midX, y: artist.frame.midY)
+            ) === artist
+        )
+        #expect(
+            cell.hitTest(
+                NSPoint(x: album.frame.midX, y: album.frame.midY)
+            ) === album
+        )
+    }
+
+    @Test("Native row chrome resolves only to Cadence semantic tones")
+    func nativeChromeUsesCadenceTones() {
+        let selected = NativeTrackTableChromePresentation.resolve(
+            isSelected: true,
+            isFocused: true,
+            isHovered: false,
+            isLiveScrolling: false,
+            isFavorite: true
+        )
+        let hovered = NativeTrackTableChromePresentation.resolve(
+            isSelected: false,
+            isFocused: false,
+            isHovered: true,
+            isLiveScrolling: false,
+            isFavorite: false
+        )
+
+        #expect(selected.fill == .selection)
+        #expect(selected.outline == .primary)
+        #expect(selected.favorite == .primary)
+        #expect(hovered.fill == .hover)
+        #expect(hovered.outline == .clear)
+        #expect(hovered.favorite == .secondary)
+    }
+
+    @Test("Native favorite feedback runs only for a stable row identity")
+    func nativeFavoriteFeedbackIsScopedToStableIdentity() {
+        let trackID = deterministicUUID(81050)
+
+        #expect(
+            NativeFavoriteFeedbackPresentation.shouldAnimate(
+                previousID: trackID,
+                previousValue: false,
+                nextID: trackID,
+                nextValue: true,
+                reduceMotion: false,
+                isLiveScrolling: false
+            )
+        )
+        #expect(
+            !NativeFavoriteFeedbackPresentation.shouldAnimate(
+                previousID: trackID,
+                previousValue: false,
+                nextID: deterministicUUID(81051),
+                nextValue: true,
+                reduceMotion: false,
+                isLiveScrolling: false
+            )
+        )
+        #expect(
+            !NativeFavoriteFeedbackPresentation.shouldAnimate(
+                previousID: trackID,
+                previousValue: false,
+                nextID: trackID,
+                nextValue: true,
+                reduceMotion: true,
+                isLiveScrolling: false
+            )
+        )
+    }
+
+    private func configureInteractionCell(
+        _ cell: NativeTrackTableCell,
+        projection: TrackRowDisplayProjection,
+        columns: [TrackTableColumn] = [],
+        widths: TrackTableResolvedWidths = TrackTableColumnPolicy.defaultWidths
+    ) {
+        cell.configure(
+            .track(projection),
+            columns: columns,
+            widths: widths,
+            isSelected: false,
+            isFocused: false,
+            isLiveScrolling: false
+        )
+    }
+
+    private func nativeFavoriteButton(
+        in cell: NativeTrackTableCell
+    ) throws -> NSButton {
+        try #require(
+            cell.subviews
+                .compactMap { $0 as? NSButton }
+                .first {
+                    $0.accessibilityLabel() == "Add to Favorites"
+                }
+        )
+    }
+
+    private func nativeButton(
+        in cell: NativeTrackTableCell,
+        title: String
+    ) throws -> NSButton {
+        try #require(
+            cell.subviews
+                .compactMap { $0 as? NSButton }
+                .first { $0.title == title }
+        )
+    }
+
+    private func nativeTextField(
+        in cell: NativeTrackTableCell,
+        value: String
+    ) throws -> NSTextField {
+        try #require(
+            cell.subviews
+                .compactMap { $0 as? NSTextField }
+                .first { $0.stringValue == value }
+        )
+    }
+
+    private func nativeInteractionProjection(
+        index: UInt8
+    ) -> TrackRowDisplayProjection {
+        TrackRowDisplayProjection(
+            track: LibraryTrackProjection(
+                id: deterministicUUID(90000 + Int(index)),
+                title: "A deliberately long track title",
+                artistID: deterministicUUID(91000 + Int(index)),
+                artist: "Veilr",
+                albumID: deterministicUUID(92000 + Int(index)),
+                album: "Artificial Minds",
+                duration: 195,
+                year: 2025,
+                codec: "FLAC",
+                sampleRate: 44100,
+                channelCount: 2,
+                bitDepth: 24,
+                isFavorite: false,
+                isExplicit: false,
+                customArtworkID: nil,
+                artworkID: nil,
+                relativeMediaPath: "fixture-\(index).flac",
+                lastPlayedAt: nil,
+                hasSynchronizedLyrics: true
+            ),
+            isCurrentTrack: false,
+            isPlaying: false
         )
     }
 

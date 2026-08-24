@@ -211,7 +211,7 @@ struct PlaybackQueueState: Equatable, Sendable {
 }
 
 enum PlaybackQueuePresentation {
-    static let maximumUpNextCount = 25
+    static let maximumUpNextCount = 5
 
     static func upNextTrackIDs(
         for queue: PlaybackQueueState

@@ -779,6 +779,7 @@ struct TrackTableCore: NSViewRepresentable {
     let queueSource: PlaybackQueueSource?
     let reorderAction: (([UUID]) -> Void)?
     let onReachEnd: (() async -> Void)?
+    var refreshAction: CadenceRefreshAction?
     var renderer: TrackTableRenderer = .native
     var currentTrackID: UUID?
     var isCurrentTrackPlaying = false
@@ -860,6 +861,7 @@ struct TrackTableCore: NSViewRepresentable {
             tableView: tableView,
             scrollView: scrollView
         )
+        context.coordinator.updateRefreshAffordance()
         return scrollView
     }
 
@@ -897,6 +899,7 @@ struct TrackTableCore: NSViewRepresentable {
             coordinator.invalidateActionSelectionCache()
         }
         coordinator.parent = self
+        coordinator.updateRefreshAffordance()
         coordinator.refreshAccessibilityPreferences()
         if plan.reconcilesVirtualSelection {
             coordinator.reconcileVirtualSelection()

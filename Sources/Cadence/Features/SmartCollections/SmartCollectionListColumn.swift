@@ -23,6 +23,11 @@ struct SmartCollectionListColumn: View {
                     .padding(.top, WorkspaceLayout.listInset)
                     .padding(.bottom, 14)
                 }
+                .refreshable {
+                    await model.librarySession.store.refresh(
+                        .smartCollections
+                    )
+                }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)

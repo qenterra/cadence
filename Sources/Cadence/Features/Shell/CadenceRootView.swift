@@ -1,21 +1,49 @@
 import SwiftUI
 
+enum DestinationPresentation: Hashable, Sendable {
+    case loading
+    case content
+
+    static func resolve(
+        hasResidentContent: Bool,
+        isLoading: Bool
+    ) -> DestinationPresentation {
+        isLoading && !hasResidentContent ? .loading : .content
+    }
+}
+
 struct CadenceRootView: View {
     @Environment(\.visualRegressionUsesStableSystemControls)
     private var usesStableSystemControls
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Bindable var model: CadenceAppModel
+    let appearanceIdentity: AppearanceRefreshIdentity
     @State var isSearchPresented = false
     @State private var cadenceModeSession: CadenceModeSession
     @State private var folderIconController = LibraryFolderIconController()
+    @AppStorage(CadenceModePreferences.isEnabledKey)
+    private var isCadenceModeEnabled = CadenceModeOptions.default.isEnabled
+    @AppStorage(CadenceModePreferences.reactsToBassKey)
+    private var cadenceModeReactsToBass = CadenceModeOptions.default.reactsToBass
+    @AppStorage(CadenceModePreferences.showsLyricsKey)
+    private var cadenceModeShowsLyrics = CadenceModeOptions.default.showsLyrics
+    @AppStorage(CadenceModePreferences.showsTrackInformationKey)
+    private var cadenceModeShowsTrackInformation =
+        CadenceModeOptions.default.showsTrackInformation
     @AppStorage(CadenceModePreferences.staysActiveKey)
-    private var staysInCadenceMode = false
+    private var staysInCadenceMode = CadenceModeOptions.default.staysActive
 
     init(
         model: CadenceAppModel,
-        cadenceModeSession: CadenceModeSession = CadenceModeSession()
+        cadenceModeSession: CadenceModeSession = CadenceModeSession(),
+        appearanceIdentity: AppearanceRefreshIdentity =
+            AppearanceRefreshIdentity(
+                rawValue: CadenceAppearance.system.rawValue
+            )
     ) {
         self.model = model
+        self.appearanceIdentity = appearanceIdentity
         _cadenceModeSession = State(initialValue: cadenceModeSession)
     }
 
@@ -70,11 +98,13 @@ struct CadenceRootView: View {
                 )
             }
         }
+        .id(appearanceIdentity)
         .background(CadenceTheme.contentBackground)
         .background {
             CadenceModeInputCapture(
                 model: model,
-                session: cadenceModeSession
+                session: cadenceModeSession,
+                isEnabled: cadenceModeOptions.isEnabled
             )
             .allowsHitTesting(false)
             .accessibilityHidden(true)
@@ -188,7 +218,7 @@ struct CadenceRootView: View {
             )
         }
         .task {
-            cadenceModeSession.setStaysActive(staysInCadenceMode)
+            synchronizeCadenceModeOptions(cadenceModeOptions)
             model.activateSystemMediaSession()
             await model.recoverManagedLibraryIfNeeded()
             await model.repairImportedMetadataIfNeeded()
@@ -221,8 +251,8 @@ struct CadenceRootView: View {
         .onChange(of: model.selectedDestination) {
             dismissSearch()
         }
-        .onChange(of: staysInCadenceMode) { _, staysActive in
-            cadenceModeSession.setStaysActive(staysActive)
+        .onChange(of: cadenceModeOptions) { _, options in
+            synchronizeCadenceModeOptions(options)
         }
         .onKeyPress(.escape, phases: .down) { _ in
             guard isSearchPresented || !activeSearchQuery.isEmpty else {
@@ -288,6 +318,23 @@ private extension CadenceRootView {
         ) ? .handled : .ignored
     }
 
+    private var cadenceModeOptions: CadenceModeOptions {
+        CadenceModeOptions(
+            isEnabled: isCadenceModeEnabled,
+            reactsToBass: cadenceModeReactsToBass,
+            showsLyrics: cadenceModeShowsLyrics,
+            showsTrackInformation: cadenceModeShowsTrackInformation,
+            staysActive: staysInCadenceMode
+        )
+    }
+
+    private func synchronizeCadenceModeOptions(
+        _ options: CadenceModeOptions
+    ) {
+        cadenceModeSession.setEnabled(options.isEnabled)
+        cadenceModeSession.setStaysActive(options.staysActive)
+    }
+
     private var navigationSelection: Binding<NavigationDestination> {
         Binding(
             get: { model.selectedDestination },
@@ -313,7 +360,8 @@ private extension CadenceRootView {
         case .nowPlaying:
             NowPlayingView(
                 model: model,
-                cadenceModeSession: cadenceModeSession
+                cadenceModeSession: cadenceModeSession,
+                cadenceModeOptions: cadenceModeOptions
             )
         case .lyricsEditor:
             LyricsEditorView(model: model)
@@ -345,42 +393,118 @@ private extension CadenceRootView {
                 model.locateUnavailableLibrary()
             }
         } else {
-            switch model.selectedDestination {
-            case .home:
-                ProductionHomeView(
-                    model: model,
-                    store: model.librarySession.store
-                )
-            case .library:
-                LibraryView(model: model)
-            case .allTracks:
-                AllTracksView(
-                    model: model,
-                    store: model.librarySession.store
-                )
-            case .albums:
-                AlbumsView(model: model)
-            case .artists:
-                ArtistsView(model: model)
-            case .favorites:
-                LibraryFavoritesView(
-                    model: model,
-                    store: model.librarySession.store
-                )
-            case .tags:
-                TagsView(model: model)
-            case .smartCollections:
-                SmartCollectionsView(model: model)
-            case .playlists:
-                PlaylistsView(
-                    model: model,
-                    store: model.librarySession.store
-                )
-            case .importMusic:
-                ImportMusicView(model: model)
-            case .trash:
-                ProductionTrashView(model: model)
+            Group {
+                if destinationPresentation == .loading {
+                    ProgressView("Loading \(model.selectedDestination.title)")
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    destinationPage
+                }
             }
+            .id(destinationTransitionIdentity)
+            .transition(.opacity)
+            .animation(
+                reduceMotion
+                    ? nil
+                    : .easeOut(duration: CadenceTheme.motionReplace),
+                value: destinationTransitionIdentity
+            )
         }
+    }
+
+    @ViewBuilder
+    private var destinationPage: some View {
+        switch model.selectedDestination {
+        case .home:
+            ProductionHomeView(
+                model: model,
+                store: model.librarySession.store
+            )
+        case .library:
+            LibraryView(model: model)
+        case .allTracks:
+            AllTracksView(
+                model: model,
+                store: model.librarySession.store
+            )
+        case .albums:
+            AlbumsView(model: model)
+        case .artists:
+            ArtistsView(model: model)
+        case .favorites:
+            LibraryFavoritesView(
+                model: model,
+                store: model.librarySession.store
+            )
+        case .tags:
+            TagsView(model: model)
+        case .smartCollections:
+            SmartCollectionsView(model: model)
+        case .playlists:
+            PlaylistsView(
+                model: model,
+                store: model.librarySession.store
+            )
+        case .importMusic:
+            ImportMusicView(model: model)
+        case .trash:
+            ProductionTrashView(model: model)
+        }
+    }
+
+    private var destinationPresentation: DestinationPresentation {
+        let store = model.librarySession.store
+        let hasResidentContent: Bool
+        let isLoading: Bool
+        switch model.selectedDestination {
+        case .home:
+            hasResidentContent = store.catalogCounts.liveTrackCount > 0
+            isLoading = store.availability == .loading
+        case .library:
+            hasResidentContent = !store.artists.isEmpty
+                || !store.albums.isEmpty
+                || !store.tracks.isEmpty
+            isLoading = store.availability == .loading
+        case .allTracks:
+            hasResidentContent = store.catalogCounts.liveTrackCount > 0
+            isLoading = store.availability == .loading
+        case .albums:
+            hasResidentContent = !store.albums.isEmpty
+            isLoading = store.availability == .loading
+                || store.isLoadingNextAlbums
+        case .artists:
+            hasResidentContent = !store.artists.isEmpty
+            isLoading = store.availability == .loading
+                || store.isLoadingNextArtists
+        case .favorites:
+            hasResidentContent = !store.favoriteTracks.isEmpty
+                || !store.favoriteAlbums.isEmpty
+                || !store.favoriteArtists.isEmpty
+            isLoading = store.availability == .loading
+        case .tags:
+            hasResidentContent = !store.tags.isEmpty
+            isLoading = store.availability == .loading
+                || store.isLoadingNextTags
+        case .smartCollections:
+            hasResidentContent = !model.smartCollections.isEmpty
+            isLoading = store.isLoadingSmartCollectionData
+        case .playlists:
+            hasResidentContent = !store.playlists.isEmpty
+            isLoading = store.playlistListState == .loading
+        case .importMusic:
+            hasResidentContent = true
+            isLoading = false
+        case .trash:
+            hasResidentContent = !store.trashOperations.isEmpty
+            isLoading = store.availability == .loading
+        }
+        return DestinationPresentation.resolve(
+            hasResidentContent: hasResidentContent,
+            isLoading: isLoading
+        )
+    }
+
+    private var destinationTransitionIdentity: String {
+        "\(model.selectedDestination.rawValue)-\(destinationPresentation)"
     }
 }

@@ -102,7 +102,7 @@ synthetic; the capture process cannot open the developer's music library.
 
 - Browse all tracks, albums, artists, tags, playlists, and smart collections.
 - Learn the interface through a first-run welcome and replayable Help chapters.
-- Sort and resize reusable track-table columns.
+- Sort track-table columns while Cadence keeps their widths stable.
 - Assign hierarchical tags such as `genre/ambient` or standalone tags such as
   `childhood`.
 - Build smart collections from nested rules without changing track metadata.

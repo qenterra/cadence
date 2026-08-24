@@ -22,12 +22,9 @@ struct ProductionArtistsView: View {
                         header
 
                         LazyVGrid(
-                            columns: [
-                                GridItem(
-                                    .adaptive(minimum: 160, maximum: 220),
-                                    spacing: 18
-                                ),
-                            ],
+                            columns: CatalogCardLayoutMetrics.layoutColumns(
+                                spacing: 18
+                            ),
                             alignment: .leading,
                             spacing: 24
                         ) {
@@ -46,6 +43,9 @@ struct ProductionArtistsView: View {
                     }
                     .padding(.horizontal, 28)
                     .padding(.vertical, 24)
+                }
+                .refreshable {
+                    await store.refresh(.artists)
                 }
             }
         }
@@ -212,6 +212,7 @@ struct ProductionArtistTile: View {
             .lineLimit(1)
         }
         .padding(10)
+        .frame(width: CatalogCardLayoutMetrics.cardWidth)
         .background {
             BrowserRowSurface(
                 isSelected: model.catalogActivationSelection.selected

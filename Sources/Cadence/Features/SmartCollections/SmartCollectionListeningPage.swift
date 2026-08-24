@@ -24,7 +24,12 @@ struct SmartCollectionListeningPage: View {
                         contentVersion: source.contentVersion,
                         context: selectedTrackTableContext,
                         queueSource: selectedProductionQueueSource,
-                        onReachEnd: loadNextProductionPage
+                        onReachEnd: loadNextProductionPage,
+                        refreshAction: {
+                            await model.librarySession.store.refresh(
+                                .smartCollections
+                            )
+                        }
                     )
                     .padding(.bottom, 24)
                 } else {

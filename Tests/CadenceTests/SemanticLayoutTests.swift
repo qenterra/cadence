@@ -1,4 +1,5 @@
 @testable import Cadence
+import SwiftUI
 import Testing
 
 struct SemanticLayoutTests {
@@ -35,6 +36,29 @@ struct SemanticLayoutTests {
         #expect(HomeLayoutMetrics.titleLineLimit == 2)
         #expect(HomeLayoutMetrics.subtitleLineLimit == 1)
         #expect(HomeLayoutMetrics.artworkCardHeight < 264)
+    }
+
+    @Test("Catalog cards keep one fixed width while column count changes")
+    func fixedCatalogCardMetrics() {
+        let widths: [CGFloat] = [640, 960, 1280]
+        let columns = widths.map {
+            CatalogCardLayoutMetrics.columns(
+                availableWidth: $0,
+                spacing: CadenceLayout.contentGap
+            )
+        }
+
+        #expect(columns.map(\.count) == [3, 4, 6])
+        for columnSet in columns {
+            for column in columnSet {
+                guard case let .fixed(width) = column.size else {
+                    Issue.record("Catalog grid emitted a resizable column")
+                    continue
+                }
+                #expect(width == CatalogCardLayoutMetrics.cardWidth)
+                #expect(width == 196)
+            }
+        }
     }
 
     @Test("Primary layout regions use bounded semantic metrics")

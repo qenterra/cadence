@@ -4,6 +4,7 @@ struct NativeAllTracksTable: View {
     @Bindable var model: CadenceAppModel
     @Bindable var window: LibraryTrackWindow
     let repositorySortAction: (LibraryTrackSort) async -> Void
+    let refreshAction: CadenceRefreshAction
     @Binding var selection: Set<UUID>
 
     var body: some View {
@@ -14,7 +15,8 @@ struct NativeAllTracksTable: View {
             queueSource: .allTracks,
             virtualWindow: window,
             repositorySortAction: repositorySortAction,
-            selection: $selection
+            selection: $selection,
+            refreshAction: refreshAction
         )
     }
 }

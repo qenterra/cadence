@@ -1,6 +1,18 @@
 import AppKit
 import SwiftUI
 
+enum TrackTablePullRefreshPolicy {
+    static let threshold: CGFloat = 72
+
+    static func progress(for pullDistance: CGFloat) -> Double {
+        Double(min(max(pullDistance, 0) / threshold, 1))
+    }
+
+    static func shouldRefresh(maximumPull: CGFloat) -> Bool {
+        maximumPull >= threshold
+    }
+}
+
 extension TrackTableCore {
     @MainActor
     // The coordinator deliberately owns the complete reusable NSTableView lifecycle.
@@ -36,6 +48,9 @@ extension TrackTableCore {
         var boundsObserver: NSObjectProtocol?
         var liveScrollObservers: [NSObjectProtocol] = []
         var isRestoringSelection = false
+        var refreshTask: Task<Void, Never>?
+        weak var refreshIndicator: NSProgressIndicator?
+        var maximumRefreshPull: CGFloat = 0
         let interactionState = TrackTableInteractionState()
         let displayProjectionCache: TrackRowDisplayProjectionCache
         var menuActionTargets: [TrackTableMenuActionTarget] = []
@@ -86,7 +101,7 @@ extension TrackTableCore {
                     queue: .main
                 ) { [weak self] _ in
                     MainActor.assumeIsolated {
-                        self?.interactionState.beginLiveScroll()
+                        self?.liveScrollDidBegin()
                     }
                 },
                 center.addObserver(
@@ -95,7 +110,7 @@ extension TrackTableCore {
                     queue: .main
                 ) { [weak self] _ in
                     MainActor.assumeIsolated {
-                        self?.interactionState.endLiveScroll()
+                        self?.liveScrollDidEnd()
                     }
                 },
             ]
@@ -106,6 +121,131 @@ extension TrackTableCore {
             removeScrollObservers()
             interactionState.endLiveScroll()
             resetPagingRequests()
+            refreshTask?.cancel()
+            refreshTask = nil
+            refreshIndicator?.removeFromSuperview()
+            refreshIndicator = nil
+            maximumRefreshPull = 0
+        }
+
+        func updateRefreshAffordance() {
+            guard let scrollView else {
+                return
+            }
+            guard parent.refreshAction != nil else {
+                refreshIndicator?.removeFromSuperview()
+                refreshIndicator = nil
+                maximumRefreshPull = 0
+                return
+            }
+            guard refreshIndicator == nil else {
+                return
+            }
+            scrollView.verticalScrollElasticity = .allowed
+            let indicator = NSProgressIndicator()
+            indicator.controlSize = .small
+            indicator.style = .spinning
+            indicator.isIndeterminate = false
+            indicator.minValue = 0
+            indicator.maxValue = 1
+            indicator.doubleValue = 0
+            indicator.alphaValue = 0
+            indicator.isDisplayedWhenStopped = true
+            indicator.translatesAutoresizingMaskIntoConstraints = false
+            scrollView.addSubview(
+                indicator,
+                positioned: .above,
+                relativeTo: scrollView.contentView
+            )
+            NSLayoutConstraint.activate([
+                indicator.centerXAnchor.constraint(
+                    equalTo: scrollView.centerXAnchor
+                ),
+                indicator.topAnchor.constraint(
+                    equalTo: scrollView.topAnchor,
+                    constant: 10
+                ),
+                indicator.widthAnchor.constraint(equalToConstant: 16),
+                indicator.heightAnchor.constraint(equalToConstant: 16),
+            ])
+            refreshIndicator = indicator
+        }
+
+        private func liveScrollDidBegin() {
+            interactionState.beginLiveScroll()
+            guard refreshTask == nil else {
+                return
+            }
+            maximumRefreshPull = 0
+            prepareRefreshIndicatorForPull()
+        }
+
+        private func liveScrollDidEnd() {
+            interactionState.endLiveScroll()
+            let shouldRefresh = TrackTablePullRefreshPolicy.shouldRefresh(
+                maximumPull: maximumRefreshPull
+            )
+            maximumRefreshPull = 0
+            if shouldRefresh {
+                beginRefresh()
+            } else {
+                hideRefreshIndicator()
+            }
+        }
+
+        private func updateRefreshPullProgress() {
+            guard refreshTask == nil, let scrollView, let refreshIndicator else {
+                return
+            }
+            let pullDistance = max(0, -scrollView.contentView.bounds.minY)
+            maximumRefreshPull = max(maximumRefreshPull, pullDistance)
+            let progress = TrackTablePullRefreshPolicy.progress(
+                for: pullDistance
+            )
+            refreshIndicator.doubleValue = progress
+            refreshIndicator.alphaValue = progress > 0 ? 1 : 0
+        }
+
+        private func beginRefresh() {
+            guard refreshTask == nil, let action = parent.refreshAction else {
+                hideRefreshIndicator()
+                return
+            }
+            refreshIndicator?.isIndeterminate = true
+            refreshIndicator?.alphaValue = 1
+            refreshIndicator?.startAnimation(nil)
+            refreshTask = Task { @MainActor [weak self] in
+                await action()
+                guard !Task.isCancelled else {
+                    return
+                }
+                self?.refreshIndicator?.stopAnimation(nil)
+                self?.refreshIndicator?.isIndeterminate = false
+                self?.refreshIndicator?.doubleValue = 0
+                self?.hideRefreshIndicator()
+                self?.refreshTask = nil
+            }
+        }
+
+        private func prepareRefreshIndicatorForPull() {
+            refreshIndicator?.stopAnimation(nil)
+            refreshIndicator?.isIndeterminate = false
+            refreshIndicator?.doubleValue = 0
+            refreshIndicator?.alphaValue = 0
+        }
+
+        private func hideRefreshIndicator() {
+            guard let refreshIndicator else {
+                return
+            }
+            if reduceMotion {
+                refreshIndicator.alphaValue = 0
+                return
+            }
+            NSAnimationContext.runAnimationGroup { context in
+                context.duration = 0.16
+                refreshIndicator.animator().alphaValue = 0
+            }
         }
 
         private func removeScrollObservers() {
@@ -266,6 +406,7 @@ extension TrackTableCore {
 
         func visibleBoundsChanged() {
             updateColumnWidth()
+            updateRefreshPullProgress()
             guard parent.virtualWindow != nil else {
                 return
             }

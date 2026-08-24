@@ -88,6 +88,18 @@ struct SecondAuditPresentationTests {
         #expect(SettingsLayoutMetrics.maximumContentWidth == 640)
     }
 
+    @Test("Sidebar settings expose one freely ordered destination list")
+    func sidebarSettingsAreFlat() throws {
+        let sidebarSource = try source(
+            at: "Sources/Cadence/Features/Settings/SettingsSidebarCard.swift"
+        )
+
+        #expect(sidebarSource.contains("ForEach(orderedDestinations)"))
+        #expect(!sidebarSource.contains("orderedSections"))
+        #expect(!sidebarSource.contains("section.group.title"))
+        #expect(!sidebarSource.contains("navigationGroup =="))
+    }
+
     @Test("Settings tabs keep one stable strip and deterministic glass policy")
     func settingsTabGlassPresentation() {
         #expect(

@@ -193,6 +193,9 @@ struct ProductionLibraryView: View {
                 },
                 repositorySortAction: { sort in
                     await store.sortBrowserTracks(sort)
+                },
+                refreshAction: {
+                    await store.refresh(.library)
                 }
             )
             .padding(.bottom, 16)
@@ -216,6 +219,9 @@ struct ProductionLibraryView: View {
                 }
                 .padding(.horizontal, 14)
                 .padding(.bottom, 16)
+            }
+            .refreshable {
+                await store.refresh(.library)
             }
         }
     }

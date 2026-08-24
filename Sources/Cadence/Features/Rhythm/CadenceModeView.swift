@@ -72,6 +72,7 @@ struct CadenceModeView: View {
     let trackTitle: String
     let artist: String
     let layout: CadenceModeLayout
+    let options: CadenceModeOptions
     let artworkNamespace: Namespace.ID
     let lyricDocument: LyricDocument?
     let visualQAPresentationTime: TimeInterval?
@@ -105,15 +106,29 @@ struct CadenceModeView: View {
                     y: 18
                 )
 
-            lyricContent
-                .frame(
-                    width: layout.modeLyricsFrame.width,
-                    height: layout.modeLyricsFrame.height
-                )
-                .position(
-                    x: layout.modeLyricsFrame.midX,
-                    y: layout.modeLyricsFrame.midY
-                )
+            if let identityFrame = layout.modeIdentityFrame {
+                trackInformation
+                    .frame(
+                        width: identityFrame.width,
+                        height: identityFrame.height
+                    )
+                    .position(
+                        x: identityFrame.midX,
+                        y: identityFrame.midY
+                    )
+            }
+
+            if let lyricsFrame = layout.modeLyricsFrame {
+                lyricContent
+                    .frame(
+                        width: lyricsFrame.width,
+                        height: lyricsFrame.height
+                    )
+                    .position(
+                        x: lyricsFrame.midX,
+                        y: lyricsFrame.midY
+                    )
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -123,6 +138,7 @@ struct CadenceModeView: View {
             .animation(
                 minimumInterval: 1.0 / 120.0,
                 paused: visualQABassLevel != nil
+                    || !options.reactsToBass
                     || effectiveReduceMotion
                     || !model.isPlaying
             )
@@ -131,7 +147,9 @@ struct CadenceModeView: View {
             let targetLevel = visualQABassLevel ?? model.playbackBassLevel
             let displayedLevel: Float = if usesVisualQA {
                 targetLevel
-            } else if effectiveReduceMotion || !model.isPlaying {
+            } else if !options.reactsToBass
+                || effectiveReduceMotion
+                || !model.isPlaying {
                 bassSmoother.reset(trackID: track.id)
             } else {
                 bassSmoother.resolve(
@@ -143,7 +161,8 @@ struct CadenceModeView: View {
             let response = CadenceModeBassResponse.resolve(
                 level: displayedLevel,
                 reduceMotion: effectiveReduceMotion,
-                isPlaying: usesVisualQA || model.isPlaying
+                isPlaying: usesVisualQA || model.isPlaying,
+                reactsToBass: options.reactsToBass
             )
 
             ProductionArtworkView(
@@ -160,6 +179,13 @@ struct CadenceModeView: View {
                     )
                 }
             )
+            .overlay {
+                RoundedRectangle(
+                    cornerRadius: CadenceTheme.radiusHero,
+                    style: .continuous
+                )
+                .strokeBorder(.white.opacity(0.22), lineWidth: 0.5)
+            }
             .scaleEffect(response.artworkScale)
             .overlay {
                 if let visualReadinessObserver =
@@ -196,6 +222,22 @@ struct CadenceModeView: View {
 
     private var effectiveReduceMotion: Bool {
         visualQAReduceMotionOverride ?? systemReduceMotion
+    }
+
+    private var trackInformation: some View {
+        VStack(spacing: 4) {
+            Text(trackTitle)
+                .font(.title3.weight(.semibold))
+                .lineLimit(1)
+                .minimumScaleFactor(0.75)
+            Text(artist)
+                .font(.callout.weight(.medium))
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+        }
+        .multilineTextAlignment(.center)
+        .padding(.horizontal, CadenceLayout.pageInset)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     @ViewBuilder
@@ -254,29 +296,9 @@ struct CadenceModeView: View {
 
     private var unavailableLyrics: some View {
         VStack(spacing: CadenceLayout.controlGap) {
-            Text(trackTitle)
-                .font(
-                    .system(
-                        size: CadenceModeUnavailableLyricsMetrics.titleSize,
-                        weight: .semibold,
-                        design: .rounded
-                    )
-                )
-                .lineLimit(2)
-                .minimumScaleFactor(0.72)
-            Text(artist)
-                .font(
-                    .system(
-                        size: CadenceModeUnavailableLyricsMetrics.artistSize,
-                        weight: .medium
-                    )
-                )
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
             Text(unavailableLyricsCaption)
                 .font(.caption)
                 .foregroundStyle(.tertiary)
-                .padding(.top, CadenceLayout.textStack)
         }
         .multilineTextAlignment(.center)
         .padding(.horizontal, CadenceLayout.pageInset)
@@ -310,9 +332,10 @@ struct CadenceModeBassResponse: Equatable, Sendable {
     static func resolve(
         level: Float,
         reduceMotion: Bool,
-        isPlaying: Bool = true
+        isPlaying: Bool = true,
+        reactsToBass: Bool = true
     ) -> CadenceModeBassResponse {
-        guard isPlaying, !reduceMotion, level.isFinite else {
+        guard reactsToBass, isPlaying, !reduceMotion, level.isFinite else {
             return .identity
         }
         let level = CGFloat(min(max(level, 0), 1))

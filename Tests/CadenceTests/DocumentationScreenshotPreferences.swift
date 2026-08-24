@@ -95,10 +95,6 @@ final class NavigationScreenshotPreferences {
             "trackTable.columnDefaultsVersion": 2,
             "trackTable.sortField": TrackTableSortField.song.rawValue,
             "trackTable.sortDirection": TrackTableSortDirection.ascending.rawValue,
-            "trackTable.songWidth": TrackTableWidth.song.defaultValue,
-            "trackTable.albumWidth": TrackTableWidth.album.defaultValue,
-            "trackTable.yearWidth": TrackTableWidth.year.defaultValue,
-            "trackTable.timeWidth": TrackTableWidth.time.defaultValue,
             "tags.sidebarWidth": 300.0,
             "tags.inspectorWidth": 330.0,
         ]
@@ -110,10 +106,6 @@ final class NavigationScreenshotPreferences {
             "trackTable.columnDefaultsVersion",
             "trackTable.sortField",
             "trackTable.sortDirection",
-            "trackTable.songWidth",
-            "trackTable.albumWidth",
-            "trackTable.yearWidth",
-            "trackTable.timeWidth",
             "tags.sidebarWidth",
             "tags.inspectorWidth",
         ]

@@ -8,6 +8,7 @@ struct ProductionLyricsPanel: View {
     @State private var presentation = LyricDocumentPresentationState()
     @State private var editingLineID: LyricLine.ID?
     @State private var editingText = ""
+    @State private var scrollPresentation = LyricsScrollPresentation()
     @FocusState private var focusedEditingLineID: LyricLine.ID?
 
     var body: some View {
@@ -134,6 +135,10 @@ struct ProductionLyricsPanel: View {
         return ScrollViewReader { proxy in
             ScrollView(.vertical) {
                 LazyVStack(alignment: .leading, spacing: 18) {
+                    Color.clear
+                        .frame(height: 1)
+                        .id(LyricsScrollTarget.top)
+
                     ForEach(document.lines) { line in
                         if line.isBlank {
                             Color.clear.frame(height: 10)
@@ -151,20 +156,47 @@ struct ProductionLyricsPanel: View {
                 .padding(.vertical, 34)
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
+            .scrollIndicators(.hidden)
             .onChange(
-                of: activeLineID,
+                of: LyricsScrollObservation(
+                    trackID: track.id,
+                    activeLineID: activeLineID,
+                    reduceMotion: reduceMotion
+                ),
                 initial: true
-            ) { _, lineID in
-                guard let lineID else {
-                    return
+            ) { _, observation in
+                applyScrollAction(
+                    scrollPresentation.resolve(
+                        trackID: observation.trackID,
+                        activeLineID: observation.activeLineID,
+                        reduceMotion: observation.reduceMotion
+                    ),
+                    proxy: proxy
+                )
+            }
+        }
+    }
+
+    private func applyScrollAction(
+        _ action: LyricsScrollAction,
+        proxy: ScrollViewProxy
+    ) {
+        switch action {
+        case .none:
+            break
+        case .top:
+            var transaction = Transaction()
+            transaction.disablesAnimations = true
+            withTransaction(transaction) {
+                proxy.scrollTo(LyricsScrollTarget.top, anchor: .top)
+            }
+        case let .activeLine(id, duration):
+            if duration > 0 {
+                withAnimation(.smooth(duration: duration)) {
+                    proxy.scrollTo(id, anchor: .center)
                 }
-                if motion.animatesScroll {
-                    withAnimation(.smooth(duration: CadenceTheme.motionPresent)) {
-                        proxy.scrollTo(lineID, anchor: .center)
-                    }
-                } else {
-                    proxy.scrollTo(lineID, anchor: .center)
-                }
+            } else {
+                proxy.scrollTo(id, anchor: .center)
             }
         }
     }
@@ -205,7 +237,9 @@ struct ProductionLyricsPanel: View {
             .buttonStyle(.plain)
             .animation(
                 motion.animatesEmphasis
-                    ? .smooth(duration: CadenceTheme.motionPresent)
+                    ? .smooth(
+                        duration: LyricsScrollPresentation.followDuration
+                    )
                     : nil,
                 value: isActive
             )

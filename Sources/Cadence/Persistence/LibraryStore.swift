@@ -119,6 +119,7 @@ final class LibraryStore {
     var browserTracks: [LibraryTrackProjection] = []
     var browserTracksState = LibraryContentLoadState.idle
     var browserTrackSort = LibraryTrackSort.titleAscending
+    @ObservationIgnored var refreshingScopes: Set<LibraryRefreshScope> = []
     var isLoadingNextBrowserAlbums = false
     var isLoadingNextBrowserTracks = false
     @ObservationIgnored var browserAlbumCursor: LibraryPageCursor?
@@ -138,6 +139,196 @@ final class LibraryStore {
         if let container {
             let repository = LibraryRepository(modelContainer: container)
             installAttachment(repository: repository, package: package)
+        }
+    }
+}
+
+extension LibraryStore {
+    func refresh(_ scope: LibraryRefreshScope) async {
+        guard refreshingScopes.insert(scope).inserted else {
+            return
+        }
+        defer { refreshingScopes.remove(scope) }
+
+        switch scope {
+        case .playlists:
+            await loadPlaylists()
+        case .smartCollections:
+            await refreshSmartCollectionData()
+        case .search:
+            await searchCatalog(catalogSearchQuery)
+        default:
+            await refreshRepositoryProjection(scope)
+        }
+    }
+
+    private func refreshRepositoryProjection(
+        _ scope: LibraryRefreshScope
+    ) async {
+        let context = captureLibraryContext()
+        do {
+            let repository = try requireRepository()
+            switch scope {
+            case .home:
+                try await refreshHome(
+                    repository: repository,
+                    context: context
+                )
+            case .library:
+                try await refreshLibraryBrowser(
+                    repository: repository,
+                    context: context
+                )
+            case .allTracks:
+                try await refreshAllTracks(
+                    repository: repository,
+                    context: context
+                )
+            case .albums:
+                let page = try await repository.albumsPage()
+                guard isCurrentLibraryContext(context) else { return }
+                albums = page.items
+                albumCursor = page.nextCursor
+            case .artists:
+                let page = try await repository.artistsPage()
+                guard isCurrentLibraryContext(context) else { return }
+                artists = page.items
+                artistCursor = page.nextCursor
+            case .favorites:
+                try await refreshFavorites(
+                    repository: repository,
+                    context: context
+                )
+            case .tags:
+                let page = try await repository.tagsPage()
+                guard isCurrentLibraryContext(context) else { return }
+                tags = page.items
+                tagCursor = page.nextCursor
+                tagGeneration &+= 1
+            case .trash:
+                let operations = try await repository.trashOperations(
+                    location: managedPackage?.location
+                )
+                guard isCurrentLibraryContext(context) else { return }
+                trashOperations = operations
+            case .playlists, .smartCollections, .search:
+                break
+            }
+        } catch {
+            guard isCurrentLibraryContext(context) else {
+                return
+            }
+            recordOperationFailure(scope.failureOperation, error: error)
+        }
+    }
+
+    private func refreshHome(
+        repository: LibraryRepository,
+        context: LibraryStoreContext
+    ) async throws {
+        async let recent = repository.recentlyPlayedTracks()
+        async let favoriteTrackPage = repository.favoriteTracksPage()
+        async let favoriteIDs = repository.favoriteTrackIDs()
+        async let favoriteAlbumPage = repository.favoriteAlbumsPage()
+        async let favoriteArtistPage = repository.favoriteArtistsPage()
+        let values = try await (
+            recent,
+            favoriteTrackPage,
+            favoriteIDs,
+            favoriteAlbumPage,
+            favoriteArtistPage
+        )
+        guard isCurrentLibraryContext(context) else { return }
+        recentlyPlayedTracks = values.0
+        replaceFavoriteTracksContent(with: values.1.items)
+        favoriteTrackCursor = values.1.nextCursor
+        favoriteTrackIDs = Set(values.2)
+        favoriteAlbums = values.3.items
+        favoriteAlbumCursor = values.3.nextCursor
+        favoriteArtists = values.4.items
+        favoriteArtistCursor = values.4.nextCursor
+    }
+
+    private func refreshLibraryBrowser(
+        repository: LibraryRepository,
+        context: LibraryStoreContext
+    ) async throws {
+        async let trackPage = repository.tracksPage(query: trackQuery)
+        async let artistPage = repository.artistsPage()
+        async let albumPage = repository.albumsPage()
+        let values = try await (trackPage, artistPage, albumPage)
+        guard isCurrentLibraryContext(context) else { return }
+        replaceTracksContent(with: values.0.items)
+        trackCursor = values.0.nextCursor
+        artists = values.1.items
+        artistCursor = values.1.nextCursor
+        albums = values.2.items
+        albumCursor = values.2.nextCursor
+        advanceAllTracksWindowContentVersion()
+    }
+
+    private func refreshAllTracks(
+        repository: LibraryRepository,
+        context: LibraryStoreContext
+    ) async throws {
+        async let trackPage = repository.tracksPage(query: trackQuery)
+        async let counts = repository.catalogCounts()
+        let values = try await (trackPage, counts)
+        guard isCurrentLibraryContext(context) else { return }
+        replaceTracksContent(with: values.0.items)
+        trackCursor = values.0.nextCursor
+        catalogCounts = values.1
+        advanceAllTracksWindowContentVersion()
+        await allTracksWindow?.configure(
+            totalCount: catalogCounts.liveTrackCount,
+            query: trackQuery,
+            contentVersion: allTracksWindowContentVersion
+        )
+    }
+
+    private func refreshFavorites(
+        repository: LibraryRepository,
+        context: LibraryStoreContext
+    ) async throws {
+        async let trackPage = repository.favoriteTracksPage()
+        async let ids = repository.favoriteTrackIDs()
+        async let albumPage = repository.favoriteAlbumsPage()
+        async let artistPage = repository.favoriteArtistsPage()
+        let values = try await (trackPage, ids, albumPage, artistPage)
+        guard isCurrentLibraryContext(context) else { return }
+        replaceFavoriteTracksContent(with: values.0.items)
+        favoriteTrackCursor = values.0.nextCursor
+        favoriteTrackIDs = Set(values.1)
+        favoriteAlbums = values.2.items
+        favoriteAlbumCursor = values.2.nextCursor
+        favoriteArtists = values.3.items
+        favoriteArtistCursor = values.3.nextCursor
+    }
+
+    private func refreshSmartCollectionData() async {
+        await loadSmartCollectionRuleData()
+        let rules = Array(
+            Set(smartCollectionSummaries.keys)
+                .union(smartCollectionResults.keys)
+        )
+        await loadSmartCollectionSummaries(rules: rules)
+        for rule in rules where smartCollectionResults[rule] != nil {
+            await loadSmartCollectionResult(rule: rule)
+        }
+    }
+}
+
+private extension LibraryRefreshScope {
+    var failureOperation: LibraryOperationFailure.Operation {
+        switch self {
+        case .albums: .albumPage
+        case .artists: .artistPage
+        case .favorites, .home: .favoriteCatalog
+        case .playlists: .playlistList
+        case .tags: .tagPage
+        case .smartCollections: .smartCollections
+        case .search: .catalogSearch
+        case .library, .allTracks, .trash: .trackPage
         }
     }
 }

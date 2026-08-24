@@ -4,6 +4,87 @@ import Foundation
 import Testing
 
 struct LibraryUXInfrastructureTests {
+    @Test("Destination loading replaces only an empty data region")
+    func destinationPresentation() {
+        #expect(
+            DestinationPresentation.resolve(
+                hasResidentContent: false,
+                isLoading: true
+            ) == .loading
+        )
+        #expect(
+            DestinationPresentation.resolve(
+                hasResidentContent: true,
+                isLoading: true
+            ) == .content
+        )
+        #expect(
+            DestinationPresentation.resolve(
+                hasResidentContent: false,
+                isLoading: false
+            ) == .content
+        )
+    }
+
+    @Test("Every scrollable library destination maps to a refresh scope")
+    func destinationRefreshScopes() {
+        #expect(NavigationDestination.home.refreshScope == .home)
+        #expect(NavigationDestination.library.refreshScope == .library)
+        #expect(NavigationDestination.allTracks.refreshScope == .allTracks)
+        #expect(NavigationDestination.albums.refreshScope == .albums)
+        #expect(NavigationDestination.artists.refreshScope == .artists)
+        #expect(NavigationDestination.favorites.refreshScope == .favorites)
+        #expect(NavigationDestination.playlists.refreshScope == .playlists)
+        #expect(NavigationDestination.tags.refreshScope == .tags)
+        #expect(NavigationDestination.smartCollections.refreshScope == .smartCollections)
+        #expect(NavigationDestination.trash.refreshScope == .trash)
+        #expect(NavigationDestination.importMusic.refreshScope == nil)
+    }
+
+    @Test("Escape cancels focused text entry before contextual navigation")
+    func textEntryEscapePolicy() {
+        #expect(
+            TextEntryEscapePolicy.resolve(
+                isFocused: true,
+                textIsEmpty: false
+            ) == .cancelEntry
+        )
+        #expect(
+            TextEntryEscapePolicy.resolve(
+                isFocused: true,
+                textIsEmpty: true
+            ) == .cancelEntry
+        )
+        #expect(
+            TextEntryEscapePolicy.resolve(
+                isFocused: false,
+                textIsEmpty: true
+            ) == .propagate
+        )
+    }
+
+    @Test("Appearance identity changes only when the exact choice changes")
+    func appearanceRefreshIdentity() {
+        #expect(
+            AppearanceRefreshIdentity(rawValue: "dark")
+                != AppearanceRefreshIdentity(rawValue: "light")
+        )
+        #expect(
+            AppearanceRefreshIdentity(rawValue: "dark")
+                == AppearanceRefreshIdentity(rawValue: "dark")
+        )
+    }
+
+    @Test("Native track tables refresh only after a deliberate top pull")
+    func nativeTrackTablePullRefreshPolicy() {
+        #expect(TrackTablePullRefreshPolicy.progress(for: -12) == 0)
+        #expect(TrackTablePullRefreshPolicy.progress(for: 0) == 0)
+        #expect(TrackTablePullRefreshPolicy.progress(for: 36) == 0.5)
+        #expect(TrackTablePullRefreshPolicy.progress(for: 90) == 1)
+        #expect(!TrackTablePullRefreshPolicy.shouldRefresh(maximumPull: 71))
+        #expect(TrackTablePullRefreshPolicy.shouldRefresh(maximumPull: 72))
+    }
+
     @Test("System appearance releases the explicit AppKit override")
     func appearanceOverrides() {
         #expect(CadenceAppearance.system.appKitAppearance == nil)
@@ -53,7 +134,7 @@ struct LibraryUXInfrastructureTests {
         #expect(ordered == [first, second])
     }
 
-    @Test("Home recent items omit the track already visible in the player")
+    @Test("Home recent items keep the playing track at the front")
     func homeRecentListeningSelection() {
         struct Item: Identifiable, Equatable {
             let id: Int
@@ -63,14 +144,12 @@ struct LibraryUXInfrastructureTests {
         #expect(
             HomeListeningSelection.recentItems(
                 items,
-                excludingID: 1,
                 limit: 6
-            ).map(\.id) == Array(2 ... 7)
+            ).map(\.id) == Array(1 ... 6)
         )
         #expect(
             HomeListeningSelection.recentItems(
                 items,
-                excludingID: nil,
                 limit: 0
             ).isEmpty
         )
@@ -127,18 +206,38 @@ struct LibraryUXInfrastructureTests {
         )
     }
 
-    @Test("Track format pills omit leading file-extension separators")
-    @MainActor
-    func trackFormatPillTitle() {
-        #expect(
-            ProductionTrackTableRow.formatPillTitle(".mp3") == "MP3"
+    @Test("Track rows keep format and synchronized lyrics out of list chrome")
+    func trackRowsOmitTechnicalPills() throws {
+        let projectRoot = URL(filePath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+        let source = try String(
+            contentsOf: projectRoot.appending(
+                path: "Sources/Cadence/Features/Library/ProductionTrackTableRowSupport.swift"
+            ),
+            encoding: .utf8
         )
-        #expect(
-            ProductionTrackTableRow.formatPillTitle("flac") == "FLAC"
+
+        #expect(!source.contains("formatPillTitle"))
+        #expect(!source.contains("Text(\"LRC\")"))
+    }
+
+    @Test("Favorites type selection is a direct segmented control")
+    func favoritesTypePickerIsDirect() throws {
+        let projectRoot = URL(filePath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+        let source = try String(
+            contentsOf: projectRoot.appending(
+                path: "Sources/Cadence/Features/Library/LibraryFavoritesView.swift"
+            ),
+            encoding: .utf8
         )
-        #expect(
-            ProductionTrackTableRow.formatPillTitle(" ..aac") == "AAC"
-        )
+
+        #expect(!source.contains("Menu(\"Type\")"))
+        #expect(source.contains(".pickerStyle(.segmented)"))
     }
 
     @Test("Production Smart Collections match inherited tag descendants")

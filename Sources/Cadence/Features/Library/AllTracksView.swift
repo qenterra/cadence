@@ -34,7 +34,10 @@ struct AllTracksView: View {
                     repositorySortAction: { sort in
                         await store.sortTracks(sort)
                     },
-                    selection: $selection
+                    selection: $selection,
+                    refreshAction: {
+                        await store.refresh(.allTracks)
+                    }
                 )
                 .padding(.bottom, CadenceLayout.pageInset)
             }
@@ -87,6 +90,9 @@ struct AllTracksView: View {
                 window: window,
                 repositorySortAction: { sort in
                     await store.sortTracks(sort)
+                },
+                refreshAction: {
+                    await store.refresh(.allTracks)
                 },
                 selection: $selection
             )

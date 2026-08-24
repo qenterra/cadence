@@ -1,5 +1,9 @@
 import AppKit
 
+struct AppearanceRefreshIdentity: Hashable, Sendable {
+    let rawValue: String
+}
+
 @MainActor
 final class AppearanceController {
     func apply(

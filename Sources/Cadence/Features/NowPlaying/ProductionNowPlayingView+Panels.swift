@@ -36,23 +36,52 @@ extension ProductionNowPlayingView {
 
     @ViewBuilder
     var audioQuality: some View {
-        if let path = model.playbackCoordinator?.state.audioPath {
-            let presentation = AudioQualityPresentation(path: path)
-            Button {
-                isAudioDetailsPresented.toggle()
-            } label: {
-                Label(presentation.badge, systemImage: "waveform")
-                    .font(.caption.weight(.medium))
-                    .foregroundStyle(.secondary)
-                    .padding(.horizontal, 10)
-                    .frame(height: 28)
-                    .background(CadenceTheme.subduedFill, in: Capsule())
-            }
-            .buttonStyle(.plain)
-            .help("Show Audio Details")
-            .accessibilityHint("Shows format, renderer, and output details")
-            .popover(isPresented: $isAudioDetailsPresented, arrowEdge: .bottom) {
-                AudioDetailsPopover(presentation: presentation)
+        let badges = NowPlayingMetadataBadges.resolve(
+            audioPath: model.playbackCoordinator?.state.audioPath,
+            currentTrackID: track.id,
+            lyricDocument: displayedLyricDocument
+        )
+        if badges.audioQuality != nil || badges.showsSynchronizedLyrics {
+            HStack(spacing: 8) {
+                if let presentation = badges.audioQuality {
+                    Button {
+                        isAudioDetailsPresented.toggle()
+                    } label: {
+                        Label(presentation.badge, systemImage: "waveform")
+                            .font(.caption.weight(.medium))
+                            .foregroundStyle(.secondary)
+                            .padding(.horizontal, 10)
+                            .frame(height: 28)
+                            .background(
+                                CadenceTheme.subduedFill,
+                                in: Capsule()
+                            )
+                    }
+                    .buttonStyle(.plain)
+                    .help("Show Audio Details")
+                    .accessibilityHint(
+                        "Shows format, renderer, and output details"
+                    )
+                    .popover(
+                        isPresented: $isAudioDetailsPresented,
+                        arrowEdge: .bottom
+                    ) {
+                        AudioDetailsPopover(presentation: presentation)
+                    }
+                }
+
+                if badges.showsSynchronizedLyrics {
+                    Text("LRC")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 10)
+                        .frame(height: 28)
+                        .background(CadenceTheme.subduedFill, in: Capsule())
+                        .help("Synchronized lyrics available")
+                        .accessibilityLabel(
+                            "Synchronized lyrics"
+                        )
+                }
             }
         }
     }

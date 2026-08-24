@@ -9,8 +9,6 @@ enum HomeTilePresentation: Equatable, Sendable {
 }
 
 enum HomeLayoutMetrics {
-    static let minimumCardWidth: CGFloat = 156
-    static let maximumCardWidth: CGFloat = 196
     static let artworkCardHeight: CGFloat = 236
     static let titleLineLimit = 2
     static let subtitleLineLimit = 1
@@ -38,20 +36,12 @@ enum HomeListeningSelection {
 
     static func recentItems<Item: Identifiable>(
         _ items: [Item],
-        excludingID: Item.ID?,
         limit: Int
-    ) -> [Item] where Item.ID: Equatable {
+    ) -> [Item] {
         guard limit > 0 else {
             return []
         }
-        return Array(
-            items.lazy.filter { item in
-                guard let excludingID else {
-                    return true
-                }
-                return item.id != excludingID
-            }.prefix(limit)
-        )
+        return Array(items.prefix(limit))
     }
 }
 
@@ -156,15 +146,9 @@ struct HomeTrackGrid: View {
 
     var body: some View {
         LazyVGrid(
-            columns: [
-                GridItem(
-                    .adaptive(
-                        minimum: HomeLayoutMetrics.minimumCardWidth,
-                        maximum: HomeLayoutMetrics.maximumCardWidth
-                    ),
-                    spacing: CadenceLayout.contentGap
-                ),
-            ],
+            columns: CatalogCardLayoutMetrics.layoutColumns(
+                spacing: CadenceLayout.contentGap
+            ),
             alignment: .leading,
             spacing: CadenceLayout.contentGap
         ) {
@@ -277,8 +261,8 @@ private struct HomeMediaTile: View {
             labels
         }
         .padding(CadenceLayout.compactGap)
+        .frame(width: CatalogCardLayoutMetrics.cardWidth)
         .frame(
-            maxWidth: .infinity,
             minHeight: HomeLayoutMetrics.artworkCardHeight,
             alignment: .topLeading
         )
@@ -321,15 +305,9 @@ struct HomeCompactGrid<Content: View>: View {
 
     var body: some View {
         LazyVGrid(
-            columns: [
-                GridItem(
-                    .adaptive(
-                        minimum: HomeLayoutMetrics.minimumCardWidth,
-                        maximum: HomeLayoutMetrics.maximumCardWidth
-                    ),
-                    spacing: CadenceLayout.contentGap
-                ),
-            ],
+            columns: CatalogCardLayoutMetrics.layoutColumns(
+                spacing: CadenceLayout.contentGap
+            ),
             alignment: .leading,
             spacing: CadenceLayout.contentGap
         ) {

@@ -58,8 +58,17 @@ struct ProductionSettingsView: View {
         NavigationRailConfiguration.defaultOrderRawValue
     @AppStorage("navigationRail.hidden")
     private var hiddenNavigationRawValue = ""
+    @AppStorage(CadenceModePreferences.isEnabledKey)
+    private var isCadenceModeEnabled = CadenceModeOptions.default.isEnabled
+    @AppStorage(CadenceModePreferences.reactsToBassKey)
+    private var cadenceModeReactsToBass = CadenceModeOptions.default.reactsToBass
+    @AppStorage(CadenceModePreferences.showsLyricsKey)
+    private var cadenceModeShowsLyrics = CadenceModeOptions.default.showsLyrics
+    @AppStorage(CadenceModePreferences.showsTrackInformationKey)
+    private var cadenceModeShowsTrackInformation =
+        CadenceModeOptions.default.showsTrackInformation
     @AppStorage(CadenceModePreferences.staysActiveKey)
-    private var staysInCadenceMode = false
+    private var staysInCadenceMode = CadenceModeOptions.default.staysActive
 
     init(
         model: CadenceAppModel,
@@ -262,16 +271,41 @@ struct ProductionSettingsView: View {
             title: "Cadence Mode",
             symbol: "waveform"
         ) {
+            Toggle("Enable Cadence Mode", isOn: $isCadenceModeEnabled)
+
+            Toggle("React to Bass", isOn: $cadenceModeReactsToBass)
+                .disabled(!isCadenceModeEnabled)
+
+            Toggle(
+                "Show Synchronized Lyrics",
+                isOn: $cadenceModeShowsLyrics
+            )
+            .disabled(!isCadenceModeEnabled)
+
+            Toggle(
+                "Show Track Information",
+                isOn: $cadenceModeShowsTrackInformation
+            )
+            .disabled(!isCadenceModeEnabled)
+
             Toggle("Stay in Cadence Mode", isOn: $staysInCadenceMode)
+                .disabled(!isCadenceModeEnabled)
 
             Text(
-                staysInCadenceMode
-                    ? "Cadence Mode stays open until you leave it."
-                    : "Cadence Mode closes after ten seconds without input."
+                cadenceModeHelpText
             )
             .font(.caption)
             .foregroundStyle(.secondary)
         }
+    }
+
+    private var cadenceModeHelpText: LocalizedStringKey {
+        guard isCadenceModeEnabled else {
+            return "The Z + X shortcut, visual effects, and direct entry are disabled."
+        }
+        return staysInCadenceMode
+            ? "Cadence Mode stays open until you leave it."
+            : "Cadence Mode closes after ten seconds without input."
     }
 
     private var appearanceBinding: Binding<CadenceAppearance> {

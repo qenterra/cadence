@@ -14,6 +14,106 @@ enum NativeTrackTableAction: Equatable, Sendable {
     case album
 }
 
+enum NativeTrackTableChromeTone: Equatable, Sendable {
+    case clear
+    case selection
+    case hover
+    case primary
+    case secondary
+    case tertiary
+}
+
+struct NativeTrackTableChromePresentation: Equatable, Sendable {
+    let fill: NativeTrackTableChromeTone
+    let outline: NativeTrackTableChromeTone
+    let favorite: NativeTrackTableChromeTone
+    let action: NativeTrackTableChromeTone
+
+    static func resolve(
+        isSelected: Bool,
+        isFocused: Bool,
+        isHovered: Bool,
+        isLiveScrolling: Bool,
+        isFavorite: Bool
+    ) -> NativeTrackTableChromePresentation {
+        NativeTrackTableChromePresentation(
+            fill: isSelected
+                ? .selection
+                : isHovered && !isLiveScrolling ? .hover : .clear,
+            outline: isSelected && isFocused ? .primary : .clear,
+            favorite: isFavorite ? .primary : .secondary,
+            action: isHovered ? .primary : .tertiary
+        )
+    }
+}
+
+enum NativeFavoriteFeedbackPresentation {
+    static func shouldAnimate(
+        previousID: UUID?,
+        previousValue: Bool?,
+        nextID: UUID?,
+        nextValue: Bool?,
+        reduceMotion: Bool,
+        isLiveScrolling: Bool
+    ) -> Bool {
+        guard !reduceMotion,
+              !isLiveScrolling,
+              let previousID,
+              previousID == nextID,
+              let previousValue,
+              let nextValue else {
+            return false
+        }
+        return previousValue != nextValue
+    }
+}
+
+@MainActor
+private final class NativeTrackMetadataButton: NSButton {
+    var hoverChanged: (() -> Void)?
+    private(set) var isPointerHovered = false
+    private var hoverTrackingArea: NSTrackingArea?
+
+    override func updateTrackingAreas() {
+        if let hoverTrackingArea {
+            removeTrackingArea(hoverTrackingArea)
+        }
+        let area = NSTrackingArea(
+            rect: bounds,
+            options: [
+                .activeInActiveApp,
+                .inVisibleRect,
+                .mouseEnteredAndExited,
+            ],
+            owner: self,
+            userInfo: nil
+        )
+        addTrackingArea(area)
+        hoverTrackingArea = area
+        super.updateTrackingAreas()
+    }
+
+    override func mouseEntered(with _: NSEvent) {
+        setPointerHovered(true)
+    }
+
+    override func mouseExited(with _: NSEvent) {
+        setPointerHovered(false)
+    }
+
+    func setPointerHovered(_ isHovered: Bool) {
+        guard isPointerHovered != isHovered else {
+            return
+        }
+        isPointerHovered = isHovered
+        hoverChanged?()
+    }
+
+    func resetPointerHover() {
+        isPointerHovered = false
+    }
+}
+
 @MainActor
 // One reusable AppKit cell owns a stable layer and control hierarchy for the hot scroll path.
 // swiftlint:disable:next type_body_length
@@ -41,11 +141,9 @@ final class NativeTrackTableCell: NSTableCellView {
     private let favoriteButton = NSButton()
     private let artworkButton = NSButton()
     private let titleLabel = NSTextField(labelWithString: "")
-    private let artistButton = NSButton()
-    private let codecLabel = NSTextField(labelWithString: "")
+    private let artistButton = NativeTrackMetadataButton()
     private let explicitLabel = NSTextField(labelWithString: "E")
-    private let lyricsLabel = NSTextField(labelWithString: "LRC")
-    private let albumButton = NSButton()
+    private let albumButton = NativeTrackMetadataButton()
     private let yearLabel = NSTextField(labelWithString: "")
     private let durationLabel = NSTextField(labelWithString: "")
     private let actionButton = NSButton()
@@ -143,6 +241,8 @@ final class NativeTrackTableCell: NSTableCellView {
         case let .track(projection):
             projection
         }
+        let previousID = representedTrackID
+        let previousFavorite = projection?.isFavorite
         let contentChanged = !hasConfiguredContent
             || projection != nextProjection
         let layoutChanged = !hasConfiguredContent
@@ -154,9 +254,23 @@ final class NativeTrackTableCell: NSTableCellView {
             || self.isLiveScrolling != isLiveScrolling
             || self.reduceMotion != reduceMotion
             || contentChanged
-        if let representedTrackID,
-           representedTrackID != nextProjection?.id {
+        let identityChanged = representedTrackID != nextProjection?.id
+        if representedTrackID != nil, identityChanged {
             probe?.recordNativeTrackIdentityChange()
+        }
+        let animatesFavoriteFeedback =
+            NativeFavoriteFeedbackPresentation.shouldAnimate(
+                previousID: previousID,
+                previousValue: previousFavorite,
+                nextID: nextProjection?.id,
+                nextValue: nextProjection?.isFavorite,
+                reduceMotion: reduceMotion,
+                isLiveScrolling: isLiveScrolling
+            )
+        if identityChanged {
+            isHovered = false
+            artistButton.resetPointerHover()
+            albumButton.resetPointerHover()
         }
         self.columns = columns
         self.widths = widths
@@ -186,6 +300,9 @@ final class NativeTrackTableCell: NSTableCellView {
             needsLayout = true
         }
         CATransaction.commit()
+        if animatesFavoriteFeedback {
+            animateFavoriteFeedback()
+        }
     }
 
     override func layout() {
@@ -217,12 +334,18 @@ final class NativeTrackTableCell: NSTableCellView {
     }
 
     override func mouseEntered(with _: NSEvent) {
-        isHovered = true
-        updateChrome()
+        updatePointerHover(isHovered: true)
     }
 
     override func mouseExited(with _: NSEvent) {
-        isHovered = false
+        updatePointerHover(isHovered: false)
+    }
+
+    func updatePointerHover(isHovered: Bool) {
+        guard self.isHovered != isHovered else {
+            return
+        }
+        self.isHovered = isHovered
         updateChrome()
     }
 
@@ -260,10 +383,17 @@ final class NativeTrackTableCell: NSTableCellView {
 
         favoriteButton.imagePosition = .imageOnly
         favoriteButton.contentTintColor = .secondaryLabelColor
+        favoriteButton.wantsLayer = true
         artworkButton.imagePosition = .imageOnly
         artworkButton.contentTintColor = .white
         artistButton.alignment = .left
         albumButton.alignment = .left
+        artistButton.hoverChanged = { [weak self] in
+            self?.updateMetadataLinkTones()
+        }
+        albumButton.hoverChanged = { [weak self] in
+            self?.updateMetadataLinkTones()
+        }
         actionButton.imagePosition = .imageOnly
         actionButton.image = NSImage(
             systemSymbolName: "ellipsis",
@@ -273,17 +403,8 @@ final class NativeTrackTableCell: NSTableCellView {
 
         configureLabel(titleLabel, font: .systemFont(ofSize: 13))
         configureLabel(
-            codecLabel,
-            font: .systemFont(ofSize: 9, weight: .semibold)
-        )
-        configureLabel(
             explicitLabel,
             font: .systemFont(ofSize: 9, weight: .bold),
-            alignment: .center
-        )
-        configureLabel(
-            lyricsLabel,
-            font: .systemFont(ofSize: 9, weight: .semibold),
             alignment: .center
         )
         configureLabel(yearLabel, alignment: .right)
@@ -298,9 +419,7 @@ final class NativeTrackTableCell: NSTableCellView {
             artworkButton,
             titleLabel,
             artistButton,
-            codecLabel,
             explicitLabel,
-            lyricsLabel,
             albumButton,
             yearLabel,
             durationLabel,
@@ -321,6 +440,10 @@ final class NativeTrackTableCell: NSTableCellView {
         button.font = .systemFont(ofSize: NSFont.systemFontSize)
         button.lineBreakMode = .byTruncatingTail
         button.focusRingType = .none
+        if let buttonCell = button.cell as? NSButtonCell {
+            buttonCell.highlightsBy = []
+            buttonCell.showsStateBy = []
+        }
     }
 
     private func configureLabel(
@@ -342,9 +465,9 @@ final class NativeTrackTableCell: NSTableCellView {
     private func applyContent() {
         guard let projection else {
             titleLabel.stringValue = String(localized: "Loading…")
+            titleLabel.toolTip = nil
             artistButton.title = ""
             albumButton.title = ""
-            codecLabel.stringValue = ""
             yearLabel.stringValue = ""
             durationLabel.stringValue = ""
             representedTrackID = nil
@@ -353,11 +476,11 @@ final class NativeTrackTableCell: NSTableCellView {
                 view.isEnabled = false
             }
             explicitLabel.isHidden = true
-            lyricsLabel.isHidden = true
             return
         }
 
         titleLabel.stringValue = projection.title
+        titleLabel.toolTip = projection.title
         titleLabel.font = .systemFont(
             ofSize: NSFont.systemFontSize,
             weight: projection.isCurrentTrack ? .semibold : .regular
@@ -368,11 +491,9 @@ final class NativeTrackTableCell: NSTableCellView {
         albumButton.title = projection.album
         albumButton.toolTip = projection.album
         albumButton.isEnabled = projection.albumID != nil
-        codecLabel.stringValue = projection.codec
         yearLabel.stringValue = projection.year
         durationLabel.stringValue = projection.duration
         explicitLabel.isHidden = !projection.isExplicit
-        lyricsLabel.isHidden = !projection.hasSynchronizedLyrics
         favoriteButton.isEnabled = true
         artworkButton.isEnabled = true
         actionButton.isEnabled = true
@@ -386,18 +507,27 @@ final class NativeTrackTableCell: NSTableCellView {
         artworkButton.toolTip = String(
             localized: "Play \(projection.title)"
         )
+        updateMetadataLinkTones()
     }
 
     private func updateChrome() {
         let disablesAnimation = isLiveScrolling || reduceMotion
+        let presentation = NativeTrackTableChromePresentation.resolve(
+            isSelected: isSelected,
+            isFocused: isFocused,
+            isHovered: isHovered,
+            isLiveScrolling: isLiveScrolling,
+            isFavorite: projection?.isFavorite == true
+        )
         CATransaction.begin()
         CATransaction.setDisableActions(disablesAnimation)
-        selectionLayer.backgroundColor = rowBackgroundColor.cgColor
-        selectionLayer.borderColor = isSelected && isFocused
-            ? NSColor.keyboardFocusIndicatorColor
-            .withAlphaComponent(0.45).cgColor
-            : NSColor.clear.cgColor
-        selectionLayer.borderWidth = isSelected && isFocused ? 1 : 0
+        selectionLayer.backgroundColor = color(
+            for: presentation.fill
+        ).cgColor
+        selectionLayer.borderColor = color(
+            for: presentation.outline
+        ).withAlphaComponent(0.62).cgColor
+        selectionLayer.borderWidth = presentation.outline == .clear ? 0 : 1
         artworkLayer.backgroundColor = NSColor.controlBackgroundColor.cgColor
         artworkOverlayLayer.backgroundColor = projection?.isCurrentTrack == true
             ? NSColor.black.withAlphaComponent(0.34).cgColor
@@ -413,20 +543,70 @@ final class NativeTrackTableCell: NSTableCellView {
         favoriteButton.image = projection.isFavorite
             ? Self.filledHeartImage
             : Self.emptyHeartImage
-        favoriteButton.contentTintColor = projection.isFavorite
-            ? .controlAccentColor
-            : .secondaryLabelColor
+        favoriteButton.contentTintColor = color(
+            for: presentation.favorite
+        )
         favoriteButton.isHidden = !projection.isFavorite
             && !isHovered
             && !isSelected
             && !isFocused
-        actionButton.contentTintColor = isHovered
-            ? .labelColor
-            : .tertiaryLabelColor
+        actionButton.contentTintColor = color(for: presentation.action)
         artworkButton.image = projection.isCurrentTrack && projection.isPlaying
             ? Self.waveformImage
             : Self.playImage
         artworkButton.isHidden = !isHovered && !projection.isCurrentTrack
+        updateMetadataLinkTones()
+    }
+
+    private func updateMetadataLinkTones() {
+        artistButton.contentTintColor = metadataTone(for: artistButton)
+        albumButton.contentTintColor = metadataTone(for: albumButton)
+    }
+
+    private func animateFavoriteFeedback() {
+        let animation = CAKeyframeAnimation(keyPath: "transform.scale")
+        animation.values = [1, 1.22, 0.94, 1]
+        animation.keyTimes = [0, 0.38, 0.72, 1]
+        animation.duration = 0.28
+        animation.timingFunctions = [
+            CAMediaTimingFunction(name: .easeOut),
+            CAMediaTimingFunction(name: .easeInEaseOut),
+            CAMediaTimingFunction(name: .easeOut),
+        ]
+        favoriteButton.layer?.add(
+            animation,
+            forKey: "cadence.favorite.feedback"
+        )
+    }
+
+    private func metadataTone(
+        for button: NativeTrackMetadataButton
+    ) -> NSColor {
+        let isFocused = window?.firstResponder === button
+        return button.isEnabled
+            ? button.isPointerHovered || isFocused
+            ? .labelColor
+            : .secondaryLabelColor
+            : .tertiaryLabelColor
+    }
+
+    private func color(
+        for tone: NativeTrackTableChromeTone
+    ) -> NSColor {
+        switch tone {
+        case .clear:
+            .clear
+        case .selection:
+            CadenceTheme.nativeSelectionFill
+        case .hover:
+            CadenceTheme.nativeHoverFill
+        case .primary:
+            CadenceTheme.nativePrimaryAccent
+        case .secondary:
+            .secondaryLabelColor
+        case .tertiary:
+            .tertiaryLabelColor
+        }
     }
 
     private func updateArtwork(request: ProductionArtworkRequest?) {
@@ -495,17 +675,6 @@ final class NativeTrackTableCell: NSTableCellView {
         if resetRequest {
             artworkRequest = nil
         }
-    }
-
-    private var rowBackgroundColor: NSColor {
-        if isSelected {
-            return NSColor.selectedContentBackgroundColor
-                .withAlphaComponent(isFocused ? 0.18 : 0.11)
-        }
-        if isHovered, !isLiveScrolling {
-            return NSColor.labelColor.withAlphaComponent(0.045)
-        }
-        return .clear
     }
 
     private static func artworkContentsRect(
@@ -622,11 +791,15 @@ final class NativeTrackTableCell: NSTableCellView {
             let width = CGFloat(widths[column])
             switch column {
             case .album:
+                let linkWidth = metadataButtonWidth(
+                    albumButton,
+                    maximum: width
+                )
                 albumButton.frame = NSRect(
                     x: x,
-                    y: 0,
-                    width: width,
-                    height: rowHeight
+                    y: (rowHeight - 19) / 2,
+                    width: linkWidth,
+                    height: 19
                 )
             case .year:
                 yearLabel.frame = NSRect(
@@ -667,50 +840,48 @@ final class NativeTrackTableCell: NSTableCellView {
         let badgeGap: CGFloat = 7
         let badgeHeight: CGFloat = 16
         let topY = rowHeight / 2 + 1
-        let titleIdealWidth = min(
-            ceil(titleLabel.intrinsicContentSize.width),
-            max(width * 0.62, 40)
-        )
+        let explicitReserve = explicitLabel.isHidden
+            ? 0
+            : badgeGap + 16
+        let titleWidth = max(width - explicitReserve, 1)
         titleLabel.frame = NSRect(
             x: originX,
             y: topY,
-            width: titleIdealWidth,
+            width: titleWidth,
             height: 19
         )
-        var badgeX = titleLabel.frame.maxX + badgeGap
-        codecLabel.sizeToFit()
-        let codecWidth = min(
-            max(codecLabel.frame.width + 10, 26),
-            max(width - titleIdealWidth - badgeGap, 0)
-        )
-        codecLabel.frame = NSRect(
-            x: badgeX,
-            y: topY + 1,
-            width: codecWidth,
-            height: badgeHeight
-        )
-        badgeX += codecWidth + badgeGap
         explicitLabel.frame = NSRect(
-            x: badgeX,
+            x: titleLabel.frame.maxX + badgeGap,
             y: topY + 1,
             width: 16,
-            height: badgeHeight
-        )
-        if !explicitLabel.isHidden {
-            badgeX += 16 + badgeGap
-        }
-        lyricsLabel.frame = NSRect(
-            x: badgeX,
-            y: topY + 1,
-            width: 30,
             height: badgeHeight
         )
         artistButton.frame = NSRect(
             x: originX,
             y: 5,
-            width: width,
+            width: metadataButtonWidth(
+                artistButton,
+                maximum: width
+            ),
             height: 19
         )
+    }
+
+    private func metadataButtonWidth(
+        _ button: NSButton,
+        maximum: CGFloat
+    ) -> CGFloat {
+        let attributes: [NSAttributedString.Key: Any] = [
+            .font: button.font ?? NSFont.systemFont(
+                ofSize: NSFont.systemFontSize
+            ),
+        ]
+        let measured = ceil(
+            (button.title as NSString).size(
+                withAttributes: attributes
+            ).width
+        )
+        return min(max(measured + 6, 1), maximum)
     }
 
     func performAction(_ action: NativeTrackTableAction) {

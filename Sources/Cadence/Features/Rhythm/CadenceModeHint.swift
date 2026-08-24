@@ -3,16 +3,28 @@ import SwiftUI
 struct CadenceModeHint: View {
     static let copy = "Z + X — Cadence Mode"
     static let accessibilityCopy = "Z plus X, Cadence Mode"
+    let action: () -> Void
 
     var body: some View {
-        HStack(spacing: 6) {
-            keycap("Z")
-            Text(verbatim: "+")
-            keycap("X")
-            Text(verbatim: "— Cadence Mode")
+        Button(action: action) {
+            HStack(spacing: 6) {
+                keycap("Z")
+                Text(verbatim: "+")
+                keycap("X")
+                Text(verbatim: "— Cadence Mode")
+            }
+            .font(.caption.weight(.medium))
+            .foregroundStyle(.secondary)
+            .padding(.horizontal, 10)
+            .frame(height: 32)
+            .background(CadenceTheme.subduedFill, in: Capsule())
+            .overlay {
+                Capsule()
+                    .strokeBorder(CadenceTheme.separator, lineWidth: 0.5)
+            }
         }
-        .font(.caption.weight(.medium))
-        .foregroundStyle(.secondary)
+        .buttonStyle(.plain)
+        .help("Enter Cadence Mode")
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(verbatim: Self.accessibilityCopy))
     }

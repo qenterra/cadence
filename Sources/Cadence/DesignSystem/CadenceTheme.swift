@@ -104,6 +104,9 @@ enum CadenceTheme {
     static let selectionStrongFill = adaptive(fillSelectedStrong)
     static let hoverFill = adaptive(fillHover)
     static let playerMetadata = adaptive(textSecondary)
+    static let nativePrimaryAccent = adaptiveNSColor(actionPrimary)
+    static let nativeSelectionFill = adaptiveNSColor(fillSelected)
+    static let nativeHoverFill = adaptiveNSColor(fillHover)
 
     static let radiusNone = 0.0
     static let radiusControl = 6.0
@@ -128,17 +131,19 @@ enum CadenceTheme {
     // here rather than inflating the shared feedback motion scale.
     static let motionCadenceModeEnter = 0.5
     private static func adaptive(_ token: CadenceColorValue) -> Color {
+        Color(nsColor: adaptiveNSColor(token))
+    }
+
+    private static func adaptiveNSColor(
+        _ token: CadenceColorValue
+    ) -> NSColor {
         let light = nsColor(token.light)
         let dark = nsColor(token.dark)
-        return Color(
-            nsColor: NSColor(
-                name: nil
-            ) { appearance in
-                appearance.bestMatch(
-                    from: [.darkAqua, .aqua]
-                ) == .darkAqua ? dark : light
-            }
-        )
+        return NSColor(name: nil) { appearance in
+            appearance.bestMatch(
+                from: [.darkAqua, .aqua]
+            ) == .darkAqua ? dark : light
+        }
     }
 
     private static func nsColor(

@@ -5,13 +5,6 @@ extension ProductionTrackTableRow {
         track.id.uuidString
     }
 
-    static func formatPillTitle(_ codec: String) -> String {
-        codec
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-            .drop(while: { $0 == "." })
-            .uppercased()
-    }
-
     static func artworkOverlaySymbolName(
         isCurrentTrack: Bool,
         isPlaying: Bool
@@ -33,16 +26,6 @@ extension ProductionTrackTableRow {
                     .foregroundStyle(.primary)
                     .lineLimit(1)
 
-                Text(Self.formatPillTitle(track.codec))
-                    .font(.system(size: 9, weight: .semibold))
-                    .foregroundStyle(.secondary)
-                    .padding(.horizontal, 5)
-                    .frame(height: 16)
-                    .background(
-                        CadenceTheme.subduedFill,
-                        in: Capsule()
-                    )
-
                 if track.isExplicit {
                     Text("E")
                         .font(.system(size: 9, weight: .bold))
@@ -57,36 +40,20 @@ extension ProductionTrackTableRow {
                         )
                         .accessibilityLabel("Explicit")
                 }
-
-                if track.hasSynchronizedLyrics {
-                    Text("LRC")
-                        .font(.system(size: 9, weight: .semibold))
-                        .foregroundStyle(.secondary)
-                        .padding(.horizontal, 5)
-                        .frame(height: 16)
-                        .background(
-                            CadenceTheme.subduedFill,
-                            in: Capsule()
-                        )
-                        .accessibilityLabel("Synchronized lyrics")
-                }
             }
 
-            Button {
+            MediaMetadataLink(
+                track.artist,
+                accessibilityLabel: "Open \(track.artist)"
+            ) {
                 guard let artistID = track.artistID else {
                     return
                 }
                 model.requestOpenProductionArtistContextually(
                     id: artistID
                 )
-            } label: {
-                Text(track.artist)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
             }
-            .buttonStyle(.plain)
-            .focused($isContentControlFocused)
+            .font(.caption)
             .disabled(track.artistID == nil)
         }
     }
@@ -105,16 +72,6 @@ extension ProductionTrackTableRow {
                     .foregroundStyle(.primary)
                     .lineLimit(1)
 
-                Text(Self.formatPillTitle(track.codec))
-                    .font(.system(size: 9, weight: .semibold))
-                    .foregroundStyle(.secondary)
-                    .padding(.horizontal, 5)
-                    .frame(height: 16)
-                    .background(
-                        CadenceTheme.subduedFill,
-                        in: Capsule()
-                    )
-
                 if track.isExplicit {
                     Text("E")
                         .font(.system(size: 9, weight: .bold))
@@ -128,19 +85,6 @@ extension ProductionTrackTableRow {
                             )
                         )
                         .accessibilityLabel("Explicit")
-                }
-
-                if track.hasSynchronizedLyrics {
-                    Text("LRC")
-                        .font(.system(size: 9, weight: .semibold))
-                        .foregroundStyle(.secondary)
-                        .padding(.horizontal, 5)
-                        .frame(height: 16)
-                        .background(
-                            CadenceTheme.subduedFill,
-                            in: Capsule()
-                        )
-                        .accessibilityLabel("Synchronized lyrics")
                 }
             }
 
@@ -157,17 +101,15 @@ extension ProductionTrackTableRow {
     ) -> some View {
         switch column {
         case .album:
-            Button {
+            MediaMetadataLink(
+                track.album,
+                accessibilityLabel: "Open \(track.album)"
+            ) {
                 guard let albumID = track.albumID else {
                     return
                 }
                 model.requestOpenProductionAlbumContextually(id: albumID)
-            } label: {
-                Text(track.album)
-                    .lineLimit(1)
             }
-            .buttonStyle(.plain)
-            .focused($isContentControlFocused)
             .disabled(track.albumID == nil)
         case .year:
             Text(

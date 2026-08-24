@@ -4,13 +4,27 @@ import Testing
 struct AppConfigurationTests {
     @Test("Unit-test hosts never open the current user's library")
     func hostUsesPreviewLibrary() {
+        let testEnvironment = [
+            "XCTestConfigurationFilePath": "/tmp/test.xctestconfiguration",
+        ]
+
         #expect(
             CadenceLaunchEnvironment.shouldUsePreviewLibrary(
-                environment: ["XCTestConfigurationFilePath": "/tmp/test.xctestconfiguration"]
+                environment: testEnvironment
+            )
+        )
+        #expect(
+            !CadenceLaunchEnvironment.shouldEnforceSingleInstance(
+                environment: testEnvironment
             )
         )
         #expect(
             !CadenceLaunchEnvironment.shouldUsePreviewLibrary(
+                environment: [:]
+            )
+        )
+        #expect(
+            CadenceLaunchEnvironment.shouldEnforceSingleInstance(
                 environment: [:]
             )
         )

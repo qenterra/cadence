@@ -102,8 +102,7 @@ struct AlbumTrackTagItem: Identifiable, Hashable, Sendable {
 struct AlbumsLayoutMetrics: Hashable, Sendable {
     static let horizontalPadding: CGFloat = 28
     static let tileSpacing: CGFloat = 24
-    static let minimumTileWidth: CGFloat = 148
-    static let maximumTileWidth: CGFloat = 196
+    static let minimumTileWidth = CatalogCardLayoutMetrics.cardWidth
 
     let columnCount: Int
     let tileWidth: CGFloat
@@ -118,13 +117,7 @@ struct AlbumsLayoutMetrics: Hashable, Sendable {
                 / (Self.minimumTileWidth + Self.tileSpacing)
         )
         columnCount = max(fittedColumns, 1)
-        let proposedWidth = (
-            contentWidth - CGFloat(columnCount - 1) * Self.tileSpacing
-        ) / CGFloat(columnCount)
-        tileWidth = min(
-            max(proposedWidth, Self.minimumTileWidth),
-            Self.maximumTileWidth
-        )
+        tileWidth = CatalogCardLayoutMetrics.cardWidth
     }
 
     var shelfCapacity: Int {

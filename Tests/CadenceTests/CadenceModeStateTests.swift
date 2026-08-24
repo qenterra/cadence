@@ -5,6 +5,52 @@ import Observation
 import Testing
 
 struct CadenceModeStateTests {
+    @MainActor
+    @Test("Direct activation uses the same pending presentation handoff")
+    func directActivation() {
+        let session = CadenceModeSession(automatesTiming: false)
+
+        #expect(
+            session.requestActivation(canActivate: false, at: 1) == .none
+        )
+        #expect(!session.activationIsPending)
+        #expect(
+            session.requestActivation(canActivate: true, at: 2)
+                == .requestPresentation
+        )
+        #expect(session.activationIsPending)
+        #expect(!session.isActive)
+
+        session.setPresentationAvailable(true, at: 2.1)
+        #expect(session.isActive)
+    }
+
+    @MainActor
+    @Test("Disabling Cadence Mode deactivates and clears held keys")
+    func disablingModeDeactivates() {
+        let session = CadenceModeSession(automatesTiming: false)
+        _ = session.requestActivation(canActivate: true, at: 1)
+        session.setPresentationAvailable(true, at: 1.1)
+        #expect(
+            session.keyDown(lane: .left, at: 1.2, canActivate: true)
+                == .emit(.left)
+        )
+
+        session.setEnabled(false)
+        #expect(!session.isActive)
+        #expect(!session.activationIsPending)
+        #expect(
+            session.keyDown(lane: .right, at: 1.3, canActivate: true)
+                == .none
+        )
+
+        session.setEnabled(true)
+        #expect(
+            session.requestActivation(canActivate: true, at: 2)
+                == .requestPresentation
+        )
+    }
+
     @Test("A global chord needs a loaded item, not active transport")
     func globalChordRequiresLoadedPlaybackItem() {
         var unavailable = CadenceModeInputState()

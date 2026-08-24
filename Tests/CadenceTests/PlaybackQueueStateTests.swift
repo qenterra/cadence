@@ -60,23 +60,30 @@ struct PlaybackQueueStateTests {
         #expect(queue.currentTrackID == ids[3])
     }
 
-    @Test("Queue presentation keeps the full queue but exposes only 25 upcoming tracks")
+    @Test("Queue presentation keeps the full queue but exposes only five upcoming tracks")
     func boundedPresentationWindow() {
-        let ids = (0 ..< 80).map { _ in UUID() }
-        let queue = PlaybackQueueState(
+        let ids = (0 ..< 20).map { _ in UUID() }
+        var queue = PlaybackQueueState(
             source: .adHoc,
             orderedTrackIDs: ids,
-            startingAt: ids[10]
+            startingAt: ids[4]
         )
 
-        #expect(queue.orderedTrackIDs.count == 80)
+        #expect(queue.orderedTrackIDs.count == 20)
         #expect(
             PlaybackQueuePresentation.trackIDs(for: queue)
-                == Array(ids[10 ... 35])
+                == Array(ids[4 ... 9])
         )
         #expect(
             PlaybackQueuePresentation.upNextTrackIDs(for: queue)
-                == Array(ids[11 ... 35])
+                == Array(ids[5 ... 9])
+        )
+
+        #expect(queue.move(by: 1, wrapping: false) == ids[5])
+        #expect(queue.orderedTrackIDs == ids)
+        #expect(
+            PlaybackQueuePresentation.trackIDs(for: queue)
+                == Array(ids[5 ... 10])
         )
     }
 }

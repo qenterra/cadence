@@ -7,25 +7,35 @@ extension CadenceAppModel {
 
     @discardableResult
     func presentNowPlaying() -> Bool {
+        presentNowPlaying(preferredPanel: nil)
+    }
+
+    @discardableResult
+    func presentNowPlaying(panel: NowPlayingPanel) -> Bool {
+        presentNowPlaying(preferredPanel: panel)
+    }
+
+    private func presentNowPlaying(
+        preferredPanel: NowPlayingPanel?
+    ) -> Bool {
         guard hasCurrentPlaybackItem else {
             return false
         }
 
         if playbackWorkspace == .lyricsEditor {
+            let panel = preferredPanel ?? selectedNowPlayingPanel
             if isLyricDraftDirty {
-                pendingLyricsTransition = .nowPlayingPanel(
-                    selectedNowPlayingPanel
-                )
+                pendingLyricsTransition = .nowPlayingPanel(panel)
             } else {
-                performLyricsTransition(
-                    .nowPlayingPanel(selectedNowPlayingPanel)
-                )
+                performLyricsTransition(.nowPlayingPanel(panel))
             }
             return true
         }
 
         preparePlaybackQueueIfNeeded()
-        if let currentTrack {
+        if let preferredPanel {
+            selectedNowPlayingPanel = preferredPanel
+        } else if let currentTrack {
             selectedNowPlayingPanel = lastNowPlayingPanel
                 ?? (lyricDocuments[currentTrack.id] == nil ? .queue : .lyrics)
         } else {

@@ -49,7 +49,6 @@ struct NavigationRail: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @FocusState private var focusedDestination: NavigationDestination?
     @State private var hoveredDestination: NavigationDestination?
-    @State private var activationCounts: [NavigationDestination: Int] = [:]
     @AppStorage("navigationRail.expanded")
     private var isExpanded = NavigationRailConfiguration.defaultIsExpanded
     @AppStorage("navigationRail.order")
@@ -107,15 +106,11 @@ struct NavigationRail: View {
         NavigationRailConfiguration.visibleDestinations(
             orderRawValue: orderRawValue,
             hiddenRawValue: hiddenRawValue
-        ).filter { $0 != .importMusic }
+        )
     }
 
     private var bottomDestinations: [NavigationDestination] {
-        let visible = NavigationRailConfiguration.visibleDestinations(
-            orderRawValue: orderRawValue,
-            hiddenRawValue: hiddenRawValue
-        )
-        return (visible.contains(.importMusic) ? [.importMusic] : []) + [.trash]
+        [.trash]
     }
 
     private var expansionButton: some View {
@@ -136,8 +131,7 @@ struct NavigationRail: View {
         } label: {
             railLabel(
                 systemName: isExpanded ? "sidebar.left" : "sidebar.right",
-                title: "Collapse",
-                animatesSymbolReplacement: true
+                title: "Collapse"
             )
             .foregroundStyle(.secondary)
             .contentShape(Rectangle())
@@ -156,13 +150,11 @@ struct NavigationRail: View {
         )
 
         return Button {
-            activationCounts[destination, default: 0] &+= 1
             selection = destination
         } label: {
             railLabel(
                 systemName: destination.symbolName,
-                title: destination.title,
-                animationValue: activationCounts[destination, default: 0]
+                title: destination.title
             )
             .foregroundStyle(isSelected ? .primary : .secondary)
             .background {
@@ -193,18 +185,12 @@ struct NavigationRail: View {
 
     private func railLabel(
         systemName: String,
-        title: String,
-        animatesSymbolReplacement: Bool = false,
-        animationValue: Int = 0
+        title: String
     ) -> some View {
         Group {
             if isExpanded {
                 HStack(spacing: CadenceLayout.controlGap) {
-                    railIcon(
-                        systemName,
-                        animatesSymbolReplacement: animatesSymbolReplacement,
-                        animationValue: animationValue
-                    )
+                    railIcon(systemName)
                     Text(title)
                         .font(.callout.weight(.medium))
                         .lineLimit(1)
@@ -213,12 +199,8 @@ struct NavigationRail: View {
                 .padding(.horizontal, NavigationRailMetrics.rowInset)
                 .frame(maxWidth: .infinity, alignment: .leading)
             } else {
-                railIcon(
-                    systemName,
-                    animatesSymbolReplacement: animatesSymbolReplacement,
-                    animationValue: animationValue
-                )
-                .frame(maxWidth: .infinity)
+                railIcon(systemName)
+                    .frame(maxWidth: .infinity)
             }
         }
         .frame(
@@ -228,38 +210,17 @@ struct NavigationRail: View {
         .clipped()
     }
 
-    private func railIcon(
-        _ systemName: String,
-        animatesSymbolReplacement: Bool,
-        animationValue: Int
-    ) -> some View {
-        Group {
-            if animatesSymbolReplacement {
-                if reduceMotion {
-                    Image(systemName: systemName)
-                } else {
-                    Image(systemName: systemName)
-                        .contentTransition(.symbolEffect(.replace))
-                }
-            } else {
-                let motion = CadenceSymbolEffectPresentation.resolve(
-                    trigger: animationValue,
-                    reduceMotion: reduceMotion
-                )
-                if motion.isEnabled {
-                    Image(systemName: systemName)
-                        .symbolEffect(.bounce.up, value: motion.trigger)
-                } else {
-                    Image(systemName: systemName)
-                }
+    private func railIcon(_ systemName: String) -> some View {
+        Image(systemName: systemName)
+            .transaction { transaction in
+                transaction.animation = nil
             }
-        }
-        .font(.system(size: 15, weight: .medium))
-        .symbolRenderingMode(.hierarchical)
-        .frame(
-            width: NavigationRailMetrics.iconSlotWidth,
-            height: NavigationRailMetrics.rowHeight
-        )
+            .font(.system(size: 15, weight: .medium))
+            .symbolRenderingMode(.hierarchical)
+            .frame(
+                width: NavigationRailMetrics.iconSlotWidth,
+                height: NavigationRailMetrics.rowHeight
+            )
     }
 }
 

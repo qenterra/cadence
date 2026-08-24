@@ -1,4 +1,4 @@
-import CoreGraphics
+import SwiftUI
 
 /// Product-level layout roles built from a four-point spacing scale.
 ///
@@ -15,4 +15,39 @@ enum CadenceLayout {
 
     static let rowHeight: CGFloat = 48
     static let readableContentWidth: CGFloat = 760
+}
+
+enum CatalogCardLayoutMetrics {
+    static let cardWidth: CGFloat = 196
+
+    static func columns(
+        availableWidth: CGFloat,
+        spacing: CGFloat
+    ) -> [GridItem] {
+        let resolvedWidth = max(availableWidth, cardWidth)
+        let count = max(
+            Int((resolvedWidth + spacing) / (cardWidth + spacing)),
+            1
+        )
+        return Array(
+            repeating: GridItem(
+                .fixed(cardWidth),
+                spacing: spacing,
+                alignment: .top
+            ),
+            count: count
+        )
+    }
+
+    /// SwiftUI performs the column-count calculation while both bounds keep
+    /// every rendered card at the exact shared catalog width.
+    static func layoutColumns(spacing: CGFloat) -> [GridItem] {
+        [
+            GridItem(
+                .adaptive(minimum: cardWidth, maximum: cardWidth),
+                spacing: spacing,
+                alignment: .top
+            ),
+        ]
+    }
 }

@@ -9,6 +9,7 @@ struct ProductionTagEditorInspector: View {
     @State private var newTagPath = ""
     @State private var errorMessage: String?
     @State private var isWorking = false
+    @FocusState private var isNewTagFieldFocused: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
@@ -29,7 +30,9 @@ struct ProductionTagEditorInspector: View {
             HStack(spacing: 8) {
                 TextField("mood/sad or childhood", text: $newTagPath)
                     .textFieldStyle(.roundedBorder)
+                    .focused($isNewTagFieldFocused)
                     .onSubmit(createTag)
+                    .onExitCommand(perform: cancelNewTagEntry)
                 Button("Add", action: createTag)
                     .disabled(trimmedNewTagPath.isEmpty || isWorking)
             }
@@ -148,6 +151,17 @@ struct ProductionTagEditorInspector: View {
                 errorMessage = error.localizedDescription
             }
         }
+    }
+
+    private func cancelNewTagEntry() {
+        guard TextEntryEscapePolicy.resolve(
+            isFocused: isNewTagFieldFocused,
+            textIsEmpty: trimmedNewTagPath.isEmpty
+        ) == .cancelEntry else {
+            return
+        }
+        newTagPath = ""
+        isNewTagFieldFocused = false
     }
 
     private func loadStates() async {

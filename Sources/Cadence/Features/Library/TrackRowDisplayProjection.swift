@@ -8,12 +8,10 @@ struct TrackRowDisplayProjection: Equatable, Sendable {
     let title: String
     let artist: String
     let album: String
-    let codec: String
     let year: String
     let duration: String
     let isFavorite: Bool
     let isExplicit: Bool
-    let hasSynchronizedLyrics: Bool
     let isCurrentTrack: Bool
     let isPlaying: Bool
     let accessibilityLabel: String
@@ -42,12 +40,10 @@ struct TrackRowDisplayProjection: Equatable, Sendable {
             track.album,
             fallback: String(localized: "Unknown Album")
         )
-        codec = Self.codecText(track.codec)
         year = track.year.map(String.init) ?? "—"
         duration = Self.durationText(track.duration)
         isFavorite = track.isFavorite
         isExplicit = track.isExplicit
-        hasSynchronizedLyrics = track.hasSynchronizedLyrics
         self.isCurrentTrack = isCurrentTrack
         self.isPlaying = isCurrentTrack && isPlaying
         accessibilityLabel = [title, artist, album, duration]
@@ -62,14 +58,6 @@ struct TrackRowDisplayProjection: Equatable, Sendable {
             in: .whitespacesAndNewlines
         )
         return trimmed.isEmpty ? fallback : trimmed
-    }
-
-    private static func codecText(_ codec: String) -> String {
-        let normalized = codec
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-            .drop(while: { $0 == "." })
-            .uppercased()
-        return normalized.isEmpty ? "—" : normalized
     }
 
     private static func durationText(_ duration: TimeInterval) -> String {

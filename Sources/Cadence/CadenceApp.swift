@@ -17,8 +17,12 @@ struct CadenceApp: App {
     var body: some Scene {
         Window("Cadence", id: "main") {
             Group {
-                if instanceCoordinator.claim() == .owner {
-                    CadenceRootView(model: model)
+                if !CadenceLaunchEnvironment.shouldEnforceSingleInstance()
+                    || instanceCoordinator.claim() == .owner {
+                    CadenceRootView(
+                        model: model,
+                        appearanceIdentity: appearanceIdentity
+                    )
                 } else {
                     Color.clear
                 }
@@ -36,14 +40,19 @@ struct CadenceApp: App {
                 appearanceController.apply(appearance)
             }
             .task {
-                applicationDelegate.connect(
-                    instanceCoordinator: instanceCoordinator
-                ) { urls in
+                let openHandler: ([URL]) -> Void = { urls in
                     Task { @MainActor in
                         await model.openExternalAudio(urls: urls)
                     }
-                } terminateDuplicate: {
-                    NSApp.terminate(nil)
+                }
+                if CadenceLaunchEnvironment.shouldEnforceSingleInstance() {
+                    applicationDelegate.connect(
+                        instanceCoordinator: instanceCoordinator,
+                        handler: openHandler,
+                        terminateDuplicate: { NSApp.terminate(nil) }
+                    )
+                } else {
+                    applicationDelegate.connect(openHandler)
                 }
                 applicationDelegate.onTermination {
                     model.shutdownPlayback()
@@ -213,6 +222,10 @@ struct CadenceApp: App {
         CadenceAppearance(rawValue: appearanceRawValue) ?? .system
     }
 
+    private var appearanceIdentity: AppearanceRefreshIdentity {
+        AppearanceRefreshIdentity(rawValue: appearanceRawValue)
+    }
+
     private static func makeInitialModel() -> CadenceAppModel {
         if CadenceLaunchEnvironment.shouldUsePreviewLibrary() {
             return .preview()
@@ -227,6 +240,8 @@ struct CadenceApp: App {
 struct CadenceSettingsWindow: View {
     @Environment(\.dismiss) private var dismiss
     @Bindable var model: CadenceAppModel
+    @AppStorage("appearance")
+    private var appearanceRawValue = CadenceAppearance.system.rawValue
     let updateController: CadenceUpdateController
     let defaultAudioApplication: DefaultAudioApplicationController?
     @State private var selection: CadenceSettingsTab
@@ -266,6 +281,7 @@ struct CadenceSettingsWindow: View {
                 }
             )
         }
+        .id(AppearanceRefreshIdentity(rawValue: appearanceRawValue))
         .frame(width: 760, height: 640, alignment: .top)
         .task(id: selection) {
             await Task.yield()
@@ -279,5 +295,11 @@ enum CadenceLaunchEnvironment {
         environment: [String: String] = ProcessInfo.processInfo.environment
     ) -> Bool {
         environment["XCTestConfigurationFilePath"] != nil
+    }
+
+    static func shouldEnforceSingleInstance(
+        environment: [String: String] = ProcessInfo.processInfo.environment
+    ) -> Bool {
+        !shouldUsePreviewLibrary(environment: environment)
     }
 }

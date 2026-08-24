@@ -68,16 +68,16 @@ struct LibraryFavoritesView: View {
     }
 
     private var sectionPicker: some View {
-        Menu("Type") {
-            Picker("Type", selection: sectionBinding) {
-                ForEach(FavoriteCatalogSection.allCases) { section in
-                    Label(section.title, systemImage: section.symbolName)
-                        .tag(section)
-                }
+        Picker("Type", selection: sectionBinding) {
+            ForEach(FavoriteCatalogSection.allCases) { section in
+                Label(section.title, systemImage: section.symbolName)
+                    .tag(section)
             }
         }
-        .menuStyle(.borderlessButton)
+        .pickerStyle(.segmented)
+        .labelsHidden()
         .fixedSize()
+        .accessibilityLabel("Favorite Type")
         .padding(.horizontal, CadenceLayout.pageInset)
         .padding(.bottom, CadenceLayout.contentGap)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -113,7 +113,10 @@ struct LibraryFavoritesView: View {
                 onReachEnd: {
                     await store.loadNextFavoriteTracks()
                 },
-                selection: $selection
+                selection: $selection,
+                refreshAction: {
+                    await store.refresh(.favorites)
+                }
             )
             .padding(.bottom, CadenceLayout.pageInset)
         }
@@ -152,7 +155,10 @@ struct LibraryFavoritesView: View {
                 repositorySortAction: { sort in
                     favoriteSort = sort
                 },
-                selection: $selection
+                selection: $selection,
+                refreshAction: {
+                    await store.refresh(.favorites)
+                }
             )
             .padding(.bottom, CadenceLayout.pageInset)
         }
@@ -187,6 +193,9 @@ struct LibraryFavoritesView: View {
                 .padding(.horizontal, CadenceLayout.pageInset)
                 .padding(.bottom, CadenceLayout.pageInset)
             }
+            .refreshable {
+                await store.refresh(.favorites)
+            }
         }
     }
 
@@ -219,6 +228,9 @@ struct LibraryFavoritesView: View {
                 .padding(.horizontal, CadenceLayout.pageInset)
                 .padding(.bottom, CadenceLayout.pageInset)
             }
+            .refreshable {
+                await store.refresh(.favorites)
+            }
         }
     }
 
@@ -249,12 +261,7 @@ struct LibraryFavoritesView: View {
     }
 
     private var catalogGrid: [GridItem] {
-        [
-            GridItem(
-                .adaptive(minimum: 160, maximum: 220),
-                spacing: 18
-            ),
-        ]
+        CatalogCardLayoutMetrics.layoutColumns(spacing: 18)
     }
 
     private func emptyState(

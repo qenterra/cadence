@@ -21,6 +21,19 @@ struct NowPlayingLifecycleTests {
         #expect(model.selectedNowPlayingPanel == .queue)
     }
 
+    @Test("Player artwork opens Lyrics even before a document is resident")
+    func explicitLyricsPresentation() throws {
+        let model = CadenceAppModel.testFixture()
+        let trackWithoutLyrics = try #require(
+            model.tracks.first { model.lyricDocuments[$0.id] == nil }
+        )
+        model.currentTrackID = trackWithoutLyrics.id
+
+        #expect(model.presentNowPlaying(panel: .lyrics))
+        #expect(model.playbackWorkspace == .nowPlaying)
+        #expect(model.selectedNowPlayingPanel == .lyrics)
+    }
+
     @Test("Ordinary opening remembers explicit panel selection")
     func panelMemory() {
         let model = CadenceAppModel.testFixture()
@@ -170,5 +183,18 @@ struct NowPlayingLifecycleTests {
         #expect(model.playbackWorkspace == .nowPlaying)
         #expect(model.selectedNowPlayingPanel == .queue)
         #expect(model.lyricDraft == nil)
+    }
+
+    @Test("Explicit Lyrics presentation respects a dirty editor draft")
+    func explicitLyricsPresentationGuard() throws {
+        let model = CadenceAppModel.testFixture()
+        model.presentNowPlaying()
+        model.presentLyricsEditor()
+        let lineID = try #require(model.lyricDraft?.lines.first?.id)
+        model.updateLyricText(lineID: lineID, text: "Unsaved")
+
+        #expect(model.presentNowPlaying(panel: .lyrics))
+        #expect(model.pendingLyricsTransition == .nowPlayingPanel(.lyrics))
+        #expect(model.playbackWorkspace == .lyricsEditor)
     }
 }

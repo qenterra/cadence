@@ -1,5 +1,19 @@
 import SwiftUI
 
+enum TextEntryEscapeResolution: Equatable, Sendable {
+    case cancelEntry
+    case propagate
+}
+
+enum TextEntryEscapePolicy {
+    static func resolve(
+        isFocused: Bool,
+        textIsEmpty: Bool
+    ) -> TextEntryEscapeResolution {
+        isFocused || !textIsEmpty ? .cancelEntry : .propagate
+    }
+}
+
 extension CadenceRootView {
     var supportsSearch: Bool {
         true

@@ -6,6 +6,7 @@ struct ProductionTrackList: View {
     let contentVersion: TrackTableContentVersion
     var context: TrackTableContext = .library
     var defaultSortDescriptor: TrackTableSortDescriptor?
+    var refreshAction: CadenceRefreshAction?
 
     var body: some View {
         ProductionTrackTable(
@@ -13,7 +14,8 @@ struct ProductionTrackList: View {
             tracks: tracks,
             contentVersion: contentVersion,
             context: context,
-            defaultSortDescriptor: defaultSortDescriptor
+            defaultSortDescriptor: defaultSortDescriptor,
+            refreshAction: refreshAction
         )
     }
 }

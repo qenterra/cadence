@@ -176,9 +176,7 @@ private extension ProductionArtistDetailView {
         _ albums: [LibraryAlbumProjection]
     ) -> some View {
         LazyVGrid(
-            columns: [
-                GridItem(.adaptive(minimum: 170), spacing: 16),
-            ],
+            columns: CatalogCardLayoutMetrics.layoutColumns(spacing: 16),
             alignment: .leading,
             spacing: 18
         ) {
@@ -237,6 +235,7 @@ private extension ProductionArtistDetailView {
             .font(.caption)
             .foregroundStyle(.secondary)
         }
+        .frame(width: CatalogCardLayoutMetrics.cardWidth)
         .contentShape(Rectangle())
     }
 

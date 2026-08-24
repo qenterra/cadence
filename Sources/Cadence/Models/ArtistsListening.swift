@@ -89,8 +89,7 @@ struct ArtistShelfProjection: Hashable, Sendable {
 struct ArtistsLayoutMetrics: Hashable, Sendable {
     static let horizontalPadding: CGFloat = 28
     static let tileSpacing: CGFloat = 26
-    static let minimumTileWidth: CGFloat = 132
-    static let maximumTileWidth: CGFloat = 178
+    static let minimumTileWidth = CatalogCardLayoutMetrics.cardWidth
 
     let columnCount: Int
     let tileWidth: CGFloat
@@ -105,13 +104,7 @@ struct ArtistsLayoutMetrics: Hashable, Sendable {
                 / (Self.minimumTileWidth + Self.tileSpacing)
         )
         columnCount = max(fittedColumns, 1)
-        let proposedWidth = (
-            contentWidth - CGFloat(columnCount - 1) * Self.tileSpacing
-        ) / CGFloat(columnCount)
-        tileWidth = min(
-            max(proposedWidth, Self.minimumTileWidth),
-            Self.maximumTileWidth
-        )
+        tileWidth = CatalogCardLayoutMetrics.cardWidth
     }
 }
 

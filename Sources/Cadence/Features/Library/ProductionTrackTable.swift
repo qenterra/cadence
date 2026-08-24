@@ -18,6 +18,7 @@ struct ProductionTrackTable: View {
     var repositorySortAction: ((LibraryTrackSort) async -> Void)?
     var selection: Binding<Set<UUID>>?
     var defaultSortDescriptor: TrackTableSortDescriptor?
+    var refreshAction: CadenceRefreshAction?
 
     @State private var localSelection: Set<UUID> = []
     @State private var usesDefaultSort = true
@@ -31,14 +32,6 @@ struct ProductionTrackTable: View {
     private var sortFieldRaw = TrackTableSortField.song.rawValue
     @AppStorage("trackTable.sortDirection")
     private var sortDirectionRaw = TrackTableSortDirection.ascending.rawValue
-    @AppStorage("trackTable.songWidth")
-    private var songWidth = TrackTableWidth.song.defaultValue
-    @AppStorage("trackTable.albumWidth")
-    private var albumWidth = TrackTableWidth.album.defaultValue
-    @AppStorage("trackTable.yearWidth")
-    private var yearWidth = TrackTableWidth.year.defaultValue
-    @AppStorage("trackTable.timeWidth")
-    private var timeWidth = TrackTableWidth.time.defaultValue
 
     var body: some View {
         let snapshot = resolvedSnapshot
@@ -55,8 +48,7 @@ struct ProductionTrackTable: View {
             )
             let resolvedWidths = TrackTableColumnPolicy.layout(
                 availableWidth: contentWidth,
-                columns: columns,
-                preferred: preferredWidths
+                columns: columns
             )
 
             VStack(spacing: 0) {
@@ -79,6 +71,7 @@ struct ProductionTrackTable: View {
                     queueSource: queueSource,
                     reorderAction: reorderAction,
                     onReachEnd: onReachEnd,
+                    refreshAction: refreshAction,
                     currentTrackID: model.currentProductionTrackID,
                     isCurrentTrackPlaying:
                     model.isCurrentProductionTrackPlaying,
@@ -148,15 +141,6 @@ private extension ProductionTrackTable {
         selection ?? $localSelection
     }
 
-    var preferredWidths: TrackTableResolvedWidths {
-        TrackTableResolvedWidths(
-            song: songWidth,
-            album: albumWidth,
-            year: yearWidth,
-            time: timeWidth
-        )
-    }
-
     var repositorySort: LibraryTrackSort {
         let field: LibraryTrackSortField = switch effectiveSortDescriptor.field {
         case .song: .song
@@ -195,17 +179,13 @@ private extension ProductionTrackTable {
         HStack(spacing: TrackTableColumnPolicy.columnSpacing) {
             headerCell(
                 field: .song,
-                resolvedWidth: widths.song,
-                preferredWidth: $songWidth,
-                range: TrackTableWidth.song
+                resolvedWidth: widths.song
             )
 
             ForEach(columns) { column in
                 headerCell(
                     field: sortField(for: column),
-                    resolvedWidth: widths[column],
-                    preferredWidth: widthBinding(for: column),
-                    range: widthRange(for: column)
+                    resolvedWidth: widths[column]
                 )
             }
 
@@ -255,9 +235,7 @@ private extension ProductionTrackTable {
 
     func headerCell(
         field: TrackTableSortField,
-        resolvedWidth: Double,
-        preferredWidth: Binding<Double>,
-        range: TrackTableWidthRange
+        resolvedWidth: Double
     ) -> some View {
         TrackTableHeaderCell(
             title: field.title,
@@ -266,10 +244,7 @@ private extension ProductionTrackTable {
                 : .trailing,
             isSorted: effectiveSortDescriptor.field == field,
             direction: effectiveSortDescriptor.direction,
-            minimumWidth: range.minimum,
-            maximumWidth: range.maximum,
             resolvedWidth: resolvedWidth,
-            preferredWidth: preferredWidth,
             sortAction: { activateSort(field) }
         )
     }
@@ -311,26 +286,6 @@ private extension ProductionTrackTable {
         case .album: .album
         case .year: .year
         case .time: .time
-        }
-    }
-
-    func widthBinding(
-        for column: TrackTableColumn
-    ) -> Binding<Double> {
-        switch column {
-        case .album: $albumWidth
-        case .year: $yearWidth
-        case .time: $timeWidth
-        }
-    }
-
-    func widthRange(
-        for column: TrackTableColumn
-    ) -> TrackTableWidthRange {
-        switch column {
-        case .album: TrackTableWidth.album
-        case .year: TrackTableWidth.year
-        case .time: TrackTableWidth.time
         }
     }
 }

@@ -25,17 +25,22 @@ struct ProductionHomeView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(CadenceTheme.contentBackground)
         } else {
-            CadencePageScrollView {
-                CadencePageHeader(
-                    "Home",
-                    subtitle: "\(store.catalogCounts.liveTrackCount) tracks"
-                )
+            CadencePageScrollView(
+                refreshAction: {
+                    await store.refresh(.home)
+                },
+                content: {
+                    CadencePageHeader(
+                        "Home",
+                        subtitle: "\(store.catalogCounts.liveTrackCount) tracks"
+                    )
 
-                pinnedItems
-                recentlyPlayed
-                favorites
-                personalizationEmptyState
-            }
+                    pinnedItems
+                    recentlyPlayed
+                    favorites
+                    personalizationEmptyState
+                }
+            )
         }
     }
 
@@ -43,7 +48,6 @@ struct ProductionHomeView: View {
     private var recentlyPlayed: some View {
         let tracks = HomeListeningSelection.recentItems(
             store.recentlyPlayedTracks,
-            excludingID: model.currentPlaybackTrack?.id,
             limit: 6
         )
         if !tracks.isEmpty {
@@ -81,7 +85,6 @@ struct ProductionHomeView: View {
     private var hasRecentItems: Bool {
         !HomeListeningSelection.recentItems(
             store.recentlyPlayedTracks,
-            excludingID: model.currentPlaybackTrack?.id,
             limit: 1
         ).isEmpty
     }

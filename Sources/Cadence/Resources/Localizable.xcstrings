@@ -1005,6 +1005,16 @@
         }
       }
     },
+    "Cadence Mode" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Режим Cadence"
+          }
+        }
+      }
+    },
     "Cadence Mode closes after ten seconds without input." : {
       "localizations" : {
         "ru" : {
@@ -2425,6 +2435,16 @@
         }
       }
     },
+    "Enable Cadence Mode" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Включить режим Cadence"
+          }
+        }
+      }
+    },
     "Enabled" : {
       "localizations" : {
         "ru" : {
@@ -2441,6 +2461,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Конец очереди"
+          }
+        }
+      }
+    },
+    "Enter Cadence Mode" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Войти в режим Cadence"
           }
         }
       }
@@ -2541,6 +2571,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Избранные треки"
+          }
+        }
+      }
+    },
+    "Favorite Type" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Тип избранного"
           }
         }
       }
@@ -3007,6 +3047,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Слушать"
+          }
+        }
+      }
+    },
+    "Loading %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Loading %@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Загрузка: %@"
           }
         }
       }
@@ -4370,6 +4426,16 @@
         }
       }
     },
+    "React to Bass" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Реагировать на бас"
+          }
+        }
+      }
+    },
     "Read-only summary" : {
       "localizations" : {
         "ru" : {
@@ -4801,6 +4867,16 @@
         }
       }
     },
+    "Return to Now Playing" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вернуться к экрану воспроизведения"
+          }
+        }
+      }
+    },
     "Reveal in Finder" : {
       "localizations" : {
         "ru" : {
@@ -5127,6 +5203,26 @@
         }
       }
     },
+    "Show Synchronized Lyrics" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показывать синхронизированный текст"
+          }
+        }
+      }
+    },
+    "Show Track Information" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показывать информацию о треке"
+          }
+        }
+      }
+    },
     "Shows format, renderer, and output details" : {
       "localizations" : {
         "ru" : {
@@ -5397,6 +5493,16 @@
         }
       }
     },
+    "Synchronized lyrics available" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Доступен синхронизированный текст"
+          }
+        }
+      }
+    },
     "Synchronized Lyrics" : {
       "localizations" : {
         "ru" : {
@@ -5623,6 +5729,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Не удалось прочитать источник."
+          }
+        }
+      }
+    },
+    "The Z + X shortcut, visual effects, and direct entry are disabled." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сочетание Z + X, визуальные эффекты и прямой вход отключены."
           }
         }
       }
