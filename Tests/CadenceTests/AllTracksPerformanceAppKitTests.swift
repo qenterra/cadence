@@ -76,6 +76,54 @@ extension AllTracksPerformanceTests {
         #expect(favorite.isHidden)
     }
 
+    @Test("A non-favorite heart belongs only to the actual hovered row")
+    func nativeFavoriteVisibilityIsPointerOwned() {
+        #expect(
+            NativeFavoriteVisibility.resolve(
+                isFavorite: false,
+                isHovered: false,
+                isLiveScrolling: false
+            ) == .hidden
+        )
+        #expect(
+            NativeFavoriteVisibility.resolve(
+                isFavorite: false,
+                isHovered: true,
+                isLiveScrolling: false
+            ) == .emptySecondary
+        )
+        #expect(
+            NativeFavoriteVisibility.resolve(
+                isFavorite: false,
+                isHovered: true,
+                isLiveScrolling: true
+            ) == .hidden
+        )
+        #expect(
+            NativeFavoriteVisibility.resolve(
+                isFavorite: true,
+                isHovered: false,
+                isLiveScrolling: true
+            ) == .filledPrimary
+        )
+    }
+
+    @Test("Selection never reveals an idle non-favorite heart")
+    func nativeSelectionDoesNotRevealFavoriteControl() throws {
+        let cell = NativeTrackTableCell()
+        let projection = nativeInteractionProjection(index: 8)
+        cell.configure(
+            .track(projection),
+            columns: [],
+            widths: TrackTableColumnPolicy.defaultWidths,
+            isSelected: true,
+            isFocused: true,
+            isLiveScrolling: false
+        )
+
+        #expect(try nativeFavoriteButton(in: cell).isHidden)
+    }
+
     @Test("Track title consumes the complete remaining metadata width")
     func nativeTitleConsumesRemainingWidth() throws {
         let cell = NativeTrackTableCell(
@@ -198,47 +246,55 @@ extension AllTracksPerformanceTests {
         )
 
         #expect(selected.fill == .selection)
-        #expect(selected.outline == .primary)
+        #expect(selected.outline == .clear)
         #expect(selected.favorite == .primary)
         #expect(hovered.fill == .hover)
         #expect(hovered.outline == .clear)
         #expect(hovered.favorite == .secondary)
     }
 
-    @Test("Native favorite feedback runs only for a stable row identity")
-    func nativeFavoriteFeedbackIsScopedToStableIdentity() {
-        let trackID = deterministicUUID(81050)
+    @Test("Track metadata shares the title line while artist stays below")
+    func nativeTrackRowGeometryAlignsMetadata() {
+        let geometry = NativeTrackRowGeometry(rowHeight: 58)
 
         #expect(
-            NativeFavoriteFeedbackPresentation.shouldAnimate(
-                previousID: trackID,
-                previousValue: false,
-                nextID: trackID,
-                nextValue: true,
-                reduceMotion: false,
-                isLiveScrolling: false
-            )
+            abs(
+                geometry.titleFrame.midY
+                    - geometry.singleLineFrame.midY
+            ) < 0.5
         )
+        #expect(geometry.artistFrame.maxY < geometry.titleFrame.minY)
         #expect(
-            !NativeFavoriteFeedbackPresentation.shouldAnimate(
-                previousID: trackID,
-                previousValue: false,
-                nextID: deterministicUUID(81051),
-                nextValue: true,
-                reduceMotion: false,
-                isLiveScrolling: false
-            )
+            abs(
+                geometry.contentBounds.midY
+                    - geometry.twoLineBounds.midY
+            ) < 0.5
         )
-        #expect(
-            !NativeFavoriteFeedbackPresentation.shouldAnimate(
-                previousID: trackID,
-                previousValue: false,
-                nextID: trackID,
-                nextValue: true,
-                reduceMotion: true,
-                isLiveScrolling: false
-            )
+    }
+
+    @Test("Rendered metadata columns align to the title baseline")
+    func nativeRenderedMetadataAlignsToTitle() throws {
+        let cell = NativeTrackTableCell(
+            frame: NSRect(x: 0, y: 0, width: 900, height: 58)
         )
+        configureInteractionCell(
+            cell,
+            projection: nativeInteractionProjection(index: 9),
+            columns: [.album, .year, .time]
+        )
+        cell.layout()
+
+        let title = try nativeTextField(
+            in: cell,
+            value: "A deliberately long track title"
+        )
+        let album = try nativeButton(in: cell, title: "Artificial Minds")
+        let year = try nativeTextField(in: cell, value: "2025")
+        let duration = try nativeTextField(in: cell, value: "3:15")
+
+        #expect(abs(title.frame.midY - album.frame.midY) < 0.5)
+        #expect(abs(title.frame.midY - year.frame.midY) < 0.5)
+        #expect(abs(title.frame.midY - duration.frame.midY) < 0.5)
     }
 
     private func configureInteractionCell(

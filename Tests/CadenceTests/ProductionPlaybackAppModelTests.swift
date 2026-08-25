@@ -5,6 +5,17 @@ import Testing
 
 @MainActor
 struct ProductionPlaybackAppModelTests {
+    @Test("Lyrics editor clock uses presentation time rather than progress")
+    func lyricsEditorClockUsesPresentationClock() {
+        let presentation = LyricsEditorClockPresentation.resolve(
+            stateTime: 51,
+            presentationTime: 51.792,
+            isPlaying: true
+        )
+
+        #expect(presentation == "0:51.792")
+    }
+
     @Test("Repeat control mutates the production coordinator")
     func productionRepeatControl() {
         let coordinator = makePlaybackCoordinator(

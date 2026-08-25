@@ -31,7 +31,7 @@ struct NativeTrackTableChromePresentation: Equatable, Sendable {
 
     static func resolve(
         isSelected: Bool,
-        isFocused: Bool,
+        isFocused _: Bool,
         isHovered: Bool,
         isLiveScrolling: Bool,
         isFavorite: Bool
@@ -40,31 +40,10 @@ struct NativeTrackTableChromePresentation: Equatable, Sendable {
             fill: isSelected
                 ? .selection
                 : isHovered && !isLiveScrolling ? .hover : .clear,
-            outline: isSelected && isFocused ? .primary : .clear,
+            outline: .clear,
             favorite: isFavorite ? .primary : .secondary,
             action: isHovered ? .primary : .tertiary
         )
-    }
-}
-
-enum NativeFavoriteFeedbackPresentation {
-    static func shouldAnimate(
-        previousID: UUID?,
-        previousValue: Bool?,
-        nextID: UUID?,
-        nextValue: Bool?,
-        reduceMotion: Bool,
-        isLiveScrolling: Bool
-    ) -> Bool {
-        guard !reduceMotion,
-              !isLiveScrolling,
-              let previousID,
-              previousID == nextID,
-              let previousValue,
-              let nextValue else {
-            return false
-        }
-        return previousValue != nextValue
     }
 }
 
@@ -163,7 +142,7 @@ final class NativeTrackTableCell: NSTableCellView {
 
     var onAction: ((UUID, NativeTrackTableAction) -> Void)?
     var onActionsMenu: ((UUID, NSButton) -> Void)?
-    var onContextMenu: ((UUID) -> NSMenu?)?
+    var onContextMenu: ((UUID, NSEvent) -> NSMenu?)?
     var artworkLoader: NativeTrackArtworkLoader?
 
     private(set) var representedTrackID: UUID?
@@ -241,8 +220,6 @@ final class NativeTrackTableCell: NSTableCellView {
         case let .track(projection):
             projection
         }
-        let previousID = representedTrackID
-        let previousFavorite = projection?.isFavorite
         let contentChanged = !hasConfiguredContent
             || projection != nextProjection
         let layoutChanged = !hasConfiguredContent
@@ -258,19 +235,8 @@ final class NativeTrackTableCell: NSTableCellView {
         if representedTrackID != nil, identityChanged {
             probe?.recordNativeTrackIdentityChange()
         }
-        let animatesFavoriteFeedback =
-            NativeFavoriteFeedbackPresentation.shouldAnimate(
-                previousID: previousID,
-                previousValue: previousFavorite,
-                nextID: nextProjection?.id,
-                nextValue: nextProjection?.isFavorite,
-                reduceMotion: reduceMotion,
-                isLiveScrolling: isLiveScrolling
-            )
         if identityChanged {
-            isHovered = false
-            artistButton.resetPointerHover()
-            albumButton.resetPointerHover()
+            resetPointerHover()
         }
         self.columns = columns
         self.widths = widths
@@ -300,9 +266,6 @@ final class NativeTrackTableCell: NSTableCellView {
             needsLayout = true
         }
         CATransaction.commit()
-        if animatesFavoriteFeedback {
-            animateFavoriteFeedback()
-        }
     }
 
     override func layout() {
@@ -349,16 +312,41 @@ final class NativeTrackTableCell: NSTableCellView {
         updateChrome()
     }
 
+    func resetPointerHover() {
+        let changed = isHovered
+            || artistButton.isPointerHovered
+            || albumButton.isPointerHovered
+        isHovered = false
+        artistButton.resetPointerHover()
+        albumButton.resetPointerHover()
+        guard changed, hasConfiguredContent else {
+            return
+        }
+        updateChrome()
+    }
+
+    func reconcilePointerHover(at windowPoint: NSPoint) {
+        guard window != nil else {
+            resetPointerHover()
+            return
+        }
+        let localPoint = convert(windowPoint, from: nil)
+        updatePointerHover(
+            isHovered: bounds.contains(localPoint)
+                && visibleRect.contains(localPoint)
+        )
+    }
+
     override func mouseDown(with event: NSEvent) {
         performAction(.select)
         super.mouseDown(with: event)
     }
 
-    override func menu(for _: NSEvent) -> NSMenu? {
+    override func menu(for event: NSEvent) -> NSMenu? {
         guard let representedTrackID else {
             return nil
         }
-        return onContextMenu?(representedTrackID)
+        return onContextMenu?(representedTrackID, event)
     }
 
     override func viewDidChangeEffectiveAppearance() {
@@ -383,7 +371,6 @@ final class NativeTrackTableCell: NSTableCellView {
 
         favoriteButton.imagePosition = .imageOnly
         favoriteButton.contentTintColor = .secondaryLabelColor
-        favoriteButton.wantsLayer = true
         artworkButton.imagePosition = .imageOnly
         artworkButton.contentTintColor = .white
         artistButton.alignment = .left
@@ -540,16 +527,24 @@ final class NativeTrackTableCell: NSTableCellView {
             actionButton.contentTintColor = .tertiaryLabelColor
             return
         }
-        favoriteButton.image = projection.isFavorite
-            ? Self.filledHeartImage
-            : Self.emptyHeartImage
-        favoriteButton.contentTintColor = color(
-            for: presentation.favorite
-        )
-        favoriteButton.isHidden = !projection.isFavorite
-            && !isHovered
-            && !isSelected
-            && !isFocused
+        switch NativeFavoriteVisibility.resolve(
+            isFavorite: projection.isFavorite,
+            isHovered: isHovered,
+            isLiveScrolling: isLiveScrolling
+        ) {
+        case .hidden:
+            favoriteButton.image = Self.emptyHeartImage
+            favoriteButton.contentTintColor = .secondaryLabelColor
+            favoriteButton.isHidden = true
+        case .emptySecondary:
+            favoriteButton.image = Self.emptyHeartImage
+            favoriteButton.contentTintColor = .secondaryLabelColor
+            favoriteButton.isHidden = false
+        case .filledPrimary:
+            favoriteButton.image = Self.filledHeartImage
+            favoriteButton.contentTintColor = CadenceTheme.nativePrimaryAccent
+            favoriteButton.isHidden = false
+        }
         actionButton.contentTintColor = color(for: presentation.action)
         artworkButton.image = projection.isCurrentTrack && projection.isPlaying
             ? Self.waveformImage
@@ -561,22 +556,6 @@ final class NativeTrackTableCell: NSTableCellView {
     private func updateMetadataLinkTones() {
         artistButton.contentTintColor = metadataTone(for: artistButton)
         albumButton.contentTintColor = metadataTone(for: albumButton)
-    }
-
-    private func animateFavoriteFeedback() {
-        let animation = CAKeyframeAnimation(keyPath: "transform.scale")
-        animation.values = [1, 1.22, 0.94, 1]
-        animation.keyTimes = [0, 0.38, 0.72, 1]
-        animation.duration = 0.28
-        animation.timingFunctions = [
-            CAMediaTimingFunction(name: .easeOut),
-            CAMediaTimingFunction(name: .easeInEaseOut),
-            CAMediaTimingFunction(name: .easeOut),
-        ]
-        favoriteButton.layer?.add(
-            animation,
-            forKey: "cadence.favorite.feedback"
-        )
     }
 
     private func metadataTone(
@@ -752,6 +731,7 @@ final class NativeTrackTableCell: NSTableCellView {
         let spacing = TrackTableColumnPolicy.columnSpacing
         let controlSize = TrackTableColumnPolicy.favoriteControlWidth
         let rowHeight = bounds.height
+        let geometry = NativeTrackRowGeometry(rowHeight: rowHeight)
         let artworkSize: CGFloat = 40
         let contentY = (rowHeight - artworkSize) / 2
         selectionLayer.frame = bounds.insetBy(
@@ -783,7 +763,7 @@ final class NativeTrackTableCell: NSTableCellView {
         layoutSongMetadata(
             originX: x,
             width: songTextWidth,
-            rowHeight: rowHeight
+            geometry: geometry
         )
 
         x = songEnd + spacing
@@ -797,23 +777,23 @@ final class NativeTrackTableCell: NSTableCellView {
                 )
                 albumButton.frame = NSRect(
                     x: x,
-                    y: (rowHeight - 19) / 2,
+                    y: geometry.singleLineFrame.minY,
                     width: linkWidth,
-                    height: 19
+                    height: geometry.singleLineFrame.height
                 )
             case .year:
                 yearLabel.frame = NSRect(
                     x: x,
-                    y: 0,
+                    y: geometry.singleLineFrame.minY,
                     width: width,
-                    height: rowHeight
+                    height: geometry.singleLineFrame.height
                 )
             case .time:
                 durationLabel.frame = NSRect(
                     x: x,
-                    y: 0,
+                    y: geometry.singleLineFrame.minY,
                     width: width,
-                    height: rowHeight
+                    height: geometry.singleLineFrame.height
                 )
             }
             x += width + spacing
@@ -835,35 +815,34 @@ final class NativeTrackTableCell: NSTableCellView {
     private func layoutSongMetadata(
         originX: CGFloat,
         width: CGFloat,
-        rowHeight: CGFloat
+        geometry: NativeTrackRowGeometry
     ) {
         let badgeGap: CGFloat = 7
         let badgeHeight: CGFloat = 16
-        let topY = rowHeight / 2 + 1
         let explicitReserve = explicitLabel.isHidden
             ? 0
             : badgeGap + 16
         let titleWidth = max(width - explicitReserve, 1)
         titleLabel.frame = NSRect(
             x: originX,
-            y: topY,
+            y: geometry.titleFrame.minY,
             width: titleWidth,
-            height: 19
+            height: geometry.titleFrame.height
         )
         explicitLabel.frame = NSRect(
             x: titleLabel.frame.maxX + badgeGap,
-            y: topY + 1,
+            y: geometry.titleFrame.minY + 1,
             width: 16,
             height: badgeHeight
         )
         artistButton.frame = NSRect(
             x: originX,
-            y: 5,
+            y: geometry.artistFrame.minY,
             width: metadataButtonWidth(
                 artistButton,
                 maximum: width
             ),
-            height: 19
+            height: geometry.artistFrame.height
         )
     }
 

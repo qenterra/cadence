@@ -178,7 +178,13 @@ struct LibraryFavoritesView: View {
                         ProductionAlbumTile(
                             model: model,
                             store: store,
-                            album: album
+                            album: album,
+                            orderedTargets: store.favoriteAlbums.map {
+                                CatalogActivationTarget(
+                                    kind: .album,
+                                    id: $0.id
+                                )
+                            }
                         )
                     }
 
@@ -213,7 +219,13 @@ struct LibraryFavoritesView: View {
                         ProductionArtistTile(
                             model: model,
                             store: store,
-                            artist: artist
+                            artist: artist,
+                            orderedTargets: store.favoriteArtists.map {
+                                CatalogActivationTarget(
+                                    kind: .artist,
+                                    id: $0.id
+                                )
+                            }
                         )
                     }
 

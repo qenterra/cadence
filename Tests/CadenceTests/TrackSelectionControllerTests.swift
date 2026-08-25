@@ -4,20 +4,91 @@ import Testing
 
 @MainActor
 struct TrackSelectionControllerTests {
-    @Test("Catalog items select on first click and activate on the second")
+    @Test("Plain catalog clicks activate immediately")
     func catalogActivationSelection() {
         let album = CatalogActivationTarget(kind: .album, id: UUID())
         let artist = CatalogActivationTarget(kind: .artist, id: UUID())
         var selection = CatalogActivationSelection()
 
         let firstAlbumClickActivates = selection.request(album)
-        #expect(!firstAlbumClickActivates)
+        #expect(firstAlbumClickActivates)
         #expect(selection.selected == album)
-        let secondAlbumClickActivates = selection.request(album)
-        #expect(secondAlbumClickActivates)
         let firstArtistClickActivates = selection.request(artist)
-        #expect(!firstArtistClickActivates)
+        #expect(firstArtistClickActivates)
         #expect(selection.selected == artist)
+    }
+
+    @Test("Catalog selection supports plain, additive, and range actions")
+    func catalogModifierSelection() {
+        let targets = (0 ..< 4).map { _ in
+            CatalogActivationTarget(kind: .album, id: UUID())
+        }
+        var selection = CatalogActivationSelection()
+
+        #expect(
+            selection.handle(
+                targets[1],
+                orderedTargets: targets,
+                modifiers: []
+            ) == .activate
+        )
+        #expect(
+            selection.handle(
+                targets[3],
+                orderedTargets: targets,
+                modifiers: [.control]
+            ) == .selected
+        )
+        #expect(selection.targets == Set([targets[1], targets[3]]))
+        #expect(
+            selection.handle(
+                targets[2],
+                orderedTargets: targets,
+                modifiers: [.shift]
+            ) == .selected
+        )
+        #expect(selection.targets == Set([targets[1], targets[2]]))
+        #expect(
+            selection.handle(
+                targets[2],
+                orderedTargets: targets,
+                modifiers: []
+            ) == .activate
+        )
+        #expect(selection.targets == [targets[2]])
+    }
+
+    @Test("Catalog kind changes replace selection and modifiers never activate")
+    func catalogKindChangeReplacesSelection() {
+        let albums = (0 ..< 2).map { _ in
+            CatalogActivationTarget(kind: .album, id: UUID())
+        }
+        let artist = CatalogActivationTarget(kind: .artist, id: UUID())
+        var selection = CatalogActivationSelection()
+
+        #expect(
+            selection.handle(
+                albums[0],
+                orderedTargets: albums,
+                modifiers: []
+            ) == .activate
+        )
+        #expect(
+            selection.handle(
+                albums[1],
+                orderedTargets: albums,
+                modifiers: [.command]
+            ) == .selected
+        )
+        #expect(
+            selection.handle(
+                artist,
+                orderedTargets: [artist],
+                modifiers: [.control]
+            ) == .selected
+        )
+        #expect(selection.targets == [artist])
+        #expect(selection.primary == artist)
     }
 
     @Test("Selection survives sorting but clears between destinations")

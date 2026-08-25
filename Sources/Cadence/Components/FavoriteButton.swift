@@ -44,8 +44,6 @@ struct FavoriteButtonRequest: Equatable, Sendable {
 struct FavoriteButtonTransientState: Equatable, Sendable {
     private(set) var itemID: UUID
     private(set) var pendingValue: Bool?
-    private(set) var feedbackTrigger = 0
-    private(set) var hasFeedback = false
     private(set) var activeRequestToken: UUID?
 
     init(itemID: UUID) {
@@ -58,8 +56,6 @@ struct FavoriteButtonTransientState: Equatable, Sendable {
         }
         self.itemID = itemID
         pendingValue = nil
-        feedbackTrigger = 0
-        hasFeedback = false
         activeRequestToken = nil
     }
 
@@ -73,8 +69,6 @@ struct FavoriteButtonTransientState: Equatable, Sendable {
             requestedValue: !isFavorite
         )
         pendingValue = request.requestedValue
-        feedbackTrigger += 1
-        hasFeedback = true
         activeRequestToken = request.token
         return request
     }
@@ -89,10 +83,7 @@ struct FavoriteButtonTransientState: Equatable, Sendable {
         }
         pendingValue = nil
         activeRequestToken = nil
-        if !didSave {
-            feedbackTrigger += 1
-            hasFeedback = true
-        }
+        _ = didSave
     }
 }
 
@@ -104,7 +95,6 @@ struct FavoriteButton: View {
     let action: (Bool) async -> Bool
 
     @State private var transientState: FavoriteButtonTransientState
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     init(
         itemID: UUID,
@@ -124,13 +114,11 @@ struct FavoriteButton: View {
     }
 
     var body: some View {
-        let motion = CadenceSymbolEffectPresentation.resolve(
-            trigger: currentFeedbackTrigger,
-            reduceMotion: reduceMotion || !hasCurrentFeedback
-        )
-
         Button(action: updateFavorite) {
-            favoriteSymbol(motion: motion)
+            Image(systemName: displayedValue ? "heart.fill" : "heart")
+                .foregroundStyle(
+                    displayedValue ? CadenceTheme.primaryAccent : .secondary
+                )
                 .frame(width: controlSize, height: controlSize)
                 .contentShape(Rectangle())
         }
@@ -161,35 +149,6 @@ struct FavoriteButton: View {
         transientState.itemID == itemID
             ? transientState.pendingValue
             : nil
-    }
-
-    private var currentFeedbackTrigger: Int {
-        transientState.itemID == itemID
-            ? transientState.feedbackTrigger
-            : 0
-    }
-
-    private var hasCurrentFeedback: Bool {
-        transientState.itemID == itemID
-            && transientState.hasFeedback
-    }
-
-    @ViewBuilder
-    private func favoriteSymbol(
-        motion: CadenceSymbolEffectPresentation
-    ) -> some View {
-        let symbol = Image(systemName: displayedValue ? "heart.fill" : "heart")
-            .foregroundStyle(
-                displayedValue ? CadenceTheme.primaryAccent : .secondary
-            )
-
-        if motion.isEnabled {
-            symbol
-                .contentTransition(.symbolEffect(.replace))
-                .symbolEffect(.bounce.up, value: motion.trigger)
-        } else {
-            symbol
-        }
     }
 
     private func updateFavorite() {

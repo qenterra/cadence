@@ -1,5 +1,17 @@
 import SwiftUI
 
+enum LyricsEditorClockPresentation {
+    static func resolve(
+        stateTime: TimeInterval,
+        presentationTime: TimeInterval,
+        isPlaying: Bool
+    ) -> String {
+        LyricTimestampFormatter.display(
+            isPlaying ? presentationTime : stateTime
+        )
+    }
+}
+
 struct TapToSyncPanel: View {
     @Bindable var model: CadenceAppModel
 
@@ -43,9 +55,7 @@ struct TapToSyncPanel: View {
                 .padding(.top, 8)
 
             HStack(alignment: .firstTextBaseline) {
-                Text(currentTimeText)
-                    .font(.system(size: 30, weight: .medium, design: .rounded))
-                    .monospacedDigit()
+                playbackClock
 
                 Spacer()
 
@@ -162,13 +172,34 @@ struct TapToSyncPanel: View {
         return "\(index + 1) of \(draft.lines.count)"
     }
 
-    private var currentTimeText: String {
-        if let track = model.currentTrack {
-            return LyricTimestampFormatter.display(
-                track.duration * model.progress
+    @ViewBuilder
+    private var playbackClock: some View {
+        if model.isPlaying {
+            TimelineView(.periodic(from: .now, by: 1.0 / 30.0)) { _ in
+                playbackClockLabel(
+                    presentationTime: model.playbackPresentationTime()
+                )
+            }
+        } else {
+            playbackClockLabel(
+                presentationTime: model.playbackCurrentTime
             )
         }
-        return LyricTimestampFormatter.display(model.playbackCurrentTime)
+    }
+
+    private func playbackClockLabel(
+        presentationTime: TimeInterval
+    ) -> some View {
+        Text(
+            LyricsEditorClockPresentation.resolve(
+                stateTime: model.playbackCurrentTime,
+                presentationTime: presentationTime,
+                isPlaying: model.isPlaying
+            )
+        )
+        .font(.system(size: 30, weight: .medium, design: .rounded))
+        .monospacedDigit()
+        .frame(minWidth: 142, alignment: .leading)
     }
 
     private func keyboardHint(

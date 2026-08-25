@@ -197,6 +197,7 @@ extension ProductionTrackTableRow {
             trackIDs: actionTrackIDs
         )
         AddToPlaylistMenuItems(
+            model: model,
             store: model.librarySession.store,
             trackIDs: actionTrackIDs
         )

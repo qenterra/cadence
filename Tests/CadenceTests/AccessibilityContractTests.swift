@@ -183,14 +183,13 @@ struct AccessibilityContractTests {
         )
     }
 
-    @Test("Favorite symbol effect presentation is disabled with Reduce Motion")
-    func favoriteSymbolEffectPresentation() {
-        let reduced = CadenceSymbolEffectPresentation.resolve(
-            trigger: 2,
-            reduceMotion: true
+    @Test("Shared row buttons use an immediate pressed appearance")
+    func rowButtonPressPresentation() {
+        #expect(
+            CadenceRowButtonPressPresentation.opacity(isPressed: false) == 1
         )
-
-        #expect(!reduced.isEnabled)
-        #expect(reduced.trigger == 2)
+        #expect(
+            CadenceRowButtonPressPresentation.opacity(isPressed: true) == 0.72
+        )
     }
 }

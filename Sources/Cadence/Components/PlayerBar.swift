@@ -153,7 +153,6 @@ private extension PlayerBar {
                             Image(systemName: "arrow.up.left.and.arrow.down.right")
                                 .font(.body.weight(.semibold))
                                 .foregroundStyle(.white)
-                                .symbolEffect(.bounce, value: isArtworkHovered)
                         }
                     }
                 }

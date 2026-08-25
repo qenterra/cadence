@@ -135,6 +135,7 @@ struct ProductionPlaybackQueueRow: View {
                     model.openProductionTagEditor(trackID: track.id)
                 }
                 AddToPlaylistMenuItems(
+                    model: model,
                     store: model.librarySession.store,
                     trackIDs: [track.id]
                 )

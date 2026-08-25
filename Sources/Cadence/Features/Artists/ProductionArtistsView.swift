@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 struct ProductionArtistsView: View {
@@ -72,18 +73,30 @@ struct ProductionArtistsView: View {
             "Artists",
             subtitle: "\(store.artists.count) artists"
         ) {
-            Menu {
-                Picker("Sort Artists", selection: $sortFieldRaw) {
-                    ForEach(artistSortFields) { field in
-                        Text(field.title).tag(field.rawValue)
-                    }
-                }
-                Toggle("Descending", isOn: $sortsDescending)
-            } label: {
-                Label("Sort Artists", systemImage: "arrow.up.arrow.down.circle")
-            }
-            .menuStyle(.borderlessButton)
+            CatalogSortMenu(
+                label: "Sort Artists",
+                fields: artistSortFields,
+                selection: artistSortSelection,
+                fieldTitle: \ArtistSortField.title
+            )
         }
+    }
+
+    private var artistSortSelection: Binding<
+        CatalogSortSelection<ArtistSortField>
+    > {
+        Binding(
+            get: {
+                CatalogSortSelection(
+                    field: ArtistSortField(rawValue: sortFieldRaw) ?? .name,
+                    direction: sortsDescending ? .descending : .ascending
+                )
+            },
+            set: { selection in
+                sortFieldRaw = selection.field.rawValue
+                sortsDescending = selection.direction == .descending
+            }
+        )
     }
 
     private var sortedArtists: [LibraryArtistProjection] {
@@ -126,7 +139,10 @@ struct ProductionArtistsView: View {
         ProductionArtistTile(
             model: model,
             store: store,
-            artist: artist
+            artist: artist,
+            orderedTargets: sortedArtists.map {
+                CatalogActivationTarget(kind: .artist, id: $0.id)
+            }
         )
     }
 }
@@ -135,6 +151,7 @@ struct ProductionArtistTile: View {
     @Bindable var model: CadenceAppModel
     @Bindable var store: LibraryStore
     let artist: LibraryArtistProjection
+    let orderedTargets: [CatalogActivationTarget]
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @FocusState private var isFavoriteFocused: Bool
     @State private var isHovered = false
@@ -215,8 +232,9 @@ struct ProductionArtistTile: View {
         .frame(width: CatalogCardLayoutMetrics.cardWidth)
         .background {
             BrowserRowSurface(
-                isSelected: model.catalogActivationSelection.selected
-                    == CatalogActivationTarget(kind: .artist, id: artist.id),
+                isSelected: model.catalogActivationSelection.contains(
+                    CatalogActivationTarget(kind: .artist, id: artist.id)
+                ),
                 isHovered: isHovered,
                 isFocused: false
             )
@@ -264,6 +282,16 @@ struct ProductionArtistTile: View {
         Button("Rename", systemImage: "pencil") {
             beginRename()
         }
+        Button(
+            HomePinStore.contains(artist.id, in: .artist)
+                ? "Unpin from Home"
+                : "Pin to Home",
+            systemImage: HomePinStore.contains(artist.id, in: .artist)
+                ? "pin.slash"
+                : "pin"
+        ) {
+            HomePinStore.toggle(artist.id, in: .artist)
+        }
         AddArtistToPlaylistMenuItems(
             store: store,
             artistID: artist.id
@@ -293,7 +321,12 @@ struct ProductionArtistTile: View {
 
     private func openArtist() {
         let target = CatalogActivationTarget(kind: .artist, id: artist.id)
-        guard model.requestCatalogActivation(target) else {
+        let action = model.handleCatalogSelection(
+            target,
+            orderedTargets: orderedTargets,
+            modifiers: NSApp.currentEvent?.modifierFlags ?? []
+        )
+        guard action == .activate else {
             return
         }
         model.requestOpenProductionArtistContextually(id: artist.id)

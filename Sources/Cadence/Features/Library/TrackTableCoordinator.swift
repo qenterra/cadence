@@ -173,6 +173,7 @@ extension TrackTableCore {
 
         private func liveScrollDidBegin() {
             interactionState.beginLiveScroll()
+            resetVisiblePointerHover()
             guard refreshTask == nil else {
                 return
             }
@@ -182,6 +183,7 @@ extension TrackTableCore {
 
         private func liveScrollDidEnd() {
             interactionState.endLiveScroll()
+            reconcileVisiblePointerHover()
             let shouldRefresh = TrackTablePullRefreshPolicy.shouldRefresh(
                 maximumPull: maximumRefreshPull
             )
@@ -407,6 +409,11 @@ extension TrackTableCore {
         func visibleBoundsChanged() {
             updateColumnWidth()
             updateRefreshPullProgress()
+            if interactionState.isLiveScrolling {
+                resetVisiblePointerHover()
+            } else {
+                reconcileVisiblePointerHover()
+            }
             guard parent.virtualWindow != nil else {
                 return
             }
@@ -566,6 +573,41 @@ extension TrackTableCore {
                 return []
             }
             return IndexSet(integersIn: lowerBound ..< upperBound)
+        }
+
+        private func resetVisiblePointerHover() {
+            forEachVisibleNativeCell { cell in
+                cell.resetPointerHover()
+            }
+        }
+
+        private func reconcileVisiblePointerHover() {
+            guard let windowPoint = tableView?.window?
+                .mouseLocationOutsideOfEventStream else {
+                resetVisiblePointerHover()
+                return
+            }
+            forEachVisibleNativeCell { cell in
+                cell.reconcilePointerHover(at: windowPoint)
+            }
+        }
+
+        private func forEachVisibleNativeCell(
+            _ action: (NativeTrackTableCell) -> Void
+        ) {
+            guard let tableView else {
+                return
+            }
+            for row in visibleRowIndexes() {
+                guard let cell = tableView.view(
+                    atColumn: 0,
+                    row: row,
+                    makeIfNecessary: false
+                ) as? NativeTrackTableCell else {
+                    continue
+                }
+                action(cell)
+            }
         }
 
         func resetPagingRequests() {

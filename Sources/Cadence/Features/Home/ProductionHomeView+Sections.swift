@@ -66,7 +66,13 @@ extension ProductionHomeView {
                         ProductionAlbumTile(
                             model: model,
                             store: store,
-                            album: album
+                            album: album,
+                            orderedTargets: albums.map {
+                                CatalogActivationTarget(
+                                    kind: .album,
+                                    id: $0.id
+                                )
+                            }
                         )
                     }
 
@@ -74,7 +80,13 @@ extension ProductionHomeView {
                         ProductionArtistTile(
                             model: model,
                             store: store,
-                            artist: artist
+                            artist: artist,
+                            orderedTargets: artists.map {
+                                CatalogActivationTarget(
+                                    kind: .artist,
+                                    id: $0.id
+                                )
+                            }
                         )
                     }
                 }
@@ -94,24 +106,49 @@ extension ProductionHomeView {
         let playlists = pinnedPlaylists
         let smartCollections = pinnedSmartCollections
 
-        if !albums.isEmpty || !artists.isEmpty || !playlists.isEmpty
-            || !smartCollections.isEmpty {
-            HomeShelf(title: "Quick Access") {
+        if !albums.isEmpty {
+            HomeShelf(title: HomePinnedSectionKind.albums.title) {
                 HomeCompactGrid {
                     ForEach(albums) { album in
                         ProductionAlbumTile(
                             model: model,
                             store: store,
-                            album: album
+                            album: album,
+                            orderedTargets: albums.map {
+                                CatalogActivationTarget(
+                                    kind: .album,
+                                    id: $0.id
+                                )
+                            }
                         )
                     }
+                }
+            }
+        }
+
+        if !artists.isEmpty {
+            HomeShelf(title: HomePinnedSectionKind.artists.title) {
+                HomeCompactGrid {
                     ForEach(artists) { artist in
                         ProductionArtistTile(
                             model: model,
                             store: store,
-                            artist: artist
+                            artist: artist,
+                            orderedTargets: artists.map {
+                                CatalogActivationTarget(
+                                    kind: .artist,
+                                    id: $0.id
+                                )
+                            }
                         )
                     }
+                }
+            }
+        }
+
+        if !playlists.isEmpty {
+            HomeShelf(title: HomePinnedSectionKind.playlists.title) {
+                HomeCompactGrid {
                     ForEach(playlists) { playlist in
                         HomeDestinationTile(
                             model: model,
@@ -128,6 +165,13 @@ extension ProductionHomeView {
                             Task { await store.selectPlaylist(playlist.id) }
                         }
                     }
+                }
+            }
+        }
+
+        if !smartCollections.isEmpty {
+            HomeShelf(title: HomePinnedSectionKind.smartCollections.title) {
+                HomeCompactGrid {
                     ForEach(smartCollections) { collection in
                         HomeDestinationTile(
                             model: model,

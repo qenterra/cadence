@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 struct ProductionAlbumsView: View {
@@ -72,18 +73,30 @@ struct ProductionAlbumsView: View {
             "Albums",
             subtitle: "\(store.albums.count) albums"
         ) {
-            Menu {
-                Picker("Sort Albums", selection: $sortFieldRaw) {
-                    ForEach(AlbumSortField.allCases) { field in
-                        Text(field.title).tag(field.rawValue)
-                    }
-                }
-                Toggle("Descending", isOn: $sortsDescending)
-            } label: {
-                Label("Sort Albums", systemImage: "arrow.up.arrow.down.circle")
-            }
-            .menuStyle(.borderlessButton)
+            CatalogSortMenu(
+                label: "Sort Albums",
+                fields: Array(AlbumSortField.allCases),
+                selection: albumSortSelection,
+                fieldTitle: \AlbumSortField.title
+            )
         }
+    }
+
+    private var albumSortSelection: Binding<
+        CatalogSortSelection<AlbumSortField>
+    > {
+        Binding(
+            get: {
+                CatalogSortSelection(
+                    field: AlbumSortField(rawValue: sortFieldRaw) ?? .artist,
+                    direction: sortsDescending ? .descending : .ascending
+                )
+            },
+            set: { selection in
+                sortFieldRaw = selection.field.rawValue
+                sortsDescending = selection.direction == .descending
+            }
+        )
     }
 
     private var sortedAlbums: [LibraryAlbumProjection] {
@@ -120,7 +133,10 @@ struct ProductionAlbumsView: View {
         ProductionAlbumTile(
             model: model,
             store: store,
-            album: album
+            album: album,
+            orderedTargets: sortedAlbums.map {
+                CatalogActivationTarget(kind: .album, id: $0.id)
+            }
         )
     }
 }
@@ -129,6 +145,7 @@ struct ProductionAlbumTile: View {
     @Bindable var model: CadenceAppModel
     @Bindable var store: LibraryStore
     let album: LibraryAlbumProjection
+    let orderedTargets: [CatalogActivationTarget]
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @FocusState private var isFavoriteFocused: Bool
     @State private var isHovered = false
@@ -204,8 +221,9 @@ struct ProductionAlbumTile: View {
         .frame(width: CatalogCardLayoutMetrics.cardWidth)
         .background {
             BrowserRowSurface(
-                isSelected: model.catalogActivationSelection.selected
-                    == CatalogActivationTarget(kind: .album, id: album.id),
+                isSelected: model.catalogActivationSelection.contains(
+                    CatalogActivationTarget(kind: .album, id: album.id)
+                ),
                 isHovered: isHovered,
                 isFocused: false
             )
@@ -296,7 +314,12 @@ struct ProductionAlbumTile: View {
 
     private func openAlbum() {
         let target = CatalogActivationTarget(kind: .album, id: album.id)
-        guard model.requestCatalogActivation(target) else {
+        let action = model.handleCatalogSelection(
+            target,
+            orderedTargets: orderedTargets,
+            modifiers: NSApp.currentEvent?.modifierFlags ?? []
+        )
+        guard action == .activate else {
             return
         }
         model.requestOpenProductionAlbumContextually(id: album.id)

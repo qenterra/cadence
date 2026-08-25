@@ -60,6 +60,24 @@ extension CadenceRootView {
         )
     }
 
+    var playlistCreationPresented: Binding<Bool> {
+        Binding(
+            get: { model.pendingPlaylistCreation != nil },
+            set: {
+                if !$0 {
+                    model.cancelPlaylistCreation()
+                }
+            }
+        )
+    }
+
+    var pendingPlaylistName: Binding<String> {
+        Binding(
+            get: { model.pendingPlaylistCreation?.name ?? "" },
+            set: model.updatePendingPlaylistName
+        )
+    }
+
     var libraryOperationErrorPresented: Binding<Bool> {
         Binding(
             get: { model.libraryOperationError != nil },

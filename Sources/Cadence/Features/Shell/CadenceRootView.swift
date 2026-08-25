@@ -10,6 +10,20 @@ enum DestinationPresentation: Hashable, Sendable {
     ) -> DestinationPresentation {
         isLoading && !hasResidentContent ? .loading : .content
     }
+
+    static func resolve(
+        destination: NavigationDestination,
+        hasResidentContent: Bool,
+        isLoading: Bool
+    ) -> DestinationPresentation {
+        if destination == .smartCollections {
+            return .content
+        }
+        return resolve(
+            hasResidentContent: hasResidentContent,
+            isLoading: isLoading
+        )
+    }
 }
 
 struct CadenceRootView: View {
@@ -124,6 +138,32 @@ struct CadenceRootView: View {
         )
         .lyricsDraftTransitionAlert(model: model)
         .artworkManagement(model: model)
+        .alert(
+            "New Playlist",
+            isPresented: playlistCreationPresented
+        ) {
+            TextField("Playlist Name", text: pendingPlaylistName)
+            Button("Create") {
+                Task {
+                    await model.confirmPlaylistCreation()
+                }
+            }
+            .disabled(
+                model.pendingPlaylistCreation?.name
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+                    .isEmpty != false
+            )
+            Button("Cancel", role: .cancel) {
+                model.cancelPlaylistCreation()
+            }
+        } message: {
+            let count = model.pendingPlaylistCreation?.trackIDs.count ?? 0
+            Text(
+                count == 1
+                    ? "Create a playlist and add the selected track."
+                    : "Create a playlist and add \(count) selected tracks."
+            )
+        }
         .confirmationDialog(
             "Move to Trash?",
             isPresented: libraryDeletionPresented,
@@ -499,6 +539,7 @@ private extension CadenceRootView {
             isLoading = store.availability == .loading
         }
         return DestinationPresentation.resolve(
+            destination: model.selectedDestination,
             hasResidentContent: hasResidentContent,
             isLoading: isLoading
         )

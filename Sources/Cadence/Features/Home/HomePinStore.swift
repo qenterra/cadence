@@ -11,6 +11,36 @@ enum HomePinKind: String, CaseIterable, Sendable {
     }
 }
 
+enum HomePinnedSectionKind: Equatable, Sendable {
+    case albums
+    case artists
+    case playlists
+    case smartCollections
+
+    var title: String {
+        switch self {
+        case .albums: "Pinned Albums"
+        case .artists: "Pinned Artists"
+        case .playlists: "Pinned Playlists"
+        case .smartCollections: "Pinned Smart Collections"
+        }
+    }
+
+    static func visibleKinds(
+        albumCount: Int,
+        artistCount: Int,
+        playlistCount: Int,
+        smartCollectionCount: Int
+    ) -> [HomePinnedSectionKind] {
+        [
+            albumCount > 0 ? .albums : nil,
+            artistCount > 0 ? .artists : nil,
+            playlistCount > 0 ? .playlists : nil,
+            smartCollectionCount > 0 ? .smartCollections : nil,
+        ].compactMap(\.self)
+    }
+}
+
 enum HomePinStore {
     static func contains(_ id: UUID, in kind: HomePinKind) -> Bool {
         identifiers(for: kind).contains(id)

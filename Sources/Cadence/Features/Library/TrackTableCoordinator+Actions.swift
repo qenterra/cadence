@@ -223,13 +223,17 @@ extension TrackTableCore.Coordinator {
         return parent.snapshot?.indexByID[trackID]
     }
 
-    func select(row: Int) {
+    func select(
+        row: Int,
+        modifiers: TrackTableSelectionModifiers? = nil
+    ) {
         guard let tableView, track(at: row) != nil else {
             return
         }
-        let modifiers = NSApp.currentEvent?.modifierFlags
-            .intersection(.deviceIndependentFlagsMask) ?? []
-        if modifiers.contains(.shift), let rangeAnchorRow {
+        let modifiers = modifiers ?? TrackTableSelectionModifiers(
+            NSApp.currentEvent?.modifierFlags ?? []
+        )
+        if modifiers.isRange, let rangeAnchorRow {
             let bounds = min(rangeAnchorRow, row) ... max(
                 rangeAnchorRow,
                 row
@@ -238,7 +242,7 @@ extension TrackTableCore.Coordinator {
                 IndexSet(integersIn: bounds),
                 byExtendingSelection: false
             )
-        } else if modifiers.contains(.command) {
+        } else if modifiers.isAdditive {
             if tableView.selectedRowIndexes.contains(row) {
                 tableView.deselectRow(row)
             } else {
@@ -256,6 +260,30 @@ extension TrackTableCore.Coordinator {
                 IndexSet(integer: row),
                 byExtendingSelection: false
             )
+        }
+        tableView.window?.makeFirstResponder(tableView)
+    }
+
+    func prepareSelectionForContextMenu(
+        row: Int,
+        modifiers: TrackTableSelectionModifiers
+    ) {
+        guard let tableView, track(at: row) != nil else {
+            return
+        }
+        let selection = TrackTableContextSelection.resolve(
+            clickedRow: row,
+            selectedRows: tableView.selectedRowIndexes,
+            modifiers: modifiers
+        )
+        if selection != tableView.selectedRowIndexes {
+            tableView.selectRowIndexes(
+                selection,
+                byExtendingSelection: false
+            )
+        }
+        if selection.contains(row) {
+            rangeAnchorRow = row
         }
         tableView.window?.makeFirstResponder(tableView)
     }
@@ -535,8 +563,17 @@ extension TrackTableCore.Coordinator {
         cell.onActionsMenu = { [weak self] trackID, button in
             self?.showActionsMenu(for: trackID, from: button)
         }
-        cell.onContextMenu = { [weak self] trackID in
-            self?.actionsMenu(for: trackID)
+        cell.onContextMenu = { [weak self] trackID, event in
+            guard let self, let row = index(of: trackID) else {
+                return nil
+            }
+            prepareSelectionForContextMenu(
+                row: row,
+                modifiers: TrackTableSelectionModifiers(
+                    event.modifierFlags
+                )
+            )
+            return actionsMenu(for: trackID)
         }
         return cell
     }
@@ -799,17 +836,7 @@ extension TrackTableCore.Coordinator {
             guard let self else {
                 return
             }
-            Task { @MainActor in
-                let store = parent.model.librarySession.store
-                await store.createPlaylist()
-                guard let playlistID = store.selectedPlaylistID else {
-                    return
-                }
-                await store.addToPlaylist(
-                    playlistID: playlistID,
-                    trackIDs: trackIDs
-                )
-            }
+            parent.model.requestPlaylistCreation(adding: trackIDs)
         }
         appendSubmenu(
             submenu,

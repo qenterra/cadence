@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 import Observation
 
@@ -138,6 +139,11 @@ struct PendingLibraryDeletion: Equatable, Sendable {
     }
 }
 
+struct PendingPlaylistCreation: Equatable, Sendable {
+    let trackIDs: [UUID]
+    var name = ""
+}
+
 @MainActor
 @Observable
 final class CadenceAppModel {
@@ -227,6 +233,7 @@ final class CadenceAppModel {
     var importScanProgress: ImportInspectionProgress = .empty
     var importWorkspaceState: ImportWorkspaceState
     var pendingLibraryDeletion: PendingLibraryDeletion?
+    var pendingPlaylistCreation: PendingPlaylistCreation?
     var libraryOperationError: String?
     var libraryRelocationState = LibraryRelocationWorkspaceState()
     var isResettingLibrary = false
@@ -316,36 +323,68 @@ final class CadenceAppModel {
     }
 }
 
-enum CatalogActivationKind: Hashable, Sendable {
-    case track
-    case album
-    case artist
-    case playlist
-    case smartCollection
-    case tag
-}
-
-struct CatalogActivationTarget: Hashable, Sendable {
-    let kind: CatalogActivationKind
-    let id: UUID
-}
-
-struct CatalogActivationSelection: Equatable, Sendable {
-    private(set) var selected: CatalogActivationTarget?
-
-    mutating func request(_ target: CatalogActivationTarget) -> Bool {
-        guard selected == target else {
-            selected = target
-            return false
-        }
-        return true
-    }
-}
-
 extension CadenceAppModel {
     func requestCatalogActivation(
         _ target: CatalogActivationTarget
     ) -> Bool {
         catalogActivationSelection.request(target)
+    }
+
+    func handleCatalogSelection(
+        _ target: CatalogActivationTarget,
+        orderedTargets: [CatalogActivationTarget],
+        modifiers: NSEvent.ModifierFlags
+    ) -> CatalogSelectionAction {
+        catalogActivationSelection.handle(
+            target,
+            orderedTargets: orderedTargets,
+            modifiers: modifiers
+        )
+    }
+
+    func requestPlaylistCreation(adding trackIDs: [UUID]) {
+        var seen: Set<UUID> = []
+        let orderedIDs = trackIDs.filter { seen.insert($0).inserted }
+        guard !orderedIDs.isEmpty else {
+            return
+        }
+        pendingPlaylistCreation = PendingPlaylistCreation(
+            trackIDs: orderedIDs
+        )
+    }
+
+    func updatePendingPlaylistName(_ name: String) {
+        guard var pendingPlaylistCreation else {
+            return
+        }
+        pendingPlaylistCreation.name = name
+        self.pendingPlaylistCreation = pendingPlaylistCreation
+    }
+
+    func cancelPlaylistCreation() {
+        pendingPlaylistCreation = nil
+    }
+
+    func confirmPlaylistCreation() async {
+        guard let request = pendingPlaylistCreation else {
+            return
+        }
+        let name = request.name.trimmingCharacters(
+            in: .whitespacesAndNewlines
+        )
+        guard !name.isEmpty else {
+            return
+        }
+        let store = librarySession.store
+        guard let created = await store.createPlaylist(name: name) else {
+            return
+        }
+        if pendingPlaylistCreation == request {
+            pendingPlaylistCreation = nil
+        }
+        await store.addToPlaylist(
+            playlistID: created.id,
+            trackIDs: request.trackIDs
+        )
     }
 }

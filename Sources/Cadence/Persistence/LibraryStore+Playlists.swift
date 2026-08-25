@@ -103,26 +103,31 @@ extension LibraryStore {
         }
     }
 
-    func createPlaylist(name: String = "Untitled Playlist") async {
+    @discardableResult
+    func createPlaylist(
+        name: String = "Untitled Playlist"
+    ) async -> LibraryPlaylistProjection? {
         let context = captureLibraryContext()
         guard
             let playlistClient,
             ownsPlaylistLoad(context, client: playlistClient)
         else {
-            return
+            return nil
         }
         do {
             let playlist = try await playlistClient.create(name)
             guard ownsPlaylistLoad(context, client: playlistClient) else {
-                return
+                return nil
             }
             selectedPlaylistID = playlist.id
             await loadPlaylists()
+            return playlist
         } catch {
             guard ownsPlaylistLoad(context, client: playlistClient) else {
-                return
+                return nil
             }
             recordOperationFailure(.playlistCreate, error: error)
+            return nil
         }
     }
 

@@ -6,6 +6,72 @@ import SwiftUI
 import Testing
 
 extension AllTracksPerformanceTests {
+    @Test("Control and Command both toggle one selected track")
+    func nativeAdditiveModifiers() {
+        #expect(TrackTableSelectionModifiers([.control]).isAdditive)
+        #expect(TrackTableSelectionModifiers([.command]).isAdditive)
+        #expect(!TrackTableSelectionModifiers([]).isAdditive)
+    }
+
+    @Test("Modified context click extends selection before menu resolution")
+    func contextClickExtendsSelection() {
+        let current = IndexSet(integer: 0)
+
+        #expect(
+            TrackTableContextSelection.resolve(
+                clickedRow: 2,
+                selectedRows: current,
+                modifiers: TrackTableSelectionModifiers([.control])
+            ) == IndexSet([0, 2])
+        )
+        #expect(
+            TrackTableContextSelection.resolve(
+                clickedRow: 0,
+                selectedRows: current,
+                modifiers: TrackTableSelectionModifiers([])
+            ) == current
+        )
+    }
+
+    @Test("Context selection reaches bulk action resolution before menu build")
+    func contextSelectionUpdatesCoordinatorSelection() {
+        let rows = makeTracks(count: 3)
+        var selection: Set<UUID> = [rows[0].id]
+        let core = makeCore(
+            rows: rows,
+            selection: Binding(
+                get: { selection },
+                set: { selection = $0 }
+            ),
+            probe: nil,
+            sourceIndex: 50009
+        )
+        let coordinator = TrackTableCore.Coordinator(parent: core)
+        let tableView = NSTableView()
+        tableView.addTableColumn(NSTableColumn(identifier: .init("row")))
+        tableView.allowsMultipleSelection = true
+        tableView.dataSource = coordinator
+        tableView.delegate = coordinator
+        coordinator.tableView = tableView
+        tableView.reloadData()
+        tableView.selectRowIndexes(
+            IndexSet(integer: 0),
+            byExtendingSelection: false
+        )
+
+        coordinator.prepareSelectionForContextMenu(
+            row: 2,
+            modifiers: TrackTableSelectionModifiers([.control])
+        )
+
+        #expect(tableView.selectedRowIndexes == IndexSet([0, 2]))
+        #expect(selection == [rows[0].id, rows[2].id])
+        #expect(
+            coordinator.actionTrackIDs(for: rows[2].id)
+                == [rows[0].id, rows[2].id]
+        )
+    }
+
     @Test(
         "Track-table focus notifications observe the completed responder transition",
         .appKitExclusive

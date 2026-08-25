@@ -14,6 +14,12 @@ enum HomeLayoutMetrics {
     static let subtitleLineLimit = 1
 }
 
+enum HomeMediaTileAccessory {
+    static func symbol(for kind: CatalogActivationKind) -> String? {
+        kind == .track ? nil : "chevron.right"
+    }
+}
+
 enum HomeListeningSelection {
     static func items<Item>(_ items: [Item], limit: Int) -> [Item] {
         Array(items.prefix(max(limit, 0)))
@@ -176,7 +182,7 @@ struct HomeTrackTile: View {
             subtitle: track.artist,
             artworkID: track.artworkID,
             placeholder: .track,
-            accessorySymbol: "play.fill",
+            accessorySymbol: HomeMediaTileAccessory.symbol(for: .track),
             activationTarget: CatalogActivationTarget(
                 kind: .track,
                 id: track.id
@@ -208,7 +214,9 @@ struct HomeDestinationTile: View {
             subtitle: subtitle,
             artworkID: artworkID,
             placeholder: placeholder,
-            accessorySymbol: "chevron.right",
+            accessorySymbol: HomeMediaTileAccessory.symbol(
+                for: activationTarget.kind
+            ),
             activationTarget: activationTarget,
             accessibilityLabel: "Open \(title), \(subtitle)",
             action: action
@@ -222,7 +230,7 @@ private struct HomeMediaTile: View {
     let subtitle: String
     let artworkID: UUID?
     let placeholder: ArtworkPlaceholder
-    let accessorySymbol: String
+    let accessorySymbol: String?
     let activationTarget: CatalogActivationTarget
     let accessibilityLabel: LocalizedStringKey
     let action: () -> Void
@@ -292,10 +300,12 @@ private struct HomeMediaTile: View {
 
             Spacer(minLength: CadenceLayout.textStack)
 
-            Image(systemName: accessorySymbol)
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(isHovered ? .primary : .tertiary)
-                .frame(width: 24, height: 24)
+            if let accessorySymbol {
+                Image(systemName: accessorySymbol)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(isHovered ? .primary : .tertiary)
+                    .frame(width: 24, height: 24)
+            }
         }
     }
 }

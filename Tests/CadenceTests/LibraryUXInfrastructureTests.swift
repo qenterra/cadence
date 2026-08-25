@@ -26,6 +26,17 @@ struct LibraryUXInfrastructureTests {
         )
     }
 
+    @Test("Smart Collections mounts while its page-owned task is loading")
+    func smartCollectionsDoesNotDeadlockRootPresentation() {
+        #expect(
+            DestinationPresentation.resolve(
+                destination: .smartCollections,
+                hasResidentContent: false,
+                isLoading: true
+            ) == .content
+        )
+    }
+
     @Test("Every scrollable library destination maps to a refresh scope")
     func destinationRefreshScopes() {
         #expect(NavigationDestination.home.refreshScope == .home)
@@ -113,6 +124,20 @@ struct LibraryUXInfrastructureTests {
         )
     }
 
+    @Test("Shared row buttons use static symbols and immediate press opacity")
+    func sharedButtonSymbolsAreStatic() {
+        #expect(
+            CadenceRowButtonPressPresentation.opacity(isPressed: false) == 1
+        )
+        #expect(
+            CadenceRowButtonPressPresentation.opacity(isPressed: true) == 0.72
+        )
+        #expect(HomeMediaTileAccessory.symbol(for: .track) == nil)
+        #expect(
+            HomeMediaTileAccessory.symbol(for: .album) == "chevron.right"
+        )
+    }
+
     @Test("Home pin projection tolerates duplicate library and saved identifiers")
     func homePinsDeduplicateIdentifiers() {
         struct Item: Identifiable, Equatable {
@@ -132,6 +157,49 @@ struct LibraryUXInfrastructureTests {
         )
 
         #expect(ordered == [first, second])
+    }
+
+    @Test("Home pin projections remain separated by media kind")
+    func homePinsAreGroupedByKind() {
+        let sections = HomePinnedSectionKind.visibleKinds(
+            albumCount: 1,
+            artistCount: 2,
+            playlistCount: 1,
+            smartCollectionCount: 0
+        )
+
+        #expect(sections == [.albums, .artists, .playlists])
+        #expect(
+            sections.map(\.title)
+                == ["Pinned Albums", "Pinned Artists", "Pinned Playlists"]
+        )
+    }
+
+    @Test("Named playlist request captures selection without creating early")
+    @MainActor
+    func pendingPlaylistCreationCapturesSelection() {
+        let ids = [UUID(), UUID()]
+        let model = CadenceAppModel.testFixture()
+
+        model.requestPlaylistCreation(adding: ids)
+
+        #expect(model.pendingPlaylistCreation?.trackIDs == ids)
+        #expect(model.pendingPlaylistCreation?.name.isEmpty == true)
+        model.cancelPlaylistCreation()
+        #expect(model.pendingPlaylistCreation == nil)
+    }
+
+    @Test("Failed playlist creation preserves the entered request")
+    @MainActor
+    func failedPlaylistCreationPreservesRequest() async {
+        let model = CadenceAppModel.testFixture()
+        model.requestPlaylistCreation(adding: [UUID()])
+        model.updatePendingPlaylistName("Night Drive")
+
+        await model.confirmPlaylistCreation()
+
+        #expect(model.pendingPlaylistCreation?.name == "Night Drive")
+        #expect(model.pendingPlaylistCreation?.trackIDs.count == 1)
     }
 
     @Test("Home recent items keep the playing track at the front")
@@ -312,5 +380,31 @@ struct LibraryUXInfrastructureTests {
             lastPlayedAt: nil,
             hasSynchronizedLyrics: false
         )
+    }
+}
+
+extension LibraryUXInfrastructureTests {
+    @Test("Persistent Settings booleans use native switches")
+    func settingsBooleanStyle() {
+        #expect(
+            SettingsBooleanControlPresentation.style
+                == .nativeSwitch
+        )
+    }
+
+    @Test("Catalog sort choices update directly without nested state")
+    func catalogSortSelection() {
+        var selection = CatalogSortSelection(
+            field: AlbumSortField.artist,
+            direction: .ascending
+        )
+
+        selection.select(field: .title)
+        #expect(selection.field == .title)
+        #expect(selection.direction == .ascending)
+
+        selection.select(direction: .descending)
+        #expect(selection.field == .title)
+        #expect(selection.direction == .descending)
     }
 }

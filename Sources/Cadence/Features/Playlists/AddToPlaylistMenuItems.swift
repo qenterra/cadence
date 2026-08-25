@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct AddToPlaylistMenuItems: View {
+    @Bindable var model: CadenceAppModel
     @Bindable var store: LibraryStore
     let trackIDs: [UUID]
 
@@ -8,16 +9,7 @@ struct AddToPlaylistMenuItems: View {
         Menu("Add to Playlist", systemImage: "text.badge.plus") {
             if store.playlists.isEmpty {
                 Button("New Playlist…", systemImage: "plus") {
-                    Task {
-                        await store.createPlaylist()
-                        guard let playlistID = store.selectedPlaylistID else {
-                            return
-                        }
-                        await store.addToPlaylist(
-                            playlistID: playlistID,
-                            trackIDs: trackIDs
-                        )
-                    }
+                    model.requestPlaylistCreation(adding: trackIDs)
                 }
             } else {
                 ForEach(store.playlists) { playlist in
@@ -34,16 +26,7 @@ struct AddToPlaylistMenuItems: View {
                 Divider()
 
                 Button("New Playlist…", systemImage: "plus") {
-                    Task {
-                        await store.createPlaylist()
-                        guard let playlistID = store.selectedPlaylistID else {
-                            return
-                        }
-                        await store.addToPlaylist(
-                            playlistID: playlistID,
-                            trackIDs: trackIDs
-                        )
-                    }
+                    model.requestPlaylistCreation(adding: trackIDs)
                 }
             }
         }

@@ -389,6 +389,17 @@ extension LibraryStoreTests {
         #expect(!store.isTrackFavorite(records[0].id))
     }
 
+    @Test("Creating a playlist returns the created stable ID")
+    func createPlaylistReturnsProjection() async throws {
+        let store = try LibraryStore(container: makeContainer(trackCount: 1))
+        await store.loadInitialLibrary()
+
+        let created = await store.createPlaylist(name: "Night Drive")
+
+        #expect(created?.name == "Night Drive")
+        #expect(store.playlists.contains { $0.id == created?.id })
+    }
+
     private func makeContainer(
         trackCount: Int
     ) throws -> ModelContainer {

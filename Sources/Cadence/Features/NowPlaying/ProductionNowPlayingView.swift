@@ -208,37 +208,53 @@ extension ProductionNowPlayingView {
     }
 
     private func trackContext(artworkSize: CGFloat) -> some View {
-        VStack(alignment: .leading, spacing: 22) {
-            trackArtwork(size: artworkSize)
-            trackIdentity
-
-            if model.isCurrentPlaybackExternal {
-                externalFileNotice
-            } else {
-                trackTags
-            }
-            audioQuality
-            playbackFailure
-            Spacer(minLength: 8)
-            if cadenceModeOptions.isEnabled {
-                CadenceModeHint {
-                    cadenceModeSession.requestActivation(
-                        canActivate: model.hasCurrentPlaybackItem
-                    )
-                }
-            }
-        }
-        .padding(42)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(alignment: .topLeading) {
-            ProductionArtworkHaze(
-                model: model,
-                artworkID: displayedArtworkID
+        GeometryReader { geometry in
+            let overflow = NowPlayingContextOverflowPolicy(
+                height: geometry.size.height
             )
-            .frame(width: 520, height: 520)
-            .offset(x: -50, y: -34)
+
+            ScrollView(.vertical) {
+                VStack(alignment: .leading, spacing: 22) {
+                    trackArtwork(size: artworkSize)
+                    trackIdentity
+
+                    if model.isCurrentPlaybackExternal {
+                        externalFileNotice
+                    } else {
+                        trackTags
+                    }
+                    audioQuality
+                    playbackFailure
+                    Spacer(minLength: 8)
+                    if cadenceModeOptions.isEnabled {
+                        CadenceModeHint {
+                            cadenceModeSession.requestActivation(
+                                canActivate: model.hasCurrentPlaybackItem
+                            )
+                        }
+                    }
+                }
+                .frame(
+                    maxWidth: .infinity,
+                    minHeight: overflow.minimumContentHeight,
+                    alignment: .topLeading
+                )
+                .padding(.horizontal, 42)
+                .padding(.top, 42)
+                .padding(.bottom, overflow.bottomContentInset)
+            }
+            .scrollIndicators(.hidden)
+            .scrollBounceBehavior(.basedOnSize)
+            .background(alignment: .topLeading) {
+                ProductionArtworkHaze(
+                    model: model,
+                    artworkID: displayedArtworkID
+                )
+                .frame(width: 520, height: 520)
+                .offset(x: -50, y: -34)
+            }
+            .clipped()
         }
-        .clipped()
     }
 
     private func trackArtwork(size: CGFloat) -> some View {
@@ -269,20 +285,16 @@ extension ProductionNowPlayingView {
     private var cadenceModeBackButton: some View {
         VStack {
             HStack {
-                Button("Back", systemImage: "chevron.backward") {
+                Button {
                     cadenceModeSession.deactivate()
-                }
-                .labelStyle(.titleAndIcon)
-                .font(.callout.weight(.medium))
-                .foregroundStyle(.white)
-                .padding(.horizontal, 12)
-                .frame(height: 34)
-                .background(.black.opacity(0.28), in: Capsule())
-                .overlay {
-                    Capsule()
-                        .strokeBorder(.white.opacity(0.22), lineWidth: 0.5)
+                } label: {
+                    Label(
+                        "Back to Now Playing",
+                        systemImage: "chevron.left"
+                    )
                 }
                 .buttonStyle(.plain)
+                .foregroundStyle(.secondary)
                 .help("Return to Now Playing")
 
                 Spacer()

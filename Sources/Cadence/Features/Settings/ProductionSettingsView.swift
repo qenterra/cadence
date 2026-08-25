@@ -7,6 +7,14 @@ enum SettingsLayoutMetrics {
     static let maximumContentWidth: CGFloat = 640
 }
 
+enum SettingsBooleanControlStyle: Equatable, Sendable {
+    case nativeSwitch
+}
+
+enum SettingsBooleanControlPresentation {
+    static let style = SettingsBooleanControlStyle.nativeSwitch
+}
+
 enum CadenceSettingsTab: String, CaseIterable, Identifiable {
     case general
     case library
@@ -94,6 +102,7 @@ struct ProductionSettingsView: View {
         ) {
             tabContent
         }
+        .toggleStyle(.switch)
         .alert(
             "Couldn’t Move Library",
             isPresented: Binding(

@@ -155,4 +155,12 @@ struct CadenceModeLayoutTests {
         #expect(lyricsFrame.maxY <= canvasSize.height - 24)
         #expect(layout.modeLyricSlotHeight >= 32)
     }
+
+    @Test("Now Playing context reserves a complete Cadence Mode hint")
+    func standardContextFitsShortWorkspace() {
+        let policy = NowPlayingContextOverflowPolicy(height: 560)
+
+        #expect(policy.usesVerticalScrolling)
+        #expect(policy.bottomContentInset >= 24)
+    }
 }

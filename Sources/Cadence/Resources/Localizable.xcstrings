@@ -1885,6 +1885,26 @@
         }
       }
     },
+    "Create a playlist and add %lld selected tracks." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Создать плейлист и добавить %lld выбранных треков."
+          }
+        }
+      }
+    },
+    "Create a playlist and add the selected track." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Создать плейлист и добавить выбранный трек."
+          }
+        }
+      }
+    },
     "Create a playlist, then add music from any track menu." : {
       "localizations" : {
         "ru" : {

@@ -277,25 +277,11 @@ struct NavigationRailTests {
         #expect(NavigationRailMetrics.rowSurfaceInset > 0)
     }
 
-    @Test("Symbol effect presentation preserves its trigger while Reduce Motion is toggled")
-    func optionalSymbolEffectPresentation() {
-        let beforeReduction = CadenceSymbolEffectPresentation.resolve(
-            trigger: 3,
-            reduceMotion: false
+    @Test("Navigation controls do not animate shared symbols when pressed")
+    func navigationControlPressPresentation() {
+        #expect(
+            CadenceRowButtonPressPresentation.opacity(isPressed: true) == 0.72
         )
-        let reducedMotion = CadenceSymbolEffectPresentation.resolve(
-            trigger: beforeReduction.trigger,
-            reduceMotion: true
-        )
-        let restoredMotion = CadenceSymbolEffectPresentation.resolve(
-            trigger: reducedMotion.trigger,
-            reduceMotion: false
-        )
-
-        #expect(beforeReduction.isEnabled)
-        #expect(!reducedMotion.isEnabled)
-        #expect(reducedMotion.trigger == beforeReduction.trigger)
-        #expect(restoredMotion == beforeReduction)
     }
 
     @Test("Navigation rail icons are static and chrome stays inset")

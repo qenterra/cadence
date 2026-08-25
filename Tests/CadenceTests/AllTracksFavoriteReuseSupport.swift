@@ -18,14 +18,11 @@ func verifyFavoriteButtonTransientStateIsolation(
     #expect(firstRequest?.itemID == firstID)
     #expect(firstRequest?.requestedValue == true)
     #expect(reusedState.pendingValue == true)
-    #expect(reusedState.hasFeedback)
 
     reusedState.reconcile(itemID: secondID)
 
     #expect(reusedState.itemID == secondID)
     #expect(reusedState.pendingValue == nil)
-    #expect(reusedState.feedbackTrigger == 0)
-    #expect(!reusedState.hasFeedback)
     #expect(reusedState.activeRequestToken == nil)
 
     var secondState = FavoriteButtonTransientState(itemID: secondID)

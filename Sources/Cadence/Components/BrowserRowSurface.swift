@@ -11,18 +11,9 @@ enum BrowserRowOutlinePresentation: Equatable, Sendable {
     case focus
 }
 
-struct CadenceSymbolEffectPresentation: Equatable, Sendable {
-    let trigger: Int
-    let isEnabled: Bool
-
-    static func resolve(
-        trigger: Int,
-        reduceMotion: Bool
-    ) -> CadenceSymbolEffectPresentation {
-        CadenceSymbolEffectPresentation(
-            trigger: trigger,
-            isEnabled: !reduceMotion
-        )
+enum CadenceRowButtonPressPresentation {
+    static func opacity(isPressed: Bool) -> Double {
+        isPressed ? 0.72 : 1
     }
 }
 
@@ -103,19 +94,12 @@ struct BrowserRowSurface: View {
 }
 
 struct CadenceRowButtonStyle: ButtonStyle {
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .opacity(configuration.isPressed ? 0.72 : 1)
-            .symbolEffect(
-                .bounce.down,
-                options: .nonRepeating,
-                isActive: configuration.isPressed && !reduceMotion
-            )
-            .animation(
-                reduceMotion ? nil : .easeOut(duration: CadenceTheme.motionPress),
-                value: configuration.isPressed
+            .opacity(
+                CadenceRowButtonPressPresentation.opacity(
+                    isPressed: configuration.isPressed
+                )
             )
     }
 }

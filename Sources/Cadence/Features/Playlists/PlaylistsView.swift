@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 struct PlaylistsView: View {
@@ -213,8 +214,16 @@ private extension PlaylistsView {
         .padding(.horizontal, 10)
         .frame(height: WorkspaceLayout.rowHeight)
         .background {
+            let target = CatalogActivationTarget(
+                kind: .playlist,
+                id: playlist.id
+            )
             BrowserRowSurface(
-                isSelected: store.selectedPlaylistID == playlist.id,
+                isSelected: model.catalogActivationSelection.contains(target)
+                    || (
+                        model.catalogActivationSelection.targets.isEmpty
+                            && store.selectedPlaylistID == playlist.id
+                    ),
                 isHovered: false,
                 isFocused: false
             )
@@ -244,9 +253,7 @@ private extension PlaylistsView {
         _ playlist: LibraryPlaylistProjection
     ) -> some View {
         Button {
-            Task {
-                await store.selectPlaylist(playlist.id)
-            }
+            selectPlaylist(playlist)
         } label: {
             HStack(spacing: 11) {
                 ProductionArtworkView(
@@ -271,6 +278,32 @@ private extension PlaylistsView {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+    }
+
+    private func selectPlaylist(
+        _ playlist: LibraryPlaylistProjection
+    ) {
+        let target = CatalogActivationTarget(
+            kind: .playlist,
+            id: playlist.id
+        )
+        let modifiers = NSApp.currentEvent?.modifierFlags
+            .intersection(.deviceIndependentFlagsMask) ?? []
+        _ = model.handleCatalogSelection(
+            target,
+            orderedTargets: store.playlists.map {
+                CatalogActivationTarget(kind: .playlist, id: $0.id)
+            },
+            modifiers: modifiers
+        )
+        guard !modifiers.contains(.shift),
+              !modifiers.contains(.command),
+              !modifiers.contains(.control) else {
+            return
+        }
+        Task {
+            await store.selectPlaylist(playlist.id)
+        }
     }
 
     private func playlistActionMenu(
