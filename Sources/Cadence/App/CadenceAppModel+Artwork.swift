@@ -95,7 +95,7 @@ extension CadenceAppModel {
             )
         }
         artworkRepository.setAsset(asset, for: target)
-        artworkRevision += 1
+        artworkEditingSession.recordArtworkChange()
     }
 
     func removeCustomArtwork(for target: ArtworkTarget) {
@@ -119,15 +119,14 @@ extension CadenceAppModel {
             return
         }
         artworkRepository.removeAsset(for: target)
-        artworkRevision += 1
+        artworkEditingSession.recordArtworkChange()
     }
 
     func requestArtworkImport(for target: ArtworkTarget) {
         guard artworkTargetExists(target) else {
             return
         }
-        pendingArtworkImportTarget = target
-        isArtworkImporterPresented = true
+        artworkEditingSession.requestImport(for: target)
     }
 
     func prepareArtworkCrop(data: Data) {
@@ -139,14 +138,14 @@ extension CadenceAppModel {
             cancelArtworkImport()
             return
         }
-        artworkCropDraft = ArtworkCropDraft(
-            target: target,
-            title: descriptor.title,
-            data: data,
-            shape: descriptor.shape
+        artworkEditingSession.prepareCrop(
+            ArtworkCropDraft(
+                target: target,
+                title: descriptor.title,
+                data: data,
+                shape: descriptor.shape
+            )
         )
-        pendingArtworkImportTarget = nil
-        isArtworkImporterPresented = false
     }
 
     func finishArtworkCrop(
@@ -160,25 +159,23 @@ extension CadenceAppModel {
             normalizedOffset: normalizedOffset,
             for: draft.target
         )
-        artworkCropDraft = nil
+        artworkEditingSession.finishCrop()
     }
 
     func cancelArtworkCrop() {
-        artworkCropDraft = nil
+        artworkEditingSession.cancelCrop()
     }
 
     func cancelArtworkImport() {
-        pendingArtworkImportTarget = nil
-        isArtworkImporterPresented = false
+        artworkEditingSession.cancelImport()
     }
 
     func presentArtworkImportError(_ message: String) {
-        artworkImportError = message
-        cancelArtworkImport()
+        artworkEditingSession.presentImportError(message)
     }
 
     func dismissArtworkImportError() {
-        artworkImportError = nil
+        artworkEditingSession.dismissImportError()
     }
 
     func applyManagedArtworkPublication(
@@ -194,7 +191,7 @@ extension CadenceAppModel {
             return
         }
 
-        artworkRevision += 1
+        artworkEditingSession.recordArtworkChange()
 
         for effect in effects where effect.ownerKind == .smartCollection {
             guard let index = smartCollections.firstIndex(
@@ -232,7 +229,7 @@ extension CadenceAppModel {
             return
         }
         artworkRepository.setAsset(asset, for: .artist(artist.id))
-        artworkRevision += 1
+        artworkEditingSession.recordArtworkChange()
     }
 
     func removeCustomImage(for artist: ArtistPreview) {

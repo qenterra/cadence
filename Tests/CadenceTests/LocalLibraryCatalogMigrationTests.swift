@@ -70,7 +70,10 @@ struct LocalLibraryCatalogMigrationTests {
     func shmIsRebuiltNotPromoted() throws {
         let fixture = try MigrationFixture()
         defer { fixture.remove() }
-        let sourceContainer = try fixture.makeSourceCatalog(marker: "shm-marker")
+        try autoreleasepool {
+            let sourceContainer = try fixture.makeSourceCatalog(marker: "shm-marker")
+            withExtendedLifetime(sourceContainer) {}
+        }
         let sourceSHM = URL(filePath: fixture.package.metadataStoreURL.path + "-shm")
         let staleSHM = Data("stale-shm-must-not-be-promoted".utf8)
         try staleSHM.write(to: sourceSHM)
@@ -91,7 +94,6 @@ struct LocalLibraryCatalogMigrationTests {
         #expect(
             try Data(contentsOf: fixture.localCatalog.storeURL) != staleSHM
         )
-        withExtendedLifetime(sourceContainer) {}
     }
 
     @MainActor

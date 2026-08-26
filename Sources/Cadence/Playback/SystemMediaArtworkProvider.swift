@@ -1,4 +1,5 @@
 import AppKit
+import ImageIO
 import MediaPlayer
 
 @MainActor
@@ -6,73 +7,160 @@ protocol SystemMediaArtworkProviding: AnyObject {
     func artwork(for id: UUID) async -> MPMediaItemArtwork?
 }
 
-private struct SendableSystemMediaImage: @unchecked Sendable {
-    let value: NSImage
+struct SystemMediaArtworkImageSource: Sendable {
+    let data: Data
+    let boundsSize: NSSize
+
+    init?(data: Data) {
+        guard
+            let source = Self.makeImageSource(from: data),
+            let image = CGImageSourceCreateImageAtIndex(source, 0, nil)
+        else {
+            return nil
+        }
+        self.data = data
+        boundsSize = Self.logicalSize(
+            of: image,
+            from: source
+        )
+    }
+
+    func image(at requestedSize: NSSize) -> NSImage? {
+        guard let source = Self.decodeImage(from: data) else {
+            return nil
+        }
+        let outputSize = resolvedSize(for: requestedSize)
+        guard outputSize != boundsSize else {
+            return NSImage(cgImage: source, size: outputSize)
+        }
+        return resizedImage(
+            source,
+            requestedSize: outputSize
+        )
+    }
+
+    private func resolvedSize(for requestedSize: NSSize) -> NSSize {
+        guard requestedSize.width > 0, requestedSize.height > 0 else {
+            return boundsSize
+        }
+        return requestedSize
+    }
+
+    private func resizedImage(
+        _ source: CGImage,
+        requestedSize: NSSize
+    ) -> NSImage {
+        let pixelWidth = max(Int(requestedSize.width.rounded(.up)), 1)
+        let pixelHeight = max(Int(requestedSize.height.rounded(.up)), 1)
+        guard
+            let colorSpace = CGColorSpace(name: CGColorSpace.sRGB),
+            let context = CGContext(
+                data: nil,
+                width: pixelWidth,
+                height: pixelHeight,
+                bitsPerComponent: 8,
+                bytesPerRow: 0,
+                space: colorSpace,
+                bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+            )
+        else {
+            return NSImage(cgImage: source, size: requestedSize)
+        }
+        context.interpolationQuality = .high
+        context.draw(
+            source,
+            in: CGRect(
+                x: 0,
+                y: 0,
+                width: CGFloat(pixelWidth),
+                height: CGFloat(pixelHeight)
+            )
+        )
+        guard let output = context.makeImage() else {
+            return NSImage(cgImage: source, size: requestedSize)
+        }
+        return NSImage(cgImage: output, size: requestedSize)
+    }
+
+    private static func decodeImage(from data: Data) -> CGImage? {
+        guard let source = makeImageSource(from: data) else {
+            return nil
+        }
+        return CGImageSourceCreateImageAtIndex(source, 0, nil)
+    }
+
+    private static func makeImageSource(from data: Data) -> CGImageSource? {
+        guard
+            let source = CGImageSourceCreateWithData(
+                data as CFData,
+                nil
+            ),
+            CGImageSourceGetType(source) != nil
+        else {
+            return nil
+        }
+        return source
+    }
+
+    private static func logicalSize(
+        of image: CGImage,
+        from source: CGImageSource
+    ) -> NSSize {
+        let properties = CGImageSourceCopyPropertiesAtIndex(
+            source,
+            0,
+            nil
+        ) as? [CFString: Any]
+        let pixelWidth = dimension(
+            for: kCGImagePropertyPixelWidth,
+            in: properties,
+            fallback: image.width
+        )
+        let pixelHeight = dimension(
+            for: kCGImagePropertyPixelHeight,
+            in: properties,
+            fallback: image.height
+        )
+        let dpiWidth = dimension(
+            for: kCGImagePropertyDPIWidth,
+            in: properties,
+            fallback: 72
+        )
+        let dpiHeight = dimension(
+            for: kCGImagePropertyDPIHeight,
+            in: properties,
+            fallback: 72
+        )
+        return NSSize(
+            width: pixelWidth * 72 / dpiWidth,
+            height: pixelHeight * 72 / dpiHeight
+        )
+    }
+
+    private static func dimension(
+        for key: CFString,
+        in properties: [CFString: Any]?,
+        fallback: Int
+    ) -> CGFloat {
+        guard
+            let value = properties?[key] as? NSNumber,
+            value.doubleValue > 0
+        else {
+            return CGFloat(fallback)
+        }
+        return CGFloat(value.doubleValue)
+    }
 }
 
 private func makeSystemMediaArtwork(
-    image: SendableSystemMediaImage
+    source: SystemMediaArtworkImageSource
 ) -> MPMediaItemArtwork {
     MPMediaItemArtwork(
-        boundsSize: image.value.size
+        boundsSize: source.boundsSize
     ) { requestedSize in
-        resizedSystemMediaImage(
-            image.value,
-            requestedSize: requestedSize
-        )
+        source.image(at: requestedSize)
+            ?? NSImage(size: source.boundsSize)
     }
-}
-
-private func resizedSystemMediaImage(
-    _ image: NSImage,
-    requestedSize: NSSize
-) -> NSImage {
-    guard
-        requestedSize.width > 0,
-        requestedSize.height > 0,
-        image.size != requestedSize
-    else {
-        return image
-    }
-    var sourceRect = NSRect(origin: .zero, size: image.size)
-    guard let source = image.cgImage(
-        forProposedRect: &sourceRect,
-        context: nil,
-        hints: nil
-    ) else {
-        let copy = image.copy() as? NSImage ?? image
-        copy.size = requestedSize
-        return copy
-    }
-    let pixelWidth = max(Int(requestedSize.width.rounded(.up)), 1)
-    let pixelHeight = max(Int(requestedSize.height.rounded(.up)), 1)
-    guard
-        let colorSpace = CGColorSpace(name: CGColorSpace.sRGB),
-        let context = CGContext(
-            data: nil,
-            width: pixelWidth,
-            height: pixelHeight,
-            bitsPerComponent: 8,
-            bytesPerRow: 0,
-            space: colorSpace,
-            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
-        )
-    else {
-        let copy = image.copy() as? NSImage ?? image
-        copy.size = requestedSize
-        return copy
-    }
-    context.interpolationQuality = .high
-    context.draw(
-        source,
-        in: CGRect(x: 0, y: 0, width: pixelWidth, height: pixelHeight)
-    )
-    guard let output = context.makeImage() else {
-        let copy = image.copy() as? NSImage ?? image
-        copy.size = requestedSize
-        return copy
-    }
-    return NSImage(cgImage: output, size: requestedSize)
 }
 
 @MainActor
@@ -100,14 +188,11 @@ final class SystemMediaArtworkProvider: SystemMediaArtworkProviding {
             return cached
         }
 
-        let data = asset.data
-        guard let image = await Task.detached(priority: .utility, operation: {
-            NSImage(data: data).map(SendableSystemMediaImage.init)
-        }).value?.value else {
+        guard let source = SystemMediaArtworkImageSource(data: asset.data) else {
             return nil
         }
         let artwork = makeSystemMediaArtwork(
-            image: SendableSystemMediaImage(value: image)
+            source: source
         )
         cache = cache.filter { $0.key.id != id }
         cache[key] = artwork

@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "sourceRevision": "4cb28980be67b1beb649c5bb6d48a999b1c4fa43",
+  "areas": {
+    "production": {
+      "total": 73,
+      "rules": {
+        "closure_parameter_position": 2,
+        "cyclomatic_complexity": 4,
+        "file_length": 18,
+        "function_body_length": 29,
+        "function_parameter_count": 5,
+        "identifier_name": 3,
+        "nesting": 2,
+        "type_body_length": 10
+      }
+    },
+    "tests": {
+      "total": 98,
+      "rules": {
+        "file_length": 24,
+        "function_body_length": 58,
+        "identifier_name": 2,
+        "trailing_comma": 2,
+        "type_body_length": 12
+      }
+    }
+  }
+}

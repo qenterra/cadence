@@ -5,6 +5,33 @@ import Testing
 
 @MainActor
 struct SystemMediaArtworkProviderTests {
+    @Test("Encoded artwork source resizes without crossing an NSImage")
+    func encodedSourceResizesOffMainActor() async throws {
+        let data = try imageData(
+            size: NSSize(width: 32, height: 24)
+        )
+        let source = try #require(
+            SystemMediaArtworkImageSource(data: data)
+        )
+
+        #expect(source.boundsSize == NSSize(width: 32, height: 24))
+
+        let requestedSize = await Task.detached {
+            source.image(
+                at: NSSize(width: 16, height: 12)
+            )?.size
+        }.value
+
+        #expect(requestedSize == NSSize(width: 16, height: 12))
+    }
+
+    @Test("Invalid encoded artwork never creates a media image source")
+    func invalidEncodedSource() {
+        #expect(
+            SystemMediaArtworkImageSource(data: Data([0x00, 0x01])) == nil
+        )
+    }
+
     @Test("System artwork can be requested from MediaPlayer's private queue")
     func servesArtworkOutsideMainActor() async throws {
         let artworkID = UUID()
@@ -166,6 +193,15 @@ struct SystemMediaArtworkProviderTests {
         ) { _ in
             NSImage(size: NSSize(width: size, height: size))
         }
+    }
+
+    private func imageData(size: NSSize) throws -> Data {
+        let image = NSImage(size: size)
+        image.lockFocus()
+        NSColor.systemBlue.setFill()
+        NSRect(origin: .zero, size: size).fill()
+        image.unlockFocus()
+        return try #require(image.tiffRepresentation)
     }
 
     private func waitForArtwork(

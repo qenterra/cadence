@@ -217,11 +217,7 @@ final class CadenceAppModel {
     var artistSearchQuery = ""
     var artistsFocusedArtistID: ArtistPreview.ID?
     var favoriteArtistDates: [ArtistPreview.ID: Date]
-    var artworkRevision = 0
-    var pendingArtworkImportTarget: ArtworkTarget?
-    var isArtworkImporterPresented = false
-    var artworkCropDraft: ArtworkCropDraft?
-    var artworkImportError: String?
+    let artworkEditingSession: ArtworkEditingSession
     var contextualNavigationHistory: [ContextualNavigationEntry] = []
     var importPreviewStage: ImportPreviewStage = .empty
     var importReviewCategory: ImportReviewCategory = .ready
@@ -274,7 +270,8 @@ final class CadenceAppModel {
         externalAudioSession: ExternalAudioSession? = nil,
         remoteLibraryController: RemoteLibraryController? = nil,
         libraryRelocator: LibraryRelocator = LibraryRelocator(),
-        libraryResetter: ManagedLibraryResetter = ManagedLibraryResetter()
+        libraryResetter: ManagedLibraryResetter = ManagedLibraryResetter(),
+        artworkEditingSession: ArtworkEditingSession = ArtworkEditingSession()
     ) {
         let fixture = runtimeEnvironment.previewFixture
         let initialTracks = fixture?.tracks ?? []
@@ -305,6 +302,7 @@ final class CadenceAppModel {
         self.remoteLibraryController = remoteLibraryController
         self.libraryRelocator = libraryRelocator
         self.libraryResetter = libraryResetter
+        self.artworkEditingSession = artworkEditingSession
         selectedArtistID = initialTracks.first?.artistID
         selectedAlbumID = initialTracks.first?.albumID
         selectedTrackID = initialTracks.first?.id
@@ -320,6 +318,30 @@ final class CadenceAppModel {
         importCoordinator?.onStateChange = { [weak self] state in
             self?.applyImportCoordinatorState(state)
         }
+    }
+
+    var artworkRevision: Int {
+        artworkEditingSession.revision
+    }
+
+    var pendingArtworkImportTarget: ArtworkTarget? {
+        get { artworkEditingSession.pendingImportTarget }
+        set { artworkEditingSession.pendingImportTarget = newValue }
+    }
+
+    var isArtworkImporterPresented: Bool {
+        get { artworkEditingSession.isImporterPresented }
+        set { artworkEditingSession.isImporterPresented = newValue }
+    }
+
+    var artworkCropDraft: ArtworkCropDraft? {
+        get { artworkEditingSession.cropDraft }
+        set { artworkEditingSession.cropDraft = newValue }
+    }
+
+    var artworkImportError: String? {
+        get { artworkEditingSession.importError }
+        set { artworkEditingSession.importError = newValue }
     }
 }
 

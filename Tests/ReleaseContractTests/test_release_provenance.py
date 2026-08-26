@@ -1560,6 +1560,11 @@ class ReleasePreparationOrderingTests(unittest.TestCase):
         shutil.copy2(RELEASE_CONTRACT, self.scripts / "release_contract.py")
         shutil.copy2(ROOT / "scripts" / "prepare_release.sh", self.scripts)
         shutil.copy2(ROOT / "scripts" / "verify.sh", self.scripts)
+        shutil.copy2(ROOT / "scripts" / "swiftlint_debt_gate.py", self.scripts)
+        shutil.copy2(
+            ROOT / "scripts" / "swiftlint-warning-baseline.json",
+            self.scripts,
+        )
         release_directory = self.root / "release"
         release_directory.mkdir()
         self.notes = release_directory / "release-notes-9.8.7-test.1.md"
@@ -2442,6 +2447,9 @@ class ReleasePreparationOrderingTests(unittest.TestCase):
                 )
             elif command == "xcbeautify":
                 body.append("cat >/dev/null")
+            elif command == "swiftlint":
+                body.append("echo swiftlint >> \"$TRACE_PATH\"")
+                body.append("printf '%s\\n' '[]'")
             elif command == "lipo" and prepare_success:
                 body.append("echo lipo >> \"$TRACE_PATH\"")
                 body.append("printf '%s\\n' arm64")
@@ -2583,6 +2591,7 @@ class ReleasePreparationOrderingTests(unittest.TestCase):
             "test_release_contract.py",
             "test_release_provenance.py",
             "test_dmg_background.py",
+            "test_swiftlint_debt_gate.py",
         ):
             (release_tests / name).write_text(
                 "import unittest\n\n"

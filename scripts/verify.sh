@@ -65,14 +65,20 @@ xcodegen generate --spec project.yml
 python3 -B -m unittest \
     Tests/ReleaseContractTests/test_release_contract.py \
     Tests/ReleaseContractTests/test_release_provenance.py \
+    Tests/ReleaseContractTests/test_swiftlint_debt_gate.py \
     -v
 image_python="${CADENCE_IMAGE_PYTHON:-python3}"
 "$image_python" -B -m unittest Tests/ReleaseContractTests/test_dmg_background.py -v
 
 swiftformat Sources Tests --lint
+swiftlint_report="$project_root/.build/swiftlint-report.json"
 swiftlint lint \
     --config .swiftlint.yml \
-    --cache-path "$project_root/.build/swiftlint-cache"
+    --cache-path "$project_root/.build/swiftlint-cache" \
+    --reporter json > "$swiftlint_report"
+python3 -I -B "$project_root/scripts/swiftlint_debt_gate.py" \
+    --baseline "$project_root/scripts/swiftlint-warning-baseline.json" \
+    --report "$swiftlint_report"
 
 if [[ "${CADENCE_SKIP_XCODEBUILD:-0}" == "1" ]]; then
     partial_result="PARTIAL HOSTED CHECKS PASSED. Xcode build/tests, localization, Periphery, and built-product checks were NOT RUN. This is not the full release gate; no release attestation was written."
