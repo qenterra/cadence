@@ -1,6 +1,10 @@
 import Foundation
 
-actor WebDAVProvider: RemoteLibraryProvider {
+protocol WebDAVRemoteLibraryProvider: RemoteLibraryProvider {
+    func capabilities() async throws -> WebDAVCapabilities
+}
+
+actor WebDAVProvider: WebDAVRemoteLibraryProvider {
     private struct PendingUpload: Sendable {
         let temporaryURL: URL
         let digest: String

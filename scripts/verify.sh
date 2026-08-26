@@ -6,6 +6,12 @@ script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 project_root="$(cd "$script_dir/.." && pwd)"
 release_contract=(python3 -I -B "$project_root/scripts/release_contract.py")
 release_attestation_mode=0
+requested_developer_dir="${DEVELOPER_DIR:-}"
+
+# DEVELOPER_DIR changes more than Xcode commands on macOS: Python and plutil
+# can delegate through xcrun. Preserve the caller's requested path as data and
+# pass it only to the validated Xcode invocations below.
+unset DEVELOPER_DIR
 
 if [[ $# -gt 1 || ( $# -eq 1 && "$1" != "--release-attestation" ) ]]; then
     echo "Usage: $0 [--release-attestation]" >&2
@@ -26,8 +32,8 @@ if [[ $# -eq 1 ]]; then
     fi
 fi
 
-if [[ -n "${DEVELOPER_DIR:-}" ]]; then
-    developer_dir="$DEVELOPER_DIR"
+if [[ -n "$requested_developer_dir" ]]; then
+    developer_dir="$requested_developer_dir"
 else
     developer_dir=""
     for candidate in \
@@ -59,6 +65,8 @@ icon_manifest="$icon_source/icon.json"
 [[ "$(plutil -extract 'groups.0.layers.0.fill-specializations.1.appearance' raw -o - "$icon_manifest")" == "light" ]]
 [[ "$(plutil -extract 'groups.0.layers.0.fill-specializations.1.value' raw -o - "$icon_manifest")" == "system-dark" ]]
 
+# XcodeGen only renders the project. Actual Xcode commands below use the
+# validated developer_dir explicitly.
 xcodegen generate --spec project.yml
 
 "${release_contract[@]}" check
@@ -67,12 +75,20 @@ python3 -B -m unittest \
     Tests/ReleaseContractTests/test_release_provenance.py \
     Tests/ReleaseContractTests/test_swiftlint_debt_gate.py \
     -v
-image_python="${CADENCE_IMAGE_PYTHON:-python3}"
+image_python="${CADENCE_IMAGE_PYTHON:-$project_root/.build/python-tools/bin/python}"
+if [[ ! -x "$image_python" ]]; then
+    echo "Release image tools are unavailable. Run 'bash scripts/prepare_python_tools.sh' or set CADENCE_IMAGE_PYTHON." >&2
+    exit 69
+fi
+if ! "$image_python" -c 'import PIL'; then
+    echo "CADENCE_IMAGE_PYTHON cannot import Pillow. Run 'bash scripts/prepare_python_tools.sh' or set CADENCE_IMAGE_PYTHON." >&2
+    exit 69
+fi
 "$image_python" -B -m unittest Tests/ReleaseContractTests/test_dmg_background.py -v
 
 swiftformat Sources Tests --lint
 swiftlint_report="$project_root/.build/swiftlint-report.json"
-swiftlint lint \
+DEVELOPER_DIR="$developer_dir" swiftlint lint \
     --config .swiftlint.yml \
     --cache-path "$project_root/.build/swiftlint-cache" \
     --reporter json > "$swiftlint_report"

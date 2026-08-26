@@ -164,6 +164,25 @@ class CadenceReleaseContractTests(unittest.TestCase):
         )
 
 
+class DependencyResolutionContractTests(unittest.TestCase):
+    def test_sparkle_resolution_uses_security_fixed_release(self) -> None:
+        project = (ROOT / "project.yml").read_text(encoding="utf-8")
+        resolved = json.loads(
+            (
+                ROOT
+                / "Cadence.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved"
+            ).read_text(encoding="utf-8")
+        )
+
+        self.assertIn("exactVersion: 2.9.6", project)
+        sparkle = next(pin for pin in resolved["pins"] if pin["identity"] == "sparkle")
+        self.assertEqual(sparkle["state"]["version"], "2.9.6")
+        self.assertEqual(
+            sparkle["state"]["revision"],
+            "ac2def288cbff5cfc7df3ffef6abdf45b72bcb0a",
+        )
+
+
 class ReleaseScriptContractTests(unittest.TestCase):
     def test_public_mode_notarizes_and_validates_every_distribution(self) -> None:
         script = (ROOT / "scripts" / "prepare_release.sh").read_text(encoding="utf-8")

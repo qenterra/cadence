@@ -1,0 +1,3 @@
+# Release-artwork validation uses Pillow directly; keep this exact so local and
+# hosted gates exercise the same renderer and PNG metadata behaviour.
+Pillow==12.3.0

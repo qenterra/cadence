@@ -88,6 +88,11 @@ final class RemoteLibraryController {
     @ObservationIgnored private let store: any RemoteLibrarySettingsStoring
     @ObservationIgnored private let identityExpectation: RemoteLibraryIdentityExpectation
     @ObservationIgnored private let fileManager: FileManager
+    @ObservationIgnored private let webDAVAuthenticationFactory: @Sendable (String) -> WebDAVAuthentication
+    @ObservationIgnored private let webDAVProviderFactory: @Sendable (
+        URL,
+        WebDAVAuthentication
+    ) -> any WebDAVRemoteLibraryProvider
     @ObservationIgnored private var webDAVAuthentication: WebDAVAuthentication?
     @ObservationIgnored private var googleDriveProvider: GoogleDriveProvider?
 
@@ -95,12 +100,23 @@ final class RemoteLibraryController {
         source: RemotePlaybackSource,
         identityExpectation: RemoteLibraryIdentityExpectation,
         store: any RemoteLibrarySettingsStoring = UserDefaultsRemoteLibrarySettingsStore(),
-        fileManager: FileManager = .default
+        fileManager: FileManager = .default,
+        webDAVAuthenticationFactory: @escaping @Sendable (String) -> WebDAVAuthentication = {
+            WebDAVAuthentication(key: $0)
+        },
+        webDAVProviderFactory: @escaping @Sendable (
+            URL,
+            WebDAVAuthentication
+        ) -> any WebDAVRemoteLibraryProvider = { rootURL, authentication in
+            WebDAVProvider(rootURL: rootURL, authentication: authentication)
+        }
     ) {
         self.source = source
         self.identityExpectation = identityExpectation
         self.store = store
         self.fileManager = fileManager
+        self.webDAVAuthenticationFactory = webDAVAuthenticationFactory
+        self.webDAVProviderFactory = webDAVProviderFactory
         cacheBudgetBytes = Self.defaultCacheBudgetBytes
         configuredProviderName = nil
     }
@@ -120,12 +136,10 @@ final class RemoteLibraryController {
             configuredProviderName = record.provider.displayName
             switch record.provider {
             case let .webDAV(rootURL, _, credentialKey):
-                let authentication = WebDAVAuthentication(key: credentialKey)
+                try Self.validateRemoteURL(rootURL)
+                let authentication = webDAVAuthenticationFactory(credentialKey)
                 try await authentication.restore()
-                let provider = WebDAVProvider(
-                    rootURL: rootURL,
-                    authentication: authentication
-                )
+                let provider = webDAVProviderFactory(rootURL, authentication)
                 try await activate(
                     provider: provider,
                     name: record.provider.displayName
@@ -156,17 +170,16 @@ final class RemoteLibraryController {
         password: String
     ) async {
         status = .connecting
+        var pendingAuthentication: WebDAVAuthentication?
         do {
             try Self.validateRemoteURL(rootURL)
             let credentialKey = "\(rootURL.absoluteString)|\(username)"
-            let authentication = WebDAVAuthentication(key: credentialKey)
+            let authentication = webDAVAuthenticationFactory(credentialKey)
+            pendingAuthentication = authentication
             try await authentication.signIn(
                 WebDAVCredentials(username: username, password: password)
             )
-            let provider = WebDAVProvider(
-                rootURL: rootURL,
-                authentication: authentication
-            )
+            let provider = webDAVProviderFactory(rootURL, authentication)
             let capabilities = try await provider.capabilities()
             guard capabilities.supportsClass1 else {
                 throw RemoteProviderError.serviceUnavailable(
@@ -174,8 +187,6 @@ final class RemoteLibraryController {
                 )
             }
             try await activate(provider: provider, name: "WebDAV")
-            webDAVAuthentication = authentication
-            googleDriveProvider = nil
             try store.save(RemoteLibrarySettingsRecord(
                 provider: .webDAV(
                     rootURL: rootURL,
@@ -184,8 +195,13 @@ final class RemoteLibraryController {
                 ),
                 cacheBudgetBytes: cacheBudgetBytes
             ))
+            try await googleDriveProvider?.signOut()
+            webDAVAuthentication = authentication
+            pendingAuthentication = nil
+            googleDriveProvider = nil
             configuredProviderName = "WebDAV"
         } catch {
+            try? await pendingAuthentication?.signOut()
             await source.deactivate()
             status = .unavailable(error.localizedDescription)
         }
@@ -198,6 +214,7 @@ final class RemoteLibraryController {
         presentingWindow: NSWindow
     ) async {
         status = .connecting
+        var pendingProvider: GoogleDriveProvider?
         do {
             let authentication = AppAuthGoogleDriveAuthentication()
             try await authentication.authorize(
@@ -209,9 +226,8 @@ final class RemoteLibraryController {
                 configuration: drive,
                 authorization: authentication
             )
+            pendingProvider = provider
             try await activate(provider: provider, name: "Google Drive")
-            googleDriveProvider = provider
-            webDAVAuthentication = nil
             try store.save(RemoteLibrarySettingsRecord(
                 provider: .googleDrive(
                     drive: drive,
@@ -220,8 +236,13 @@ final class RemoteLibraryController {
                 ),
                 cacheBudgetBytes: cacheBudgetBytes
             ))
+            try await webDAVAuthentication?.signOut()
+            googleDriveProvider = provider
+            pendingProvider = nil
+            webDAVAuthentication = nil
             configuredProviderName = "Google Drive"
         } catch {
+            try? await pendingProvider?.signOut()
             await source.deactivate()
             status = .unavailable(error.localizedDescription)
         }

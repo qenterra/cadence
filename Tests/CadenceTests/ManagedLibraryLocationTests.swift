@@ -166,6 +166,33 @@ struct ManagedLibraryLocationTests {
         }
     }
 
+    @Test("Bootstrap rejects a required directory symlink")
+    func bootstrapRejectsRequiredDirectorySymlink() throws {
+        try withTemporaryDirectory { musicDirectory in
+            let location = ManagedLibraryLocation(musicDirectory: musicDirectory)
+            let package = ManagedLibraryPackage(location: location)
+            let outsideDirectory = musicDirectory.appending(
+                path: "OutsideMedia",
+                directoryHint: .isDirectory
+            )
+
+            try package.bootstrapForConfirmedImport()
+            try FileManager.default.createDirectory(
+                at: outsideDirectory,
+                withIntermediateDirectories: true
+            )
+            try FileManager.default.removeItem(at: package.mediaDirectoryURL)
+            try FileManager.default.createSymbolicLink(
+                at: package.mediaDirectoryURL,
+                withDestinationURL: outsideDirectory
+            )
+
+            #expect(throws: ManagedLibraryError.self) {
+                try package.bootstrapForConfirmedImport()
+            }
+        }
+    }
+
     @Test("An existing managed file symlink cannot leave the package")
     func managedFileSymlinkCannotEscapePackage() throws {
         try withTemporaryDirectory { musicDirectory in

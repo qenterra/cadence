@@ -3,6 +3,34 @@ import Foundation
 import Testing
 
 struct RemoteMediaCacheTests {
+    @Test("An object larger than the cache budget is rejected before download")
+    func oversizedObjectIsRejectedBeforeDownload() async throws {
+        let fixture = try RemoteMediaCacheFixture(budget: 9)
+        defer { fixture.cleanup() }
+
+        await #expect(throws: RemoteProviderError.self) {
+            try await fixture.cache.localURL(for: fixture.first)
+        }
+
+        #expect(await fixture.provider.readCount(for: fixture.first.id) == 0)
+        #expect(try await fixture.cache.playableURL(for: fixture.first.id) == nil)
+    }
+
+    @Test("Admission evicts an unpinned object before downloading its replacement")
+    func admissionEvictsUnpinnedObject() async throws {
+        let fixture = try RemoteMediaCacheFixture(budget: 10)
+        defer { fixture.cleanup() }
+
+        _ = try await fixture.cache.localURL(for: fixture.first)
+        let replacement = try await fixture.cache.localURL(for: fixture.second)
+
+        #expect(try await fixture.cache.playableURL(for: fixture.first.id) == nil)
+        #expect(
+            try await fixture.cache.playableURL(for: fixture.second.id) == replacement
+        )
+        #expect(await fixture.provider.readCount(for: fixture.second.id) == 1)
+    }
+
     @Test("An incomplete object never becomes playable")
     func incompleteObjectNeverBecomesPlayable() async throws {
         let fixture = try RemoteMediaCacheFixture(budget: 100)

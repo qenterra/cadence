@@ -5,6 +5,8 @@ import OSLog
 /// Downloads enter Staging, pass byte-count and SHA-256 checks, move to Objects,
 /// and only then become visible through an atomically persisted index entry.
 actor RemoteMediaCache {
+    private static let maximumPrefetchTargets = 2
+
     private let rootURL: URL
     private let objectsURL: URL
     private let stagingURL: URL
@@ -13,6 +15,7 @@ actor RemoteMediaCache {
     private let fileManager: FileManager
     private var index: RemoteCacheIndex
     private var budgetBytes: Int64
+    private var reservedBytes: Int64 = 0
     private var pinnedIDs: Set<RemoteObjectID> = []
     private var inFlight: [RemoteObjectID: Task<URL, Error>] = [:]
     private var prefetchTasks: [RemoteObjectID: Task<Void, Never>] = [:]
@@ -110,12 +113,13 @@ actor RemoteMediaCache {
     func replacePrefetchTargets(
         _ objects: [RemoteMediaObject]
     ) {
-        let targetIDs = Set(objects.map(\.id))
+        let targets = Array(objects.prefix(Self.maximumPrefetchTargets))
+        let targetIDs = Set(targets.map(\.id))
         for (id, task) in prefetchTasks where !targetIDs.contains(id) {
             task.cancel()
             prefetchTasks[id] = nil
         }
-        for object in objects where prefetchTasks[object.id] == nil {
+        for object in targets where prefetchTasks[object.id] == nil {
             prefetchTasks[object.id] = Task { [weak self] in
                 await self?.prefetch(object)
                 await self?.finishPrefetch(object.id)
@@ -164,12 +168,21 @@ private extension RemoteMediaCache {
             return try await task.value
         }
 
+        try reserveSpace(for: object)
         let task = Task<URL, Error> {
             try await self.downloadAndPromote(object)
         }
         inFlight[object.id] = task
-        defer { inFlight[object.id] = nil }
+        var holdsReservation = true
+        defer {
+            inFlight[object.id] = nil
+            if holdsReservation {
+                releaseSpace(for: object)
+            }
+        }
         let url = try await task.value
+        releaseSpace(for: object)
+        holdsReservation = false
         try enforceBudget(
             protectedID: protectedFromEviction ? object.id : nil
         )
@@ -205,7 +218,7 @@ private extension RemoteMediaCache {
             atPath: destinationURL.path
         )
         do {
-            try await download(object, to: stagedURL)
+            try await RemoteMediaCacheDownload.writeVerified(object, from: provider, to: stagedURL)
             if !destinationExisted {
                 try fileManager.moveItem(at: stagedURL, to: destinationURL)
             }
@@ -235,35 +248,25 @@ private extension RemoteMediaCache {
         return destinationURL
     }
 
-    func download(
-        _ object: RemoteMediaObject,
-        to stagedURL: URL
-    ) async throws {
-        let handle = try FileHandle(forWritingTo: stagedURL)
-        do {
-            let stream = try await provider.read(object: object.id, range: nil)
-            var receivedBytes: Int64 = 0
-            for try await chunk in stream {
-                try Task.checkCancellation()
-                receivedBytes += Int64(chunk.count)
-                guard receivedBytes <= object.byteCount else {
-                    throw RemoteProviderError.integrityMismatch
-                }
-                try handle.write(contentsOf: chunk)
-            }
-            try handle.close()
-            guard receivedBytes == object.byteCount else {
-                throw RemoteProviderError.interrupted
-            }
-        } catch {
-            // Preserve the download failure; the startup reconciliation owns
-            // abandoned partial files if closing this handle also fails.
-            try? handle.close()
-            throw error
+    func reserveSpace(
+        for object: RemoteMediaObject
+    ) throws {
+        guard object.byteCount <= budgetBytes else {
+            throw RemoteProviderError.serviceUnavailable(
+                "The object exceeds the available cache budget."
+            )
         }
-        guard try await ContentHasher().sha256(of: stagedURL) == object.sha256 else {
-            throw RemoteProviderError.integrityMismatch
-        }
+        try enforceBudget(
+            protectedID: nil,
+            reservingBytes: object.byteCount
+        )
+        reservedBytes += object.byteCount
+    }
+
+    func releaseSpace(
+        for object: RemoteMediaObject
+    ) {
+        reservedBytes = max(reservedBytes - object.byteCount, 0)
     }
 
     func validCachedURL(
@@ -307,38 +310,25 @@ private extension RemoteMediaCache {
     }
 
     func enforceBudget(
-        protectedID: RemoteObjectID?
+        protectedID: RemoteObjectID?,
+        reservingBytes: Int64 = 0
     ) throws {
-        var total = index.entries.reduce(Int64(0)) {
-            $0 + $1.object.byteCount
-        }
-        let candidates = index.entries
-            .filter {
-                !pinnedIDs.contains($0.object.id)
-                    && $0.object.id != protectedID
-            }
-            .sorted {
-                if $0.lastAccessedAt == $1.lastAccessedAt {
-                    return $0.object.id.rawValue < $1.object.id.rawValue
-                }
-                return $0.lastAccessedAt < $1.lastAccessedAt
-            }
-        var updatedIndex = index
-        var evictedEntries: [RemoteCacheEntry] = []
-        for entry in candidates where total > budgetBytes {
-            updatedIndex[entry.object.id] = nil
-            evictedEntries.append(entry)
-            total -= entry.object.byteCount
-        }
-        guard !evictedEntries.isEmpty else {
+        let plan = try RemoteCacheEvictionPlan.make(
+            index: index,
+            pinnedIDs: pinnedIDs,
+            protectedID: protectedID,
+            reservedBytes: reservedBytes + reservingBytes,
+            budgetBytes: budgetBytes
+        )
+        guard !plan.evictedEntries.isEmpty else {
             return
         }
         // Commit the ownership change before deleting bytes. A deletion failure
         // may leave reclaimable data, but can never leave an index pointing at
         // an object already removed by eviction.
-        try persist(updatedIndex)
-        index = updatedIndex
-        for entry in evictedEntries {
+        try persist(plan.index)
+        index = plan.index
+        for entry in plan.evictedEntries {
             try removeObjectFileIfUnshared(entry)
         }
     }

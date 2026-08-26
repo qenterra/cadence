@@ -10,6 +10,11 @@ fi
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 project_root="$(cd "$script_dir/.." && pwd)"
 release_contract=(python3 -I -B "$project_root/scripts/release_contract.py")
+requested_developer_dir="${DEVELOPER_DIR:-}"
+
+# Preserve a requested Xcode location without allowing it to alter Python or
+# other preflight tools. Xcode commands receive the validated path explicitly.
+unset DEVELOPER_DIR
 
 if [[ "${CADENCE_RELEASE_SUPERVISOR_PID:-}" != "$PPID" ]]; then
     supervisor_arguments=(
@@ -109,8 +114,8 @@ dmg_file="$RELEASE_DMG_PATH"
 checksums_file="$RELEASE_CHECKSUMS_PATH"
 sparkle_tools="$derived_data/SourcePackages/artifacts/sparkle/Sparkle/bin"
 
-if [[ -n "${DEVELOPER_DIR:-}" ]]; then
-    developer_dir="$DEVELOPER_DIR"
+if [[ -n "$requested_developer_dir" ]]; then
+    developer_dir="$requested_developer_dir"
 else
     developer_dir="/Applications/Developing & Coding/Xcode.app/Contents/Developer"
 fi
@@ -123,6 +128,7 @@ fi
 cd "$project_root"
 
 if [[ "${CADENCE_REUSE_ARCHIVE:-0}" != "1" ]]; then
+    # Project generation is independent of the archive toolchain.
     xcodegen generate --spec project.yml
     preflight_environment="$(
         "${release_contract[@]}" \

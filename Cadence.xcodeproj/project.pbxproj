@@ -260,6 +260,7 @@
 		658A5383422A1556EBFD34F6 /* ManagedTrashManifest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03C00ABB1CAFF814BDA0236D /* ManagedTrashManifest.swift */; };
 		660C984E8E83E08B18D12FD1 /* LibraryStoreRecoveryFailurePublicationTestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 626CD0EF2CCD7400C3E92CF9 /* LibraryStoreRecoveryFailurePublicationTestSupport.swift */; };
 		6681A763A89B453D496D4559 /* RemoteMediaCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BC802953DB82E1D3FF7CDB3 /* RemoteMediaCache.swift */; };
+		685FA080526A492B9B2FA2D6 /* RemoteMediaCacheAdmission.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEDFF500AB9B942E070E62FA /* RemoteMediaCacheAdmission.swift */; };
 		6872584BC0857AC568FB8E1B /* ManagedLibraryImporter+Completion.swift in Sources */ = {isa = PBXBuildFile; fileRef = F95C961623BEA7EE44EAEA24 /* ManagedLibraryImporter+Completion.swift */; };
 		68D18FB94DDD41DC14B3304D /* LibraryRepository+TrackOrdering.swift in Sources */ = {isa = PBXBuildFile; fileRef = 635C51C5B57BB2B8DECDF3A5 /* LibraryRepository+TrackOrdering.swift */; };
 		6964AF2313B7799E1158556A /* CadenceInstanceCoordinatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2C2B1D47396A73329146F93 /* CadenceInstanceCoordinatorTests.swift */; };
@@ -286,6 +287,7 @@
 		72000EDCA4E576ECB3A6B53A /* ProductionHomeView+Sections.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C8A6D9F5ACDB655F00E53DA /* ProductionHomeView+Sections.swift */; };
 		7216D17AC22B777792C538DA /* ProductionPlaybackQueueRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56F1C8C5080F9E90F0020C03 /* ProductionPlaybackQueueRow.swift */; };
 		7301C5440E1951A4978B4163 /* CadenceSeparator.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB739AB0D973E1C97B848F6A /* CadenceSeparator.swift */; };
+		73ED7B1FFF8F847BC71B1715 /* CadenceInstanceMessageAuthenticator.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAE157B0C8C22C2480183EC9 /* CadenceInstanceMessageAuthenticator.swift */; };
 		73F60DF31F955C89C907E5B2 /* BrowserRowSurface.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85CB99CDF9830D943E2FA53D /* BrowserRowSurface.swift */; };
 		740188C02F94B0AA1B2FB046 /* CadenceRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B76CE96E3D8EEB8EA4410FFF /* CadenceRootView.swift */; };
 		74D785087ED3725B75B13BC2 /* TagModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEC13D34CE699ED119164238 /* TagModelTests.swift */; };
@@ -399,6 +401,7 @@
 		A1BC4043D5C3645FB27EB9A6 /* ArtistCreditParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 595F8CA2FD358E241833C34C /* ArtistCreditParser.swift */; };
 		A1CE6A281C08D4ACCE3C2840 /* AdaptiveLayoutPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 271982FBB78000AF171C76DA /* AdaptiveLayoutPolicyTests.swift */; };
 		A32C6FDA671B27CE907B61B8 /* LyricsDraftTransitionAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63CD693DE4B43D9D458EE508 /* LyricsDraftTransitionAlert.swift */; };
+		A367FC473E7EB10257C1E5F5 /* RemoteLibraryControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C6BD725A96C70B4397CED85 /* RemoteLibraryControllerTests.swift */; };
 		A408E385A1DAD91ECAA33FC9 /* CadenceModeStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FC28CC9A3321488AC5F0227 /* CadenceModeStateTests.swift */; };
 		A41D17CC5B847B263B265303 /* LibraryStoreTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FAE3D0FA322C80F65A82CD5 /* LibraryStoreTypes.swift */; };
 		A4B76CE42F2A45BC54F64A5A /* LibraryProjectionFactoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 735EA3BFCF55852F3D61A76B /* LibraryProjectionFactoryTests.swift */; };
@@ -744,6 +747,7 @@
 		3B89CB0AE301576C0B23A3E9 /* ProductionArtistsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductionArtistsView.swift; sourceTree = "<group>"; };
 		3C12459C0CDDFB0F0E68D010 /* ImportSessionRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportSessionRecord.swift; sourceTree = "<group>"; };
 		3C43A76901DCBF9A6553F2FE /* LibraryRepository+TrashRestoreDetails.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LibraryRepository+TrashRestoreDetails.swift"; sourceTree = "<group>"; };
+		3C6BD725A96C70B4397CED85 /* RemoteLibraryControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteLibraryControllerTests.swift; sourceTree = "<group>"; };
 		3D33B974C95B4244BEEFDFE9 /* AppCommandRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppCommandRouter.swift; sourceTree = "<group>"; };
 		3D6AE4BC1C2603A54987D1F7 /* LocalLibraryCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalLibraryCatalog.swift; sourceTree = "<group>"; };
 		3D8DA03785AA79623D877B91 /* CadenceModeLyricsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CadenceModeLyricsTests.swift; sourceTree = "<group>"; };
@@ -1106,6 +1110,7 @@
 		DD248D9EA1858CB984D23E59 /* ReleaseClassification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleaseClassification.swift; sourceTree = "<group>"; };
 		DDF0C0371202B43B94D0D59D /* LibraryRepository+TrashRecovery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LibraryRepository+TrashRecovery.swift"; sourceTree = "<group>"; };
 		DE0E56923DDF73509C7585F4 /* ArtworkCropSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtworkCropSheet.swift; sourceTree = "<group>"; };
+		DEDFF500AB9B942E070E62FA /* RemoteMediaCacheAdmission.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteMediaCacheAdmission.swift; sourceTree = "<group>"; };
 		DF3C6652C7103108DFDCDC0A /* ProductionLibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductionLibraryView.swift; sourceTree = "<group>"; };
 		E07FA2192A4CF9D2BEE47258 /* LibraryStore+FavoriteCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LibraryStore+FavoriteCatalog.swift"; sourceTree = "<group>"; };
 		E0930A86A0AF7E46943945C6 /* CadenceAppModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CadenceAppModelTests.swift; sourceTree = "<group>"; };
@@ -1177,6 +1182,7 @@
 		F9AEB83839E2D8AC35F39ABA /* ImportCandidateSelectionIntent+Keyboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ImportCandidateSelectionIntent+Keyboard.swift"; sourceTree = "<group>"; };
 		FA652BDE266F8B989B635816 /* LocalLibraryStorageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalLibraryStorageTests.swift; sourceTree = "<group>"; };
 		FAB31BBC71ED59F4B11BFFEE /* CadenceApplicationDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CadenceApplicationDelegate.swift; sourceTree = "<group>"; };
+		FAE157B0C8C22C2480183EC9 /* CadenceInstanceMessageAuthenticator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CadenceInstanceMessageAuthenticator.swift; sourceTree = "<group>"; };
 		FAE1C6116B965BEA6757139B /* LibraryStore+PlaybackQueue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LibraryStore+PlaybackQueue.swift"; sourceTree = "<group>"; };
 		FAE4E04EF3AD739F5D76DFD2 /* ManagedImportManifest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManagedImportManifest.swift; sourceTree = "<group>"; };
 		FB0264726BE81C9030D03647 /* ManagedLibraryLocationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManagedLibraryLocationTests.swift; sourceTree = "<group>"; };
@@ -1282,6 +1288,7 @@
 				CCBA850DBE2F72FC33DD2686 /* RemoteLibraryManifest.swift */,
 				2C3DF7CE8244D6A5FE249614 /* RemoteLibraryProvider.swift */,
 				8BC802953DB82E1D3FF7CDB3 /* RemoteMediaCache.swift */,
+				DEDFF500AB9B942E070E62FA /* RemoteMediaCacheAdmission.swift */,
 				965384E17994EFBFBD7FB5D5 /* RemotePlaybackSource.swift */,
 				F608D90D3341A5EE027E8854 /* RemoteProviderError.swift */,
 				97434EA2FD513D52D245140C /* GoogleDrive */,
@@ -1577,6 +1584,7 @@
 				EB1B326A905A38F0D23EAAA8 /* ProductionPlaybackAppModelTests.swift */,
 				5FDE2F341263104F928FD203 /* ProductLanguageTests.swift */,
 				1F951EA5871618C0703965E2 /* ReleaseClassificationTests.swift */,
+				3C6BD725A96C70B4397CED85 /* RemoteLibraryControllerTests.swift */,
 				9E12238B4953F3B12B15FD14 /* RemoteLibraryIntegrationTests.swift */,
 				C7558430109B2A602FE38F60 /* RemoteLibraryProviderContractTests.swift */,
 				9EBF5979C58434B0F38995A4 /* RemoteMediaCacheTests.swift */,
@@ -1822,6 +1830,7 @@
 				E1EDC4C2C7E9E165F6A03E67 /* CadenceAppModel+TagSummaries.swift */,
 				DBB416EC8C7F4C8B966F8112 /* CadenceAppModel+Trash.swift */,
 				D1424050474E739E8E0D91A9 /* CadenceInstanceCoordinator.swift */,
+				FAE157B0C8C22C2480183EC9 /* CadenceInstanceMessageAuthenticator.swift */,
 				E7B7E324B9F04E2A7F56A4C0 /* CadenceRuntimeEnvironment.swift */,
 				FB07216B0D7F5657A6E96076 /* DefaultAudioApplicationController.swift */,
 			);
@@ -2270,6 +2279,7 @@
 				E13FCE144BF92019A34ED8AB /* CadenceApplicationDelegate.swift in Sources */,
 				F07E3717E3756953A4505793 /* CadenceFlowLayout.swift in Sources */,
 				7A80541A5ABFF41FCE6E27D0 /* CadenceInstanceCoordinator.swift in Sources */,
+				73ED7B1FFF8F847BC71B1715 /* CadenceInstanceMessageAuthenticator.swift in Sources */,
 				032302D8DE07BD51E9A50D85 /* CadenceLayout.swift in Sources */,
 				5A3716A645E50BC6A6EC91AE /* CadenceModeBackground.swift in Sources */,
 				D4BB641DFA3B0084A436F66F /* CadenceModeBackgroundAnimations.swift in Sources */,
@@ -2521,6 +2531,7 @@
 				636B6D9228DD14B474B503BF /* RemoteLibraryProvider.swift in Sources */,
 				1FADC90EE02F2892804DA995 /* RemoteLibrarySettingsView.swift in Sources */,
 				6681A763A89B453D496D4559 /* RemoteMediaCache.swift in Sources */,
+				685FA080526A492B9B2FA2D6 /* RemoteMediaCacheAdmission.swift in Sources */,
 				B813FEAF3A324AC6AC90126D /* RemotePlaybackSource.swift in Sources */,
 				10AE45A0735DC422BD8F0800 /* RemoteProviderError.swift in Sources */,
 				80DCC8DD6624798DC6E6E012 /* RhythmArtworkPalette.swift in Sources */,
@@ -2752,6 +2763,7 @@
 				5DD49A44137BF3326354337B /* ProductionCatalogTests.swift in Sources */,
 				4A2B770BCA19D9A68D778193 /* ProductionPlaybackAppModelTests.swift in Sources */,
 				36EA9698FEF616DF30D4B291 /* ReleaseClassificationTests.swift in Sources */,
+				A367FC473E7EB10257C1E5F5 /* RemoteLibraryControllerTests.swift in Sources */,
 				4FF36D23FD6AEF8ECB1177BC /* RemoteLibraryIntegrationTests.swift in Sources */,
 				F9AC31749FCBDE164AE70B05 /* RemoteLibraryProviderContractTests.swift in Sources */,
 				2AE34293BD97C37D27A7EF72 /* RemoteMediaCacheTests.swift in Sources */,
@@ -3065,7 +3077,7 @@
 			repositoryURL = "https://github.com/sparkle-project/Sparkle.git";
 			requirement = {
 				kind = exactVersion;
-				version = 2.9.5;
+				version = 2.9.6;
 			};
 		};
 		ABF6D8ED10F9172FA1271512 /* XCRemoteSwiftPackageReference "AppAuth-iOS" */ = {

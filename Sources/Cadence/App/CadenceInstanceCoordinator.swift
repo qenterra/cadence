@@ -69,7 +69,7 @@ final class CadenceInstanceFileLock: CadenceInstanceLocking {
         }
         let opened = Darwin.open(
             lockURL.path,
-            O_CREAT | O_RDWR,
+            O_CREAT | O_RDWR | O_NOFOLLOW,
             S_IRUSR | S_IWUSR
         )
         guard opened >= 0 else {
@@ -90,16 +90,30 @@ final class CadenceInstanceFileLock: CadenceInstanceLocking {
 @MainActor
 final class DistributedCadenceInstanceMessaging: NSObject,
     CadenceInstanceMessaging {
+    private static let maximumPathCount = 256
+    private static let maximumPathLength = 4096
     private static let notificationName = Notification.Name(
         "com.qenterra.cadence.open-files"
     )
 
     private let center: DistributedNotificationCenter
+    private let authenticatorFactory: () -> (any CadenceInstanceMessageAuthenticating)?
+    private var authenticator: (any CadenceInstanceMessageAuthenticating)?
+    private var didLoadAuthenticator = false
     private var handler: (([URL]) -> Void)?
     private var isReceiving = false
 
-    init(center: DistributedNotificationCenter = .default()) {
+    init(
+        center: DistributedNotificationCenter = .default(),
+        authenticator: (any CadenceInstanceMessageAuthenticating)? = nil,
+        authenticatorFactory: @escaping () -> (any CadenceInstanceMessageAuthenticating)? = {
+            try? CadenceInstanceMessageAuthenticator()
+        }
+    ) {
         self.center = center
+        self.authenticator = authenticator
+        self.authenticatorFactory = authenticatorFactory
+        didLoadAuthenticator = authenticator != nil
     }
 
     deinit {
@@ -126,13 +140,18 @@ final class DistributedCadenceInstanceMessaging: NSObject,
         let paths = urls
             .filter(\.isFileURL)
             .map(\.standardizedFileURL.path)
-        guard !paths.isEmpty else {
+        guard Self.isValid(paths: paths),
+              let authenticator = resolvedAuthenticator()
+        else {
             return
         }
         center.postNotificationName(
             Self.notificationName,
             object: nil,
-            userInfo: ["paths": paths],
+            userInfo: [
+                "paths": paths,
+                "signature": authenticator.signature(for: paths),
+            ],
             deliverImmediately: true
         )
     }
@@ -141,13 +160,41 @@ final class DistributedCadenceInstanceMessaging: NSObject,
     private func receiveOpenFiles(
         _ notification: Notification
     ) {
-        guard let paths = notification.userInfo?["paths"] as? [String] else {
+        guard let paths = notification.userInfo?["paths"] as? [String],
+              let signature = notification.userInfo?["signature"] as? String,
+              Self.isValid(paths: paths),
+              let authenticator = resolvedAuthenticator(),
+              authenticator.verifies(signature: signature, paths: paths)
+        else {
             return
         }
         let urls = paths.map { URL(filePath: $0).standardizedFileURL }
         if !urls.isEmpty {
             handler?(urls)
         }
+    }
+
+    private static func isValid(paths: [String]) -> Bool {
+        guard !paths.isEmpty,
+              paths.count <= maximumPathCount
+        else {
+            return false
+        }
+        return paths.allSatisfy {
+            $0.hasPrefix("/")
+                && !$0.contains("\0")
+                && $0.utf8.count <= maximumPathLength
+        }
+    }
+
+    private func resolvedAuthenticator() ->
+        (any CadenceInstanceMessageAuthenticating)? {
+        guard !didLoadAuthenticator else {
+            return authenticator
+        }
+        didLoadAuthenticator = true
+        authenticator = authenticatorFactory()
+        return authenticator
     }
 }
 
