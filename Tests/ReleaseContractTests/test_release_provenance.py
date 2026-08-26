@@ -1485,6 +1485,26 @@ os._exit(0)
 
 
 class ReleaseProvenanceScriptContractTests(unittest.TestCase):
+    def test_dmg_image_tools_are_pinned_and_selected_before_running_tests(self) -> None:
+        requirements = (ROOT / "requirements-dev.txt").read_text(
+            encoding="utf-8"
+        )
+        setup = (ROOT / "scripts" / "prepare_python_tools.sh").read_text(
+            encoding="utf-8"
+        )
+        verify = (ROOT / "scripts" / "verify.sh").read_text(encoding="utf-8")
+
+        self.assertIn("Pillow==12.3.0", requirements)
+        self.assertIn("-m venv", setup)
+        self.assertIn("requirements-dev.txt", setup)
+        self.assertIn(".build/python-tools/bin/python", verify)
+        self.assertIn("import PIL", verify)
+        self.assertIn('DEVELOPER_DIR="$developer_dir" swiftlint lint', verify)
+        self.assertLess(
+            verify.index("import PIL"),
+            verify.index("test_dmg_background.py"),
+        )
+
     def test_verify_has_explicit_full_gate_attestation_and_honest_partial_result(self) -> None:
         script = (ROOT / "scripts" / "verify.sh").read_text(encoding="utf-8")
 
@@ -1925,6 +1945,16 @@ class ReleasePreparationOrderingTests(unittest.TestCase):
         self.assertEqual(decoded["source"]["gitSHA"], self.sha)
         self.assertEqual(decoded["source"]["tag"], self.tag)
 
+    def test_release_fixture_full_gate_ignores_inherited_hosted_skip(self) -> None:
+        self.install_trace_shims(verify_success=True)
+
+        result = self.run_verify(
+            extra_env={"CADENCE_SKIP_XCODEBUILD": "1"}
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
+        self.assertIn("Full release gate attestation written", result.stdout)
+
     def test_release_validator_entrypoints_isolate_standard_library_imports(self) -> None:
         marker = self.root / "import-marker.txt"
         (self.scripts / "secrets.py").write_text(
@@ -2261,11 +2291,13 @@ class ReleasePreparationOrderingTests(unittest.TestCase):
         environment = {
             **os.environ,
             "DEVELOPER_DIR": str(self.developer_directory),
+            "CADENCE_IMAGE_PYTHON": str(self.shim_directory / "image-python"),
             "PATH": f"{self.shim_directory}:{os.environ['PATH']}",
             "SHIM_INFO_PLIST": str(self.shim_directory / "Info.plist.fixture"),
             "TRACE_PATH": str(self.trace),
             **(extra_env or {}),
         }
+        environment.pop("CADENCE_SKIP_XCODEBUILD", None)
         if skip_xcodebuild:
             environment["CADENCE_SKIP_XCODEBUILD"] = "1"
         return subprocess.run(
@@ -2392,6 +2424,14 @@ class ReleasePreparationOrderingTests(unittest.TestCase):
                     },
                     handle,
                 )
+            image_python = self.shim_directory / "image-python"
+            image_python.write_text(
+                "#!/usr/bin/env bash\n"
+                "set -euo pipefail\n"
+                "exit 0\n",
+                encoding="utf-8",
+            )
+            image_python.chmod(0o755)
         for command in (
             "xcodegen",
             "xcodebuild",

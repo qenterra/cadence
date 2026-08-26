@@ -5,6 +5,8 @@ import OSLog
 /// Downloads enter Staging, pass byte-count and SHA-256 checks, move to Objects,
 /// and only then become visible through an atomically persisted index entry.
 actor RemoteMediaCache {
+    private static let maximumPrefetchTargets = 2
+
     private let rootURL: URL
     private let objectsURL: URL
     private let stagingURL: URL
@@ -13,6 +15,7 @@ actor RemoteMediaCache {
     private let fileManager: FileManager
     private var index: RemoteCacheIndex
     private var budgetBytes: Int64
+    private var reservedBytes: Int64 = 0
     private var pinnedIDs: Set<RemoteObjectID> = []
     private var inFlight: [RemoteObjectID: Task<URL, Error>] = [:]
     private var prefetchTasks: [RemoteObjectID: Task<Void, Never>] = [:]
@@ -110,12 +113,13 @@ actor RemoteMediaCache {
     func replacePrefetchTargets(
         _ objects: [RemoteMediaObject]
     ) {
-        let targetIDs = Set(objects.map(\.id))
+        let targets = Array(objects.prefix(Self.maximumPrefetchTargets))
+        let targetIDs = Set(targets.map(\.id))
         for (id, task) in prefetchTasks where !targetIDs.contains(id) {
             task.cancel()
             prefetchTasks[id] = nil
         }
-        for object in objects where prefetchTasks[object.id] == nil {
+        for object in targets where prefetchTasks[object.id] == nil {
             prefetchTasks[object.id] = Task { [weak self] in
                 await self?.prefetch(object)
                 await self?.finishPrefetch(object.id)
@@ -164,12 +168,21 @@ private extension RemoteMediaCache {
             return try await task.value
         }
 
+        try reserveSpace(for: object)
         let task = Task<URL, Error> {
             try await self.downloadAndPromote(object)
         }
         inFlight[object.id] = task
-        defer { inFlight[object.id] = nil }
+        var holdsReservation = true
+        defer {
+            inFlight[object.id] = nil
+            if holdsReservation {
+                releaseSpace(for: object)
+            }
+        }
         let url = try await task.value
+        releaseSpace(for: object)
+        holdsReservation = false
         try enforceBudget(
             protectedID: protectedFromEviction ? object.id : nil
         )
@@ -233,6 +246,27 @@ private extension RemoteMediaCache {
             primaryError: nil
         )
         return destinationURL
+    }
+
+    func reserveSpace(
+        for object: RemoteMediaObject
+    ) throws {
+        guard object.byteCount <= budgetBytes else {
+            throw RemoteProviderError.serviceUnavailable(
+                "The object exceeds the available cache budget."
+            )
+        }
+        try enforceBudget(
+            protectedID: nil,
+            reservingBytes: object.byteCount
+        )
+        reservedBytes += object.byteCount
+    }
+
+    func releaseSpace(
+        for object: RemoteMediaObject
+    ) {
+        reservedBytes = max(reservedBytes - object.byteCount, 0)
     }
 
     func download(
@@ -307,9 +341,10 @@ private extension RemoteMediaCache {
     }
 
     func enforceBudget(
-        protectedID: RemoteObjectID?
+        protectedID: RemoteObjectID?,
+        reservingBytes: Int64 = 0
     ) throws {
-        var total = index.entries.reduce(Int64(0)) {
+        var total = index.entries.reduce(reservedBytes + reservingBytes) {
             $0 + $1.object.byteCount
         }
         let candidates = index.entries
@@ -329,6 +364,11 @@ private extension RemoteMediaCache {
             updatedIndex[entry.object.id] = nil
             evictedEntries.append(entry)
             total -= entry.object.byteCount
+        }
+        guard total <= budgetBytes else {
+            throw RemoteProviderError.serviceUnavailable(
+                "The object exceeds the available cache budget."
+            )
         }
         guard !evictedEntries.isEmpty else {
             return

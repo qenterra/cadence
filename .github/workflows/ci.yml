@@ -11,9 +11,13 @@ jobs:
     name: Lint and release contracts — Xcode 27 gate unavailable
     runs-on: macos-26
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
       - name: Install developer tools
-        run: brew install xcodegen swiftformat swiftlint xcbeautify
+        run: HOMEBREW_NO_AUTO_UPDATE=1 brew install xcodegen swiftformat swiftlint xcbeautify python@3.14
+      - name: Prepare deterministic release image tools
+        run: bash scripts/prepare_python_tools.sh
       - name: Show Xcode version
         run: xcodebuild -version
       - name: Run partial hosted checks (no Xcode build/test gate)

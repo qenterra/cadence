@@ -138,15 +138,18 @@ the local packaging mode.
 git clone https://github.com/QenTerra/cadence.git
 cd cadence
 brew bundle
+./scripts/prepare_python_tools.sh
 xcodegen generate --spec project.yml
 open Cadence.xcodeproj
 ```
 
 Select the `Cadence` scheme and run it on **My Mac**.
 
-Run the complete local gate before submitting a change:
+Run the complete local gate before submitting a change. The declared Python
+environment is required for deterministic DMG image validation:
 
 ```sh
+./scripts/prepare_python_tools.sh
 bash scripts/verify.sh
 ```
 

@@ -106,6 +106,12 @@ struct ManagedLibraryPackage: Sendable {
                 atPath: directory.path,
                 isDirectory: &isDirectory
             ) {
+                let values = try directory.resourceValues(
+                    forKeys: [.isSymbolicLinkKey]
+                )
+                guard values.isSymbolicLink != true else {
+                    throw ManagedLibraryError.pathEscapesPackage(directory.path)
+                }
                 guard isDirectory.boolValue else {
                     throw ManagedLibraryError.layoutCollision(directory.path)
                 }
@@ -140,10 +146,7 @@ struct ManagedLibraryPackage: Sendable {
         _ identity: LibraryIdentity,
         fileManager: FileManager = .default
     ) throws {
-        try fileManager.createDirectory(
-            at: metadataDirectoryURL,
-            withIntermediateDirectories: true
-        )
+        try bootstrapForConfirmedImport(fileManager: fileManager)
         let data = try JSONEncoder().encode(identity)
         try data.write(to: identityURL, options: .atomic)
     }

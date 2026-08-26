@@ -90,6 +90,7 @@ struct RemoteTrackManifestEntry: Codable, Equatable, Hashable, Sendable {
 
 struct RemoteLibraryManifest: Codable, Equatable, Sendable {
     static let currentSchemaVersion = 1
+    static let maximumTrackCount = 100_000
 
     let schemaVersion: Int
     let libraryID: UUID
@@ -111,6 +112,9 @@ struct RemoteLibraryManifest: Codable, Equatable, Sendable {
     func validate() throws {
         guard schemaVersion == Self.currentSchemaVersion else {
             throw RemoteProviderError.invalidManifest("unsupported schema version")
+        }
+        guard tracks.count <= Self.maximumTrackCount else {
+            throw RemoteProviderError.invalidManifest("too many tracks")
         }
         guard generation >= 0 else {
             throw RemoteProviderError.invalidManifest("negative generation")

@@ -26,7 +26,7 @@ packages:
     exactVersion: 2.1.0
   Sparkle:
     url: https://github.com/sparkle-project/Sparkle.git
-    exactVersion: 2.9.5
+    exactVersion: 2.9.6
 
 targets:
   Cadence:
