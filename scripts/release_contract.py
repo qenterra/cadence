@@ -2041,10 +2041,11 @@ def _supervised_process_group_exists(process_group: int) -> bool:
         os.killpg(process_group, 0)
     except ProcessLookupError:
         return False
-    except PermissionError as error:
-        raise ReleaseContractError(
-            "The supervised release process group cannot be inspected."
-        ) from error
+    except PermissionError:
+        # A permission denial still proves that the supervised group exists.
+        # Keep waiting for it to drain instead of reporting it as absent or
+        # aborting a release whose child processes are still accounted for.
+        return True
     except OSError as error:
         raise ReleaseContractError(
             "The supervised release process group has indeterminate state."

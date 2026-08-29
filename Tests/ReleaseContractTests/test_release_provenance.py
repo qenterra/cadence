@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import importlib.util
 import json
 import os
 import plistlib
@@ -13,10 +14,18 @@ import tempfile
 import time
 import unittest
 from pathlib import Path
+from unittest import mock
 
 
 ROOT = Path(__file__).resolve().parents[2]
 RELEASE_CONTRACT = ROOT / "scripts" / "release_contract.py"
+RELEASE_CONTRACT_SPEC = importlib.util.spec_from_file_location(
+    "cadence_release_contract_test_module", RELEASE_CONTRACT
+)
+assert RELEASE_CONTRACT_SPEC is not None and RELEASE_CONTRACT_SPEC.loader is not None
+RELEASE_CONTRACT_MODULE = importlib.util.module_from_spec(RELEASE_CONTRACT_SPEC)
+sys.modules[RELEASE_CONTRACT_SPEC.name] = RELEASE_CONTRACT_MODULE
+RELEASE_CONTRACT_SPEC.loader.exec_module(RELEASE_CONTRACT_MODULE)
 GATE_RECEIPTS = (
     "xcode-tests",
     "localization",
@@ -1485,6 +1494,16 @@ os._exit(0)
 
 
 class ReleaseProvenanceScriptContractTests(unittest.TestCase):
+    def test_supervisor_permission_probe_still_proves_group_exists(self) -> None:
+        with mock.patch.object(
+            RELEASE_CONTRACT_MODULE.os,
+            "killpg",
+            side_effect=PermissionError,
+        ):
+            self.assertTrue(
+                RELEASE_CONTRACT_MODULE._supervised_process_group_exists(12345)
+            )
+
     def test_dmg_image_tools_are_pinned_and_selected_before_running_tests(self) -> None:
         requirements = (ROOT / "requirements-dev.txt").read_text(
             encoding="utf-8"
