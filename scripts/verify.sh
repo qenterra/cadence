@@ -87,6 +87,7 @@ fi
 "$image_python" -B -m unittest Tests/ReleaseContractTests/test_dmg_background.py -v
 
 swiftformat Sources Tests --lint
+mkdir -p "$project_root/.build"
 swiftlint_report="$project_root/.build/swiftlint-report.json"
 DEVELOPER_DIR="$developer_dir" swiftlint lint \
     --config .swiftlint.yml \

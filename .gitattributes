@@ -1,0 +1,15 @@
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.pdf binary
+*.zip binary
+*.dmg binary
+*.pkg binary
+
+*.pbxproj merge=union
+
+.github/** linguist-documentation
+docs/** linguist-documentation

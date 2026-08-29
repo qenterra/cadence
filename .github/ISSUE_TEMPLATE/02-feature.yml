@@ -1,0 +1,38 @@
+name: Feature request
+description: Propose a concrete user, consumer, or operator outcome.
+title: "feat: "
+labels: ["type: feature", "status: triage"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: Describe who is blocked, what they are trying to do, and current evidence.
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Desired outcome
+      description: Describe observable behaviour rather than only an implementation.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Include current workarounds and their limitations.
+  - type: textarea
+    id: constraints
+    attributes:
+      label: Constraints and risks
+      description: Compatibility, accessibility, privacy, security, performance, migration, or operational concerns.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Submission checks
+      options:
+        - label: I searched existing issues, roadmap material, and documentation.
+          required: true
+        - label: I have not included private or security-sensitive information.
+          required: true

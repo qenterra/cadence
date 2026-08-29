@@ -6,6 +6,9 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+
 jobs:
   verify:
     name: Lint and release contracts — Xcode 27 gate unavailable

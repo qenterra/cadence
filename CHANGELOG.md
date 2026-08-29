@@ -5,6 +5,15 @@ uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- Adopted QenTerra repository standard 1.3.0 with maintained governance, collaboration, Wiki-source, and repository-health documentation.
+- Standardised the README Contact block across the QenTerra repository family.
+
+### Removed
+
+- Removed obsolete external donation configuration.
+
 ## [0.2.0-beta.1] - 2026-08-13
 
 ### Added

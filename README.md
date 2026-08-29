@@ -7,7 +7,7 @@
   >
 </p>
 
-<h1 align="center">Cadence</h1>
+# Cadence
 
 <p align="center">
   A native macOS player and library manager for music you keep locally.
@@ -26,6 +26,8 @@
   <a href="#quick-start">Quick start</a> ·
   <a href="#documentation">Documentation</a>
 </p>
+
+## Status
 
 Cadence imports local audio into a managed library, keeps the source files
 untouched, and puts playback, lyrics, tags, playlists, and smart collections in
@@ -162,7 +164,7 @@ toolchain.
 committed `Cadence.xcodeproj` after changing targets, files, entitlements, or
 build settings.
 
-## Permissions and privacy
+## Privacy and security
 
 Cadence does not contain analytics, ads, tracking, or an account system. Remote
 media stays disconnected until you explicitly configure WebDAV or Google Drive
@@ -238,14 +240,11 @@ the [GitHub Wiki](https://github.com/QenTerra/cadence/wiki) for more detail.
 - [Third-party notices](THIRD_PARTY_NOTICES.md)
 - [MIT License](LICENSE)
 
-## Support
+## Contact
 
-Cadence is created and maintained by
-[Nikita Melnychenko (QenTerra)](https://github.com/QenTerra).
-
-Bug reports and focused pull requests are welcome. Read
-[CONTRIBUTING.md](CONTRIBUTING.md) before opening one. Report security issues
-through the private route in [SECURITY.md](SECURITY.md).
+- Product support, product help, and technical questions: [support@qenterra.com](mailto:support@qenterra.com).
+- Proposals, general enquiries, and commercial matters: [contact@qenterra.com](mailto:contact@qenterra.com).
+- Vulnerabilities: follow the private reporting process in [SECURITY.md](SECURITY.md).
 
 ## License
 

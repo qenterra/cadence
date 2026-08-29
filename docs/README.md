@@ -21,7 +21,7 @@
 
 ## Product and interface
 
-- [Onboarding guide](ONBOARDING_GUIDE.md)
+- [Quick start](../README.md#quick-start)
 - [Public Wiki](https://github.com/QenTerra/cadence/wiki)
 
 This index contains current public documentation. Implementation plans,

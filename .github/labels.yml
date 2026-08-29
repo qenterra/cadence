@@ -1,0 +1,63 @@
+- name: "type: bug"
+  color: "d73a4a"
+  description: Confirmed or reported defect.
+- name: "type: feature"
+  color: "0e8a16"
+  description: New user, consumer, or operator capability.
+- name: "type: documentation"
+  color: "0075ca"
+  description: Documentation-only work.
+- name: "type: security"
+  color: "b60205"
+  description: Security hardening or coordinated remediation.
+- name: "type: dependency"
+  color: "0366d6"
+  description: Dependency or supply-chain change.
+- name: "type: refactor"
+  color: "5319e7"
+  description: Behaviour-preserving structure change.
+- name: "type: performance"
+  color: "fbca04"
+  description: Measured performance work.
+- name: "area: ci"
+  color: "1d76db"
+  description: Continuous integration and repository automation.
+- name: "area: documentation"
+  color: "0075ca"
+  description: Reader-facing and contributor documentation.
+- name: "area: release"
+  color: "5319e7"
+  description: Versioning, packaging, signing, and publication preparation.
+- name: "area: security"
+  color: "b60205"
+  description: Security boundaries, tooling, and coordinated remediation.
+- name: "area: product"
+  color: "0e8a16"
+  description: Primary product behaviour and user-facing interfaces.
+- name: "status: triage"
+  color: "ededed"
+  description: Needs classification and evidence review.
+- name: "status: blocked"
+  color: "b60205"
+  description: Cannot progress without a named dependency or decision.
+- name: "status: ready"
+  color: "0e8a16"
+  description: Scoped and ready for implementation.
+- name: "priority: critical"
+  color: "b60205"
+  description: Immediate security, data-loss, or release-blocking impact.
+- name: "priority: high"
+  color: "d93f0b"
+  description: Significant user or operational impact.
+- name: "priority: normal"
+  color: "fbca04"
+  description: Normal planned priority.
+- name: "good first issue"
+  color: "7057ff"
+  description: Bounded contribution with clear setup and acceptance criteria.
+- name: "help wanted"
+  color: "008672"
+  description: Maintainers welcome a well-scoped contribution.
+- name: "release: skip-notes"
+  color: "ffffff"
+  description: Exclude internal-only work from generated release notes.

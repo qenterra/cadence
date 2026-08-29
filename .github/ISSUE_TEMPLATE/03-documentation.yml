@@ -1,0 +1,30 @@
+name: Documentation correction
+description: Report missing, incorrect, stale, or inaccessible documentation.
+title: "docs: "
+labels: ["type: documentation", "status: triage"]
+body:
+  - type: input
+    id: location
+    attributes:
+      label: Page or section
+      description: Link the exact README, docs, API, or Wiki location.
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: Explain what is wrong and who it affects.
+    validations:
+      required: true
+  - type: textarea
+    id: correction
+    attributes:
+      label: Suggested correction or missing evidence
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Submission checks
+      options:
+        - label: I checked the current default branch and existing documentation issues.
+          required: true

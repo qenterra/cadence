@@ -1,0 +1,23 @@
+version: 2
+updates:
+  - package-ecosystem: "swift"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "type: dependency"
+      - "status: triage"
+    commit-message:
+      prefix: "build"
+      include: "scope"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "type: dependency"
+      - "area: ci"
+    commit-message:
+      prefix: "ci"
+      include: "scope"

@@ -10,11 +10,12 @@ fi
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 project_root="$(cd "$script_dir/.." && pwd)"
 release_contract=(python3 -I -B "$project_root/scripts/release_contract.py")
-requested_developer_dir="${DEVELOPER_DIR:-}"
+requested_developer_dir="${CADENCE_RELEASE_DEVELOPER_DIR:-${DEVELOPER_DIR:-}}"
 
 # Preserve a requested Xcode location without allowing it to alter Python or
 # other preflight tools. Xcode commands receive the validated path explicitly.
 unset DEVELOPER_DIR
+unset CADENCE_RELEASE_DEVELOPER_DIR
 
 if [[ "${CADENCE_RELEASE_SUPERVISOR_PID:-}" != "$PPID" ]]; then
     supervisor_arguments=(
@@ -23,6 +24,9 @@ if [[ "${CADENCE_RELEASE_SUPERVISOR_PID:-}" != "$PPID" ]]; then
     )
     if [[ $# -eq 1 ]]; then
         supervisor_arguments+=(--release-notes "$1")
+    fi
+    if [[ -n "$requested_developer_dir" ]]; then
+        export CADENCE_RELEASE_DEVELOPER_DIR="$requested_developer_dir"
     fi
     exec "${release_contract[@]}" "${supervisor_arguments[@]}"
 fi
