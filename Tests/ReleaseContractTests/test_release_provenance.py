@@ -2278,6 +2278,9 @@ class ReleasePreparationOrderingTests(unittest.TestCase):
     def prepare_environment(
         self, extra_env: dict[str, str] | None = None
     ) -> dict[str, str]:
+        # Recreate the fake developer root at the point of use so each release
+        # ordering assertion is independent of earlier fixture cleanup.
+        self.developer_directory.mkdir(parents=True, exist_ok=True)
         return {
             **os.environ,
             "CADENCE_RELEASE_MODE": "local",
