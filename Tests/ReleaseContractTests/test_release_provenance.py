@@ -1766,6 +1766,22 @@ class ReleasePreparationOrderingTests(unittest.TestCase):
             ],
         )
 
+    def test_prepare_supervisor_preserves_requested_developer_directory(self) -> None:
+        self.complete_gate()
+        self.make_reused_archive(source_sha=self.sha, include_attestation=False)
+        self.install_trace_shims(prepare_success=True)
+        developer_trace = self.root / ".build" / "developer-directory.txt"
+
+        result = self.run_prepare(
+            extra_env={"DEVELOPER_TRACE_PATH": str(developer_trace)}
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
+        self.assertEqual(
+            developer_trace.read_text(encoding="utf-8"),
+            str(self.developer_directory),
+        )
+
     def test_successful_prepare_retains_lock_until_resistant_group_drains(
         self,
     ) -> None:
@@ -2278,9 +2294,6 @@ class ReleasePreparationOrderingTests(unittest.TestCase):
     def prepare_environment(
         self, extra_env: dict[str, str] | None = None
     ) -> dict[str, str]:
-        # Recreate the fake developer root at the point of use so each release
-        # ordering assertion is independent of earlier fixture cleanup.
-        self.developer_directory.mkdir(parents=True, exist_ok=True)
         return {
             **os.environ,
             "CADENCE_RELEASE_MODE": "local",
@@ -2455,6 +2468,10 @@ class ReleasePreparationOrderingTests(unittest.TestCase):
             body = ["#!/usr/bin/env bash", "set -euo pipefail"]
             body.append("mkdir -p \"$(dirname \"$TRACE_PATH\")\"")
             if command == "xcodebuild":
+                body.append(
+                    "if [[ -n \"${DEVELOPER_TRACE_PATH:-}\" ]]; then "
+                    "printf '%s' \"${DEVELOPER_DIR:-}\" > \"$DEVELOPER_TRACE_PATH\"; fi"
+                )
                 body.append(
                     "if [[ \" $* \" == *\" -resolvePackageDependencies \"* ]]; then"
                 )
