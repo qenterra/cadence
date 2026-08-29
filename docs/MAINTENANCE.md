@@ -28,4 +28,4 @@ If active maintenance stops, update the README and repository description with s
 
 | Reviewed at | Scope | Evidence | Findings or changes | Next review |
 | --- | --- | --- | --- | --- |
-| 2026-08-29 | Repository-standard adoption | Local full gate, governance report, protected PR, and provider read-back | Pending final merge evidence | Next release or 2026-11-29 |
+| 2026-08-29 | Repository-standard adoption | Local full gate, governance report, protected PR, successful Actions, remote SHA, and active rulesets | Passed on published `main`; release publication remains out of scope | Next release or 2026-11-29 |
