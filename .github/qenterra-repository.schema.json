@@ -1,0 +1,190 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:qenterra:repository-contract:1.3.0",
+  "title": "QenTerra repository contract",
+  "description": "Version 1.3.0 contract for QenTerra repository governance.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "standard_version",
+    "profile",
+    "overlays",
+    "visibility",
+    "license",
+    "version_scheme",
+    "collaboration_model",
+    "ecosystem",
+    "dependabot_ecosystem",
+    "project_name",
+    "repository_name",
+    "description",
+    "github_owner",
+    "repository_url",
+    "homepage_url",
+    "copyright_holder",
+    "copyright_year_range",
+    "current_version",
+    "version_source",
+    "version_tag_prefix",
+    "release_mode",
+    "default_branch",
+    "branch_prefix",
+    "merge_strategy",
+    "topics",
+    "github_features",
+    "documentation_root",
+    "wiki_source",
+    "primary_language",
+    "minimum_requirements",
+    "install_command",
+    "quick_start_command",
+    "verification_command",
+    "support_url",
+    "security_url",
+    "conduct_contact",
+    "code_owner",
+    "allowed_root_paths",
+    "published_artifacts",
+    "exceptions",
+    "governance"
+  ],
+  "properties": {
+    "$schema": {"const": "./qenterra-repository.schema.json"},
+    "standard_version": {"const": "1.3.0"},
+    "profile": {
+      "enum": ["application", "library", "cli", "service", "documentation", "monorepo", "private"]
+    },
+    "overlays": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": ["product-legal", "package", "service-operations", "citation", "community-discussions", "github-wiki"]
+      }
+    },
+    "visibility": {"enum": ["public", "private"]},
+    "license": {
+      "enum": ["MIT", "Apache-2.0", "MPL-2.0", "GPL-3.0-only", "AGPL-3.0-only", "Proprietary"]
+    },
+    "version_scheme": {"enum": ["semver", "calver"]},
+    "collaboration_model": {"enum": ["solo", "team"]},
+    "ecosystem": {"type": "string", "minLength": 1},
+    "dependabot_ecosystem": {
+      "enum": [
+        "bazel", "bun", "bundler", "cargo", "composer", "conda", "deno", "devcontainers",
+        "docker", "docker-compose", "dotnet-sdk", "elm", "gitsubmodule", "gomod", "gradle",
+        "helm", "julia", "maven", "mix", "nix", "none", "npm", "nuget", "opentofu", "pip",
+        "pre-commit", "pub", "rust-toolchain", "sbt", "swift", "terraform", "uv", "vcpkg"
+      ]
+    },
+    "project_name": {"type": "string", "minLength": 1},
+    "repository_name": {
+      "type": "string",
+      "maxLength": 100,
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "description": {"type": "string", "minLength": 1, "maxLength": 350, "pattern": "^[^\\r\\n]+$"},
+    "github_owner": {"const": "QenTerra"},
+    "repository_url": {"type": "string", "pattern": "^https://github\\.com/QenTerra/[a-z0-9]+(?:-[a-z0-9]+)*$"},
+    "homepage_url": {"type": "string", "pattern": "^https://"},
+    "copyright_holder": {"const": "Nikita Melnychenko (QenTerra)"},
+    "copyright_year_range": {"type": "string", "pattern": "^(?:19|20)\\d{2}(?:-(?:19|20)\\d{2})?$"},
+    "current_version": {"type": "string", "minLength": 1},
+    "version_source": {"type": "string", "minLength": 1},
+    "version_tag_prefix": {"const": "v"},
+    "release_mode": {"enum": ["github-releases", "package-registry", "deployment", "none"]},
+    "default_branch": {"const": "main"},
+    "branch_prefix": {"const": "qenterra/"},
+    "merge_strategy": {"const": "squash"},
+    "topics": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 12,
+      "uniqueItems": true,
+      "items": {"type": "string", "maxLength": 50, "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"}
+    },
+    "github_features": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["issues", "discussions", "wiki", "projects"],
+      "properties": {
+        "issues": {"type": "boolean"},
+        "discussions": {"type": "boolean"},
+        "wiki": {"type": "boolean"},
+        "projects": {"type": "boolean"}
+      }
+    },
+    "documentation_root": {"const": "docs"},
+    "wiki_source": {"enum": ["disabled", "docs/wiki"]},
+    "primary_language": {"type": "string", "minLength": 1},
+    "minimum_requirements": {"type": "string", "minLength": 1},
+    "install_command": {"type": "string", "minLength": 1},
+    "quick_start_command": {"type": "string", "minLength": 1},
+    "verification_command": {"type": "string", "minLength": 1},
+    "support_url": {"type": "string", "pattern": "^https://"},
+    "security_url": {"type": "string", "pattern": "^https://"},
+    "conduct_contact": {"type": "string", "pattern": "^(?:https://|mailto:)"},
+    "code_owner": {"type": "string", "pattern": "^@[A-Za-z0-9-]+(?:/[A-Za-z0-9_.-]+)?$"},
+    "allowed_root_paths": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1, "pattern": "^(?!\\.{1,2}$)[^/\\\\]+$"}
+    },
+    "published_artifacts": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "purpose", "source", "manifest", "verification_command", "review_trigger"],
+        "properties": {
+          "path": {"type": "string", "minLength": 1, "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))[^\\\\]+$"},
+          "purpose": {"type": "string", "minLength": 12},
+          "source": {"type": "string", "minLength": 1, "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))[^\\\\]+$"},
+          "manifest": {"type": "string", "minLength": 6, "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))[^\\\\]+\\.json$"},
+          "verification_command": {
+            "type": "string",
+            "minLength": 3,
+            "pattern": "^(?:(?:bash|node|perl|python|python3|ruby|zsh) )?(?:\\./)?scripts/[A-Za-z0-9._/-]*(?:audit|check|verify)[A-Za-z0-9._/-]*(?: [^;&|`$<>\\r\\n]+)*$"
+          },
+          "review_trigger": {
+            "type": "string",
+            "minLength": 12,
+            "not": {"enum": ["n/a", "na", "never", "none"]}
+          }
+        }
+      }
+    },
+    "exceptions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["rule", "path_or_setting", "reason", "owner", "approval_source", "review_trigger"],
+        "properties": {
+          "rule": {"type": "string", "minLength": 1},
+          "path_or_setting": {"type": "string", "minLength": 1},
+          "reason": {"type": "string", "minLength": 1},
+          "owner": {"type": "string", "minLength": 1},
+          "approval_source": {"type": "string", "minLength": 1},
+          "review_trigger": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "governance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["generator", "standard_version", "required_files"],
+      "properties": {
+        "generator": {"const": "Noetic QenTerra repository templates"},
+        "standard_version": {"const": "1.3.0"},
+        "required_files": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        }
+      }
+    }
+  }
+}

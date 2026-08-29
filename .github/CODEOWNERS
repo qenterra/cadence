@@ -1,0 +1,12 @@
+# Default ownership
+* @qenterra
+
+# Protect governance and sensitive paths
+/.github/ @qenterra
+/SECURITY.md @qenterra
+/LICENSE @qenterra
+/NOTICE @qenterra
+/THIRD_PARTY_NOTICES.md @qenterra
+/CHANGELOG.md @qenterra
+/docs/RELEASING.md @qenterra
+/scripts/ @qenterra

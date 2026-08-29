@@ -1,0 +1,17 @@
+changelog:
+  exclude:
+    labels:
+      - "release: skip-notes"
+    authors:
+      - dependabot
+  categories:
+    - title: Added
+      labels: ["type: feature"]
+    - title: Fixed
+      labels: ["type: bug", "type: security"]
+    - title: Changed
+      labels: ["type: performance", "type: refactor", "type: dependency"]
+    - title: Documentation
+      labels: ["type: documentation"]
+    - title: Other changes
+      labels: ["*"]
