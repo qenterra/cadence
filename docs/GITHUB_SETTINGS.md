@@ -25,6 +25,6 @@ Review dependency graph, Dependabot alerts and updates, secret scanning, push pr
 
 | Checked at | Exact repository | Evidence source | Reviewer | Result | Unverified or exception |
 | --- | --- | --- | --- | --- | --- |
-| 2026-08-29 | https://github.com/QenTerra/cadence | Authorised GitHub API read-back during standard adoption | Nikita Melnychenko (QenTerra) | Pending final publication read-back | Recheck after the adoption PR is merged |
+| 2026-08-29 | https://github.com/QenTerra/cadence | Authorised GitHub API, Actions, and ruleset read-back after protected publication | Nikita Melnychenko (QenTerra) | Passed: public visibility, `main`, Issues, Wiki, squash-only merges, branch deletion, required PR checks, and immutable `v*` tags verified | Code scanning, signing, notarisation, and release assets remain release-specific checks |
 
 Never copy a prior repository’s result forward. Provider features, plan availability, and settings can change without a source diff.
