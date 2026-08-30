@@ -243,6 +243,7 @@ private extension CrossfadePlaybackBackend {
                     backend.stop()
                     return
                 }
+                backend.setCrossfadeTrebleOpenness(0, duration: .zero)
                 preparedSlot = slot
                 preparedTrackID = track.track.id
             } catch {
@@ -320,11 +321,17 @@ private extension CrossfadePlaybackBackend {
         preparedTrackID = nil
         preloadTask = nil
 
-        incoming.play(fadeInDuration: .seconds(duration))
+        let transitionDuration = Duration.seconds(duration)
+        incoming.play(fadeInDuration: transitionDuration)
+        startTrebleTransition(
+            outgoing: outgoing,
+            incoming: incoming,
+            duration: transitionDuration
+        )
         transitionTask = Task { @MainActor [weak self] in
             await outgoing.setPresentationGain(
                 0,
-                duration: .seconds(duration)
+                duration: transitionDuration
             )
             guard let self,
                   !Task.isCancelled,
@@ -350,6 +357,15 @@ private extension CrossfadePlaybackBackend {
                 successorStarted: successor.track.id
             )
         )
+    }
+
+    func startTrebleTransition(
+        outgoing: any PlaybackBackend,
+        incoming: any PlaybackBackend,
+        duration: Duration
+    ) {
+        outgoing.setCrossfadeTrebleOpenness(0, duration: duration)
+        incoming.setCrossfadeTrebleOpenness(1, duration: duration)
     }
 
     func retireOverlapIfNeeded() {

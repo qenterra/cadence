@@ -459,7 +459,7 @@ extension PCMPlaybackBackendTests {
         backend.stop()
     }
 
-    @Test("User volume is applied through the rampable gain unit")
+    @Test("User volume is applied through the PCM gain unit")
     func outputVolume() {
         let backend = PCMPlaybackBackend()
 
@@ -469,6 +469,71 @@ extension PCMPlaybackBackendTests {
         #expect(backend.engine.mainMixerNode.outputVolume == 1)
         #expect(abs(backend.gainUnit.globalGain - -12.0412) < 0.01)
         backend.stop()
+    }
+
+    @Test("PCM presentation gain traverses intermediate values during a fade")
+    func presentationGainFadeIsProgressive() async throws {
+        let backend = PCMPlaybackBackend()
+        defer { backend.stop() }
+
+        let fade = Task {
+            await backend.setPresentationGain(
+                0,
+                duration: .milliseconds(240)
+            )
+        }
+        try await Task.sleep(for: .milliseconds(60))
+
+        #expect(backend.presentationGain > 0)
+        #expect(backend.presentationGain < 1)
+        #expect(backend.gainUnit.globalGain > PCMGainAutomation.silenceDecibels)
+
+        await fade.value
+        #expect(backend.presentationGain == 0)
+        #expect(backend.gainUnit.globalGain == PCMGainAutomation.silenceDecibels)
+    }
+
+    @Test("PCM crossfade treble closes progressively")
+    func crossfadeTrebleClosingIsProgressive() async throws {
+        let backend = PCMPlaybackBackend()
+        defer { backend.stop() }
+
+        backend.setCrossfadeTrebleOpenness(
+            0,
+            duration: .milliseconds(240)
+        )
+        try await Task.sleep(for: .milliseconds(60))
+
+        let trebleBand = try #require(backend.gainUnit.bands.first)
+        #expect(trebleBand.filterType == .highShelf)
+        #expect(abs(trebleBand.frequency - 7000) < 0.01)
+        #expect(trebleBand.gain < 0)
+        #expect(trebleBand.gain > -6)
+
+        try await Task.sleep(for: .milliseconds(240))
+        #expect(abs(trebleBand.gain - -6) < 0.01)
+    }
+
+    @Test("PCM crossfade treble opens progressively")
+    func crossfadeTrebleOpeningIsProgressive() async throws {
+        let backend = PCMPlaybackBackend()
+        defer { backend.stop() }
+
+        backend.setCrossfadeTrebleOpenness(0, duration: .zero)
+        let trebleBand = try #require(backend.gainUnit.bands.first)
+        #expect(abs(trebleBand.gain - -6) < 0.01)
+
+        backend.setCrossfadeTrebleOpenness(
+            1,
+            duration: .milliseconds(240)
+        )
+        try await Task.sleep(for: .milliseconds(60))
+
+        #expect(trebleBand.gain > -6)
+        #expect(trebleBand.gain < 0)
+
+        try await Task.sleep(for: .milliseconds(240))
+        #expect(abs(trebleBand.gain) < 0.01)
     }
 
     @Test("PCM timeline samples expose rendered time and transport rate")

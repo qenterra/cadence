@@ -53,6 +53,9 @@ final class PlaybackTestBackend: PlaybackBackend {
     private(set) var volumes: [Float] = []
     private(set) var normalizationGains: [Float] = []
     private(set) var presentationGains: [(gain: Float, duration: Duration)] = []
+    private(set) var crossfadeTrebleOpenness: [
+        (openness: Float, duration: Duration)
+    ] = []
     private(set) var fadeInDurations: [Duration] = []
     private(set) var suspendedLoadCount = 0
     private(set) var suspendedSeekCount = 0
@@ -161,6 +164,13 @@ final class PlaybackTestBackend: PlaybackBackend {
                 presentationGainContinuations.append(continuation)
             }
         }
+    }
+
+    func setCrossfadeTrebleOpenness(
+        _ openness: Float,
+        duration: Duration
+    ) {
+        crossfadeTrebleOpenness.append((openness, duration))
     }
 
     func stop() {

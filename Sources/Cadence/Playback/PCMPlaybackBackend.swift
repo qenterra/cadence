@@ -8,12 +8,13 @@ final class PCMPlaybackBackend: PlaybackBackend {
 
     let engine = AVAudioEngine()
     let playerNode = AVAudioPlayerNode()
-    let gainUnit = AVAudioUnitEQ(numberOfBands: 0)
+    let gainUnit = AVAudioUnitEQ(numberOfBands: 1)
     let bassMeter: PCMBassLevelMeter
     let bassAnalyzer: PCMBassAnalyzer
     var currentItem: ScheduledPCMItem?
     var preparedItem: ScheduledPCMItem?
     var progressTask: Task<Void, Never>?
+    var trebleRampTask: Task<Void, Never>?
     var currentStartSample: AVAudioFramePosition = 0
     var currentScheduledEndSample: AVAudioFramePosition = 0
     var logicalStartTime: TimeInterval = 0
@@ -27,6 +28,8 @@ final class PCMPlaybackBackend: PlaybackBackend {
     var preparedSegmentTicket: UInt64 = 0
     var presentationGain: Float = 1
     var gainRampGeneration = 0
+    var crossfadeTrebleOpenness: Float = 1
+    var trebleRampGeneration = 0
 
     var bassLevelProvider: (any PlaybackBassLevelProviding)? {
         bassMeter
@@ -36,6 +39,11 @@ final class PCMPlaybackBackend: PlaybackBackend {
         let bassMeter = PCMBassLevelMeter()
         self.bassMeter = bassMeter
         bassAnalyzer = PCMBassAnalyzer(meter: bassMeter)
+        let trebleBand = gainUnit.bands[0]
+        trebleBand.filterType = .highShelf
+        trebleBand.frequency = PCMCrossfadeTrebleAutomation.shelfFrequency
+        trebleBand.gain = 0
+        trebleBand.bypass = false
         engine.attach(playerNode)
         engine.attach(gainUnit)
         engine.connect(
@@ -64,9 +72,11 @@ final class PCMPlaybackBackend: PlaybackBackend {
             await setPresentationGain(0, duration: .milliseconds(36))
         }
         gainRampGeneration &+= 1
+        cancelTrebleRamp()
         userVolume = request.volume
         normalizationGain = request.normalizationGain
         presentationGain = request.autoplay ? 0 : 1
+        crossfadeTrebleOpenness = 1
         try configureSchedule(
             current: request.current,
             next: request.next,
@@ -158,7 +168,7 @@ final class PCMPlaybackBackend: PlaybackBackend {
         }
         gainRampGeneration &+= 1
         presentationGain = 0
-        applyGain(duration: .zero)
+        applyGain()
         playerNode.play()
         isPlaying = true
         Task { @MainActor [weak self] in
@@ -251,9 +261,41 @@ final class PCMPlaybackBackend: PlaybackBackend {
         )
     }
 
+    func setCrossfadeTrebleOpenness(
+        _ openness: Float,
+        duration: Duration
+    ) {
+        cancelTrebleRamp()
+        let target = min(max(openness, 0), 1)
+        guard duration > .zero,
+              crossfadeTrebleOpenness != target
+        else {
+            crossfadeTrebleOpenness = target
+            applyCrossfadeTreble()
+            return
+        }
+
+        let generation = trebleRampGeneration
+        trebleRampTask = Task { @MainActor [weak self] in
+            guard let self else {
+                return
+            }
+            await rampCrossfadeTreble(
+                to: target,
+                duration: duration,
+                generation: generation
+            )
+            guard generation == trebleRampGeneration else {
+                return
+            }
+            trebleRampTask = nil
+        }
+    }
+
     func stop() {
         progressTask?.cancel()
         progressTask = nil
+        cancelTrebleRamp()
         scheduleGeneration &+= 1
         gainRampGeneration &+= 1
         playerNode.stop()
@@ -268,28 +310,14 @@ final class PCMPlaybackBackend: PlaybackBackend {
         lastKnownPlaybackTime = 0
         isPlaying = false
         presentationGain = 1
+        crossfadeTrebleOpenness = 1
+        applyCrossfadeTreble()
         bassAnalyzer.invalidateScheduleBoundary()
         resetBassAnalysis()
     }
 
     func resetBassAnalysis() {
         bassAnalyzer.resetAnalysisState()
-    }
-
-    private func rampPresentationGain(
-        to target: Float,
-        duration: Duration,
-        generation: Int
-    ) async {
-        let target = min(max(target, 0), 1)
-        guard generation == gainRampGeneration else {
-            return
-        }
-        presentationGain = target
-        applyGain(duration: duration)
-        if duration > .zero {
-            try? await Task.sleep(for: duration)
-        }
     }
 }
 

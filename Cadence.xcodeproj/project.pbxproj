@@ -615,6 +615,7 @@
 		FB70DFCCE2E53A4593DFB653 /* NativePlaybackBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6584AE83DC9D50402AE367F /* NativePlaybackBackend.swift */; };
 		FBE7E5899111F6B23CE2FE17 /* AppConfigurationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 231128F161FBF92AC8D3EAD5 /* AppConfigurationTests.swift */; };
 		FC73D55AE96569DA038026C4 /* TagTrackPickerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 541007815369EBDC2751390A /* TagTrackPickerSheet.swift */; };
+		FD10F35CEDBB295C61347800 /* PCMPlaybackBackend+GainAutomation.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBCAF8CAFAA10B0B3418221A /* PCMPlaybackBackend+GainAutomation.swift */; };
 		FD30390CAD198A33FD88A367 /* LegacyCatalogSchema.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30E381BAAA141BB87C8337BB /* LegacyCatalogSchema.swift */; };
 		FE024EFA4CBE19EBAE182A6B /* CompositePlaybackTrackResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C63EA376DDE92422FA372FB /* CompositePlaybackTrackResolver.swift */; };
 		FE555EC5F859A8B3A439FF55 /* CadenceAppModel+SmartCollectionListening.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F97BE351D4A1507732AEA4E /* CadenceAppModel+SmartCollectionListening.swift */; };
@@ -1115,6 +1116,7 @@
 		C9CA8B1A829D75B0178DC5A6 /* CadenceRootView+Bindings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CadenceRootView+Bindings.swift"; sourceTree = "<group>"; };
 		C9FF0BCACF0C1A812816A7FF /* LibraryStore+SmartCollections.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LibraryStore+SmartCollections.swift"; sourceTree = "<group>"; };
 		CAD4624FF77CBF425BE96A98 /* CadenceResizableSplitView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CadenceResizableSplitView.swift; sourceTree = "<group>"; };
+		CBCAF8CAFAA10B0B3418221A /* PCMPlaybackBackend+GainAutomation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PCMPlaybackBackend+GainAutomation.swift"; sourceTree = "<group>"; };
 		CBCC79051BD8F6345956867F /* SmartCollectionRuleInfoPopover.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartCollectionRuleInfoPopover.swift; sourceTree = "<group>"; };
 		CBDE49DED385D625E0F5BA91 /* TrackBulkActionResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackBulkActionResolver.swift; sourceTree = "<group>"; };
 		CBE130BFEC5B60D019819874 /* CadenceAppModel+SmartCollectionRules.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CadenceAppModel+SmartCollectionRules.swift"; sourceTree = "<group>"; };
@@ -1842,6 +1844,7 @@
 				F6584AE83DC9D50402AE367F /* NativePlaybackBackend.swift */,
 				34481F6618D0C78A5191554D /* PCMBassAnalysis.swift */,
 				044EFA1A4125F760AADA8DC8 /* PCMPlaybackBackend.swift */,
+				CBCAF8CAFAA10B0B3418221A /* PCMPlaybackBackend+GainAutomation.swift */,
 				CF2B692935E544F93ADAE0FA /* PCMPlaybackBackend+Scheduling.swift */,
 				6C2705CDE401CC8CF995C0F4 /* PlaybackBackend.swift */,
 				6AFB4DCCD1E3CFAC0A1803A2 /* PlaybackCoordinator.swift */,
@@ -2568,6 +2571,7 @@
 				00170CC88154D6B3B223B299 /* NowPlayingPanelPicker.swift in Sources */,
 				55F6D80E795E22F92738FD16 /* NowPlayingView.swift in Sources */,
 				8EE237F45B77F90BD74E8206 /* PCMBassAnalysis.swift in Sources */,
+				FD10F35CEDBB295C61347800 /* PCMPlaybackBackend+GainAutomation.swift in Sources */,
 				53D53FA014F4C5FFC367958D /* PCMPlaybackBackend+Scheduling.swift in Sources */,
 				4CA50AA7EA2DC81975FB7795 /* PCMPlaybackBackend.swift in Sources */,
 				A924381B2228A1B7DF6CFC96 /* PlaybackBackend.swift in Sources */,

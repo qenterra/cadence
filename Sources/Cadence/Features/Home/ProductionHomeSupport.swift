@@ -9,7 +9,6 @@ enum HomeTilePresentation: Equatable, Sendable {
 }
 
 enum HomeLayoutMetrics {
-    static let artworkCardHeight: CGFloat = 236
     static let titleLineLimit = 2
     static let subtitleLineLimit = 1
 }
@@ -272,10 +271,6 @@ private struct HomeMediaTile: View {
         }
         .padding(CadenceLayout.compactGap)
         .frame(maxWidth: .infinity)
-        .frame(
-            minHeight: HomeLayoutMetrics.artworkCardHeight,
-            alignment: .topLeading
-        )
         .background(
             model.catalogActivationSelection.selected == activationTarget
                 ? CadenceTheme.selectionFill

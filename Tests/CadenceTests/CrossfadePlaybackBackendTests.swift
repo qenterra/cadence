@@ -55,6 +55,7 @@ struct CrossfadePlaybackBackendTests {
         #expect(secondary.fadeInDurations == [.seconds(4)])
         #expect(primary.presentationGains.last?.gain == 0)
         #expect(primary.presentationGains.last?.duration == .seconds(4))
+        expectTrebleTransition(primary: primary, secondary: secondary)
     }
 
     @Test("Disabled crossfade preserves the backend's native successor preparation")
@@ -240,4 +241,17 @@ struct CrossfadePlaybackBackendTests {
             )
         )
     }
+}
+
+@MainActor
+private func expectTrebleTransition(
+    primary: PlaybackTestBackend,
+    secondary: PlaybackTestBackend
+) {
+    #expect(secondary.crossfadeTrebleOpenness.first?.openness == 0)
+    #expect(secondary.crossfadeTrebleOpenness.first?.duration == .zero)
+    #expect(primary.crossfadeTrebleOpenness.last?.openness == 0)
+    #expect(primary.crossfadeTrebleOpenness.last?.duration == .seconds(4))
+    #expect(secondary.crossfadeTrebleOpenness.last?.openness == 1)
+    #expect(secondary.crossfadeTrebleOpenness.last?.duration == .seconds(4))
 }

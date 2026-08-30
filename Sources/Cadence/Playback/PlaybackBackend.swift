@@ -94,6 +94,10 @@ protocol PlaybackBackend: AnyObject {
         _ gain: Float,
         duration: Duration
     ) async
+    func setCrossfadeTrebleOpenness(
+        _ openness: Float,
+        duration: Duration
+    )
     func resetBassAnalysis()
     func stop()
 }
@@ -107,6 +111,11 @@ extension PlaybackBackend {
         _: Float,
         duration _: Duration
     ) async {}
+
+    func setCrossfadeTrebleOpenness(
+        _: Float,
+        duration _: Duration
+    ) {}
 
     func prepareNext(
         _ request: PlaybackBackendPreparationRequest

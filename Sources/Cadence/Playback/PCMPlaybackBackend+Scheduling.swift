@@ -1,4 +1,3 @@
-import AudioToolbox
 import AVFAudio
 import Foundation
 
@@ -13,16 +12,21 @@ enum PCMGainAutomation {
         return max(20 * log10(scalar), silenceDecibels)
     }
 
-    static func frameCount(
-        duration: Duration,
-        sampleRate: Double
-    ) -> AUAudioFrameCount {
+    static func stepCount(for duration: Duration) -> Int {
         let components = duration.components
         let seconds = Double(components.seconds)
             + Double(components.attoseconds) / 1e18
-        return AUAudioFrameCount(
-            min(max(seconds * sampleRate, 0), Double(UInt32.max))
-        )
+        return max(Int(ceil(seconds * 60)), 1)
+    }
+}
+
+enum PCMCrossfadeTrebleAutomation {
+    static let shelfFrequency: Float = 7000
+    static let closedGainDecibels: Float = -6
+
+    static func gain(for openness: Float) -> Float {
+        let openness = min(max(openness, 0), 1)
+        return closedGainDecibels * (1 - openness)
     }
 }
 
@@ -327,12 +331,6 @@ extension PCMPlaybackBackend {
     }
 
     func applyGain() {
-        applyGain(duration: .milliseconds(12))
-    }
-
-    func applyGain(
-        duration: Duration
-    ) {
         playerNode.volume = 1
         let targetScalar = min(
             max(userVolume * normalizationGain * presentationGain, 0),
@@ -342,24 +340,13 @@ extension PCMPlaybackBackend {
         let targetDecibels = PCMGainAutomation.decibels(
             for: targetScalar
         )
-        let frameCount = PCMGainAutomation.frameCount(
-            duration: duration,
-            sampleRate: max(engine.outputNode.outputFormat(forBus: 0).sampleRate, 1)
-        )
-        guard engine.isRunning, frameCount > 0,
-              let parameter = gainUnit.auAudioUnit.parameterTree?
-              .allParameters.first(where: {
-                  $0.identifier.localizedCaseInsensitiveContains("gain")
-              })
-        else {
-            gainUnit.globalGain = targetDecibels
-            return
-        }
-        gainUnit.auAudioUnit.scheduleParameterBlock(
-            AUEventSampleTimeImmediate,
-            frameCount,
-            parameter.address,
-            targetDecibels
+        gainUnit.globalGain = targetDecibels
+        applyCrossfadeTreble()
+    }
+
+    func applyCrossfadeTreble() {
+        gainUnit.bands[0].gain = PCMCrossfadeTrebleAutomation.gain(
+            for: crossfadeTrebleOpenness
         )
     }
 

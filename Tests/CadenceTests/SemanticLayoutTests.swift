@@ -1,3 +1,4 @@
+import AppKit
 @testable import Cadence
 import SwiftUI
 import Testing
@@ -35,7 +36,48 @@ struct SemanticLayoutTests {
         #expect(HomeTilePresentation.resolve(hasArtwork: false) == .artworkCard)
         #expect(HomeLayoutMetrics.titleLineLimit == 2)
         #expect(HomeLayoutMetrics.subtitleLineLimit == 1)
-        #expect(HomeLayoutMetrics.artworkCardHeight < 264)
+    }
+
+    @MainActor
+    @Test("Small Home artwork cards hug their content")
+    func smallHomeArtworkCardHugsContent() {
+        let model = CadenceAppModel.testFixture()
+        let track = LibraryTrackProjection(
+            id: UUID(),
+            title: "Rampant",
+            artistID: nil,
+            artist: "Veilr",
+            albumID: nil,
+            album: "Unknown Album",
+            duration: 180,
+            year: nil,
+            codec: "FLAC",
+            sampleRate: 48000,
+            channelCount: 2,
+            bitDepth: 24,
+            isFavorite: false,
+            customArtworkID: nil,
+            artworkID: nil,
+            relativeMediaPath: "Media/rampant.flac",
+            lastPlayedAt: nil,
+            hasSynchronizedLyrics: false
+        )
+        let cardWidth: CGFloat = 148
+        let hostingView = NSHostingView(
+            rootView: HomeTrackTile(
+                model: model,
+                track: track,
+                queue: [track],
+                queueSource: .adHoc
+            )
+            .frame(width: cardWidth)
+            .fixedSize(horizontal: false, vertical: true)
+        )
+
+        hostingView.layoutSubtreeIfNeeded()
+
+        #expect(hostingView.fittingSize.width == cardWidth)
+        #expect(hostingView.fittingSize.height <= 208)
     }
 
     @Test("Catalog grids add useful columns without inflating artwork")
