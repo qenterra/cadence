@@ -8,7 +8,7 @@
 
 **Tech Stack:** Swift 6, SwiftUI, AppKit, AVFoundation, SwiftData, UserNotifications, Swift Testing, XcodeGen.
 
-**Spec:** `docs/superpowers/specs/2026-08-30-cadence-advanced-settings-suite-design.md`
+**Spec:** `docs/superpowers/specs/CADENCE_ADVANCED_SETTINGS_SUITE_DESIGN.md`
 
 ## Global constraints
 
