@@ -371,6 +371,8 @@ struct TrackTablePresentationKey: Equatable {
     let currentTrackID: UUID?
     let isCurrentTrackPlaying: Bool
     let showsArtwork: Bool
+    let density: TrackTableDensity
+    let textSize: InterfaceTextSize
 
     init(
         modelID: ObjectIdentifier,
@@ -383,7 +385,9 @@ struct TrackTablePresentationKey: Equatable {
         renderer: TrackTableRenderer = .native,
         currentTrackID: UUID? = nil,
         isCurrentTrackPlaying: Bool = false,
-        showsArtwork: Bool = true
+        showsArtwork: Bool = true,
+        density: TrackTableDensity = .standard,
+        textSize: InterfaceTextSize = .standard
     ) {
         self.modelID = modelID
         self.context = context
@@ -396,6 +400,8 @@ struct TrackTablePresentationKey: Equatable {
         self.currentTrackID = currentTrackID
         self.isCurrentTrackPlaying = isCurrentTrackPlaying
         self.showsArtwork = showsArtwork
+        self.density = density
+        self.textSize = textSize
     }
 }
 
@@ -788,6 +794,8 @@ struct TrackTableCore: NSViewRepresentable {
     var currentTrackID: UUID?
     var isCurrentTrackPlaying = false
     var showsArtwork = true
+    var density = TrackTableDensity.standard
+    var textSize = InterfaceTextSize.standard
     var workProbe: TrackTableWorkProbe?
     @Binding var selection: Set<UUID>
 
@@ -811,7 +819,9 @@ struct TrackTableCore: NSViewRepresentable {
             renderer: renderer,
             currentTrackID: currentTrackID,
             isCurrentTrackPlaying: isCurrentTrackPlaying,
-            showsArtwork: showsArtwork
+            showsArtwork: showsArtwork,
+            density: density,
+            textSize: textSize
         )
     }
 
@@ -824,7 +834,7 @@ struct TrackTableCore: NSViewRepresentable {
         tableView.headerView = nil
         tableView.style = .plain
         tableView.backgroundColor = .clear
-        tableView.rowHeight = 58
+        tableView.rowHeight = density.rowHeight
         tableView.intercellSpacing = .zero
         tableView.selectionHighlightStyle = .none
         tableView.allowsMultipleSelection = true
@@ -885,8 +895,12 @@ struct TrackTableCore: NSViewRepresentable {
         to scrollView: NSScrollView,
         coordinator: Coordinator
     ) {
-        guard scrollView.documentView is NSTableView else {
+        guard let tableView = scrollView.documentView as? NSTableView else {
             return
+        }
+        if tableView.rowHeight != density.rowHeight {
+            tableView.rowHeight = density.rowHeight
+            tableView.noteHeightOfRows(withIndexesChanged: IndexSet(integersIn: 0 ..< totalCount))
         }
         scrollView.hasVerticalScroller = scrollOwnership == .contained
         scrollView.verticalScrollElasticity = scrollOwnership == .contained

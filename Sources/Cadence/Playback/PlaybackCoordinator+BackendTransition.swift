@@ -139,7 +139,15 @@ extension PlaybackCoordinator {
             volume: volume,
             normalizationGain: normalizationGain(
                 for: current.track
-            )
+            ),
+            nextNormalizationGain: next.map {
+                normalizationGain(for: $0.track)
+            } ?? 1,
+            crossfadeDuration: next == nil || repeatMode == .one
+                ? 0
+                : CadencePreferences.crossfadeDuration(
+                    in: preferences
+                ).seconds
         )
         return (request, next)
     }

@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 
 enum CatalogCardSize: String, CaseIterable, Codable, Identifiable, Sendable {
     case automatic
@@ -125,7 +126,11 @@ enum CadencePreferences {
     enum Keys {
         static let appearance = "appearance"
         static let catalogCardSize = "catalog.cardSize"
+        static let interfaceTextSize = "interface.textSize"
+        static let startupPage = "navigation.startupPage"
+        static let lastNavigationDestination = "navigation.lastDestination"
         static let showsTrackArtwork = "trackTable.showsArtwork"
+        static let trackTableDensity = "trackTable.density"
         static let playbackTimeDisplay = "playback.timeDisplay"
         static let homeSectionOrder = "home.sectionOrder"
         static let hiddenHomeSections = "home.hiddenSections"
@@ -133,9 +138,15 @@ enum CadencePreferences {
         static let previousTrackBehavior = "playback.previousBehavior"
         static let seekInterval = "playback.seekInterval"
         static let volumeNormalization = "playback.volumeNormalization"
+        static let volumeAdjustmentStep = "playback.volumeAdjustmentStep"
+        static let crossfadeDuration = "playback.crossfadeDuration"
         static let resumesAfterRouteRecovery =
             "playback.resumesAfterRouteRecovery"
         static let lyricsTextSize = "lyrics.textSize"
+        static let showsTechnicalInformation = "nowPlaying.showsTechnicalInformation"
+        static let preventsDisplaySleep = "playback.preventsDisplaySleep"
+        static let listeningHistoryRetention = "library.listeningHistoryRetention"
+        static let trashCleanupRetention = "library.trashCleanupRetention"
         static let playbackSession = "playback.session.v1"
     }
 
@@ -226,100 +237,7 @@ enum CadencePreferences {
         descriptors.filter(\.isResettable)
     }
 
-    private static let descriptors: [CadencePreferenceDescriptor] = [
-        .string(
-            Keys.appearance,
-            default: CadenceAppearance.system.rawValue,
-            allowed: Set(CadenceAppearance.allCases.map(\.rawValue))
-        ),
-        .string(
-            Keys.catalogCardSize,
-            default: CatalogCardSize.automatic.rawValue,
-            allowed: Set(CatalogCardSize.allCases.map(\.rawValue))
-        ),
-        .bool(Keys.showsTrackArtwork, default: true),
-        .string(
-            Keys.playbackTimeDisplay,
-            default: PlaybackTimeDisplayMode.elapsed.rawValue,
-            allowed: Set(PlaybackTimeDisplayMode.allCases.map(\.rawValue))
-        ),
-        .string(Keys.homeSectionOrder, default: "pinned,favorites"),
-        .string(Keys.hiddenHomeSections, default: ""),
-        .bool(Keys.restoresQueue, default: true),
-        .string(
-            Keys.previousTrackBehavior,
-            default: PreviousTrackBehavior.restartCurrent.rawValue,
-            allowed: Set(PreviousTrackBehavior.allCases.map(\.rawValue))
-        ),
-        .integer(
-            Keys.seekInterval,
-            default: SeekInterval.seconds15.rawValue,
-            allowed: Set(SeekInterval.allCases.map(\.rawValue))
-        ),
-        .string(
-            Keys.volumeNormalization,
-            default: VolumeNormalizationMode.off.rawValue,
-            allowed: Set(VolumeNormalizationMode.allCases.map(\.rawValue))
-        ),
-        .bool(Keys.resumesAfterRouteRecovery, default: true),
-        .string(
-            Keys.lyricsTextSize,
-            default: LyricsTextSize.standard.rawValue,
-            allowed: Set(LyricsTextSize.allCases.map(\.rawValue))
-        ),
-        .bool("navigationRail.expanded", default: true),
-        .string(
-            "navigationRail.order",
-            default: NavigationRailConfiguration.defaultOrderRawValue
-        ),
-        .string("navigationRail.hidden", default: ""),
-        .bool(CadenceModePreferences.isEnabledKey, default: true),
-        .bool(CadenceModePreferences.reactsToBassKey, default: true),
-        .bool(CadenceModePreferences.showsLyricsKey, default: true),
-        .bool(
-            CadenceModePreferences.showsTrackInformationKey,
-            default: true
-        ),
-        .bool(CadenceModePreferences.staysActiveKey, default: false),
-        .bool(CadenceNotificationPreferences.trackChangesKey, default: false),
-        .bool(
-            CadenceNotificationPreferences.updateAvailabilityKey,
-            default: false
-        ),
-        .bool("updates.includesBeta", default: false),
-        .string("albums.sortField", default: AlbumSortField.artist.rawValue),
-        .bool("albums.sortDescending", default: false),
-        .string("artists.sortField", default: ArtistSortField.name.rawValue),
-        .bool("artists.sortDescending", default: false),
-        .string(
-            "library.favoriteSection",
-            default: FavoriteCatalogSection.songs.rawValue
-        ),
-        .string(
-            "trackTable.visibleColumns",
-            default: TrackTableColumn.defaultRawValue
-        ),
-        .integer("trackTable.columnDefaultsVersion", default: 0),
-        .string(
-            "trackTable.sortField",
-            default: TrackTableSortField.song.rawValue
-        ),
-        .string(
-            "trackTable.sortDirection",
-            default: TrackTableSortDirection.ascending.rawValue
-        ),
-        .double("playlists.sidebarWidth", default: 270, range: 160 ... 720),
-        .double("tags.sidebarWidth", default: 300, range: 160 ... 720),
-        .double("tags.inspectorWidth", default: 330, range: 160 ... 720),
-        .double("smartCollections.listWidth", default: 270, range: 160 ... 720),
-        .double(
-            "smartCollections.builderWidth",
-            default: 430,
-            range: 160 ... 720
-        ),
-    ]
-
-    private static func repairedStringEnum<Value: RawRepresentable>(
+    static func repairedStringEnum<Value: RawRepresentable>(
         _: Value.Type,
         key: String,
         fallback: Value,
@@ -329,6 +247,20 @@ enum CadencePreferences {
             let rawValue = defaults.string(forKey: key),
             let value = Value(rawValue: rawValue)
         else {
+            defaults.set(fallback.rawValue, forKey: key)
+            return fallback
+        }
+        return value
+    }
+
+    static func repairedIntegerEnum<Value: RawRepresentable>(
+        _: Value.Type,
+        key: String,
+        fallback: Value,
+        defaults: UserDefaults
+    ) -> Value where Value.RawValue == Int {
+        let rawValue = defaults.object(forKey: key) as? Int
+        guard let value = rawValue.flatMap(Value.init(rawValue:)) else {
             defaults.set(fallback.rawValue, forKey: key)
             return fallback
         }

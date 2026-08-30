@@ -354,7 +354,9 @@ extension TrackTableCore {
                     isFocused: false,
                     isLiveScrolling: interactionState.isLiveScrolling,
                     reduceMotion: reduceMotion,
-                    showsArtwork: parent.showsArtwork
+                    showsArtwork: parent.showsArtwork,
+                    density: parent.density,
+                    textSize: parent.textSize
                 )
                 commitConfiguredVirtualStamp(.placeholder, at: row)
                 request(pageContaining: row)
@@ -379,7 +381,9 @@ extension TrackTableCore {
                 isFocused: isFocused,
                 isLiveScrolling: interactionState.isLiveScrolling,
                 reduceMotion: reduceMotion,
-                showsArtwork: parent.showsArtwork
+                showsArtwork: parent.showsArtwork,
+                density: parent.density,
+                textSize: parent.textSize
             )
             commitConfiguredVirtualStamp(.track(track), at: row)
             requestNextPageIfNeeded(row: row)

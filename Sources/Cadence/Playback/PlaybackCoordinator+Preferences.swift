@@ -21,6 +21,9 @@ extension PlaybackCoordinator {
         activeBackend?.setNormalizationGain(
             normalizationGain(for: track)
         )
+        Task { @MainActor [weak self] in
+            await self?.prepareFollowingTrack()
+        }
     }
 
     func normalizationGain(

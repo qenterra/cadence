@@ -6,6 +6,8 @@ struct NotificationsSettingsCard: View {
     private var notifiesWhenTrackChanges = false
     @AppStorage(CadenceNotificationPreferences.updateAvailabilityKey)
     private var notifiesWhenUpdateIsAvailable = false
+    @AppStorage(CadenceNotificationPreferences.foregroundBannersKey)
+    private var showsForegroundBanners = true
     @State private var authorizationDenied = false
 
     var body: some View {
@@ -21,6 +23,11 @@ struct NotificationsSettingsCard: View {
             SettingsToggleRow(
                 "When Updates Are Available",
                 isOn: updateNotificationsBinding
+            )
+
+            SettingsToggleRow(
+                "Show Banners While Cadence Is Active",
+                isOn: $showsForegroundBanners
             )
 
             notificationHelp

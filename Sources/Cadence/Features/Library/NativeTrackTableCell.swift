@@ -1,52 +1,6 @@
 import AppKit
 import QuartzCore
 
-typealias NativeTrackArtworkLoader = @MainActor @Sendable (
-    UUID,
-    ArtworkAssetVariant
-) async -> ArtworkAsset?
-
-enum NativeTrackTableAction: Equatable, Sendable {
-    case select
-    case play
-    case favorite
-    case artist
-    case album
-}
-
-enum NativeTrackTableChromeTone: Equatable, Sendable {
-    case clear
-    case selection
-    case hover
-    case primary
-    case secondary
-    case tertiary
-}
-
-struct NativeTrackTableChromePresentation: Equatable, Sendable {
-    let fill: NativeTrackTableChromeTone
-    let outline: NativeTrackTableChromeTone
-    let favorite: NativeTrackTableChromeTone
-    let action: NativeTrackTableChromeTone
-
-    static func resolve(
-        isSelected: Bool,
-        isFocused _: Bool,
-        isHovered: Bool,
-        isLiveScrolling _: Bool,
-        isFavorite: Bool
-    ) -> NativeTrackTableChromePresentation {
-        NativeTrackTableChromePresentation(
-            fill: isSelected
-                ? .selection
-                : isHovered ? .hover : .clear,
-            outline: .clear,
-            favorite: isFavorite ? .primary : .secondary,
-            action: isHovered ? .primary : .tertiary
-        )
-    }
-}
-
 @MainActor
 private final class NativeTrackMetadataControl: NSTextField {
     var hoverChanged: (() -> Void)?
@@ -168,6 +122,8 @@ final class NativeTrackTableCell: NSTableCellView {
     private var isLiveScrolling = false
     private var reduceMotion = false
     private var showsArtwork = true
+    private var density = TrackTableDensity.standard
+    private var textSize = InterfaceTextSize.standard
     private var isHovered = false
     private var artworkTask: Task<Void, Never>?
     private var artworkGeneration: UInt64 = 0
@@ -240,6 +196,8 @@ final class NativeTrackTableCell: NSTableCellView {
         isLiveScrolling: Bool,
         reduceMotion: Bool = false,
         showsArtwork: Bool = true,
+        density: TrackTableDensity = .standard,
+        textSize: InterfaceTextSize = .standard,
         artworkLoader: NativeTrackArtworkLoader? = nil
     ) {
         let started = DispatchTime.now().uptimeNanoseconds
@@ -261,6 +219,9 @@ final class NativeTrackTableCell: NSTableCellView {
             || self.columns != columns
             || self.widths != widths
             || self.showsArtwork != showsArtwork
+            || self.density != density
+        let typographyChanged = !hasConfiguredContent
+            || self.textSize != textSize
         let chromeChanged = !hasConfiguredContent
             || self.isSelected != isSelected
             || self.isFocused != isFocused
@@ -281,6 +242,8 @@ final class NativeTrackTableCell: NSTableCellView {
         self.isLiveScrolling = isLiveScrolling
         self.reduceMotion = reduceMotion
         self.showsArtwork = showsArtwork
+        self.density = density
+        self.textSize = textSize
         if let artworkLoader {
             self.artworkLoader = artworkLoader
         }
@@ -290,11 +253,12 @@ final class NativeTrackTableCell: NSTableCellView {
 
         CATransaction.begin()
         CATransaction.setDisableActions(true)
-        if contentChanged {
+        if contentChanged || typographyChanged {
             probe?.recordNativeContentApplication()
             applyContent()
+            applyTypography()
         }
-        if contentChanged || layoutChanged {
+        if contentChanged || layoutChanged || typographyChanged {
             updateArtwork(
                 request: showsArtwork ? nextProjection?.artworkRequest : nil
             )
@@ -540,10 +504,6 @@ final class NativeTrackTableCell: NSTableCellView {
 
         titleLabel.stringValue = projection.title
         titleLabel.toolTip = projection.title
-        titleLabel.font = .systemFont(
-            ofSize: NSFont.systemFontSize,
-            weight: projection.isCurrentTrack ? .semibold : .regular
-        )
         artistButton.stringValue = projection.artist
         artistButton.toolTip = projection.artist
         artistButton.isEnabled = projection.artistID != nil
@@ -567,6 +527,24 @@ final class NativeTrackTableCell: NSTableCellView {
             localized: "Play \(projection.title)"
         )
         updateMetadataLinkTones()
+    }
+
+    private func applyTypography() {
+        titleLabel.font = .systemFont(
+            ofSize: textSize.nativePrimaryPointSize,
+            weight: projection?.isCurrentTrack == true ? .semibold : .regular
+        )
+        artistButton.font = .systemFont(
+            ofSize: textSize.nativeSecondaryPointSize
+        )
+        albumButton.font = .systemFont(
+            ofSize: textSize.nativeSecondaryPointSize
+        )
+        yearLabel.font = .systemFont(ofSize: textSize.nativeSecondaryPointSize)
+        durationLabel.font = .monospacedDigitSystemFont(
+            ofSize: textSize.nativeSecondaryPointSize,
+            weight: .regular
+        )
     }
 
     private func updateChrome() {
@@ -840,7 +818,8 @@ final class NativeTrackTableCell: NSTableCellView {
         let horizontalGeometry = NativeTrackRowHorizontalGeometry(
             rowHeight: rowHeight,
             leadingX: x,
-            showsArtwork: showsArtwork
+            showsArtwork: showsArtwork,
+            artworkSize: density.artworkSize
         )
         let artworkFrame = horizontalGeometry.artworkFrame ?? .zero
         artworkLayer.frame = artworkFrame

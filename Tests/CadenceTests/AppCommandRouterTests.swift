@@ -134,6 +134,26 @@ struct AppCommandRouterTests {
         #expect(volumeDelta == 0)
     }
 
+    @Test("Volume commands use the configured adjustment step")
+    func configurableVolumeStep() {
+        var deltas: [Double] = []
+        let router = AppCommandRouter(
+            actions: AppCommandActions(
+                hasCurrentItem: { false },
+                hasPlaybackFailure: { false },
+                togglePlayback: {},
+                previousTrack: {},
+                nextTrack: {},
+                adjustVolume: { deltas.append($0) },
+                volumeStep: { VolumeAdjustmentStep.percent10.delta }
+            )
+        )
+
+        #expect(router.handle(.volumeUp, focus: .none))
+        #expect(router.handle(.volumeDown, focus: .none))
+        #expect(deltas == [0.1, -0.1])
+    }
+
     @Test("Playback failure requires its explicit Retry action")
     func failureBlocksToggle() {
         var toggleCount = 0

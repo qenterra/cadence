@@ -12,6 +12,8 @@ struct CadenceApp: App {
     @State private var updateController: CadenceUpdateController
     @AppStorage("appearance")
     private var appearanceRawValue = CadenceAppearance.system.rawValue
+    @AppStorage(CadencePreferences.Keys.interfaceTextSize)
+    private var interfaceTextSizeRawValue = InterfaceTextSize.standard.rawValue
 
     init() {
         CadencePreferences.registerDefaults()
@@ -46,6 +48,7 @@ struct CadenceApp: App {
                 minHeight: AdaptiveLayoutPolicy.minimumWindowSize.height
             )
             .tint(CadenceTheme.primaryAccent)
+            .dynamicTypeSize(interfaceTextSize.dynamicTypeSize)
             .onChange(
                 of: appearanceRawValue,
                 initial: true
@@ -83,6 +86,7 @@ struct CadenceApp: App {
                 notificationController: notificationController
             )
             .tint(CadenceTheme.primaryAccent)
+            .dynamicTypeSize(interfaceTextSize.dynamicTypeSize)
         }
         .commands {
             CommandGroup(replacing: .newItem) {}
@@ -233,6 +237,10 @@ struct CadenceApp: App {
 
     private var appearance: CadenceAppearance {
         CadenceAppearance(rawValue: appearanceRawValue) ?? .system
+    }
+
+    private var interfaceTextSize: InterfaceTextSize {
+        InterfaceTextSize(rawValue: interfaceTextSizeRawValue) ?? .standard
     }
 
     private static func makeInitialModel(

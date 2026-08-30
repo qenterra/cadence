@@ -20,6 +20,9 @@ extension PlaybackCoordinator {
             outputRoute: route ?? outputRoute,
             nextTransitionIsGapless: next.map {
                 backend == .pcm
+                    && CadencePreferences.crossfadeDuration(
+                        in: preferences
+                    ) == .off
                     && PlaybackRoutingPolicy.supportsPCM($0.track)
                     && $0.track.sampleRate == current.sampleRate
                     && $0.track.channelCount == current.channelCount

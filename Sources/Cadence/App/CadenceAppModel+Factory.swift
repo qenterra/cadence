@@ -37,10 +37,7 @@ extension CadenceAppModel {
                     remoteSource: remote.source
                 )
             ),
-            backends: [
-                PCMPlaybackBackend(),
-                NativePlaybackBackend(),
-            ],
+            backends: productionPlaybackBackends(),
             systemMediaSession: SystemMediaSession(
                 artworkProvider: systemMediaArtworkProvider
             ),
@@ -100,6 +97,21 @@ extension CadenceAppModel {
 }
 
 private extension CadenceAppModel {
+    static func productionPlaybackBackends() -> [any PlaybackBackend] {
+        [
+            CrossfadePlaybackBackend(
+                kind: .pcm,
+                primary: PCMPlaybackBackend(),
+                secondary: PCMPlaybackBackend()
+            ),
+            CrossfadePlaybackBackend(
+                kind: .native,
+                primary: NativePlaybackBackend(),
+                secondary: NativePlaybackBackend()
+            ),
+        ]
+    }
+
     static func importRuntime(
         librarySession: LibrarySession
     ) -> ImportRuntime {

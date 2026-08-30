@@ -34,12 +34,14 @@ final class PlaybackTestBackend: PlaybackBackend {
     var loadError: Error?
     var shouldSuspendNextLoad = false
     var shouldSuspendNextSeek = false
+    var shouldSuspendNextPresentationGain = false
     var simulatesAutoplayDuringLoad = false
     var loadDelay: Duration?
     var startObservations: [PlaybackStartObservation] = [.started]
     let bassMeter = PCMBassLevelMeter()
     var exposesRealtimeBass: Bool
     private(set) var loadRequests: [PlaybackBackendLoadRequest] = []
+    private(set) var loadAttemptCount = 0
     private(set) var preparedTracks: [ResolvedPlaybackTrack?] = []
     private(set) var seekTimes: [TimeInterval] = []
     private(set) var playCount = 0
@@ -50,11 +52,17 @@ final class PlaybackTestBackend: PlaybackBackend {
     private(set) var stopCount = 0
     private(set) var volumes: [Float] = []
     private(set) var normalizationGains: [Float] = []
+    private(set) var presentationGains: [(gain: Float, duration: Duration)] = []
+    private(set) var fadeInDurations: [Duration] = []
     private(set) var suspendedLoadCount = 0
     private(set) var suspendedSeekCount = 0
+    private(set) var suspendedPresentationGainCount = 0
     private(set) var resetBassCount = 0
     private var loadContinuations: [CheckedContinuation<Void, Never>] = []
     private var seekContinuations: [CheckedContinuation<Void, Never>] = []
+    private var presentationGainContinuations: [
+        CheckedContinuation<Void, Never>
+    ] = []
 
     init(
         kind: PlaybackBackendKind,
@@ -71,6 +79,7 @@ final class PlaybackTestBackend: PlaybackBackend {
     func load(
         _ request: PlaybackBackendLoadRequest
     ) async throws {
+        loadAttemptCount += 1
         if let loadError {
             throw loadError
         }
@@ -112,6 +121,11 @@ final class PlaybackTestBackend: PlaybackBackend {
         playCount += 1
     }
 
+    func play(fadeInDuration: Duration) {
+        fadeInDurations.append(fadeInDuration)
+        play()
+    }
+
     func pause() {
         pauseCount += 1
     }
@@ -133,6 +147,20 @@ final class PlaybackTestBackend: PlaybackBackend {
 
     func setNormalizationGain(_ gain: Float) {
         normalizationGains.append(gain)
+    }
+
+    func setPresentationGain(
+        _ gain: Float,
+        duration: Duration
+    ) async {
+        presentationGains.append((gain, duration))
+        if shouldSuspendNextPresentationGain {
+            shouldSuspendNextPresentationGain = false
+            suspendedPresentationGainCount += 1
+            await withCheckedContinuation { continuation in
+                presentationGainContinuations.append(continuation)
+            }
+        }
     }
 
     func stop() {
@@ -160,6 +188,13 @@ final class PlaybackTestBackend: PlaybackBackend {
             return
         }
         seekContinuations.removeFirst().resume()
+    }
+
+    func resumeNextPresentationGain() {
+        guard !presentationGainContinuations.isEmpty else {
+            return
+        }
+        presentationGainContinuations.removeFirst().resume()
     }
 }
 

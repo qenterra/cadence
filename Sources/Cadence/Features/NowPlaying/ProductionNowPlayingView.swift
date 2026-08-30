@@ -43,6 +43,8 @@ struct ProductionNowPlayingView: View {
     @State private var renameDraft = ""
     @State var isAudioDetailsPresented = false
     @State var nowPlayingLyricDocument: LyricDocument?
+    @AppStorage(CadencePreferences.Keys.showsTechnicalInformation)
+    var showsTechnicalInformation = true
     @Namespace private var cadenceModeNamespace
 
     var body: some View {

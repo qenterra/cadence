@@ -105,6 +105,62 @@ struct PlaybackCustomizationTests {
         )
     }
 
+    @Test("Crossfade preference reaches the renderer and the coordinator adopts once")
+    func configuredCrossfadeAdoptsSuccessorOnce() async throws {
+        let (defaults, suite) = try isolatedDefaults()
+        defer { defaults.removePersistentDomain(forName: suite) }
+        defaults.set(
+            CrossfadeDuration.seconds4.rawValue,
+            forKey: CadencePreferences.Keys.crossfadeDuration
+        )
+        let first = playbackTestTrack(
+            id: UUID(),
+            title: "First",
+            duration: 100,
+            replayGainTrackGain: -6
+        )
+        let second = playbackTestTrack(
+            id: UUID(),
+            title: "Second",
+            duration: 80,
+            replayGainTrackGain: -3
+        )
+        let primary = PlaybackTestBackend(kind: .pcm)
+        let secondary = PlaybackTestBackend(kind: .pcm)
+        let backend = CrossfadePlaybackBackend(
+            kind: .pcm,
+            primary: primary,
+            secondary: secondary
+        )
+        let coordinator = makePlaybackCoordinator(
+            resolver: PlaybackTestResolver(tracks: [first, second]),
+            backends: [backend],
+            preferences: defaults
+        )
+
+        #expect(
+            await coordinator.startQueue(
+                source: .adHoc,
+                trackIDs: [first.track.id, second.track.id]
+            )
+        )
+        await waitUntil { secondary.loadRequests.count == 1 }
+        #expect(primary.loadRequests.first?.next == nil)
+        #expect(secondary.loadRequests.first?.current.track.id == second.track.id)
+
+        primary.emit(.timeline(.init(mediaTime: 96.1, hostUptime: 1, rate: 1)))
+        await waitUntil {
+            coordinator.state.currentTrack?.id == second.track.id
+        }
+        primary.emit(.finished(trackID: first.track.id, successorStarted: nil))
+        await Task.yield()
+
+        #expect(coordinator.state.currentTrack?.id == second.track.id)
+        #expect(coordinator.state.queue?.currentIndex == 1)
+        #expect(coordinator.state.duration == second.track.duration)
+        #expect(coordinator.state.audioPath?.codec == second.track.codec)
+    }
+
     @Test("A managed queue restores paused at the saved item and position")
     func queueRestoration() async throws {
         let (defaults, suite) = try isolatedDefaults()
@@ -195,5 +251,13 @@ struct PlaybackCustomizationTests {
     private func isolatedDefaults() throws -> (UserDefaults, String) {
         let suite = "PlaybackCustomizationTests-\(UUID().uuidString)"
         return try (#require(UserDefaults(suiteName: suite)), suite)
+    }
+
+    private func waitUntil(
+        _ condition: @escaping @MainActor () -> Bool
+    ) async {
+        for _ in 0 ..< 100 where !condition() {
+            await Task.yield()
+        }
     }
 }

@@ -67,15 +67,24 @@ extension PlaybackCoordinator {
             .filter { $0.kind != prepared.backend.kind }
             .forEach { $0.stop() }
         stage(prepared, startTime: startTime)
+        let next = repeatMode == .one ? nil : prepared.next
         let request = PlaybackBackendLoadRequest(
             current: prepared.current,
-            next: repeatMode == .one ? nil : prepared.next,
+            next: next,
             startTime: startTime,
             autoplay: autoplay,
             volume: volume,
             normalizationGain: normalizationGain(
                 for: prepared.current.track
-            )
+            ),
+            nextNormalizationGain: next.map {
+                normalizationGain(for: $0.track)
+            } ?? 1,
+            crossfadeDuration: next == nil
+                ? 0
+                : CadencePreferences.crossfadeDuration(
+                    in: preferences
+                ).seconds
         )
         try await loadVerified(
             prepared.backend,
@@ -291,7 +300,17 @@ extension PlaybackCoordinator {
                 refreshAudioPath(next: nil)
                 return
             }
-            try await activeBackend.prepareNext(next)
+            try await activeBackend.prepareNext(
+                PlaybackBackendPreparationRequest(
+                    track: next,
+                    normalizationGain: next.map {
+                        normalizationGain(for: $0.track)
+                    } ?? 1,
+                    crossfadeDuration: CadencePreferences.crossfadeDuration(
+                        in: preferences
+                    ).seconds
+                )
+            )
             guard followingPreparationIsCurrent(
                 intent: intent,
                 loadGeneration: expectedLoadGeneration,

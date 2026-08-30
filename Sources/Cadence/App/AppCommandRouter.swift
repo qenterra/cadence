@@ -34,6 +34,25 @@ struct AppCommandActions {
     let previousTrack: () -> Void
     let nextTrack: () -> Void
     let adjustVolume: (Double) -> Void
+    let volumeStep: () -> Double
+
+    init(
+        hasCurrentItem: @escaping () -> Bool,
+        hasPlaybackFailure: @escaping () -> Bool,
+        togglePlayback: @escaping () -> Void,
+        previousTrack: @escaping () -> Void,
+        nextTrack: @escaping () -> Void,
+        adjustVolume: @escaping (Double) -> Void,
+        volumeStep: @escaping () -> Double = { 0.05 }
+    ) {
+        self.hasCurrentItem = hasCurrentItem
+        self.hasPlaybackFailure = hasPlaybackFailure
+        self.togglePlayback = togglePlayback
+        self.previousTrack = previousTrack
+        self.nextTrack = nextTrack
+        self.adjustVolume = adjustVolume
+        self.volumeStep = volumeStep
+    }
 }
 
 @MainActor
@@ -69,9 +88,9 @@ struct AppCommandRouter {
             }
             actions.nextTrack()
         case .volumeUp:
-            actions.adjustVolume(0.05)
+            actions.adjustVolume(actions.volumeStep())
         case .volumeDown:
-            actions.adjustVolume(-0.05)
+            actions.adjustVolume(-actions.volumeStep())
         }
         return true
     }
@@ -98,6 +117,9 @@ extension AppCommandRouter {
                 },
                 adjustVolume: { delta in
                     model.volume = min(max(model.volume + delta, 0), 1)
+                },
+                volumeStep: {
+                    CadencePreferences.volumeAdjustmentStep().delta
                 }
             )
         )

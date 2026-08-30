@@ -7,10 +7,13 @@ struct NowPlayingMetadataBadges: Equatable, Sendable {
     static func resolve(
         audioPath: AudioPathSnapshot?,
         currentTrackID: UUID,
-        lyricDocument: LyricDocument?
+        lyricDocument: LyricDocument?,
+        showsTechnicalInformation: Bool = true
     ) -> Self {
         Self(
-            audioQuality: audioPath.map(AudioQualityPresentation.init),
+            audioQuality: showsTechnicalInformation
+                ? audioPath.map(AudioQualityPresentation.init)
+                : nil,
             showsSynchronizedLyrics: lyricDocument?.trackID
                 == .managed(currentTrackID)
                 && lyricDocument?.timingStatus == .synchronized

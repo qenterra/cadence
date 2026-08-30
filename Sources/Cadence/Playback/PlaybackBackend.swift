@@ -1,3 +1,4 @@
+import AVFoundation
 import Foundation
 
 struct PlaybackBackendLoadRequest: Sendable {
@@ -7,6 +8,8 @@ struct PlaybackBackendLoadRequest: Sendable {
     let autoplay: Bool
     let volume: Float
     let normalizationGain: Float
+    let nextNormalizationGain: Float
+    let crossfadeDuration: TimeInterval
 
     init(
         current: ResolvedPlaybackTrack,
@@ -14,7 +17,9 @@ struct PlaybackBackendLoadRequest: Sendable {
         startTime: TimeInterval,
         autoplay: Bool,
         volume: Float,
-        normalizationGain: Float = 1
+        normalizationGain: Float = 1,
+        nextNormalizationGain: Float = 1,
+        crossfadeDuration: TimeInterval = 0
     ) {
         self.current = current
         self.next = next
@@ -22,6 +27,24 @@ struct PlaybackBackendLoadRequest: Sendable {
         self.autoplay = autoplay
         self.volume = volume
         self.normalizationGain = normalizationGain
+        self.nextNormalizationGain = nextNormalizationGain
+        self.crossfadeDuration = max(crossfadeDuration, 0)
+    }
+}
+
+struct PlaybackBackendPreparationRequest: Sendable {
+    let track: ResolvedPlaybackTrack?
+    let normalizationGain: Float
+    let crossfadeDuration: TimeInterval
+
+    init(
+        track: ResolvedPlaybackTrack?,
+        normalizationGain: Float = 1,
+        crossfadeDuration: TimeInterval = 0
+    ) {
+        self.track = track
+        self.normalizationGain = normalizationGain
+        self.crossfadeDuration = max(crossfadeDuration, 0)
     }
 }
 
@@ -60,7 +83,9 @@ protocol PlaybackBackend: AnyObject {
     func load(_ request: PlaybackBackendLoadRequest) async throws
     func verifyStart(timeout: Duration) async -> PlaybackStartObservation
     func prepareNext(_ track: ResolvedPlaybackTrack?) async throws
+    func prepareNext(_ request: PlaybackBackendPreparationRequest) async throws
     func play()
+    func play(fadeInDuration: Duration)
     func pause()
     func seek(to time: TimeInterval) async throws
     func setVolume(_ volume: Float)
@@ -83,9 +108,24 @@ extension PlaybackBackend {
         duration _: Duration
     ) async {}
 
+    func prepareNext(
+        _ request: PlaybackBackendPreparationRequest
+    ) async throws {
+        try await prepareNext(request.track)
+    }
+
+    func play(fadeInDuration _: Duration) {
+        play()
+    }
+
     func setNormalizationGain(_: Float) {}
 
     func resetBassAnalysis() {}
+}
+
+@MainActor
+protocol PlaybackAirPlayPlayerProviding: AnyObject {
+    var airPlayPlayer: AVPlayer? { get }
 }
 
 /// Resolves stable catalog or transient queue identities into playable media.

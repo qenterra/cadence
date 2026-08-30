@@ -2,13 +2,14 @@ import AVFoundation
 import Foundation
 
 @MainActor
-final class NativePlaybackBackend: NSObject, PlaybackBackend {
+final class NativePlaybackBackend: NSObject, PlaybackBackend,
+    PlaybackAirPlayPlayerProviding {
     let kind = PlaybackBackendKind.native
     var onEvent: ((PlaybackBackendEvent) -> Void)?
 
     private let player = AVPlayer()
 
-    var airPlayPlayer: AVPlayer {
+    var airPlayPlayer: AVPlayer? {
         player
     }
 
@@ -89,12 +90,16 @@ final class NativePlaybackBackend: NSObject, PlaybackBackend {
     }
 
     func play() {
+        play(fadeInDuration: .milliseconds(80))
+    }
+
+    func play(fadeInDuration: Duration) {
         gainRampGeneration &+= 1
         presentationGain = 0
         applyVolume()
         player.play()
         Task { @MainActor [weak self] in
-            await self?.setPresentationGain(1, duration: .milliseconds(80))
+            await self?.setPresentationGain(1, duration: fadeInDuration)
         }
     }
 

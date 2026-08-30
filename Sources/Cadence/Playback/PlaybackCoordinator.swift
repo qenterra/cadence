@@ -352,7 +352,8 @@ final class PlaybackCoordinator {
     }
 
     var airPlayPlayer: AVPlayer? {
-        (backends[.native] as? NativePlaybackBackend)?.airPlayPlayer
+        (backends[.native] as? any PlaybackAirPlayPlayerProviding)?
+            .airPlayPlayer
     }
 
     func presentationTime(

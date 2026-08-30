@@ -4,6 +4,346 @@
     "" : {
 
     },
+    "1 Year" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 год"
+          }
+        }
+      }
+    },
+    "12 seconds" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "12 секунд"
+          }
+        }
+      }
+    },
+    "2 seconds" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "2 секунды"
+          }
+        }
+      }
+    },
+    "30 Days" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "30 дней"
+          }
+        }
+      }
+    },
+    "4 seconds" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "4 секунды"
+          }
+        }
+      }
+    },
+    "6 seconds" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "6 секунд"
+          }
+        }
+      }
+    },
+    "8 seconds" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "8 секунд"
+          }
+        }
+      }
+    },
+    "90 Days" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "90 дней"
+          }
+        }
+      }
+    },
+    "A restored queue opens paused. Crossfade applies only between normally advancing tracks. Track ReplayGain is used only when the file provides it." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Восстановленная очередь открывается на паузе. Кроссфейд применяется только при обычном переходе к следующему треку. ReplayGain трека используется только при наличии этих данных в файле."
+          }
+        }
+      }
+    },
+    "After 1 Year" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Через 1 год"
+          }
+        }
+      }
+    },
+    "After 30 Days" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Через 30 дней"
+          }
+        }
+      }
+    },
+    "After 90 Days" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Через 90 дней"
+          }
+        }
+      }
+    },
+    "Cadence is playing audio" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cadence воспроизводит аудио"
+          }
+        }
+      }
+    },
+    "Card size applies to albums, artists, playlists, smart collections, and Home. Text size applies throughout the app. Track-list layout has its own Library settings." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Размер карточек применяется к альбомам, артистам, плейлистам, смарт-коллекциям и странице «Главная». Размер текста применяется во всём приложении. Вид списков треков настраивается отдельно в разделе «Медиатека»."
+          }
+        }
+      }
+    },
+    "Comfortable" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Просторно"
+          }
+        }
+      }
+    },
+    "Compact" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Компактно"
+          }
+        }
+      }
+    },
+    "Crossfade" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Кроссфейд"
+          }
+        }
+      }
+    },
+    "Empty Trash Automatically" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Очищать корзину автоматически"
+          }
+        }
+      }
+    },
+    "Forever" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Бессрочно"
+          }
+        }
+      }
+    },
+    "Keep Listening History" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Хранить историю прослушивания"
+          }
+        }
+      }
+    },
+    "Last Opened" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Последняя открытая"
+          }
+        }
+      }
+    },
+    "Never" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Никогда"
+          }
+        }
+      }
+    },
+    "Page at Launch" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Страница при запуске"
+          }
+        }
+      }
+    },
+    "Prevent Display Sleep While Playing" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не выключать дисплей во время воспроизведения"
+          }
+        }
+      }
+    },
+    "Reset Track Lists" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сбросить вид списков треков"
+          }
+        }
+      }
+    },
+    "Restores the default columns, sorting, density, and artwork layout in every track list." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Восстанавливает стандартные колонки, сортировку, плотность и расположение обложек во всех списках треков."
+          }
+        }
+      }
+    },
+    "Row Density" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Плотность строк"
+          }
+        }
+      }
+    },
+    "Shorter history periods clear old play dates without deleting tracks. Automatic Trash cleanup permanently removes expired items from the managed library." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Короткий срок хранения очищает старые даты прослушивания, не удаляя треки. Автоматическая очистка корзины безвозвратно удаляет просроченные элементы из управляемой медиатеки."
+          }
+        }
+      }
+    },
+    "Show Artwork" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показывать обложки"
+          }
+        }
+      }
+    },
+    "Show Banners While Cadence Is Active" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показывать баннеры при активном окне Cadence"
+          }
+        }
+      }
+    },
+    "Show Technical Audio Information" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показывать техническую информацию об аудио"
+          }
+        }
+      }
+    },
+    "Table Layout" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вид таблиц"
+          }
+        }
+      }
+    },
+    "Text Size" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Размер текста"
+          }
+        }
+      }
+    },
+    "Volume Step" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Шаг изменения громкости"
+          }
+        }
+      }
+    },
     " · " : {
       "localizations" : {
         "ru" : {
@@ -6542,6 +6882,7 @@
       }
     },
     "A restored queue opens paused. Track ReplayGain is used only when the file provides it." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ru" : {
           "stringUnit" : {
@@ -6974,6 +7315,7 @@
       }
     },
     "Show Artwork in Track Lists" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ru" : {
           "stringUnit" : {

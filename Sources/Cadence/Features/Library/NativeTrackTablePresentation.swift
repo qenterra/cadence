@@ -63,15 +63,14 @@ struct NativeTrackRowGeometry: Equatable, Sendable {
 }
 
 struct NativeTrackRowHorizontalGeometry: Equatable, Sendable {
-    static let artworkSize: CGFloat = 40
-
     let artworkFrame: CGRect?
     let songOriginX: CGFloat
 
     init(
         rowHeight: CGFloat,
         leadingX: CGFloat,
-        showsArtwork: Bool
+        showsArtwork: Bool,
+        artworkSize: CGFloat = TrackTableDensity.standard.artworkSize
     ) {
         guard showsArtwork else {
             artworkFrame = nil
@@ -80,12 +79,12 @@ struct NativeTrackRowHorizontalGeometry: Equatable, Sendable {
         }
         artworkFrame = CGRect(
             x: leadingX,
-            y: (rowHeight - Self.artworkSize) / 2,
-            width: Self.artworkSize,
-            height: Self.artworkSize
+            y: (rowHeight - artworkSize) / 2,
+            width: artworkSize,
+            height: artworkSize
         )
         songOriginX = leadingX
-            + Self.artworkSize
+            + artworkSize
             + TrackTableColumnPolicy.songContentSpacing
     }
 }

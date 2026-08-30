@@ -14,10 +14,19 @@ struct SettingsPlaybackView: View {
     private var seekIntervalRawValue = SeekInterval.seconds15.rawValue
     @AppStorage(CadencePreferences.Keys.volumeNormalization)
     private var normalizationRawValue = VolumeNormalizationMode.off.rawValue
+    @AppStorage(CadencePreferences.Keys.volumeAdjustmentStep)
+    private var volumeAdjustmentStepRawValue =
+        VolumeAdjustmentStep.percent5.rawValue
+    @AppStorage(CadencePreferences.Keys.crossfadeDuration)
+    private var crossfadeDurationRawValue = CrossfadeDuration.off.rawValue
     @AppStorage(CadencePreferences.Keys.resumesAfterRouteRecovery)
     private var resumesAfterRouteRecovery = true
+    @AppStorage(CadencePreferences.Keys.preventsDisplaySleep)
+    private var preventsDisplaySleep = false
     @AppStorage(CadencePreferences.Keys.lyricsTextSize)
     private var lyricsTextSizeRawValue = LyricsTextSize.standard.rawValue
+    @AppStorage(CadencePreferences.Keys.showsTechnicalInformation)
+    private var showsTechnicalInformation = true
 
     @AppStorage(CadenceModePreferences.isEnabledKey)
     private var isCadenceModeEnabled = CadenceModeOptions.default.isEnabled
@@ -53,9 +62,21 @@ struct SettingsPlaybackView: View {
                 }
             }
 
+            Picker("Volume Step", selection: volumeAdjustmentStepBinding) {
+                ForEach(VolumeAdjustmentStep.allCases) { step in
+                    Text(step.title).tag(step)
+                }
+            }
+
             Picker("Volume Normalization", selection: normalizationBinding) {
                 ForEach(VolumeNormalizationMode.allCases) { mode in
                     Text(mode.title).tag(mode)
+                }
+            }
+
+            Picker("Crossfade", selection: crossfadeDurationBinding) {
+                ForEach(CrossfadeDuration.allCases) { duration in
+                    Text(duration.title).tag(duration)
                 }
             }
 
@@ -64,8 +85,16 @@ struct SettingsPlaybackView: View {
                 isOn: $resumesAfterRouteRecovery
             )
 
+            SettingsToggleRow(
+                "Prevent Display Sleep While Playing",
+                isOn: $preventsDisplaySleep
+            )
+
             Text(
-                "A restored queue opens paused. Track ReplayGain is used only when the file provides it."
+                """
+                A restored queue opens paused. Crossfade applies only between normally advancing tracks. \
+                Track ReplayGain is used only when the file provides it.
+                """
             )
             .font(.caption)
             .foregroundStyle(.secondary)
@@ -74,6 +103,12 @@ struct SettingsPlaybackView: View {
             model.refreshPlaybackPreferences()
         }
         .onChange(of: normalizationRawValue) {
+            model.refreshPlaybackPreferences()
+        }
+        .onChange(of: volumeAdjustmentStepRawValue) {
+            model.refreshPlaybackPreferences()
+        }
+        .onChange(of: crossfadeDurationRawValue) {
             model.refreshPlaybackPreferences()
         }
         .onChange(of: restoresQueue) {
@@ -94,6 +129,11 @@ struct SettingsPlaybackView: View {
                     Text(size.title).tag(size)
                 }
             }
+
+            SettingsToggleRow(
+                "Show Technical Audio Information",
+                isOn: $showsTechnicalInformation
+            )
         }
     }
 
@@ -166,6 +206,25 @@ struct SettingsPlaybackView: View {
         rawBinding(
             $normalizationRawValue,
             fallback: VolumeNormalizationMode.off
+        )
+    }
+
+    private var volumeAdjustmentStepBinding: Binding<VolumeAdjustmentStep> {
+        Binding(
+            get: {
+                VolumeAdjustmentStep(rawValue: volumeAdjustmentStepRawValue)
+                    ?? .percent5
+            },
+            set: { volumeAdjustmentStepRawValue = $0.rawValue }
+        )
+    }
+
+    private var crossfadeDurationBinding: Binding<CrossfadeDuration> {
+        Binding(
+            get: {
+                CrossfadeDuration(rawValue: crossfadeDurationRawValue) ?? .off
+            },
+            set: { crossfadeDurationRawValue = $0.rawValue }
         )
     }
 

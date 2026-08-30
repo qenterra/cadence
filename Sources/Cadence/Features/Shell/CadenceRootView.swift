@@ -35,6 +35,14 @@ struct CadenceRootView: View {
     @State var isSearchPresented = false
     @State private var cadenceModeSession: CadenceModeSession
     @State private var folderIconController = LibraryFolderIconController()
+    @State private var displaySleepController = DisplaySleepController()
+    @State private var hasAppliedStartupDestination = false
+    @AppStorage(CadencePreferences.Keys.startupPage)
+    private var startupPageRawValue = StartupPage.home.rawValue
+    @AppStorage(CadencePreferences.Keys.lastNavigationDestination)
+    private var lastNavigationDestinationRawValue = NavigationDestination.home.rawValue
+    @AppStorage(CadencePreferences.Keys.preventsDisplaySleep)
+    private var preventsDisplaySleep = false
     @AppStorage(CadenceModePreferences.isEnabledKey)
     private var isCadenceModeEnabled = CadenceModeOptions.default.isEnabled
     @AppStorage(CadenceModePreferences.reactsToBassKey)
@@ -269,6 +277,7 @@ struct CadenceRootView: View {
             )
         }
         .task {
+            applyInitialDestinationIfNeeded()
             synchronizeCadenceModeOptions(cadenceModeOptions)
             model.activateSystemMediaSession()
             await model.recoverManagedLibraryIfNeeded()
@@ -297,13 +306,27 @@ struct CadenceRootView: View {
         }
         .onDisappear {
             cadenceModeSession.deactivate()
+            displaySleepController.stop()
             model.shutdownPlayback()
         }
         .onChange(of: model.selectedDestination) {
             dismissSearch()
+            persistLastDestinationIfEligible()
         }
         .onChange(of: cadenceModeOptions) { _, options in
             synchronizeCadenceModeOptions(options)
+        }
+        .onChange(of: model.isPlaying, initial: true) { _, isPlaying in
+            displaySleepController.update(
+                isPlaying: isPlaying,
+                isEnabled: preventsDisplaySleep
+            )
+        }
+        .onChange(of: preventsDisplaySleep) { _, isEnabled in
+            displaySleepController.update(
+                isPlaying: model.isPlaying,
+                isEnabled: isEnabled
+            )
         }
         .onKeyPress(.escape, phases: .down) { _ in
             guard isSearchPresented || !activeSearchQuery.isEmpty else {
@@ -344,6 +367,33 @@ struct CadenceRootView: View {
 }
 
 private extension CadenceRootView {
+    func applyInitialDestinationIfNeeded() {
+        guard !hasAppliedStartupDestination else {
+            return
+        }
+        hasAppliedStartupDestination = true
+        guard StartupNavigationPolicy.shouldApply(
+            currentDestination: model.selectedDestination,
+            isPlaybackWorkspacePresented: model.isPlaybackWorkspacePresented
+        ) else {
+            return
+        }
+        let startupPage = StartupPage(rawValue: startupPageRawValue) ?? .home
+        model.requestNavigationDestination(
+            StartupNavigationPolicy.resolve(
+                startupPage: startupPage,
+                lastDestinationRawValue: lastNavigationDestinationRawValue
+            )
+        )
+    }
+
+    func persistLastDestinationIfEligible() {
+        guard StartupNavigationPolicy.shouldPersist(model.selectedDestination) else {
+            return
+        }
+        lastNavigationDestinationRawValue = model.selectedDestination.rawValue
+    }
+
     var ownsSpaceLocally: Bool {
         model.playbackWorkspace == .lyricsEditor
             || (

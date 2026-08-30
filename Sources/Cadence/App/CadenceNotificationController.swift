@@ -4,6 +4,7 @@ import UserNotifications
 enum CadenceNotificationPreferences {
     static let trackChangesKey = "notifications.trackChanges"
     static let updateAvailabilityKey = "notifications.updateAvailability"
+    static let foregroundBannersKey = "notifications.foregroundBanners"
     static let lastUpdateVersionKey = "notifications.lastUpdateVersion"
 }
 
@@ -17,6 +18,19 @@ struct CadenceNotificationMessage: Equatable, Sendable {
     let identifier: String
     let title: String
     let body: String
+    let presentsWhenActive: Bool
+
+    init(
+        identifier: String,
+        title: String,
+        body: String,
+        presentsWhenActive: Bool = true
+    ) {
+        self.identifier = identifier
+        self.title = title
+        self.body = body
+        self.presentsWhenActive = presentsWhenActive
+    }
 }
 
 @MainActor
@@ -87,7 +101,10 @@ final class CadenceNotificationController {
             CadenceNotificationMessage(
                 identifier: "cadence.track-change",
                 title: track.title,
-                body: trackNotificationBody(for: track)
+                body: trackNotificationBody(for: track),
+                presentsWhenActive: defaults.bool(
+                    forKey: CadenceNotificationPreferences.foregroundBannersKey
+                )
             )
         )
     }
@@ -114,6 +131,9 @@ final class CadenceNotificationController {
                 title: String(localized: "Cadence Update Available"),
                 body: String(
                     localized: "Version \(displayVersion) is ready to install."
+                ),
+                presentsWhenActive: defaults.bool(
+                    forKey: CadenceNotificationPreferences.foregroundBannersKey
                 )
             )
         )
@@ -134,8 +154,8 @@ final class MacOSCadenceNotificationCenter:
     NSObject,
     CadenceSystemNotificationCenter,
     UNUserNotificationCenterDelegate {
-    nonisolated static let foregroundPresentationOptions:
-        UNNotificationPresentationOptions = [.banner]
+    private nonisolated static let presentsWhenActiveUserInfoKey =
+        "cadence.presentsWhenActive"
 
     private let center: UNUserNotificationCenter
 
@@ -177,11 +197,23 @@ final class MacOSCadenceNotificationCenter:
 
     nonisolated func userNotificationCenter(
         _: UNUserNotificationCenter,
-        willPresent _: UNNotification,
+        willPresent notification: UNNotification,
         withCompletionHandler completionHandler:
         @escaping (UNNotificationPresentationOptions) -> Void
     ) {
-        completionHandler(Self.foregroundPresentationOptions)
+        completionHandler(
+            Self.foregroundPresentationOptions(
+                for: notification.request.content
+            )
+        )
+    }
+
+    nonisolated static func foregroundPresentationOptions(
+        for content: UNNotificationContent
+    ) -> UNNotificationPresentationOptions {
+        content.userInfo[presentsWhenActiveUserInfoKey] as? Bool == true
+            ? [.banner]
+            : []
     }
 
     static func content(
@@ -191,6 +223,8 @@ final class MacOSCadenceNotificationCenter:
         content.title = notification.title
         content.body = notification.body
         content.interruptionLevel = .active
+        content.userInfo[presentsWhenActiveUserInfoKey] =
+            notification.presentsWhenActive
         return content
     }
 }

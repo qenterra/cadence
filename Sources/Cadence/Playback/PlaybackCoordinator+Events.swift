@@ -275,6 +275,13 @@ extension PlaybackCoordinator {
         state.duration = successor.track.duration
         state.transport = intendedTransport.state
         state.isBuffering = false
+        if let backend = state.activeBackend {
+            state.audioPath = audioPath(
+                current: successor.track,
+                backend: backend,
+                next: nil
+            )
+        }
         if intendedTransport == .playing {
             state.failure = nil
         }

@@ -96,19 +96,36 @@ struct CadenceNotificationControllerTests {
 
     @Test("Foreground notifications request a temporary banner without sound")
     func foregroundBannerPresentation() {
-        let options =
-            MacOSCadenceNotificationCenter.foregroundPresentationOptions
         let content = MacOSCadenceNotificationCenter.content(
             for: CadenceNotificationMessage(
                 identifier: "test.notification",
                 title: "Track",
-                body: "Artist"
+                body: "Artist",
+                presentsWhenActive: true
             )
         )
 
-        #expect(options == [.banner])
+        #expect(
+            MacOSCadenceNotificationCenter.foregroundPresentationOptions(
+                for: content
+            ) == [.banner]
+        )
         #expect(content.interruptionLevel == .active)
         #expect(content.sound == nil)
+
+        let quietContent = MacOSCadenceNotificationCenter.content(
+            for: CadenceNotificationMessage(
+                identifier: "test.quiet",
+                title: "Track",
+                body: "Artist",
+                presentsWhenActive: false
+            )
+        )
+        #expect(
+            MacOSCadenceNotificationCenter.foregroundPresentationOptions(
+                for: quietContent
+            ).isEmpty
+        )
     }
 
     @Test("Notification permission is requested only from an undecided state")
@@ -150,6 +167,10 @@ struct CadenceNotificationControllerTests {
             true,
             forKey: CadenceNotificationPreferences.trackChangesKey
         )
+        defaults.set(
+            false,
+            forKey: CadenceNotificationPreferences.foregroundBannersKey
+        )
         controller.playbackStateDidChange(state(.playing, track: first))
         controller.playbackStateDidChange(state(.loading, track: second))
         controller.playbackStateDidChange(state(.playing, track: second))
@@ -159,6 +180,7 @@ struct CadenceNotificationControllerTests {
         #expect(center.notifications.count == 1)
         #expect(center.notifications.first?.title == "Second")
         #expect(center.notifications.first?.body == "Artist — Album")
+        #expect(center.notifications.first?.presentsWhenActive == false)
     }
 
     @Test("Update alerts are persisted and deduplicated by build version")

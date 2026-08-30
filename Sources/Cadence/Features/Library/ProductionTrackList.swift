@@ -6,19 +6,19 @@ enum TrackListScrollOwnership: Equatable, Sendable {
 }
 
 enum TrackListLayout {
-    static let rowHeight: CGFloat = 58
-    static let headerHeight: CGFloat = 38
-
     static func contentHeight(
         rowCount: Int,
-        showsHeader: Bool
+        showsHeader: Bool,
+        density: TrackTableDensity = .standard
     ) -> CGFloat {
-        CGFloat(max(rowCount, 0)) * rowHeight
-            + (showsHeader ? headerHeight : 0)
+        CGFloat(max(rowCount, 0)) * density.rowHeight
+            + (showsHeader ? density.headerHeight : 0)
     }
 }
 
 struct ProductionTrackList: View {
+    @AppStorage(CadencePreferences.Keys.trackTableDensity)
+    private var densityRawValue = TrackTableDensity.standard.rawValue
     @Bindable var model: CadenceAppModel
     let tracks: [LibraryTrackProjection]
     let contentVersion: TrackTableContentVersion?
@@ -60,11 +60,16 @@ struct ProductionTrackList: View {
             table.frame(
                 height: TrackListLayout.contentHeight(
                     rowCount: virtualWindow?.totalCount ?? tracks.count,
-                    showsHeader: showsHeader
+                    showsHeader: showsHeader,
+                    density: density
                 )
             )
         } else {
             table
         }
+    }
+
+    private var density: TrackTableDensity {
+        TrackTableDensity(rawValue: densityRawValue) ?? .standard
     }
 }

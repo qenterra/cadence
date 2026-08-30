@@ -59,8 +59,10 @@ struct ProductionSettingsView: View {
     private var appearanceRawValue = CadenceAppearance.system.rawValue
     @AppStorage(CadencePreferences.Keys.catalogCardSize)
     private var catalogCardSizeRawValue = CatalogCardSize.automatic.rawValue
-    @AppStorage(CadencePreferences.Keys.showsTrackArtwork)
-    private var showsTrackArtwork = true
+    @AppStorage(CadencePreferences.Keys.interfaceTextSize)
+    private var interfaceTextSizeRawValue = InterfaceTextSize.standard.rawValue
+    @AppStorage(CadencePreferences.Keys.startupPage)
+    private var startupPageRawValue = StartupPage.home.rawValue
     @AppStorage("navigationRail.order")
     private var navigationOrderRawValue =
         NavigationRailConfiguration.defaultOrderRawValue
@@ -167,6 +169,8 @@ struct ProductionSettingsView: View {
                 model: model,
                 openDestination: openDestination
             )
+            SettingsTrackListsCard()
+            SettingsLibraryRetentionCard(model: model)
         case .sidebar:
             SettingsHomeSectionsCard(
                 orderRawValue: $homeSectionOrderRawValue,
@@ -225,14 +229,23 @@ struct ProductionSettingsView: View {
                 }
             }
 
-            SettingsToggleRow(
-                "Show Artwork in Track Lists",
-                isOn: $showsTrackArtwork
-            )
+            Picker("Text Size", selection: interfaceTextSizeBinding) {
+                ForEach(InterfaceTextSize.allCases) { size in
+                    Text(size.title).tag(size)
+                }
+            }
+
+            Picker("Page at Launch", selection: startupPageBinding) {
+                ForEach(StartupPage.allCases) { page in
+                    Text(page.title).tag(page)
+                }
+            }
 
             Text(
-                "Card size applies to albums, artists, playlists, smart collections, and Home. "
-                    + "Hiding track artwork gives the complete space back to the song text."
+                """
+                Card size applies to albums, artists, playlists, smart collections, and Home. \
+                Text size applies throughout the app. Track-list layout has its own Library settings.
+                """
             )
             .font(.caption)
             .foregroundStyle(.secondary)
@@ -315,6 +328,25 @@ private extension ProductionSettingsView {
                     ?? .automatic
             },
             set: { catalogCardSizeRawValue = $0.rawValue }
+        )
+    }
+
+    var interfaceTextSizeBinding: Binding<InterfaceTextSize> {
+        Binding(
+            get: {
+                InterfaceTextSize(rawValue: interfaceTextSizeRawValue)
+                    ?? .standard
+            },
+            set: { interfaceTextSizeRawValue = $0.rawValue }
+        )
+    }
+
+    var startupPageBinding: Binding<StartupPage> {
+        Binding(
+            get: {
+                StartupPage(rawValue: startupPageRawValue) ?? .home
+            },
+            set: { startupPageRawValue = $0.rawValue }
         )
     }
 }

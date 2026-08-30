@@ -281,4 +281,28 @@ extension LibraryRepository {
             )
         }
     }
+
+    @discardableResult
+    func emptyExpiredTrash(
+        olderThan cutoff: Date,
+        location: ManagedLibraryLocation,
+        fileClient: TrashFileClient = .live
+    ) throws -> Int {
+        let expiredIDs = try Set(
+            modelContext.fetch(FetchDescriptor<TrashOperationRecord>())
+                .filter { record in
+                    record.completedAt.map { $0 < cutoff } == true
+                }
+                .map(\.id)
+        )
+        guard !expiredIDs.isEmpty else {
+            return 0
+        }
+        try emptyTrash(
+            operationIDs: expiredIDs,
+            location: location,
+            fileClient: fileClient
+        )
+        return expiredIDs.count
+    }
 }

@@ -39,7 +39,8 @@ extension ProductionNowPlayingView {
         let badges = NowPlayingMetadataBadges.resolve(
             audioPath: model.playbackCoordinator?.state.audioPath,
             currentTrackID: track.id,
-            lyricDocument: displayedLyricDocument
+            lyricDocument: displayedLyricDocument,
+            showsTechnicalInformation: showsTechnicalInformation
         )
         if badges.audioQuality != nil || badges.showsSynchronizedLyrics {
             HStack(spacing: 8) {

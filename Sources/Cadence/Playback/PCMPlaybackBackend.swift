@@ -141,6 +141,10 @@ final class PCMPlaybackBackend: PlaybackBackend {
     }
 
     func play() {
+        play(fadeInDuration: .milliseconds(80))
+    }
+
+    func play(fadeInDuration: Duration) {
         guard currentItem != nil else {
             return
         }
@@ -152,17 +156,16 @@ final class PCMPlaybackBackend: PlaybackBackend {
                 return
             }
         }
+        gainRampGeneration &+= 1
+        presentationGain = 0
+        applyGain(duration: .zero)
         playerNode.play()
         isPlaying = true
-        if presentationGain <= 0 {
-            applyGain(duration: .zero)
-        }
-        gainRampGeneration &+= 1
         Task { @MainActor [weak self] in
             guard let self else {
                 return
             }
-            await setPresentationGain(1, duration: .milliseconds(80))
+            await setPresentationGain(1, duration: fadeInDuration)
         }
     }
 
