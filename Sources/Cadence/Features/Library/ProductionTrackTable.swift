@@ -19,6 +19,7 @@ struct ProductionTrackTable: View {
     var selection: Binding<Set<UUID>>?
     var defaultSortDescriptor: TrackTableSortDescriptor?
     var refreshAction: CadenceRefreshAction?
+    var scrollOwnership = TrackListScrollOwnership.contained
 
     @State private var localSelection: Set<UUID> = []
     @State private var usesDefaultSort = true
@@ -32,6 +33,8 @@ struct ProductionTrackTable: View {
     private var sortFieldRaw = TrackTableSortField.song.rawValue
     @AppStorage("trackTable.sortDirection")
     private var sortDirectionRaw = TrackTableSortDirection.ascending.rawValue
+    @AppStorage(CadencePreferences.Keys.showsTrackArtwork)
+    private var showsArtwork = true
 
     var body: some View {
         let snapshot = resolvedSnapshot
@@ -72,9 +75,11 @@ struct ProductionTrackTable: View {
                     reorderAction: reorderAction,
                     onReachEnd: onReachEnd,
                     refreshAction: refreshAction,
+                    scrollOwnership: scrollOwnership,
                     currentTrackID: model.currentProductionTrackID,
                     isCurrentTrackPlaying:
                     model.isCurrentProductionTrackPlaying,
+                    showsArtwork: showsArtwork,
                     selection: selectedTrackIDs
                 )
             }

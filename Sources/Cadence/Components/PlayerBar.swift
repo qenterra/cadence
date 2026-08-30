@@ -1,14 +1,5 @@
 import SwiftUI
 
-enum PlayerBarLayoutMetrics {
-    static let height: CGFloat = 96
-    static let horizontalInset = CadenceLayout.panelInset
-    static let regionSpacing = CadenceLayout.pageInset
-    static let controlSpacing = CadenceLayout.contentGap
-    static let transportSpacing = CadenceLayout.controlGap
-    static let metadataSpacing = CadenceLayout.textStack
-}
-
 struct PlayerBar: View {
     @Environment(\.visualRegressionUsesStableSystemControls)
     var usesStableSystemControls
@@ -18,16 +9,38 @@ struct PlayerBar: View {
     @State private var isArtworkHovered = false
 
     var body: some View {
-        HStack(spacing: PlayerBarLayoutMetrics.regionSpacing) {
-            nowPlaying
-                .frame(width: 244, alignment: .leading)
+        GeometryReader { geometry in
+            let contentFrame = PlayerBarLayoutMetrics.contentFrame(
+                availableWidth: geometry.size.width
+            )
+            HStack(spacing: PlayerBarLayoutMetrics.regionSpacing) {
+                nowPlaying
+                    .frame(
+                        width: PlayerBarLayoutMetrics.metadataWidth(
+                            availableWidth: geometry.size.width
+                        ),
+                        alignment: .leading
+                    )
+                    .layoutPriority(2)
 
-            transport
-                .frame(maxWidth: .infinity)
-                .layoutPriority(1)
+                transport
+                    .frame(maxWidth: .infinity)
+                    .layoutPriority(1)
 
-            outputControls
-                .frame(width: 244, alignment: .trailing)
+                outputControls
+                    .frame(
+                        width: PlayerBarLayoutMetrics.outputWidth,
+                        alignment: .trailing
+                    )
+            }
+            .frame(
+                width: contentFrame.width,
+                height: contentFrame.height
+            )
+            .position(
+                x: contentFrame.midX,
+                y: contentFrame.midY
+            )
         }
         .padding(.horizontal, PlayerBarLayoutMetrics.horizontalInset)
         .frame(height: PlayerBarLayoutMetrics.height)
@@ -39,6 +52,8 @@ private struct PlaybackProgressControl: View {
     @Bindable var model: CadenceAppModel
     @Binding var pendingSeekProgress: Double?
     let suspendsProgressAnimation: Bool
+    @AppStorage(CadencePreferences.Keys.playbackTimeDisplay)
+    private var timeDisplayRaw = PlaybackTimeDisplayMode.elapsed.rawValue
 
     var body: some View {
         HStack(spacing: CadenceLayout.compactGap) {
@@ -73,7 +88,11 @@ private struct PlaybackProgressControl: View {
         let time = pendingSeekProgress.map {
             model.playbackDuration * $0
         } ?? model.playbackPresentationTime()
-        return TrackPreview.timeText(time)
+        return PlaybackTimePresentation.leadingText(
+            mode: PlaybackTimeDisplayMode(rawValue: timeDisplayRaw) ?? .elapsed,
+            currentTime: time,
+            duration: model.playbackDuration
+        )
     }
 
     private var durationText: String {
@@ -167,6 +186,8 @@ private extension PlayerBar {
                     title: track.title,
                     artist: track.artist
                 )
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .layoutPriority(1)
 
                 if model.isCurrentPlaybackExternal {
                     Button("Add to Library…", systemImage: "plus.rectangle.on.folder") {
@@ -176,17 +197,6 @@ private extension PlayerBar {
                     .buttonStyle(CadenceRowButtonStyle())
                     .help("Add to Library…")
                     .accessibilityLabel("Add \(track.title) to Library")
-                } else {
-                    FavoriteButton(
-                        itemID: track.id,
-                        isFavorite: model.currentProductionTrackIsFavorite,
-                        itemName: track.title
-                    ) { requestedValue in
-                        await model.setProductionPlaybackTrackFavorite(
-                            id: track.id,
-                            isFavorite: requestedValue
-                        )
-                    }
                 }
 
                 Spacer(minLength: 0)
@@ -247,6 +257,8 @@ private extension PlayerBar {
                 ) {
                     model.cycleRepeatMode()
                 }
+
+                PlayerBarFavoriteControl(model: model)
             }
 
             PlaybackProgressControl(

@@ -173,7 +173,7 @@ extension TrackTableCore {
 
         private func liveScrollDidBegin() {
             interactionState.beginLiveScroll()
-            resetVisiblePointerHover()
+            reconcileVisiblePointerHover()
             guard refreshTask == nil else {
                 return
             }
@@ -353,7 +353,8 @@ extension TrackTableCore {
                     isSelected: false,
                     isFocused: false,
                     isLiveScrolling: interactionState.isLiveScrolling,
-                    reduceMotion: reduceMotion
+                    reduceMotion: reduceMotion,
+                    showsArtwork: parent.showsArtwork
                 )
                 commitConfiguredVirtualStamp(.placeholder, at: row)
                 request(pageContaining: row)
@@ -377,7 +378,8 @@ extension TrackTableCore {
                 isSelected: isSelected,
                 isFocused: isFocused,
                 isLiveScrolling: interactionState.isLiveScrolling,
-                reduceMotion: reduceMotion
+                reduceMotion: reduceMotion,
+                showsArtwork: parent.showsArtwork
             )
             commitConfiguredVirtualStamp(.track(track), at: row)
             requestNextPageIfNeeded(row: row)
@@ -409,11 +411,7 @@ extension TrackTableCore {
         func visibleBoundsChanged() {
             updateColumnWidth()
             updateRefreshPullProgress()
-            if interactionState.isLiveScrolling {
-                resetVisiblePointerHover()
-            } else {
-                reconcileVisiblePointerHover()
-            }
+            reconcileVisiblePointerHover()
             guard parent.virtualWindow != nil else {
                 return
             }

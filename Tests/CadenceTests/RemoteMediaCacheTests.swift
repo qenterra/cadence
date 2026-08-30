@@ -93,6 +93,39 @@ struct RemoteMediaCacheTests {
         #expect(await fixture.provider.readCount(for: fixture.first.id) == 1)
     }
 
+    @Test("Clearing cache removes downloaded objects that are not pinned")
+    func clearRemovesUnpinnedObjects() async throws {
+        let fixture = try RemoteMediaCacheFixture(budget: 100)
+        defer { fixture.cleanup() }
+        _ = try await fixture.cache.localURL(for: fixture.first)
+        _ = try await fixture.cache.localURL(for: fixture.second)
+        try await fixture.cache.pin([fixture.first.id])
+
+        let result = try await fixture.cache.clear()
+
+        #expect(result.removedObjectCount == 1)
+        #expect(result.preservedObjectCount == 1)
+        #expect(result.reclaimedBytes == fixture.second.byteCount)
+        #expect(try await fixture.cache.playableURL(for: fixture.first.id) != nil)
+        #expect(try await fixture.cache.playableURL(for: fixture.second.id) == nil)
+    }
+
+    @Test("Clearing an idle cache removes every indexed object")
+    func clearIdleCacheRemovesEverything() async throws {
+        let fixture = try RemoteMediaCacheFixture(budget: 100)
+        defer { fixture.cleanup() }
+        _ = try await fixture.cache.localURL(for: fixture.first)
+        _ = try await fixture.cache.localURL(for: fixture.second)
+
+        let result = try await fixture.cache.clear()
+
+        #expect(result.removedObjectCount == 2)
+        #expect(result.preservedObjectCount == 0)
+        #expect(result.reclaimedBytes == 20)
+        #expect(try await fixture.cache.playableURL(for: fixture.first.id) == nil)
+        #expect(try await fixture.cache.playableURL(for: fixture.second.id) == nil)
+    }
+
     @Test("The cache index survives a new cache actor")
     func cacheIndexSurvivesRestart() async throws {
         let fixture = try RemoteMediaCacheFixture(budget: 100)

@@ -4,6 +4,7 @@ import SwiftUI
 struct RemoteLibrarySettingsView: View {
     @Bindable var controller: RemoteLibraryController
     @State private var isConnectionSheetPresented = false
+    @State private var isCacheClearConfirmationPresented = false
 
     var body: some View {
         SettingsCard(
@@ -33,14 +34,43 @@ struct RemoteLibrarySettingsView: View {
                 Button("Connect…", systemImage: "network.badge.shield.half.filled") {
                     isConnectionSheetPresented = true
                 }
+                .cadenceActionTint(.confirmation)
                 .disabled(isConnecting)
 
                 if controller.configuredProviderName != nil {
                     Button("Disconnect", role: .destructive) {
                         Task { await controller.disconnect() }
                     }
+                    .cadenceActionTint(.destructive)
                     .disabled(isConnecting)
                 }
+            }
+
+            HStack {
+                Button(
+                    "Clear Cache…",
+                    systemImage: "trash",
+                    role: .destructive
+                ) {
+                    isCacheClearConfirmationPresented = true
+                }
+                .cadenceActionTint(.destructive)
+                .disabled(!hasActiveCache || controller.isClearingCache)
+
+                if controller.isClearingCache {
+                    ProgressView()
+                        .controlSize(.small)
+                }
+            }
+
+            if let result = controller.cacheClearResult {
+                Text(cacheClearMessage(result))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            } else if let error = controller.cacheClearError {
+                Text(error)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
 
             Text(
@@ -56,6 +86,23 @@ struct RemoteLibrarySettingsView: View {
                 isPresented: $isConnectionSheetPresented
             )
         }
+        .confirmationDialog(
+            "Clear Downloaded Remote Media?",
+            isPresented: $isCacheClearConfirmationPresented
+        ) {
+            Button("Clear Cache", role: .destructive) {
+                Task { await controller.clearCache() }
+            }
+            .cadenceActionTint(.destructive)
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text(
+                """
+                Downloaded files outside the active playback queue will be removed. \
+                Catalog data and remote credentials stay intact.
+                """
+            )
+        }
     }
 
     private var cacheBudgetBinding: Binding<Int64> {
@@ -69,6 +116,33 @@ struct RemoteLibrarySettingsView: View {
 
     private var isConnecting: Bool {
         controller.status == .connecting
+    }
+
+    private var hasActiveCache: Bool {
+        if case .ready = controller.status {
+            return true
+        }
+        return false
+    }
+
+    private func cacheClearMessage(
+        _ result: RemoteCacheClearResult
+    ) -> String {
+        let bytes = ByteCountFormatter.string(
+            fromByteCount: result.reclaimedBytes,
+            countStyle: .file
+        )
+        if result.preservedObjectCount > 0 {
+            return String(
+                localized: """
+                Cache cleared: \(bytes). Removed: \(result.removedObjectCount). Kept \
+                for the active queue: \(result.preservedObjectCount).
+                """
+            )
+        }
+        return String(
+            localized: "Cache cleared: \(bytes). Removed: \(result.removedObjectCount)."
+        )
     }
 
     private var statusTitle: String {

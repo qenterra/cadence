@@ -244,6 +244,21 @@ extension CadenceAppModel {
         playbackCoordinator?.activateSystemMediaSession()
     }
 
+    func refreshPlaybackPreferences() {
+        playbackCoordinator?.refreshPreferences()
+    }
+
+    func restorePlaybackSessionIfNeeded() async {
+        guard let playbackCoordinator,
+              let trackIDs = try? await librarySession.store.allTrackIDs()
+        else {
+            return
+        }
+        _ = await playbackCoordinator.restorePersistedSession(
+            validTrackIDs: Set(trackIDs)
+        )
+    }
+
     var playbackOutputRoute: AudioRouteSnapshot {
         playbackCoordinator?.state.audioPath?.outputRoute
             ?? playbackCoordinator?.outputRoute

@@ -168,18 +168,18 @@ struct ArtistsListeningDomainTests {
         )
     }
 
-    @Test("Artist layout keeps cards fixed while supported widths add columns")
+    @Test("Artist layout keeps compact cards fixed while supported widths add columns")
     func layoutMetrics() {
         let minimum = ArtistsLayoutMetrics(totalWidth: 1005)
         let standard = ArtistsLayoutMetrics(totalWidth: 1440)
         let wide = ArtistsLayoutMetrics(totalWidth: 1900)
 
-        #expect(minimum.columnCount == 4)
-        #expect(standard.columnCount == 6)
+        #expect(minimum.columnCount == 5)
+        #expect(standard.columnCount == 7)
         #expect(wide.columnCount > standard.columnCount)
-        #expect(minimum.tileWidth == 196)
-        #expect(standard.tileWidth == 196)
-        #expect(wide.tileWidth == 196)
+        #expect(minimum.tileWidth == 164)
+        #expect(standard.tileWidth == 164)
+        #expect(wide.tileWidth == 164)
 
         #expect(ArtistDetailLayoutMetrics(totalWidth: 1005).artworkSize == 180)
         #expect(ArtistDetailLayoutMetrics(totalWidth: 1440).artworkSize == 220)

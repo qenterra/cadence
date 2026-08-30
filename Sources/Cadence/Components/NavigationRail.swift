@@ -47,6 +47,8 @@ struct NavigationRail: View {
     var suppressesSelection = false
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.visualRegressionFreezesHighlights)
+    private var freezesVisualRegressionHighlights
     @FocusState private var focusedDestination: NavigationDestination?
     @State private var hoveredDestination: NavigationDestination?
     @AppStorage("navigationRail.expanded")
@@ -160,8 +162,10 @@ struct NavigationRail: View {
             .background {
                 BrowserRowSurface(
                     isSelected: isSelected,
-                    isHovered: hoveredDestination == destination,
-                    isFocused: focusedDestination == destination
+                    isHovered: !freezesVisualRegressionHighlights
+                        && hoveredDestination == destination,
+                    isFocused: !freezesVisualRegressionHighlights
+                        && focusedDestination == destination
                 )
                 .padding(.horizontal, NavigationRailMetrics.rowSurfaceInset)
             }

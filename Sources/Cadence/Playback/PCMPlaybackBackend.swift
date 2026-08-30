@@ -20,6 +20,7 @@ final class PCMPlaybackBackend: PlaybackBackend {
     var lastKnownPlaybackTime: TimeInterval = 0
     var isPlaying = false
     var userVolume: Float = 0.72
+    var normalizationGain: Float = 1
     var scheduleGeneration = 0
     var nextSegmentTicket: UInt64 = 0
     var currentSegmentTicket: UInt64 = 0
@@ -64,6 +65,7 @@ final class PCMPlaybackBackend: PlaybackBackend {
         }
         gainRampGeneration &+= 1
         userVolume = request.volume
+        normalizationGain = request.normalizationGain
         presentationGain = request.autoplay ? 0 : 1
         try configureSchedule(
             current: request.current,
@@ -225,6 +227,11 @@ final class PCMPlaybackBackend: PlaybackBackend {
 
     func setVolume(_ volume: Float) {
         userVolume = min(max(volume, 0), 1)
+        applyGain()
+    }
+
+    func setNormalizationGain(_ gain: Float) {
+        normalizationGain = min(max(gain, 0), 4)
         applyGain()
     }
 

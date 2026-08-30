@@ -370,6 +370,7 @@ struct TrackTablePresentationKey: Equatable {
     let renderer: TrackTableRenderer
     let currentTrackID: UUID?
     let isCurrentTrackPlaying: Bool
+    let showsArtwork: Bool
 
     init(
         modelID: ObjectIdentifier,
@@ -381,7 +382,8 @@ struct TrackTablePresentationKey: Equatable {
         canReorder: Bool,
         renderer: TrackTableRenderer = .native,
         currentTrackID: UUID? = nil,
-        isCurrentTrackPlaying: Bool = false
+        isCurrentTrackPlaying: Bool = false,
+        showsArtwork: Bool = true
     ) {
         self.modelID = modelID
         self.context = context
@@ -393,6 +395,7 @@ struct TrackTablePresentationKey: Equatable {
         self.renderer = renderer
         self.currentTrackID = currentTrackID
         self.isCurrentTrackPlaying = isCurrentTrackPlaying
+        self.showsArtwork = showsArtwork
     }
 }
 
@@ -780,9 +783,11 @@ struct TrackTableCore: NSViewRepresentable {
     let reorderAction: (([UUID]) -> Void)?
     let onReachEnd: (() async -> Void)?
     var refreshAction: CadenceRefreshAction?
+    var scrollOwnership = TrackListScrollOwnership.contained
     var renderer: TrackTableRenderer = .native
     var currentTrackID: UUID?
     var isCurrentTrackPlaying = false
+    var showsArtwork = true
     var workProbe: TrackTableWorkProbe?
     @Binding var selection: Set<UUID>
 
@@ -805,7 +810,8 @@ struct TrackTableCore: NSViewRepresentable {
             canReorder: reorderAction != nil,
             renderer: renderer,
             currentTrackID: currentTrackID,
-            isCurrentTrackPlaying: isCurrentTrackPlaying
+            isCurrentTrackPlaying: isCurrentTrackPlaying,
+            showsArtwork: showsArtwork
         )
     }
 
@@ -850,10 +856,13 @@ struct TrackTableCore: NSViewRepresentable {
 
         let scrollView = NSScrollView()
         scrollView.drawsBackground = false
-        scrollView.hasVerticalScroller = true
+        scrollView.hasVerticalScroller = scrollOwnership == .contained
         scrollView.hasHorizontalScroller = false
         scrollView.horizontalScrollElasticity = .none
         scrollView.autohidesScrollers = true
+        scrollView.verticalScrollElasticity = scrollOwnership == .contained
+            ? .automatic
+            : .none
         scrollView.documentView = tableView
         scrollView.contentView.postsBoundsChangedNotifications = true
 
@@ -879,6 +888,10 @@ struct TrackTableCore: NSViewRepresentable {
         guard scrollView.documentView is NSTableView else {
             return
         }
+        scrollView.hasVerticalScroller = scrollOwnership == .contained
+        scrollView.verticalScrollElasticity = scrollOwnership == .contained
+            ? .automatic
+            : .none
         workProbe?.recordAppliedUpdate()
         let visibleRows = coordinator.visibleRowIndexes(
             totalCount: totalCount

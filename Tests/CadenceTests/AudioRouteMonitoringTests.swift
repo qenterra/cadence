@@ -462,9 +462,19 @@ extension AudioRouteMonitoringTests {
         )
     }
 
-    @Test("A valid route retries after failure and remains paused")
-    func validRouteRetriesAfterFailure() async {
-        let setup = makeStereoCoordinator(route: builtIn)
+    @Test("A valid route remains paused after failure when auto-resume is off")
+    func validRouteRetriesAfterFailure() async throws {
+        let suite = "AudioRouteMonitoringTests-\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        defaults.set(
+            false,
+            forKey: CadencePreferences.Keys.resumesAfterRouteRecovery
+        )
+        let setup = makeStereoCoordinator(
+            route: builtIn,
+            preferences: defaults
+        )
         await setup.start()
         setup.pcm.emit(.time(19))
         setup.native.loadError = PlaybackFailure(
@@ -718,6 +728,7 @@ extension AudioRouteMonitoringTests {
 
     private func makeStereoCoordinator(
         route: AudioRouteSnapshot,
+        preferences: UserDefaults? = nil,
         bassEnvelopeLoader: @escaping PlaybackBassEnvelopeLoading =
             defaultPlaybackBassEnvelopeLoader
     ) -> RouteMonitoringSetup {
@@ -729,6 +740,7 @@ extension AudioRouteMonitoringTests {
             resolver: PlaybackTestResolver(tracks: [track]),
             backends: [pcm, native],
             audioRouteProvider: provider,
+            preferences: preferences,
             bassEnvelopeLoader: bassEnvelopeLoader
         )
         return RouteMonitoringSetup(

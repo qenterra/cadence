@@ -149,11 +149,13 @@ struct HomeTrackGrid: View {
     @Bindable var model: CadenceAppModel
     let tracks: [LibraryTrackProjection]
     let queueSource: PlaybackQueueSource
+    @Environment(\.catalogCardSize) private var catalogCardSize
 
     var body: some View {
         LazyVGrid(
             columns: CatalogCardLayoutMetrics.layoutColumns(
-                spacing: CadenceLayout.contentGap
+                spacing: CadenceLayout.contentGap,
+                size: catalogCardSize
             ),
             alignment: .leading,
             spacing: CadenceLayout.contentGap
@@ -269,7 +271,7 @@ private struct HomeMediaTile: View {
             labels
         }
         .padding(CadenceLayout.compactGap)
-        .frame(width: CatalogCardLayoutMetrics.cardWidth)
+        .frame(maxWidth: .infinity)
         .frame(
             minHeight: HomeLayoutMetrics.artworkCardHeight,
             alignment: .topLeading
@@ -312,11 +314,13 @@ private struct HomeMediaTile: View {
 
 struct HomeCompactGrid<Content: View>: View {
     @ViewBuilder let content: Content
+    @Environment(\.catalogCardSize) private var catalogCardSize
 
     var body: some View {
         LazyVGrid(
             columns: CatalogCardLayoutMetrics.layoutColumns(
-                spacing: CadenceLayout.contentGap
+                spacing: CadenceLayout.contentGap,
+                size: catalogCardSize
             ),
             alignment: .leading,
             spacing: CadenceLayout.contentGap

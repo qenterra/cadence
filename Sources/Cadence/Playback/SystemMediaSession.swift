@@ -25,6 +25,7 @@ final class SystemMediaSession: SystemMediaSessionControlling {
     private var publishedArtworkID: UUID?
     private var publishedArtwork: MPMediaItemArtwork?
     private var artworkTask: Task<Void, Never>?
+    private var skipInterval: TimeInterval = 15
 
     init(
         commandCenter: MPRemoteCommandCenter = .shared(),
@@ -68,19 +69,33 @@ final class SystemMediaSession: SystemMediaSessionControlling {
             positionToken
         ))
 
-        commandCenter.skipForwardCommand.preferredIntervals = [15]
+        commandCenter.skipForwardCommand.preferredIntervals = [
+            NSNumber(value: skipInterval),
+        ]
         register(commandCenter.skipForwardCommand) { event in
             let interval = (event as? MPSkipIntervalCommandEvent)?.interval
-                ?? 15
+                ?? self.skipInterval
             return .skipForward(interval)
         }
 
-        commandCenter.skipBackwardCommand.preferredIntervals = [15]
+        commandCenter.skipBackwardCommand.preferredIntervals = [
+            NSNumber(value: skipInterval),
+        ]
         register(commandCenter.skipBackwardCommand) { event in
             let interval = (event as? MPSkipIntervalCommandEvent)?.interval
-                ?? 15
+                ?? self.skipInterval
             return .skipBackward(interval)
         }
+    }
+
+    func setSkipInterval(_ interval: TimeInterval) {
+        skipInterval = max(interval, 1)
+        commandCenter.skipForwardCommand.preferredIntervals = [
+            NSNumber(value: skipInterval),
+        ]
+        commandCenter.skipBackwardCommand.preferredIntervals = [
+            NSNumber(value: skipInterval),
+        ]
     }
 
     func update(

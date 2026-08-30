@@ -83,6 +83,9 @@ final class RemoteLibraryController {
     private(set) var status: RemoteLibraryStatus = .disconnected
     private(set) var configuredProviderName: String?
     var cacheBudgetBytes: Int64
+    private(set) var isClearingCache = false
+    private(set) var cacheClearResult: RemoteCacheClearResult?
+    private(set) var cacheClearError: String?
 
     @ObservationIgnored private let source: RemotePlaybackSource
     @ObservationIgnored private let store: any RemoteLibrarySettingsStoring
@@ -295,6 +298,21 @@ final class RemoteLibraryController {
                 }
             }
             status = .unavailable(error.localizedDescription)
+        }
+    }
+
+    func clearCache() async {
+        guard !isClearingCache else {
+            return
+        }
+        isClearingCache = true
+        cacheClearResult = nil
+        cacheClearError = nil
+        defer { isClearingCache = false }
+        do {
+            cacheClearResult = try await source.clearCache()
+        } catch {
+            cacheClearError = error.localizedDescription
         }
     }
 }

@@ -23,7 +23,7 @@ struct AllTracksView: View {
             } else if let window = store.allTracksWindow {
                 windowContent(window)
             } else {
-                ProductionTrackTable(
+                ProductionTrackList(
                     model: model,
                     tracks: store.tracks,
                     contentVersion: store.tracksVersion,

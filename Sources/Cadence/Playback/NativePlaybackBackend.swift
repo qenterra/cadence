@@ -17,6 +17,7 @@ final class NativePlaybackBackend: NSObject, PlaybackBackend {
     private var currentTrackID: UUID?
     private var expectedDuration: TimeInterval = 0
     private var userVolume: Float = 0.72
+    private var normalizationGain: Float = 1
     private var presentationGain: Float = 1
     private var gainRampGeneration = 0
 
@@ -45,6 +46,7 @@ final class NativePlaybackBackend: NSObject, PlaybackBackend {
         currentTrackID = request.current.track.id
         expectedDuration = request.current.track.duration
         userVolume = request.volume
+        normalizationGain = request.normalizationGain
         presentationGain = request.autoplay ? 0 : 1
         stopTimelineObservation()
         player.replaceCurrentItem(with: item)
@@ -122,6 +124,11 @@ final class NativePlaybackBackend: NSObject, PlaybackBackend {
 
     func setVolume(_ volume: Float) {
         userVolume = min(max(volume, 0), 1)
+        applyVolume()
+    }
+
+    func setNormalizationGain(_ gain: Float) {
+        normalizationGain = min(max(gain, 0), 4)
         applyVolume()
     }
 
@@ -253,7 +260,10 @@ final class NativePlaybackBackend: NSObject, PlaybackBackend {
     }
 
     private func applyVolume() {
-        player.volume = userVolume * presentationGain
+        player.volume = min(
+            userVolume * normalizationGain * presentationGain,
+            1
+        )
     }
 
     private func rampPresentationGain(

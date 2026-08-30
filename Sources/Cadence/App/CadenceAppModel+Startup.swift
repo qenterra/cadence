@@ -20,5 +20,6 @@ extension CadenceAppModel {
 
         await loadPersistedSmartCollections()
         await librarySession.store.loadPlaylists()
+        await restorePlaybackSessionIfNeeded()
     }
 }

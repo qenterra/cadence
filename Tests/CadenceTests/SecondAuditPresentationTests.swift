@@ -85,7 +85,7 @@ struct SecondAuditPresentationTests {
         #expect(SettingsLayoutMetrics.sectionSpacing == CadenceLayout.contentGap)
         #expect(SettingsLayoutMetrics.cardInset == CadenceLayout.contentGap)
         #expect(SettingsLayoutMetrics.cardContentSpacing == CadenceLayout.controlGap)
-        #expect(SettingsLayoutMetrics.maximumContentWidth == 640)
+        #expect(SettingsLayoutMetrics.maximumContentWidth == 680)
     }
 
     @Test("Sidebar settings expose one freely ordered destination list")

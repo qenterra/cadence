@@ -8,14 +8,12 @@ enum NativeFavoriteVisibility: Equatable, Sendable {
     static func resolve(
         isFavorite: Bool,
         isHovered: Bool,
-        isLiveScrolling: Bool
+        isLiveScrolling _: Bool
     ) -> NativeFavoriteVisibility {
         if isFavorite {
             return .filledPrimary
         }
-        return isHovered && !isLiveScrolling
-            ? .emptySecondary
-            : .hidden
+        return isHovered ? .emptySecondary : .hidden
     }
 }
 
@@ -55,7 +53,40 @@ struct NativeTrackRowGeometry: Equatable, Sendable {
             width: 0,
             height: stackHeight
         )
-        singleLineFrame = titleFrame
+        singleLineFrame = CGRect(
+            x: 0,
+            y: (rowHeight - lineHeight) / 2,
+            width: 0,
+            height: lineHeight
+        )
+    }
+}
+
+struct NativeTrackRowHorizontalGeometry: Equatable, Sendable {
+    static let artworkSize: CGFloat = 40
+
+    let artworkFrame: CGRect?
+    let songOriginX: CGFloat
+
+    init(
+        rowHeight: CGFloat,
+        leadingX: CGFloat,
+        showsArtwork: Bool
+    ) {
+        guard showsArtwork else {
+            artworkFrame = nil
+            songOriginX = leadingX
+            return
+        }
+        artworkFrame = CGRect(
+            x: leadingX,
+            y: (rowHeight - Self.artworkSize) / 2,
+            width: Self.artworkSize,
+            height: Self.artworkSize
+        )
+        songOriginX = leadingX
+            + Self.artworkSize
+            + TrackTableColumnPolicy.songContentSpacing
     }
 }
 

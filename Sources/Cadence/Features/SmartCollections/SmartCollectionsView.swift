@@ -97,11 +97,13 @@ struct SmartCollectionsView: View {
                     )
                 }
             }
+            .cadenceActionTint(.confirmation)
             .disabled(!model.canSaveSmartCollectionDraft)
 
             Button("Discard", role: .destructive) {
                 model.resolvePendingSmartCollectionTransition(.discard)
             }
+            .cadenceActionTint(.destructive)
 
             Button("Cancel", role: .cancel) {
                 model.resolvePendingSmartCollectionTransition(.cancel)
@@ -120,6 +122,7 @@ struct SmartCollectionsView: View {
                     await model.confirmDeleteSmartCollectionPersisting()
                 }
             }
+            .cadenceActionTint(.destructive)
 
             Button("Cancel", role: .cancel) {
                 model.cancelDeleteSmartCollection()

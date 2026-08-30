@@ -68,7 +68,9 @@ extension PlaybackCoordinator {
             guard generation == routeGeneration else {
                 return
             }
-            let acceptedIntent = playbackIntent
+            let acceptedIntent = acceptedIntentForRouteRecovery(
+                currentTrackID: currentTrack.id
+            )
             let wasPlaying = state.isPlaying
             invalidateBassState()
             outputRoute = route
@@ -92,10 +94,14 @@ extension PlaybackCoordinator {
                 activateBassSourceForCurrentTrack()
             }
             publishState()
+            finishRouteRecovery()
             await prepareFollowingTrack(expectedIntent: acceptedIntent)
             return
         }
 
+        _ = acceptedIntentForRouteRecovery(
+            currentTrackID: currentTrack.id
+        )
         let transitionResult = await transitionForAudioRoute(
             to: requestedBackend,
             route: route,
@@ -146,6 +152,7 @@ extension PlaybackCoordinator {
     ) {
         invalidateBassState()
         activeBackend?.pause()
+        routeRecoveryShouldResume = playbackIntent.transport == .playing
         advancePlaybackIntent(
             currentItemID: state.currentTrack?.id,
             transport: .paused

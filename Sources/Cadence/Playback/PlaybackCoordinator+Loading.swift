@@ -72,7 +72,10 @@ extension PlaybackCoordinator {
             next: repeatMode == .one ? nil : prepared.next,
             startTime: startTime,
             autoplay: autoplay,
-            volume: volume
+            volume: volume,
+            normalizationGain: normalizationGain(
+                for: prepared.current.track
+            )
         )
         try await loadVerified(
             prepared.backend,

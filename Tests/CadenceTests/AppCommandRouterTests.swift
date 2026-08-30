@@ -1,8 +1,90 @@
+import AppKit
 @testable import Cadence
 import Testing
 
 @MainActor
 struct AppCommandRouterTests {
+    @Test("Plain Space is captured at window scope unless a local surface owns it")
+    func windowScopedSpaceDecision() {
+        #expect(
+            AppPlaybackKeyDecision.shouldHandle(
+                eventType: .keyDown,
+                keyCode: 49,
+                isRepeat: false,
+                modifiers: [],
+                focus: .none
+            )
+        )
+        #expect(
+            AppPlaybackKeyDecision.shouldHandle(
+                eventType: .keyDown,
+                keyCode: 49,
+                isRepeat: false,
+                modifiers: [],
+                focus: .trackTable
+            )
+        )
+        #expect(
+            !AppPlaybackKeyDecision.shouldHandle(
+                eventType: .keyDown,
+                keyCode: 49,
+                isRepeat: false,
+                modifiers: [],
+                focus: .textEditing
+            )
+        )
+        #expect(
+            !AppPlaybackKeyDecision.shouldHandle(
+                eventType: .keyDown,
+                keyCode: 49,
+                isRepeat: false,
+                modifiers: [],
+                focus: .none,
+                isLocallyOwned: true
+            )
+        )
+    }
+
+    @Test("Modified, repeated, and non-Space events stay in the responder chain")
+    func unrelatedKeyEventsArePreserved() {
+        #expect(
+            !AppPlaybackKeyDecision.shouldHandle(
+                eventType: .keyUp,
+                keyCode: 49,
+                isRepeat: false,
+                modifiers: [],
+                focus: .none
+            )
+        )
+        #expect(
+            !AppPlaybackKeyDecision.shouldHandle(
+                eventType: .keyDown,
+                keyCode: 49,
+                isRepeat: true,
+                modifiers: [],
+                focus: .none
+            )
+        )
+        #expect(
+            !AppPlaybackKeyDecision.shouldHandle(
+                eventType: .keyDown,
+                keyCode: 49,
+                isRepeat: false,
+                modifiers: .command,
+                focus: .none
+            )
+        )
+        #expect(
+            !AppPlaybackKeyDecision.shouldHandle(
+                eventType: .keyDown,
+                keyCode: 36,
+                isRepeat: false,
+                modifiers: [],
+                focus: .none
+            )
+        )
+    }
+
     @Test("Text editing keeps Space local")
     func textEditingBlocksPlayback() {
         var toggleCount = 0

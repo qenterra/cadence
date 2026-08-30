@@ -35,9 +35,8 @@ struct CadenceModeLayoutTests {
         )
         let lyricsFrame = try #require(layout.modeLyricsFrame)
 
-        #expect(layout.modeArtworkFrame.width > 420)
-        #expect(layout.modeArtworkFrame.width <= 560)
-        #expect(layout.modeArtworkFrame.minY >= 24)
+        #expect(layout.modeArtworkFrame.width == 544)
+        #expect(layout.modeArtworkFrame.minY == 254)
         #expect(lyricsFrame.minY > layout.modeArtworkFrame.maxY)
         #expect(lyricsFrame.maxY <= canvasSize.height - 24)
     }
@@ -161,6 +160,6 @@ struct CadenceModeLayoutTests {
         let policy = NowPlayingContextOverflowPolicy(height: 560)
 
         #expect(policy.usesVerticalScrolling)
-        #expect(policy.bottomContentInset >= 24)
+        #expect(policy.bottomContentInset >= 72)
     }
 }

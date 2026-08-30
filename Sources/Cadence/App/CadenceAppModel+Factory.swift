@@ -13,7 +13,8 @@ private struct RemoteRuntime {
 
 extension CadenceAppModel {
     static func production(
-        librarySession: LibrarySession
+        librarySession: LibrarySession,
+        notificationController: CadenceNotificationController? = nil
     ) -> CadenceAppModel {
         let importRuntime = importRuntime(librarySession: librarySession)
         let remote = remoteRuntime(librarySession: librarySession)
@@ -43,7 +44,8 @@ extension CadenceAppModel {
             systemMediaSession: SystemMediaSession(
                 artworkProvider: systemMediaArtworkProvider
             ),
-            audioRouteProvider: SystemAudioRouteProvider()
+            audioRouteProvider: SystemAudioRouteProvider(),
+            notificationController: notificationController
         )
         let model = CadenceAppModel(
             runtimeEnvironment: .production,

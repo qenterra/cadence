@@ -7,7 +7,7 @@ struct CadenceModeLayout: Hashable, Sendable {
     private static let identityHeight: CGFloat = 56
     private static let minimumLyricSlotHeight: CGFloat = 32
     private static let maximumLyricSlotHeight: CGFloat = 52
-    private static let maximumModeArtworkSize: CGFloat = 560
+    private static let maximumModeArtworkSize: CGFloat = 544
 
     let canvasSize: CGSize
     let contextWidth: CGFloat

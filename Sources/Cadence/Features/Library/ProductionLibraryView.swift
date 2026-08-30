@@ -180,7 +180,7 @@ struct ProductionLibraryView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         case .content:
-            ProductionTrackTable(
+            ProductionTrackList(
                 model: model,
                 tracks: visibleTracks,
                 contentVersion: store.browserTracksVersion,

@@ -188,6 +188,13 @@ extension PCMPlaybackBackend {
         startTime: TimeInterval
     ) throws -> ScheduledPCMItem {
         let file = try AVAudioFile(forReading: resolved.mediaURL)
+        guard file.length > 0 else {
+            throw PlaybackFailure(
+                trackID: resolved.track.id,
+                message: "The PCM asset contains no schedulable audio frames."
+            )
+        }
+        let lastSchedulableFrame = file.length - 1
         let startFrame = min(
             max(
                 AVAudioFramePosition(
@@ -195,9 +202,9 @@ extension PCMPlaybackBackend {
                 ),
                 0
             ),
-            file.length
+            lastSchedulableFrame
         )
-        let remaining = max(file.length - startFrame, 0)
+        let remaining = file.length - startFrame
         guard remaining <= AVAudioFramePosition(UInt32.max) else {
             throw PlaybackFailure(
                 trackID: resolved.track.id,
@@ -328,7 +335,7 @@ extension PCMPlaybackBackend {
     ) {
         playerNode.volume = 1
         let targetScalar = min(
-            max(userVolume * presentationGain, 0),
+            max(userVolume * normalizationGain * presentationGain, 0),
             1
         )
         engine.mainMixerNode.outputVolume = 1

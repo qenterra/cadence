@@ -49,6 +49,7 @@ final class PlaybackTestBackend: PlaybackBackend {
     private(set) var pauseCount = 0
     private(set) var stopCount = 0
     private(set) var volumes: [Float] = []
+    private(set) var normalizationGains: [Float] = []
     private(set) var suspendedLoadCount = 0
     private(set) var suspendedSeekCount = 0
     private(set) var resetBassCount = 0
@@ -130,6 +131,10 @@ final class PlaybackTestBackend: PlaybackBackend {
         volumes.append(volume)
     }
 
+    func setNormalizationGain(_ gain: Float) {
+        normalizationGains.append(gain)
+    }
+
     func stop() {
         stopCount += 1
     }
@@ -188,6 +193,7 @@ final class PlaybackTestSystemMediaSession: SystemMediaSessionControlling {
     private(set) var activationCount = 0
     private(set) var states: [PlaybackCoordinatorState] = []
     private(set) var clearCount = 0
+    private(set) var preferredSkipInterval: TimeInterval?
     private var handler: ((SystemMediaCommand) -> Void)?
 
     func activate(
@@ -207,6 +213,10 @@ final class PlaybackTestSystemMediaSession: SystemMediaSessionControlling {
 
     func clear() {
         clearCount += 1
+    }
+
+    func setSkipInterval(_ interval: TimeInterval) {
+        preferredSkipInterval = interval
     }
 
     func shutdown() {
@@ -270,6 +280,8 @@ func makePlaybackCoordinator(
         PlaybackTestSystemMediaSession(),
     audioRouteProvider: any AudioRouteProviding =
         PlaybackTestAudioRouteProvider(),
+    notificationController: CadenceNotificationController? = nil,
+    preferences: UserDefaults? = nil,
     bassEnvelopeLoader: @escaping PlaybackBassEnvelopeLoading =
         defaultPlaybackBassEnvelopeLoader
 ) -> PlaybackCoordinator {
@@ -278,6 +290,9 @@ func makePlaybackCoordinator(
         backends: backends,
         systemMediaSession: systemMediaSession,
         audioRouteProvider: audioRouteProvider,
+        notificationController: notificationController,
+        preferences: preferences ?? .standard,
+        persistsPlaybackSession: preferences != nil,
         bassEnvelopeLoader: bassEnvelopeLoader
     )
 }

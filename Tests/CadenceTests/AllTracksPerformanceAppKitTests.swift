@@ -97,7 +97,7 @@ extension AllTracksPerformanceTests {
                 isFavorite: false,
                 isHovered: true,
                 isLiveScrolling: true
-            ) == .hidden
+            ) == .emptySecondary
         )
         #expect(
             NativeFavoriteVisibility.resolve(
@@ -183,8 +183,8 @@ extension AllTracksPerformanceTests {
         #expect(!strings.contains("LRC"))
     }
 
-    @Test("Artist and album controls end with their rendered text")
-    func nativeMetadataLinksUseIntrinsicHitRegions() throws {
+    @Test("Artist and album metadata fit before AppKit truncates them")
+    func nativeMetadataLinksFitTheirRenderedText() throws {
         let cell = NativeTrackTableCell(
             frame: NSRect(x: 0, y: 0, width: 900, height: 58)
         )
@@ -201,21 +201,13 @@ extension AllTracksPerformanceTests {
         )
         cell.layout()
 
-        let artist = try nativeButton(in: cell, title: "Veilr")
-        let album = try nativeButton(in: cell, title: "Artificial Minds")
-        #expect(artist.frame.width < 100)
-        #expect(album.frame.width < 150)
-
-        let artistOutside = NSPoint(
-            x: artist.frame.maxX + 8,
-            y: artist.frame.midY
+        let artist = try nativeTextField(in: cell, value: "Veilr")
+        let album = try nativeTextField(
+            in: cell,
+            value: "Artificial Minds"
         )
-        let albumOutside = NSPoint(
-            x: album.frame.maxX + 8,
-            y: album.frame.midY
-        )
-        #expect(cell.hitTest(artistOutside) !== artist)
-        #expect(cell.hitTest(albumOutside) !== album)
+        #expect(artist.frame.width >= metadataCellWidth(artist))
+        #expect(album.frame.width >= metadataCellWidth(album))
         #expect(
             cell.hitTest(
                 NSPoint(x: artist.frame.midX, y: artist.frame.midY)
@@ -244,6 +236,13 @@ extension AllTracksPerformanceTests {
             isLiveScrolling: false,
             isFavorite: false
         )
+        let hoveredWhileScrolling = NativeTrackTableChromePresentation.resolve(
+            isSelected: false,
+            isFocused: false,
+            isHovered: true,
+            isLiveScrolling: true,
+            isFavorite: false
+        )
 
         #expect(selected.fill == .selection)
         #expect(selected.outline == .clear)
@@ -251,17 +250,24 @@ extension AllTracksPerformanceTests {
         #expect(hovered.fill == .hover)
         #expect(hovered.outline == .clear)
         #expect(hovered.favorite == .secondary)
+        #expect(hoveredWhileScrolling.fill == .hover)
     }
 
-    @Test("Track metadata shares the title line while artist stays below")
+    @Test("Single-line metadata is centered while the song stack stays centered")
     func nativeTrackRowGeometryAlignsMetadata() {
         let geometry = NativeTrackRowGeometry(rowHeight: 58)
 
         #expect(
             abs(
-                geometry.titleFrame.midY
+                geometry.contentBounds.midY
                     - geometry.singleLineFrame.midY
             ) < 0.5
+        )
+        #expect(
+            abs(
+                geometry.titleFrame.midY
+                    - geometry.singleLineFrame.midY
+            ) > 0.5
         )
         #expect(geometry.artistFrame.maxY < geometry.titleFrame.minY)
         #expect(
@@ -272,8 +278,8 @@ extension AllTracksPerformanceTests {
         )
     }
 
-    @Test("Rendered metadata columns align to the title baseline")
-    func nativeRenderedMetadataAlignsToTitle() throws {
+    @Test("Rendered single-line metadata columns are vertically centered")
+    func nativeRenderedMetadataIsVerticallyCentered() throws {
         let cell = NativeTrackTableCell(
             frame: NSRect(x: 0, y: 0, width: 900, height: 58)
         )
@@ -284,17 +290,16 @@ extension AllTracksPerformanceTests {
         )
         cell.layout()
 
-        let title = try nativeTextField(
+        let album = try nativeTextField(
             in: cell,
-            value: "A deliberately long track title"
+            value: "Artificial Minds"
         )
-        let album = try nativeButton(in: cell, title: "Artificial Minds")
         let year = try nativeTextField(in: cell, value: "2025")
         let duration = try nativeTextField(in: cell, value: "3:15")
 
-        #expect(abs(title.frame.midY - album.frame.midY) < 0.5)
-        #expect(abs(title.frame.midY - year.frame.midY) < 0.5)
-        #expect(abs(title.frame.midY - duration.frame.midY) < 0.5)
+        #expect(abs(cell.bounds.midY - album.frame.midY) < 0.5)
+        #expect(abs(cell.bounds.midY - year.frame.midY) < 0.5)
+        #expect(abs(cell.bounds.midY - duration.frame.midY) < 0.5)
     }
 
     private func configureInteractionCell(
@@ -325,17 +330,6 @@ extension AllTracksPerformanceTests {
         )
     }
 
-    private func nativeButton(
-        in cell: NativeTrackTableCell,
-        title: String
-    ) throws -> NSButton {
-        try #require(
-            cell.subviews
-                .compactMap { $0 as? NSButton }
-                .first { $0.title == title }
-        )
-    }
-
     private func nativeTextField(
         in cell: NativeTrackTableCell,
         value: String
@@ -345,6 +339,10 @@ extension AllTracksPerformanceTests {
                 .compactMap { $0 as? NSTextField }
                 .first { $0.stringValue == value }
         )
+    }
+
+    private func metadataCellWidth(_ field: NSTextField) -> CGFloat {
+        field.cell?.cellSize.width ?? 0
     }
 
     private func nativeInteractionProjection(
@@ -425,6 +423,66 @@ extension AllTracksPerformanceTests {
         #expect(probe.nativeCellConfigurations == 2)
         #expect(probe.nativeTrackIdentityChanges == 1)
         #expect(!containsHostingView(cell))
+    }
+
+    @Test("The native playback indicator uses three reusable animated bars")
+    func nativePlaybackIndicatorLifecycle() {
+        let indicator = NativePlaybackIndicatorView(
+            frame: NSRect(x: 0, y: 0, width: 40, height: 40)
+        )
+
+        #expect(indicator.barCount == 3)
+        #expect(!indicator.isAnimating)
+        #expect(indicator.hitTest(NSPoint(x: 20, y: 20)) == nil)
+
+        indicator.setPlaying(true, reduceMotion: false)
+        #expect(indicator.isAnimating)
+        let animationDurations = indicator.layer?.sublayers?.compactMap {
+            $0.animation(
+                forKey: "cadence.playback.level"
+            ) as? CAKeyframeAnimation
+        }.map(\.duration) ?? []
+        #expect(animationDurations.count == 3)
+        #expect(animationDurations.allSatisfy { $0 >= 1.15 })
+
+        indicator.setPlaying(false, reduceMotion: false)
+        #expect(!indicator.isAnimating)
+
+        indicator.setPlaying(true, reduceMotion: true)
+        #expect(!indicator.isAnimating)
+    }
+
+    @Test("A playing track cell renders the animated indicator above artwork")
+    func nativeTrackCellUsesPlaybackIndicator() throws {
+        let track = makeTracks(count: 1)[0]
+        let cell = NativeTrackTableCell(
+            frame: NSRect(x: 0, y: 0, width: 900, height: 58)
+        )
+
+        cell.configure(
+            .track(
+                TrackRowDisplayProjection(
+                    track: track,
+                    isCurrentTrack: true,
+                    isPlaying: true
+                )
+            ),
+            columns: [.album, .year, .time],
+            widths: presentation.widths,
+            isSelected: false,
+            isFocused: false,
+            isLiveScrolling: false
+        )
+        cell.layoutSubtreeIfNeeded()
+
+        let indicator = try #require(
+            cell.subviews
+                .compactMap { $0 as? NativePlaybackIndicatorView }
+                .first
+        )
+        #expect(!indicator.isHidden)
+        #expect(indicator.isAnimating)
+        #expect(indicator.frame == NSRect(x: 58, y: 9, width: 40, height: 40))
     }
 
     @Test("Native actions resolve the represented track after cell reuse")

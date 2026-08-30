@@ -21,6 +21,11 @@ protocol SystemMediaSessionControlling: AnyObject {
         handler: @escaping (SystemMediaCommand) -> Void
     )
     func update(state: PlaybackCoordinatorState)
+    func setSkipInterval(_ interval: TimeInterval)
     func clear()
     func shutdown()
+}
+
+extension SystemMediaSessionControlling {
+    func setSkipInterval(_: TimeInterval) {}
 }

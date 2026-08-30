@@ -147,6 +147,7 @@ private extension TagTrackPickerSheet {
                 addSelectedTracks()
             }
             .buttonStyle(.borderedProminent)
+            .cadenceActionTint(.confirmation)
             .keyboardShortcut(.defaultAction)
             .disabled(selectedIDs.isEmpty || isSaving)
         }

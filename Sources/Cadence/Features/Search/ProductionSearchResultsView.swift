@@ -3,6 +3,7 @@ import SwiftUI
 struct ProductionSearchResultsView: View {
     @Bindable var model: CadenceAppModel
     @Bindable var store: LibraryStore
+    @Environment(\.catalogCardSize) private var catalogCardSize
     @State private var expandedGroup: CatalogSearchGroup?
 
     var body: some View {
@@ -51,7 +52,7 @@ private extension ProductionSearchResultsView {
         VStack(alignment: .leading, spacing: 18) {
             header
 
-            ProductionTrackTable(
+            ProductionTrackList(
                 model: model,
                 tracks: store.catalogSearchResults.tracks,
                 contentVersion: store.catalogSearchTracksVersion,
@@ -273,7 +274,7 @@ private extension ProductionSearchResultsView {
                 group: .tracks,
                 count: store.catalogSearchResults.tracks.count
             ) {
-                ProductionTrackTable(
+                ProductionTrackList(
                     model: model,
                     tracks: store.catalogSearchResults.tracks,
                     contentVersion: store.catalogSearchTracksVersion,
@@ -346,7 +347,10 @@ private extension ProductionSearchResultsView {
         @ViewBuilder content: () -> some View
     ) -> some View {
         LazyVGrid(
-            columns: CatalogCardLayoutMetrics.layoutColumns(spacing: 12),
+            columns: CatalogCardLayoutMetrics.layoutColumns(
+                spacing: 12,
+                size: catalogCardSize
+            ),
             alignment: .leading,
             spacing: 12
         ) {

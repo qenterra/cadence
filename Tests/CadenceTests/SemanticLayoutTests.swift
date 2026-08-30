@@ -38,26 +38,52 @@ struct SemanticLayoutTests {
         #expect(HomeLayoutMetrics.artworkCardHeight < 264)
     }
 
-    @Test("Catalog cards keep one fixed width while column count changes")
-    func fixedCatalogCardMetrics() {
+    @Test("Catalog grids add useful columns without inflating artwork")
+    func adaptiveCatalogCardMetrics() {
         let widths: [CGFloat] = [640, 960, 1280]
+        let spacing = CadenceLayout.contentGap
         let columns = widths.map {
             CatalogCardLayoutMetrics.columns(
                 availableWidth: $0,
-                spacing: CadenceLayout.contentGap
+                spacing: spacing
             )
         }
 
-        #expect(columns.map(\.count) == [3, 4, 6])
-        for columnSet in columns {
+        #expect(CatalogCardLayoutMetrics.minimumCardWidth == 164)
+        #expect(CatalogCardLayoutMetrics.maximumCardWidth == 196)
+        #expect(columns.map(\.count) == [3, 5, 7])
+        for (availableWidth, columnSet) in zip(widths, columns) {
+            var resolvedWidths: [CGFloat] = []
             for column in columnSet {
                 guard case let .fixed(width) = column.size else {
-                    Issue.record("Catalog grid emitted a resizable column")
+                    Issue.record("Catalog width calculation must be deterministic")
                     continue
                 }
-                #expect(width == CatalogCardLayoutMetrics.cardWidth)
-                #expect(width == 196)
+                resolvedWidths.append(width)
+                #expect(
+                    width >= CatalogCardLayoutMetrics.minimumCardWidth
+                )
+                #expect(
+                    width <= CatalogCardLayoutMetrics.maximumCardWidth
+                )
             }
+            let occupiedWidth = resolvedWidths.reduce(0, +)
+                + CGFloat(max(columnSet.count - 1, 0)) * spacing
+            #expect(occupiedWidth <= availableWidth)
+            #expect(
+                availableWidth - occupiedWidth
+                    < CatalogCardLayoutMetrics.minimumCardWidth + spacing
+            )
+        }
+
+        let layoutColumn = CatalogCardLayoutMetrics.layoutColumns(
+            spacing: spacing
+        )[0]
+        if case let .adaptive(minimum, maximum) = layoutColumn.size {
+            #expect(minimum == CatalogCardLayoutMetrics.minimumCardWidth)
+            #expect(maximum == CatalogCardLayoutMetrics.maximumCardWidth)
+        } else {
+            Issue.record("Runtime catalog grid must use adaptive columns")
         }
     }
 
@@ -65,8 +91,56 @@ struct SemanticLayoutTests {
     func primaryRegionMetrics() {
         #expect(PlayerBarLayoutMetrics.height == 96)
         #expect(PlayerBarLayoutMetrics.horizontalInset == CadenceLayout.panelInset)
+        #expect(
+            PlayerBarLayoutMetrics.metadataMaximumWidth
+                > PlayerBarLayoutMetrics.metadataMinimumWidth
+        )
+        #expect(PlayerBarLayoutMetrics.outputWidth == 244)
         #expect(NavigationRailMetrics.rowHeight == CadenceLayout.rowHeight)
         #expect(NavigationRailMetrics.horizontalInset == CadenceLayout.compactGap)
         #expect(CadenceLayout.readableContentWidth == 760)
+    }
+
+    @Test("Player content is optically centered above the bottom edge")
+    func playerBarContentFrame() {
+        let frame = PlayerBarLayoutMetrics.contentFrame(
+            availableWidth: 1200
+        )
+
+        #expect(frame.minY == 16)
+        #expect(frame.midY == PlayerBarLayoutMetrics.height / 2 - 4)
+        #expect(frame.maxY == 72)
+        #expect(frame.width == 1200)
+    }
+
+    @Test("An internal track exposes its favorite action in transport")
+    func playerBarFavoritePlacement() {
+        #expect(
+            PlayerBarFavoriteRegion.resolve(
+                hasPlaybackItem: true,
+                isExternal: false
+            ) == .transport
+        )
+        #expect(
+            PlayerBarFavoriteRegion.resolve(
+                hasPlaybackItem: true,
+                isExternal: true
+            ) == .hidden
+        )
+        #expect(
+            PlayerBarFavoriteRegion.resolve(
+                hasPlaybackItem: false,
+                isExternal: false
+            ) == .hidden
+        )
+    }
+
+    @Test("Home puts Recently Played before personalized pinned shelves")
+    func homeSectionOrder() {
+        #expect(HomeContentSection.personalizedOrder == [
+            .recentlyPlayed,
+            .pinned,
+            .favorites,
+        ])
     }
 }

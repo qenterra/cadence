@@ -1,27 +1,20 @@
 import AppKit
 
-struct AppearanceRefreshIdentity: Hashable, Sendable {
-    let rawValue: String
-}
-
 @MainActor
 final class AppearanceController {
     func apply(
         _ choice: CadenceAppearance,
-        application: NSApplication = .shared
+        application: NSApplication = .shared,
+        windows: [NSWindow]? = nil
     ) {
         application.appearance = choice.appKitAppearance
-        apply(choice, to: application.windows)
-    }
-
-    func apply(
-        _ choice: CadenceAppearance,
-        to windows: [NSWindow]
-    ) {
-        let appearance = choice.appKitAppearance
-        for window in allWindows(startingAt: windows) {
-            window.appearance = appearance
-            refresh(view: window.contentView)
+        for window in allWindows(
+            startingAt: windows ?? application.windows
+        ) {
+            window.appearanceSource = application
+            window.appearance = nil
+            window.contentView?.superview?.needsDisplay = true
+            window.invalidateShadow()
         }
     }
 
@@ -43,19 +36,5 @@ final class AppearanceController {
             }
         }
         return result
-    }
-
-    private func refresh(
-        view: NSView?
-    ) {
-        guard let view else {
-            return
-        }
-        view.needsDisplay = true
-        view.needsLayout = true
-        view.invalidateIntrinsicContentSize()
-        for subview in view.subviews {
-            refresh(view: subview)
-        }
     }
 }

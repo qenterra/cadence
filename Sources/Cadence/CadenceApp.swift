@@ -5,24 +5,38 @@ import SwiftUI
 struct CadenceApp: App {
     @NSApplicationDelegateAdaptor(CadenceApplicationDelegate.self)
     private var applicationDelegate
-    @State private var model = Self.makeInitialModel()
+    @State private var model: CadenceAppModel
     private let instanceCoordinator = CadenceInstanceCoordinator.shared
-    @State private var appearanceController = AppearanceController()
-    @State private var updateController = CadenceUpdateController(
-        startsUpdater: !CadenceLaunchEnvironment.shouldUsePreviewLibrary()
-    )
+    private let appearanceController = AppearanceController()
+    private let notificationController: CadenceNotificationController
+    @State private var updateController: CadenceUpdateController
     @AppStorage("appearance")
     private var appearanceRawValue = CadenceAppearance.system.rawValue
+
+    init() {
+        CadencePreferences.registerDefaults()
+        let notificationController = CadenceNotificationController()
+        self.notificationController = notificationController
+        _model = State(
+            initialValue: Self.makeInitialModel(
+                notificationController: notificationController
+            )
+        )
+        _updateController = State(
+            initialValue: CadenceUpdateController(
+                startsUpdater:
+                !CadenceLaunchEnvironment.shouldUsePreviewLibrary(),
+                notificationController: notificationController
+            )
+        )
+    }
 
     var body: some Scene {
         Window("Cadence", id: "main") {
             Group {
                 if !CadenceLaunchEnvironment.shouldEnforceSingleInstance()
                     || instanceCoordinator.claim() == .owner {
-                    CadenceRootView(
-                        model: model,
-                        appearanceIdentity: appearanceIdentity
-                    )
+                    CadenceRootView(model: model)
                 } else {
                     Color.clear
                 }
@@ -31,7 +45,6 @@ struct CadenceApp: App {
                 minWidth: AdaptiveLayoutPolicy.minimumWindowSize.width,
                 minHeight: AdaptiveLayoutPolicy.minimumWindowSize.height
             )
-            .preferredColorScheme(appearance.colorScheme)
             .tint(CadenceTheme.primaryAccent)
             .onChange(
                 of: appearanceRawValue,
@@ -66,9 +79,9 @@ struct CadenceApp: App {
         Settings {
             CadenceSettingsWindow(
                 model: model,
-                updateController: updateController
+                updateController: updateController,
+                notificationController: notificationController
             )
-            .preferredColorScheme(appearance.colorScheme)
             .tint(CadenceTheme.primaryAccent)
         }
         .commands {
@@ -222,38 +235,41 @@ struct CadenceApp: App {
         CadenceAppearance(rawValue: appearanceRawValue) ?? .system
     }
 
-    private var appearanceIdentity: AppearanceRefreshIdentity {
-        AppearanceRefreshIdentity(rawValue: appearanceRawValue)
-    }
-
-    private static func makeInitialModel() -> CadenceAppModel {
+    private static func makeInitialModel(
+        notificationController: CadenceNotificationController
+    ) -> CadenceAppModel {
         if CadenceLaunchEnvironment.shouldUsePreviewLibrary() {
             return .preview()
         }
         guard CadenceInstanceCoordinator.shared.claim() == .owner else {
             return .preview()
         }
-        return .production(librarySession: .startup())
+        return .production(
+            librarySession: .startup(),
+            notificationController: notificationController
+        )
     }
 }
 
 struct CadenceSettingsWindow: View {
     @Environment(\.dismiss) private var dismiss
     @Bindable var model: CadenceAppModel
-    @AppStorage("appearance")
-    private var appearanceRawValue = CadenceAppearance.system.rawValue
     let updateController: CadenceUpdateController
+    let notificationController: CadenceNotificationController
     let defaultAudioApplication: DefaultAudioApplicationController?
     @State private var selection: CadenceSettingsTab
 
     init(
         model: CadenceAppModel,
         updateController: CadenceUpdateController,
+        notificationController: CadenceNotificationController =
+            CadenceNotificationController(),
         defaultAudioApplication: DefaultAudioApplicationController? = nil,
         selection: CadenceSettingsTab = .general
     ) {
         self.model = model
         self.updateController = updateController
+        self.notificationController = notificationController
         self.defaultAudioApplication = defaultAudioApplication
         _selection = State(initialValue: selection)
     }
@@ -274,6 +290,7 @@ struct CadenceSettingsWindow: View {
                 model: model,
                 tab: selection,
                 updateController: updateController,
+                notificationController: notificationController,
                 defaultAudioApplication: defaultAudioApplication,
                 openDestination: { destination in
                     model.requestNavigationDestination(destination)
@@ -281,8 +298,7 @@ struct CadenceSettingsWindow: View {
                 }
             )
         }
-        .id(AppearanceRefreshIdentity(rawValue: appearanceRawValue))
-        .frame(width: 760, height: 640, alignment: .top)
+        .frame(width: 840, height: 680, alignment: .top)
         .task(id: selection) {
             await Task.yield()
             NSApp.keyWindow?.title = "Settings"

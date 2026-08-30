@@ -32,7 +32,6 @@ struct CadenceRootView: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Bindable var model: CadenceAppModel
-    let appearanceIdentity: AppearanceRefreshIdentity
     @State var isSearchPresented = false
     @State private var cadenceModeSession: CadenceModeSession
     @State private var folderIconController = LibraryFolderIconController()
@@ -47,17 +46,14 @@ struct CadenceRootView: View {
         CadenceModeOptions.default.showsTrackInformation
     @AppStorage(CadenceModePreferences.staysActiveKey)
     private var staysInCadenceMode = CadenceModeOptions.default.staysActive
+    @AppStorage(CadencePreferences.Keys.catalogCardSize)
+    private var catalogCardSizeRaw = CatalogCardSize.automatic.rawValue
 
     init(
         model: CadenceAppModel,
-        cadenceModeSession: CadenceModeSession = CadenceModeSession(),
-        appearanceIdentity: AppearanceRefreshIdentity =
-            AppearanceRefreshIdentity(
-                rawValue: CadenceAppearance.system.rawValue
-            )
+        cadenceModeSession: CadenceModeSession = CadenceModeSession()
     ) {
         self.model = model
-        self.appearanceIdentity = appearanceIdentity
         _cadenceModeSession = State(initialValue: cadenceModeSession)
     }
 
@@ -112,14 +108,27 @@ struct CadenceRootView: View {
                 )
             }
         }
-        .id(appearanceIdentity)
         .background(CadenceTheme.contentBackground)
+        .environment(
+            \.catalogCardSize,
+            CatalogCardSize(rawValue: catalogCardSizeRaw) ?? .automatic
+        )
         .background {
-            CadenceModeInputCapture(
-                model: model,
-                session: cadenceModeSession,
-                isEnabled: cadenceModeOptions.isEnabled
-            )
+            ZStack {
+                AppPlaybackKeyboardCapture(
+                    isLocallyOwned: ownsSpaceLocally
+                ) { focus in
+                    _ = AppCommandRouter(model: model).handle(
+                        .togglePlayback,
+                        focus: focus
+                    )
+                }
+                CadenceModeInputCapture(
+                    model: model,
+                    session: cadenceModeSession,
+                    isEnabled: cadenceModeOptions.isEnabled
+                )
+            }
             .allowsHitTesting(false)
             .accessibilityHidden(true)
         }
@@ -148,6 +157,7 @@ struct CadenceRootView: View {
                     await model.confirmPlaylistCreation()
                 }
             }
+            .cadenceActionTint(.confirmation)
             .disabled(
                 model.pendingPlaylistCreation?.name
                     .trimmingCharacters(in: .whitespacesAndNewlines)
@@ -174,6 +184,7 @@ struct CadenceRootView: View {
                     await model.confirmLibraryDeletion(deletion)
                 }
             }
+            .cadenceActionTint(.destructive)
             Button("Cancel", role: .cancel) {
                 model.cancelLibraryDeletion()
             }
@@ -301,9 +312,6 @@ struct CadenceRootView: View {
             dismissSearch()
             return .handled
         }
-        .onKeyPress(.space, phases: .down) { _ in
-            commandResult(.togglePlayback)
-        }
         .onKeyPress(.leftArrow, phases: .down) { keyPress in
             commandResult(
                 .previousTrack,
@@ -336,6 +344,14 @@ struct CadenceRootView: View {
 }
 
 private extension CadenceRootView {
+    var ownsSpaceLocally: Bool {
+        model.playbackWorkspace == .lyricsEditor
+            || (
+                model.selectedDestination == .importMusic
+                    && model.importPreviewStage == .review
+            )
+    }
+
     var folderIconRefreshID: String {
         let path = model.librarySession.location?.packageURL.path ?? "none"
         let appearance = colorScheme == .dark ? "dark" : "light"

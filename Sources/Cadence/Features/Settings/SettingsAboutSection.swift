@@ -1,81 +1,150 @@
+import AppKit
 import SwiftUI
 
-struct SettingsAboutSection: View {
-    private let columns = [
-        GridItem(.flexible(), spacing: CadenceLayout.compactGap),
-        GridItem(.flexible(), spacing: CadenceLayout.compactGap),
+struct SettingsAboutResource: Identifiable {
+    let title: String
+    let subtitle: String
+    let symbol: String
+    let destination: URL
+
+    var id: String {
+        title
+    }
+}
+
+enum SettingsAboutContent {
+    static let usesProductHero = true
+    static let resources = [
+        SettingsAboutResource(
+            title: "GitHub Profile",
+            subtitle: "More projects by \(AppConfiguration.creatorName)",
+            symbol: "person.crop.circle",
+            destination: AppConfiguration.creatorURL
+        ),
+        SettingsAboutResource(
+            title: "Source Code",
+            subtitle: "Browse and contribute to Cadence",
+            symbol: "chevron.left.forwardslash.chevron.right",
+            destination: AppConfiguration.projectURL
+        ),
+        SettingsAboutResource(
+            title: "Wiki",
+            subtitle: "Product and engineering documentation",
+            symbol: "book.pages",
+            destination: AppConfiguration.wikiURL
+        ),
+        SettingsAboutResource(
+            title: "MIT License",
+            subtitle: "Cadence source and documentation",
+            symbol: "doc.text",
+            destination: AppConfiguration.licenseURL
+        ),
+        SettingsAboutResource(
+            title: "Third-Party Notices",
+            subtitle: "Licenses for bundled dependencies",
+            symbol: "books.vertical",
+            destination: AppConfiguration.thirdPartyNoticesURL
+        ),
     ]
 
-    var body: some View {
-        VStack(alignment: .leading, spacing: CadenceLayout.compactGap) {
-            creatorCard
+    static var resourceTitles: [String] {
+        resources.map(\.title)
+    }
+}
 
-            LazyVGrid(columns: columns, spacing: CadenceLayout.compactGap) {
-                SettingsAboutLinkTile(
-                    title: "GitHub Profile",
-                    subtitle:
-                    "More projects by \(AppConfiguration.creatorName)",
-                    symbol: "person.2.circle",
-                    destination: AppConfiguration.creatorURL
-                )
-                SettingsAboutLinkTile(
-                    title: "Source Code",
-                    subtitle: "Browse and contribute to Cadence",
-                    symbol: "chevron.left.forwardslash.chevron.right",
-                    destination: AppConfiguration.projectURL
-                )
-                SettingsAboutLinkTile(
-                    title: "Wiki",
-                    subtitle: "Product and engineering documentation",
-                    symbol: "book.pages",
-                    destination: AppConfiguration.wikiURL
-                )
-                SettingsAboutLinkTile(
-                    title: "MIT License",
-                    subtitle: "Cadence source and documentation",
-                    symbol: "doc.text",
-                    destination: AppConfiguration.licenseURL
-                )
-                SettingsAboutLinkTile(
-                    title: "Third-Party Notices",
-                    subtitle: "Licenses for development dependencies",
-                    symbol: "books.vertical",
-                    destination: AppConfiguration.thirdPartyNoticesURL
-                )
+struct SettingsAboutSection: View {
+    var body: some View {
+        VStack(spacing: SettingsLayoutMetrics.sectionSpacing) {
+            productHero
+
+            SettingsCard(title: "Resources", symbol: "link") {
+                VStack(spacing: 0) {
+                    ForEach(
+                        Array(SettingsAboutContent.resources.enumerated()),
+                        id: \.element.id
+                    ) { index, resource in
+                        SettingsAboutResourceRow(resource: resource)
+
+                        if index < SettingsAboutContent.resources.count - 1 {
+                            Divider()
+                                .padding(.leading, 38)
+                        }
+                    }
+                }
             }
         }
     }
 
-    private var creatorCard: some View {
-        HStack(spacing: CadenceLayout.contentGap) {
-            SettingsAboutSymbol(symbol: "music.note.house")
+    private var productHero: some View {
+        VStack(alignment: .leading, spacing: CadenceLayout.contentGap) {
+            HStack(spacing: CadenceLayout.contentGap) {
+                Image(nsImage: NSApp.applicationIconImage)
+                    .resizable()
+                    .interpolation(.high)
+                    .frame(width: 72, height: 72)
+                    .clipShape(
+                        RoundedRectangle(
+                            cornerRadius: CadenceTheme.radiusPanel,
+                            style: .continuous
+                        )
+                    )
 
-            VStack(alignment: .leading, spacing: CadenceLayout.textStack) {
-                Text("Created by")
+                VStack(alignment: .leading, spacing: CadenceLayout.textStack) {
+                    Text("Cadence")
+                        .font(.title2.weight(.semibold))
+
+                    Text("Version \(appVersion) (\(buildNumber))")
+                        .font(.callout.monospacedDigit())
+                        .foregroundStyle(.secondary)
+
+                    Text("Native music, kept focused.")
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                }
+
+                Spacer(minLength: 0)
+            }
+
+            Text(
+                "A focused macOS music library built for local collections, "
+                    + "careful metadata, and uninterrupted listening."
+            )
+            .font(.callout)
+            .foregroundStyle(.secondary)
+            .fixedSize(horizontal: false, vertical: true)
+
+            Divider()
+
+            HStack {
+                Label(
+                    "Created by \(AppConfiguration.creatorName)",
+                    systemImage: "person.crop.circle"
+                )
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+                Spacer()
+
+                Text("© 2026 QenTerra")
                     .font(.caption)
                     .foregroundStyle(.tertiary)
-                Text(AppConfiguration.creatorName)
-                    .font(.body.weight(.medium))
-                    .foregroundStyle(.primary)
-            }
-
-            Spacer()
-
-            VStack(alignment: .trailing, spacing: CadenceLayout.textStack) {
-                Text("Cadence")
-                    .font(.body.weight(.medium))
-                Text("Version \(appVersion)")
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
             }
         }
-        .padding(.horizontal, CadenceLayout.contentGap)
-        .frame(minHeight: 84)
+        .padding(SettingsLayoutMetrics.cardInset)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .background(CadenceTheme.secondarySurface)
-        .clipShape(RoundedRectangle(cornerRadius: CadenceTheme.radiusPanel))
+        .clipShape(
+            RoundedRectangle(
+                cornerRadius: CadenceTheme.radiusPanel,
+                style: .continuous
+            )
+        )
         .overlay {
-            RoundedRectangle(cornerRadius: CadenceTheme.radiusPanel)
-                .strokeBorder(CadenceTheme.separator, lineWidth: 0.5)
+            RoundedRectangle(
+                cornerRadius: CadenceTheme.radiusPanel,
+                style: .continuous
+            )
+            .strokeBorder(CadenceTheme.separator, lineWidth: 0.5)
         }
     }
 
@@ -84,29 +153,38 @@ struct SettingsAboutSection: View {
             forInfoDictionaryKey: "CFBundleShortVersionString"
         ) as? String ?? "0.1.0"
     }
+
+    private var buildNumber: String {
+        Bundle.main.object(
+            forInfoDictionaryKey: "CFBundleVersion"
+        ) as? String ?? "1"
+    }
 }
 
-private struct SettingsAboutLinkTile: View {
-    let title: String
-    let subtitle: String
-    let symbol: String
-    let destination: URL
-
+private struct SettingsAboutResourceRow: View {
+    let resource: SettingsAboutResource
     @State private var isHovered = false
 
     var body: some View {
-        Link(destination: destination) {
+        Link(destination: resource.destination) {
             HStack(spacing: CadenceLayout.controlGap) {
-                SettingsAboutSymbol(symbol: symbol)
+                Image(systemName: resource.symbol)
+                    .font(.system(size: 15, weight: .medium))
+                    .symbolRenderingMode(.hierarchical)
+                    .foregroundStyle(.secondary)
+                    .frame(width: 26, height: 26)
 
-                VStack(alignment: .leading, spacing: CadenceLayout.textStack) {
-                    Text(title)
-                        .font(.body.weight(.medium))
+                VStack(
+                    alignment: .leading,
+                    spacing: CadenceLayout.textStack
+                ) {
+                    Text(LocalizedStringKey(resource.title))
+                        .font(.callout.weight(.medium))
                         .foregroundStyle(.primary)
-                    Text(subtitle)
+                    Text(LocalizedStringKey(resource.subtitle))
                         .font(.caption)
                         .foregroundStyle(.tertiary)
-                        .lineLimit(2)
+                        .lineLimit(1)
                 }
 
                 Spacer(minLength: CadenceLayout.compactGap)
@@ -115,38 +193,19 @@ private struct SettingsAboutLinkTile: View {
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(.secondary)
             }
-            .padding(.horizontal, CadenceLayout.contentGap)
-            .frame(maxWidth: .infinity, minHeight: 76)
+            .padding(.horizontal, CadenceLayout.compactGap)
+            .frame(maxWidth: .infinity, minHeight: 54)
             .background(
-                isHovered
-                    ? CadenceTheme.selectionFill
-                    : CadenceTheme.secondarySurface
+                isHovered ? CadenceTheme.hoverFill : Color.clear,
+                in: RoundedRectangle(
+                    cornerRadius: CadenceTheme.radiusControl,
+                    style: .continuous
+                )
             )
-            .clipShape(RoundedRectangle(cornerRadius: CadenceTheme.radiusPanel))
-            .overlay {
-                RoundedRectangle(cornerRadius: CadenceTheme.radiusPanel)
-                    .strokeBorder(CadenceTheme.separator, lineWidth: 0.5)
-            }
-            .contentShape(RoundedRectangle(cornerRadius: CadenceTheme.radiusPanel))
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .onHover {
-            isHovered = $0
-        }
+        .onHover { isHovered = $0 }
         .accessibilityHint("Opens in your default browser")
-    }
-}
-
-private struct SettingsAboutSymbol: View {
-    let symbol: String
-
-    var body: some View {
-        Image(systemName: symbol)
-            .font(.system(size: 17, weight: .medium))
-            .symbolRenderingMode(.hierarchical)
-            .foregroundStyle(.secondary)
-            .frame(width: 40, height: 40)
-            .background(CadenceTheme.opaqueSurface)
-            .clipShape(RoundedRectangle(cornerRadius: CadenceTheme.radiusControl))
     }
 }

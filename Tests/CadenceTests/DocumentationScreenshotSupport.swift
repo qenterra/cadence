@@ -191,6 +191,9 @@ final class DocumentationScreenshotFixture {
         }
 
         readinessTracker.prepareForCapture(scene)
+        let capturedAppearance = NSAppearance(
+            named: appearance.appKitName
+        )
         let rootView = preparedRootView(
             rootView,
             contentSize: contentSize,
@@ -198,28 +201,23 @@ final class DocumentationScreenshotFixture {
         )
 
         let hostingView = NSHostingView(rootView: rootView)
-        let window = NSWindow(
-            contentRect: NSRect(origin: .zero, size: contentSize),
-            styleMask: [.titled, .closable, .miniaturizable, .resizable],
-            backing: .buffered,
-            defer: false
+        let window = captureWindow(
+            contentSize: contentSize,
+            appearance: capturedAppearance,
+            contentView: hostingView
         )
-        window.isReleasedWhenClosed = false
-        window.title = "Cadence"
-        window.titleVisibility = .hidden
-        window.toolbarStyle = .unifiedCompact
-        window.appearance = NSAppearance(named: appearance.appKitName)
-        window.contentView = hostingView
-        window.contentMinSize = contentSize
-        window.contentMaxSize = contentSize
-        window.setContentSize(contentSize)
-        window.makeKeyAndOrderFront(nil)
 
         // Mount the SwiftUI tree before waiting for view-owned async tasks.
         hostingView.layoutSubtreeIfNeeded()
         hostingView.displayIfNeeded()
         try await waitUntilReady(for: scene)
+        // The hosted Cadence app can apply its own global appearance while a
+        // screenshot window is mounting. Restore the capture-owned override
+        // immediately before rasterization so the frame cannot record a
+        // half-transitioned mix of AppKit and SwiftUI appearances.
+        window.appearance = capturedAppearance
         hostingView.layoutSubtreeIfNeeded()
+        hostingView.displayIfNeeded()
         await Task.yield()
         let data = try pngData(for: window)
         if recordsOnly {
@@ -231,6 +229,31 @@ final class DocumentationScreenshotFixture {
             )
         }
         window.close()
+    }
+
+    private func captureWindow(
+        contentSize: NSSize,
+        appearance: NSAppearance?,
+        contentView: NSView
+    ) -> NSWindow {
+        let window = NSWindow(
+            contentRect: NSRect(origin: .zero, size: contentSize),
+            styleMask: [.titled, .closable, .miniaturizable, .resizable],
+            backing: .buffered,
+            defer: false
+        )
+        window.isReleasedWhenClosed = false
+        window.title = "Cadence"
+        window.titleVisibility = .hidden
+        window.toolbarStyle = .unifiedCompact
+        window.ignoresMouseEvents = true
+        window.appearance = appearance
+        window.contentView = contentView
+        window.contentMinSize = contentSize
+        window.contentMaxSize = contentSize
+        window.setContentSize(contentSize)
+        window.orderFront(nil)
+        return window
     }
 
     private func preparedRootView(
@@ -418,5 +441,5 @@ extension NSSize {
     static let ideal = NSSize(width: 1512, height: 982)
     static let wide = NSSize(width: 1440, height: 868)
     static let large = NSSize(width: 2200, height: 1300)
-    static let settings = NSSize(width: 760, height: 640)
+    static let settings = NSSize(width: 840, height: 680)
 }

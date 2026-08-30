@@ -153,6 +153,43 @@ struct PCMPlaybackBackendTests {
         backend.stop()
     }
 
+    @Test("Seeking to the exact end still produces a schedulable PCM segment")
+    func exactEndSeekKeepsPositiveFrameCount() async throws {
+        let directory = FileManager.default.temporaryDirectory
+            .appending(path: UUID().uuidString, directoryHint: .isDirectory)
+        try FileManager.default.createDirectory(
+            at: directory,
+            withIntermediateDirectories: true
+        )
+        defer {
+            try? FileManager.default.removeItem(at: directory)
+        }
+
+        let track = try makeWave(
+            at: directory.appending(path: "exact-end.wav"),
+            id: UUID(),
+            title: "Exact End",
+            frameCount: 4096
+        )
+        let backend = PCMPlaybackBackend()
+        defer { backend.stop() }
+
+        try await backend.load(
+            PlaybackBackendLoadRequest(
+                current: track,
+                next: nil,
+                startTime: 0,
+                autoplay: false,
+                volume: 0.8
+            )
+        )
+        try await backend.seek(to: track.track.duration)
+        let item = try #require(backend.currentItem)
+
+        #expect(item.frameCount == 1)
+        #expect(item.startingFrame == item.file.length - 1)
+    }
+
     @Test("Load, seek, and stop clear PCM bass state")
     func bassResetLifecycle() async throws {
         let directory = FileManager.default.temporaryDirectory

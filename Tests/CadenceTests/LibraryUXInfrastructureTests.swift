@@ -74,15 +74,30 @@ struct LibraryUXInfrastructureTests {
         )
     }
 
-    @Test("Appearance identity changes only when the exact choice changes")
-    func appearanceRefreshIdentity() {
-        #expect(
-            AppearanceRefreshIdentity(rawValue: "dark")
-                != AppearanceRefreshIdentity(rawValue: "light")
+    @Test("Appearance changes do not recreate the root or Settings trees")
+    func appearanceChangesPreserveViewIdentity() throws {
+        let projectRoot = URL(filePath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+        let rootSource = try String(
+            contentsOf: projectRoot.appending(
+                path: "Sources/Cadence/Features/Shell/CadenceRootView.swift"
+            ),
+            encoding: .utf8
         )
+        let appSource = try String(
+            contentsOf: projectRoot.appending(
+                path: "Sources/Cadence/CadenceApp.swift"
+            ),
+            encoding: .utf8
+        )
+
+        #expect(!rootSource.contains(".id(appearanceIdentity)"))
         #expect(
-            AppearanceRefreshIdentity(rawValue: "dark")
-                == AppearanceRefreshIdentity(rawValue: "dark")
+            !appSource.contains(
+                ".id(AppearanceRefreshIdentity(rawValue: appearanceRawValue))"
+            )
         )
     }
 
@@ -250,7 +265,9 @@ struct LibraryUXInfrastructureTests {
             )
         )
     }
+}
 
+extension LibraryUXInfrastructureTests {
     @Test("Track artwork waveform represents only the active playing track")
     @MainActor
     func trackArtworkPlaybackSymbol() {
@@ -389,6 +406,56 @@ extension LibraryUXInfrastructureTests {
         #expect(
             SettingsBooleanControlPresentation.style
                 == .nativeSwitch
+        )
+        #expect(
+            SettingsBooleanControlPresentation.size
+                == .small
+        )
+        #expect(
+            SettingsBooleanControlPresentation.alignment
+                == .trailing
+        )
+    }
+
+    @Test("Navigation Settings uses checkboxes and lets Home move")
+    func settingsNavigationControls() throws {
+        let projectRoot = URL(filePath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+        let source = try String(
+            contentsOf: projectRoot.appending(
+                path: "Sources/Cadence/Features/Settings/SettingsSidebarCard.swift"
+            ),
+            encoding: .utf8
+        )
+
+        #expect(source.contains(".toggleStyle(.checkbox)"))
+        #expect(!source.contains("source != .home"))
+        #expect(!source.contains("destination != .home"))
+    }
+
+    @Test("About presents a compact product hero and one resource list")
+    func settingsAboutContent() {
+        #expect(SettingsAboutContent.resourceTitles == [
+            "GitHub Profile",
+            "Source Code",
+            "Wiki",
+            "MIT License",
+            "Third-Party Notices",
+        ])
+        #expect(SettingsAboutContent.usesProductHero)
+    }
+
+    @Test("Action semantics map confirmation to blue and deletion to red")
+    func semanticActionColors() {
+        #expect(
+            CadenceActionTone.confirmation.semanticColor
+                == .systemBlue
+        )
+        #expect(
+            CadenceActionTone.destructive.semanticColor
+                == .systemRed
         )
     }
 

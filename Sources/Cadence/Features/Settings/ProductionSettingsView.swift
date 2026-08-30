@@ -4,19 +4,12 @@ enum SettingsLayoutMetrics {
     static let sectionSpacing = CadenceLayout.contentGap
     static let cardInset = CadenceLayout.contentGap
     static let cardContentSpacing = CadenceLayout.controlGap
-    static let maximumContentWidth: CGFloat = 640
-}
-
-enum SettingsBooleanControlStyle: Equatable, Sendable {
-    case nativeSwitch
-}
-
-enum SettingsBooleanControlPresentation {
-    static let style = SettingsBooleanControlStyle.nativeSwitch
+    static let maximumContentWidth: CGFloat = 680
 }
 
 enum CadenceSettingsTab: String, CaseIterable, Identifiable {
     case general
+    case playback
     case library
     case sidebar
     case remote
@@ -31,8 +24,9 @@ enum CadenceSettingsTab: String, CaseIterable, Identifiable {
     var title: String {
         switch self {
         case .general: String(localized: "General")
+        case .playback: String(localized: "Playback")
         case .library: String(localized: "Library")
-        case .sidebar: String(localized: "Sidebar")
+        case .sidebar: String(localized: "Navigation")
         case .remote: String(localized: "Remote Media")
         case .shortcuts: String(localized: "Shortcuts")
         case .updates: String(localized: "Updates")
@@ -43,6 +37,7 @@ enum CadenceSettingsTab: String, CaseIterable, Identifiable {
     var symbolName: String {
         switch self {
         case .general: "gearshape"
+        case .playback: "play.circle"
         case .library: "externaldrive"
         case .sidebar: "sidebar.left"
         case .remote: "network"
@@ -57,37 +52,38 @@ struct ProductionSettingsView: View {
     @Bindable var model: CadenceAppModel
     let tab: CadenceSettingsTab
     let updateController: CadenceUpdateController?
+    let notificationController: CadenceNotificationController?
     let openDestination: ((NavigationDestination) -> Void)?
     @State private var defaultAudioApplication: DefaultAudioApplicationController
     @AppStorage("appearance")
     private var appearanceRawValue = CadenceAppearance.system.rawValue
+    @AppStorage(CadencePreferences.Keys.catalogCardSize)
+    private var catalogCardSizeRawValue = CatalogCardSize.automatic.rawValue
+    @AppStorage(CadencePreferences.Keys.showsTrackArtwork)
+    private var showsTrackArtwork = true
     @AppStorage("navigationRail.order")
     private var navigationOrderRawValue =
         NavigationRailConfiguration.defaultOrderRawValue
     @AppStorage("navigationRail.hidden")
     private var hiddenNavigationRawValue = ""
-    @AppStorage(CadenceModePreferences.isEnabledKey)
-    private var isCadenceModeEnabled = CadenceModeOptions.default.isEnabled
-    @AppStorage(CadenceModePreferences.reactsToBassKey)
-    private var cadenceModeReactsToBass = CadenceModeOptions.default.reactsToBass
-    @AppStorage(CadenceModePreferences.showsLyricsKey)
-    private var cadenceModeShowsLyrics = CadenceModeOptions.default.showsLyrics
-    @AppStorage(CadenceModePreferences.showsTrackInformationKey)
-    private var cadenceModeShowsTrackInformation =
-        CadenceModeOptions.default.showsTrackInformation
-    @AppStorage(CadenceModePreferences.staysActiveKey)
-    private var staysInCadenceMode = CadenceModeOptions.default.staysActive
+    @AppStorage(CadencePreferences.Keys.homeSectionOrder)
+    private var homeSectionOrderRawValue =
+        HomeSectionConfiguration.defaultOrderRawValue
+    @AppStorage(CadencePreferences.Keys.hiddenHomeSections)
+    private var hiddenHomeSectionsRawValue = ""
 
     init(
         model: CadenceAppModel,
         tab: CadenceSettingsTab = .general,
         updateController: CadenceUpdateController? = nil,
+        notificationController: CadenceNotificationController? = nil,
         defaultAudioApplication: DefaultAudioApplicationController? = nil,
         openDestination: ((NavigationDestination) -> Void)? = nil
     ) {
         self.model = model
         self.tab = tab
         self.updateController = updateController
+        self.notificationController = notificationController
         self.openDestination = openDestination
         _defaultAudioApplication = State(
             initialValue: defaultAudioApplication
@@ -156,13 +152,26 @@ struct ProductionSettingsView: View {
         case .general:
             defaultAudioApplicationCard
             appearanceCard
-            cadenceModeCard
+            if let notificationController {
+                NotificationsSettingsCard(
+                    notificationController: notificationController
+                )
+            }
+            SettingsDataCard {
+                model.refreshPlaybackPreferences()
+            }
+        case .playback:
+            SettingsPlaybackView(model: model)
         case .library:
             ManagedLibrarySettingsCard(
                 model: model,
                 openDestination: openDestination
             )
         case .sidebar:
+            SettingsHomeSectionsCard(
+                orderRawValue: $homeSectionOrderRawValue,
+                hiddenRawValue: $hiddenHomeSectionsRawValue
+            )
             SettingsSidebarCard(
                 orderRawValue: $navigationOrderRawValue,
                 hiddenRawValue: $hiddenNavigationRawValue
@@ -210,10 +219,20 @@ struct ProductionSettingsView: View {
             }
             .pickerStyle(.segmented)
 
+            Picker("Card Size", selection: catalogCardSizeBinding) {
+                ForEach(CatalogCardSize.allCases) { size in
+                    Text(size.title).tag(size)
+                }
+            }
+
+            SettingsToggleRow(
+                "Show Artwork in Track Lists",
+                isOn: $showsTrackArtwork
+            )
+
             Text(
-                "Cadence keeps its monochrome accent and follows "
-                    + "reduced-motion and accessibility preferences "
-                    + "from macOS automatically."
+                "Card size applies to albums, artists, playlists, smart collections, and Home. "
+                    + "Hiding track artwork gives the complete space back to the song text."
             )
             .font(.caption)
             .foregroundStyle(.secondary)
@@ -253,6 +272,7 @@ struct ProductionSettingsView: View {
                         await defaultAudioApplication.setCadenceAsDefault()
                     }
                 }
+                .cadenceActionTint(.confirmation)
                 .disabled(
                     defaultAudioApplication.isChanging
                         || defaultAudioApplication.isDefaultForAllSupportedAudio
@@ -274,50 +294,10 @@ struct ProductionSettingsView: View {
             defaultAudioApplication.refresh()
         }
     }
+}
 
-    private var cadenceModeCard: some View {
-        SettingsCard(
-            title: "Cadence Mode",
-            symbol: "waveform"
-        ) {
-            Toggle("Enable Cadence Mode", isOn: $isCadenceModeEnabled)
-
-            Toggle("React to Bass", isOn: $cadenceModeReactsToBass)
-                .disabled(!isCadenceModeEnabled)
-
-            Toggle(
-                "Show Synchronized Lyrics",
-                isOn: $cadenceModeShowsLyrics
-            )
-            .disabled(!isCadenceModeEnabled)
-
-            Toggle(
-                "Show Track Information",
-                isOn: $cadenceModeShowsTrackInformation
-            )
-            .disabled(!isCadenceModeEnabled)
-
-            Toggle("Stay in Cadence Mode", isOn: $staysInCadenceMode)
-                .disabled(!isCadenceModeEnabled)
-
-            Text(
-                cadenceModeHelpText
-            )
-            .font(.caption)
-            .foregroundStyle(.secondary)
-        }
-    }
-
-    private var cadenceModeHelpText: LocalizedStringKey {
-        guard isCadenceModeEnabled else {
-            return "The Z + X shortcut, visual effects, and direct entry are disabled."
-        }
-        return staysInCadenceMode
-            ? "Cadence Mode stays open until you leave it."
-            : "Cadence Mode closes after ten seconds without input."
-    }
-
-    private var appearanceBinding: Binding<CadenceAppearance> {
+private extension ProductionSettingsView {
+    var appearanceBinding: Binding<CadenceAppearance> {
         Binding(
             get: {
                 CadenceAppearance(rawValue: appearanceRawValue) ?? .system
@@ -325,6 +305,16 @@ struct ProductionSettingsView: View {
             set: {
                 appearanceRawValue = $0.rawValue
             }
+        )
+    }
+
+    var catalogCardSizeBinding: Binding<CatalogCardSize> {
+        Binding(
+            get: {
+                CatalogCardSize(rawValue: catalogCardSizeRawValue)
+                    ?? .automatic
+            },
+            set: { catalogCardSizeRawValue = $0.rawValue }
         )
     }
 }

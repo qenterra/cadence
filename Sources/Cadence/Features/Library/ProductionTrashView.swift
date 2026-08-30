@@ -47,6 +47,7 @@ struct ProductionTrashView: View {
                     await model.emptyProductionTrash()
                 }
             }
+            .cadenceActionTint(.destructive)
             Button("Cancel", role: .cancel) {}
         } message: {
             Text(
@@ -73,6 +74,7 @@ struct ProductionTrashView: View {
                 }
                 pendingPermanentDeletion = nil
             }
+            .cadenceActionTint(.destructive)
             Button("Cancel", role: .cancel) {
                 pendingPermanentDeletion = nil
             }
@@ -98,6 +100,7 @@ struct ProductionTrashView: View {
             Button("Empty Trash…", role: .destructive) {
                 confirmsEmptyTrash = true
             }
+            .cadenceActionTint(.destructive)
             .disabled(store.trashOperations.isEmpty)
         }
         .padding(.horizontal, 28)
@@ -139,6 +142,7 @@ struct ProductionTrashView: View {
                 pendingPermanentDeletion = operation
             }
             .buttonStyle(.borderless)
+            .cadenceActionTint(.destructive)
         }
         .padding(.horizontal, 14)
         .frame(height: 62)

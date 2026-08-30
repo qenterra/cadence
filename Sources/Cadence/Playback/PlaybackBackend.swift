@@ -6,6 +6,23 @@ struct PlaybackBackendLoadRequest: Sendable {
     let startTime: TimeInterval
     let autoplay: Bool
     let volume: Float
+    let normalizationGain: Float
+
+    init(
+        current: ResolvedPlaybackTrack,
+        next: ResolvedPlaybackTrack?,
+        startTime: TimeInterval,
+        autoplay: Bool,
+        volume: Float,
+        normalizationGain: Float = 1
+    ) {
+        self.current = current
+        self.next = next
+        self.startTime = startTime
+        self.autoplay = autoplay
+        self.volume = volume
+        self.normalizationGain = normalizationGain
+    }
 }
 
 enum PlaybackBackendEvent: Sendable {
@@ -47,6 +64,7 @@ protocol PlaybackBackend: AnyObject {
     func pause()
     func seek(to time: TimeInterval) async throws
     func setVolume(_ volume: Float)
+    func setNormalizationGain(_ gain: Float)
     func setPresentationGain(
         _ gain: Float,
         duration: Duration
@@ -64,6 +82,8 @@ extension PlaybackBackend {
         _: Float,
         duration _: Duration
     ) async {}
+
+    func setNormalizationGain(_: Float) {}
 
     func resetBassAnalysis() {}
 }
