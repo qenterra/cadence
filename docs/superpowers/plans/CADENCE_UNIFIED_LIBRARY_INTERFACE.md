@@ -8,7 +8,7 @@
 
 **Tech Stack:** Swift 6, SwiftUI, AppKit, Core Animation, Observation, Swift Testing, XcodeGen.
 
-**Spec:** `docs/superpowers/specs/2026-08-28-cadence-unified-library-interface-design.md`
+**Spec:** `docs/superpowers/specs/CADENCE_UNIFIED_LIBRARY_INTERFACE_DESIGN.md`
 
 ## Global Constraints
 
@@ -248,7 +248,7 @@ indicator.setPlaying(true, reduceMotion: true)
 
 **Files:**
 - Modify: focused test files only if real integration evidence exposes a missing approved case.
-- Create: `docs/verification/2026-08-28-cadence-unified-library-interface.md`.
+- Create: `docs/verification/CADENCE_UNIFIED_LIBRARY_INTERFACE.md`.
 
 **Interfaces:**
 - Consumes: every interface produced by Tasks 1–6.
