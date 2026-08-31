@@ -1,4 +1,5 @@
 import AppKit
+import MetalKit
 import QuartzCore
 import SwiftUI
 
@@ -13,7 +14,10 @@ struct CadenceModeBackground: NSViewRepresentable {
     @Environment(\.colorSchemeContrast) private var colorSchemeContrast
 
     func makeNSView(context _: Context) -> CadenceModeBackgroundView {
-        CadenceModeBackgroundView()
+        CadenceModeBackgroundView(
+            frame: .zero,
+            device: MTLCreateSystemDefaultDevice()
+        )
     }
 
     func updateNSView(
@@ -32,263 +36,226 @@ struct CadenceModeBackground: NSViewRepresentable {
 }
 
 @MainActor
-final class CadenceModeBackgroundView: NSView {
-    private enum AnimationKey {
-        static let primary = "cadence.background.primary"
-        static let bloom = "cadence.background.bloom"
+final class CadenceModeBackgroundView: MTKView {
+    private var gradientRenderer: CadenceModeGradientRenderer?
+
+    override init(frame frameRect: NSRect, device: MTLDevice?) {
+        super.init(frame: frameRect, device: device)
+        configureRenderer()
     }
 
-    private let baseLayer = CALayer()
-    private let primaryGradientLayer = CAGradientLayer()
-    private let bloomGradientLayer = CAGradientLayer()
-    private let scrimLayer = CAGradientLayer()
-
-    private var palette: RhythmAccentPalette?
-    private var backgroundAppearance: CadenceModeBackgroundAppearance?
-    private var previousBounds = CGRect.null
-
-    override init(frame frameRect: NSRect) {
-        super.init(frame: frameRect)
-        configureLayers()
-    }
-
-    required init?(coder: NSCoder) {
+    required init(coder: NSCoder) {
         super.init(coder: coder)
-        configureLayers()
-    }
-
-    override var isFlipped: Bool {
-        true
+        device = MTLCreateSystemDefaultDevice()
+        configureRenderer()
     }
 
     override var isOpaque: Bool {
         true
     }
 
-    override func layout() {
-        super.layout()
-        guard bounds != previousBounds else {
+    func update(
+        palette: RhythmAccentPalette,
+        appearance: CadenceModeBackgroundAppearance
+    ) {
+        gradientRenderer?.update(
+            palette: palette,
+            appearance: appearance
+        )
+        preferredFramesPerSecond = max(
+            appearance.maximumAnimationFramesPerSecond,
+            1
+        )
+        isPaused = !appearance.isAnimated
+        enableSetNeedsDisplay = !appearance.isAnimated
+        if isPaused {
+            setNeedsDisplay(bounds)
+        }
+    }
+
+    private func configureRenderer() {
+        guard let device else {
+            isPaused = true
             return
         }
-        previousBounds = bounds
-        layoutLayers()
-        installAnimationsIfNeeded()
+
+        framebufferOnly = true
+        autoResizeDrawable = true
+        colorPixelFormat = .bgra8Unorm_srgb
+        depthStencilPixelFormat = .depth32Float
+        sampleCount = device.supportsTextureSampleCount(4) ? 4 : 1
+        clearColor = MTLClearColorMake(0, 0, 0, 1)
+        preferredFramesPerSecond = 60
+        enableSetNeedsDisplay = false
+        isPaused = false
+
+        if let metalLayer = layer as? CAMetalLayer {
+            metalLayer.colorspace = CGColorSpace(name: CGColorSpace.sRGB)
+        }
+
+        guard let renderer = CadenceModeGradientRenderer(
+            device: device,
+            colorPixelFormat: colorPixelFormat,
+            depthStencilPixelFormat: depthStencilPixelFormat,
+            sampleCount: sampleCount
+        ) else {
+            isPaused = true
+            return
+        }
+        gradientRenderer = renderer
+        delegate = renderer
+    }
+
+    func makeSnapshot(size: CGSize, time: Float) -> CGImage? {
+        gradientRenderer?.makeSnapshot(size: size, time: time)
+    }
+}
+
+final class CadenceModeGradientRenderer: NSObject, MTKViewDelegate {
+    let device: MTLDevice
+    let commandQueue: MTLCommandQueue
+    private let pipelineState: MTLRenderPipelineState
+    let snapshotPipelineState: MTLRenderPipelineState
+    private let depthStencilState: MTLDepthStencilState
+    private let vertexBuffer: MTLBuffer
+    private let indexBuffer: MTLBuffer
+    private let indexCount: Int
+
+    private var colors: [SIMD4<Float>]
+    private var isAnimated = true
+    private var startedAt = CACurrentMediaTime()
+
+    init?(
+        device: MTLDevice,
+        colorPixelFormat: MTLPixelFormat,
+        depthStencilPixelFormat: MTLPixelFormat,
+        sampleCount: Int
+    ) {
+        guard
+            let commandQueue = device.makeCommandQueue(),
+            let pipelineStates = CadenceModeGradientResources.pipelineStates(
+                device: device,
+                colorPixelFormat: colorPixelFormat,
+                depthStencilPixelFormat: depthStencilPixelFormat,
+                sampleCount: sampleCount
+            ),
+            let depthStencilState = CadenceModeGradientResources
+            .depthStencilState(device: device),
+            let buffers = CadenceModeGradientResources.buffers(device: device)
+        else {
+            return nil
+        }
+
+        self.device = device
+        self.commandQueue = commandQueue
+        pipelineState = pipelineStates.onscreen
+        snapshotPipelineState = pipelineStates.snapshot
+        self.depthStencilState = depthStencilState
+        vertexBuffer = buffers.vertices
+        indexBuffer = buffers.indices
+        indexCount = buffers.indexCount
+        colors = Self.metalColors(
+            for: RhythmAccentPalette.cadenceFallback
+        )
+        super.init()
     }
 
     func update(
         palette: RhythmAccentPalette,
         appearance: CadenceModeBackgroundAppearance
     ) {
-        let paletteChanged = self.palette != palette
-        let appearanceChanged = backgroundAppearance != appearance
-        self.palette = palette
-        backgroundAppearance = appearance
-
-        if paletteChanged || appearanceChanged {
-            updateLayerAppearance()
+        colors = Self.metalColors(for: palette)
+        if appearance.isAnimated, !isAnimated {
+            startedAt = CACurrentMediaTime()
         }
-        if appearanceChanged {
-            installAnimationsIfNeeded()
-        }
+        isAnimated = appearance.isAnimated
     }
 
-    private func configureLayers() {
-        wantsLayer = true
-        guard let rootLayer = layer else {
-            return
-        }
-        rootLayer.masksToBounds = true
-        rootLayer.backgroundColor = CGColor(gray: 0, alpha: 1)
-        layerContentsRedrawPolicy = .never
+    func mtkView(_: MTKView, drawableSizeWillChange _: CGSize) {}
 
-        primaryGradientLayer.type = .conic
-        primaryGradientLayer.startPoint = CGPoint(x: 0.5, y: 0.5)
-        primaryGradientLayer.endPoint = CGPoint(x: 0.5, y: 0)
-        primaryGradientLayer.shouldRasterize = true
-
-        bloomGradientLayer.type = .radial
-        bloomGradientLayer.startPoint = CGPoint(x: 0.5, y: 0.5)
-        bloomGradientLayer.endPoint = CGPoint(x: 1, y: 1)
-        bloomGradientLayer.shouldRasterize = true
-
-        scrimLayer.type = .radial
-        scrimLayer.startPoint = CGPoint(x: 0.5, y: 0.46)
-        scrimLayer.endPoint = CGPoint(x: 1, y: 1)
-
-        rootLayer.addSublayer(baseLayer)
-        rootLayer.addSublayer(primaryGradientLayer)
-        rootLayer.addSublayer(bloomGradientLayer)
-        rootLayer.addSublayer(scrimLayer)
-    }
-
-    private func layoutLayers() {
-        CATransaction.begin()
-        CATransaction.setDisableActions(true)
-
-        baseLayer.frame = bounds
-        scrimLayer.frame = bounds
-
-        let primaryFieldSize = CadenceModeBackgroundGeometry
-            .primaryFieldSize(for: bounds)
-        primaryGradientLayer.bounds = CGRect(
-            origin: .zero,
-            size: primaryFieldSize
-        )
-        primaryGradientLayer.position = CGPoint(
-            x: bounds.midX,
-            y: bounds.midY
-        )
-
-        bloomGradientLayer.bounds = CGRect(
-            origin: .zero,
-            size: CGSize(
-                width: bounds.width * 1.08,
-                height: bounds.height * 1.18
-            )
-        )
-        bloomGradientLayer.position = CGPoint(
-            x: bounds.width * 0.34,
-            y: bounds.height * 0.36
-        )
-
-        CATransaction.commit()
-    }
-
-    private func updateLayerAppearance() {
-        guard let palette, let appearance = backgroundAppearance else {
-            return
-        }
-        let colors = palette.backgroundColors.isEmpty
-            ? RhythmAccentPalette.cadenceFallback.backgroundColors
-            : palette.backgroundColors
-        let expandedColors = softenedColorWheel(
-            colors,
-            opacity: appearance.fieldOpacity
-        )
-
-        CATransaction.begin()
-        CATransaction.setDisableActions(true)
-        baseLayer.backgroundColor = CGColor(
-            red: 0,
-            green: 0,
-            blue: 0,
-            alpha: appearance.baseOpacity
-        )
-        let rasterizationScale = CGFloat(
-            appearance.gradientRasterizationScale
-        )
-        primaryGradientLayer.rasterizationScale = rasterizationScale
-        bloomGradientLayer.rasterizationScale = rasterizationScale
-        primaryGradientLayer.colors = expandedColors
-        primaryGradientLayer.locations = evenlySpacedLocations(
-            count: expandedColors.count
-        )
-        bloomGradientLayer.colors = bloomColors(
-            colors,
-            opacity: appearance.fieldOpacity
-        )
-        bloomGradientLayer.locations = [0, 0.34, 0.72, 1]
-        scrimLayer.colors = [
-            CGColor(red: 0, green: 0, blue: 0, alpha: 0.08),
-            CGColor(
-                red: 0,
-                green: 0,
-                blue: 0,
-                alpha: appearance.scrimOpacity
-            ),
-        ]
-        scrimLayer.locations = [0, 1]
-        CATransaction.commit()
-    }
-
-    private func installAnimationsIfNeeded() {
-        primaryGradientLayer.removeAnimation(forKey: AnimationKey.primary)
-        bloomGradientLayer.removeAnimation(forKey: AnimationKey.bloom)
-
+    func draw(in view: MTKView) {
         guard
-            let appearance = backgroundAppearance,
-            appearance.isAnimated,
-            !bounds.isEmpty
+            view.drawableSize.width > 0,
+            view.drawableSize.height > 0,
+            let renderPassDescriptor = view.currentRenderPassDescriptor,
+            let drawable = view.currentDrawable,
+            let commandBuffer = commandQueue.makeCommandBuffer(),
+            let encoder = commandBuffer.makeRenderCommandEncoder(
+                descriptor: renderPassDescriptor
+            )
         else {
             return
         }
 
-        let animations = CadenceModeBackgroundAnimations.make(
-            in: bounds,
-            appearance: appearance,
-            frameRateRange: preferredFrameRateRange
+        let aspectRatio = Float(
+            view.drawableSize.width / view.drawableSize.height
         )
-        primaryGradientLayer.add(
-            animations.primary,
-            forKey: AnimationKey.primary
+        encode(
+            encoder: encoder,
+            pipelineState: pipelineState,
+            aspectRatio: aspectRatio,
+            time: CadenceModeGradientTimeline.elapsedTime(
+                startedAt: startedAt,
+                currentTime: CACurrentMediaTime(),
+                isAnimated: isAnimated
+            )
         )
-        bloomGradientLayer.add(
-            animations.bloom,
-            forKey: AnimationKey.bloom
-        )
+
+        encoder.endEncoding()
+        commandBuffer.present(drawable)
+        commandBuffer.commit()
     }
 
-    private var preferredFrameRateRange: CAFrameRateRange {
-        CadenceModePerformancePolicy.animationFrameRateRange(
-            displayMaximumFramesPerSecond: window?.screen?
-                .maximumFramesPerSecond ?? 60,
-            contentMaximumFramesPerSecond: backgroundAppearance?
-                .maximumAnimationFramesPerSecond ?? 60
+    func encode(
+        encoder: MTLRenderCommandEncoder,
+        pipelineState: MTLRenderPipelineState,
+        aspectRatio: Float,
+        time: Float
+    ) {
+        var uniforms = CadenceModeGradientUniforms(
+            modelMatrix: CadenceModeGradientReference.modelMatrix,
+            viewProjectionMatrix: CadenceModeGradientReference
+                .viewProjectionMatrix(aspectRatio: aspectRatio),
+            noiseFrequency: CadenceModeGradientReference.noiseFrequency,
+            time: time,
+            noiseAmount: CadenceModeGradientReference.noiseAmount,
+            noiseSpeed: CadenceModeGradientReference.noiseSpeed
         )
-    }
 
-    private func softenedColorWheel(
-        _ colors: [RhythmPulseColor],
-        opacity: Double
-    ) -> [CGColor] {
-        guard let first = colors.first else {
-            return []
+        encoder.setRenderPipelineState(pipelineState)
+        encoder.setDepthStencilState(depthStencilState)
+        encoder.setFrontFacing(.counterClockwise)
+        encoder.setCullMode(.back)
+        encoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
+        encoder.setVertexBytes(
+            &uniforms,
+            length: MemoryLayout<CadenceModeGradientUniforms>.stride,
+            index: 1
+        )
+        colors.withUnsafeBytes { bytes in
+            guard let baseAddress = bytes.baseAddress else {
+                return
+            }
+            encoder.setVertexBytes(
+                baseAddress,
+                length: bytes.count,
+                index: 2
+            )
         }
-        var wheel: [RhythmPulseColor] = []
-        for (index, color) in colors.enumerated() {
-            let next = colors[(index + 1) % colors.count]
-            wheel.append(color)
-            wheel.append(color.mixed(with: next, amount: 0.5))
-        }
-        wheel.append(first)
-        return wheel.map { $0.cgColor(alpha: opacity) }
-    }
-
-    private func bloomColors(
-        _ colors: [RhythmPulseColor],
-        opacity: Double
-    ) -> [CGColor] {
-        let first = colors.first
-            ?? RhythmAccentPalette.cadenceFallback.colors[0]
-        let second = colors.dropFirst().first ?? first
-        return [
-            first.cgColor(alpha: opacity * 0.78),
-            second.cgColor(alpha: opacity * 0.46),
-            first.cgColor(alpha: opacity * 0.14),
-            first.cgColor(alpha: 0),
-        ]
-    }
-
-    private func evenlySpacedLocations(count: Int) -> [NSNumber] {
-        guard count > 1 else {
-            return [0]
-        }
-        return (0 ..< count).map {
-            NSNumber(value: Double($0) / Double(count - 1))
-        }
-    }
-}
-
-private extension RhythmPulseColor {
-    func mixed(
-        with other: RhythmPulseColor,
-        amount: Double
-    ) -> RhythmPulseColor {
-        let clampedAmount = min(max(amount, 0), 1)
-        return RhythmPulseColor(
-            red: red + (other.red - red) * clampedAmount,
-            green: green + (other.green - green) * clampedAmount,
-            blue: blue + (other.blue - blue) * clampedAmount
+        encoder.drawIndexedPrimitives(
+            type: .triangle,
+            indexCount: indexCount,
+            indexType: .uint32,
+            indexBuffer: indexBuffer,
+            indexBufferOffset: 0
         )
+    }
+
+    private static func metalColors(
+        for palette: RhythmAccentPalette
+    ) -> [SIMD4<Float>] {
+        CadenceModeGradientReference.shaderColors(for: palette).map {
+            SIMD4($0.x, $0.y, $0.z, 1)
+        }
     }
 }

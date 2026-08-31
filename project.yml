@@ -35,6 +35,10 @@ targets:
     deploymentTarget: "26.0"
     sources:
       - path: Sources/Cadence
+        excludes:
+          - Features/Rhythm/CadenceModeGradientShader.metal.txt
+      - path: Sources/Cadence/Features/Rhythm/CadenceModeGradientShader.metal.txt
+        buildPhase: resources
       - path: icon/Cadence.icon
     dependencies:
       - package: GRDB
