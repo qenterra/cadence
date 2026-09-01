@@ -129,7 +129,6 @@ final class NativeTrackTableCell: NSTableCellView {
     private var artworkGeneration: UInt64 = 0
     private var artworkRequest: ProductionArtworkRequest?
     private var hasConfiguredContent = false
-
     var onAction: ((UUID, NativeTrackTableAction) -> Void)?
     var onActionsMenu: ((UUID, NSButton) -> Void)?
     var onContextMenu: ((UUID, NSEvent) -> NSMenu?)?
@@ -227,6 +226,7 @@ final class NativeTrackTableCell: NSTableCellView {
             || self.isFocused != isFocused
             || self.isLiveScrolling != isLiveScrolling
             || self.reduceMotion != reduceMotion
+            || self.showsArtwork != showsArtwork
             || contentChanged
         let identityChanged = representedTrackID != nextProjection?.id
         if representedTrackID != nil, identityChanged {
@@ -497,6 +497,7 @@ final class NativeTrackTableCell: NSTableCellView {
                 view.isEnabled = false
             }
             explicitLabel.isHidden = true
+            artworkButton.isHidden = true
             playbackIndicator.isHidden = true
             playbackIndicator.setPlaying(false, reduceMotion: reduceMotion)
             return
@@ -532,7 +533,7 @@ final class NativeTrackTableCell: NSTableCellView {
     private func applyTypography() {
         titleLabel.font = .systemFont(
             ofSize: textSize.nativePrimaryPointSize,
-            weight: projection?.isCurrentTrack == true ? .semibold : .regular
+            weight: .regular
         )
         artistButton.font = .systemFont(
             ofSize: textSize.nativeSecondaryPointSize
@@ -614,8 +615,11 @@ final class NativeTrackTableCell: NSTableCellView {
         let showsPlaybackIndicator = projection.isCurrentTrack
             && projection.isPlaying
         artworkButton.image = showsPlaybackIndicator ? nil : Self.playImage
-        artworkButton.isHidden = !isHovered && !projection.isCurrentTrack
-        playbackIndicator.isHidden = !showsPlaybackIndicator
+        artworkButton.isHidden = !showsArtwork
+            || showsPlaybackIndicator
+            || (!isHovered && !projection.isCurrentTrack)
+        playbackIndicator.isHidden = !showsArtwork
+            || !showsPlaybackIndicator
         playbackIndicator.setPlaying(
             showsPlaybackIndicator,
             reduceMotion: reduceMotion
@@ -828,8 +832,6 @@ final class NativeTrackTableCell: NSTableCellView {
         playbackIndicator.frame = artworkFrame
         artworkLayer.isHidden = !showsArtwork
         artworkOverlayLayer.isHidden = !showsArtwork
-        artworkButton.isHidden = !showsArtwork
-        playbackIndicator.isHidden = !showsArtwork
         x = horizontalGeometry.songOriginX
 
         let songEnd = inset + CGFloat(widths.song)

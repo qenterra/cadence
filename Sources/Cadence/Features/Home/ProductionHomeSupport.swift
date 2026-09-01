@@ -48,6 +48,16 @@ enum HomeListeningSelection {
         }
         return Array(items.prefix(limit))
     }
+
+    static func favoriteItems<Item: Identifiable>(
+        _ items: [Item],
+        limit: Int
+    ) -> [Item] {
+        guard limit > 0 else {
+            return []
+        }
+        return Array(items.prefix(limit))
+    }
 }
 
 struct HomeFavoritesPreviewBudget: Equatable {

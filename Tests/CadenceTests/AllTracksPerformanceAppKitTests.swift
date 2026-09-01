@@ -483,6 +483,94 @@ extension AllTracksPerformanceTests {
         #expect(!indicator.isHidden)
         #expect(indicator.isAnimating)
         #expect(indicator.frame == NSRect(x: 58, y: 9, width: 40, height: 40))
+
+        let artworkButton = try #require(
+            cell.subviews
+                .compactMap { $0 as? NSButton }
+                .first { $0.toolTip == "Play \(track.title)" }
+        )
+        #expect(artworkButton.isHidden)
+        #expect(artworkButton.image == nil)
+    }
+
+    @Test("Cell reuse clears playing chrome for idle and no-artwork tracks")
+    func nativeTrackReuseClearsPlaybackIndicator() throws {
+        let tracks = makeTracks(count: 3)
+        let playing = TrackRowDisplayProjection(
+            track: tracks[0],
+            isCurrentTrack: true,
+            isPlaying: true
+        )
+        let idle = TrackRowDisplayProjection(
+            track: tracks[1],
+            isCurrentTrack: false,
+            isPlaying: false
+        )
+        let noArtwork = TrackRowDisplayProjection(
+            track: tracks[2],
+            isCurrentTrack: false,
+            isPlaying: false
+        )
+        let cell = NativeTrackTableCell(
+            frame: NSRect(x: 0, y: 0, width: 900, height: 58)
+        )
+        configureInteractionCell(cell, projection: playing)
+        cell.layoutSubtreeIfNeeded()
+
+        let indicator = try #require(
+            cell.subviews
+                .compactMap { $0 as? NativePlaybackIndicatorView }
+                .first
+        )
+        let artworkButton = try #require(
+            cell.subviews
+                .compactMap { $0 as? NSButton }
+                .first { $0.toolTip == "Play \(playing.title)" }
+        )
+
+        expectPlayingChrome(indicator: indicator, button: artworkButton)
+
+        configureInteractionCell(cell, projection: idle)
+        cell.updatePointerHover(isHovered: true)
+        cell.layoutSubtreeIfNeeded()
+
+        expectIdleChrome(
+            indicator: indicator,
+            button: artworkButton,
+            projection: idle
+        )
+
+        configureNoArtworkReuse(cell, projection: noArtwork)
+        expectNoArtworkChrome(
+            indicator: indicator,
+            button: artworkButton,
+            projection: noArtwork
+        )
+    }
+
+    @Test("Native rows keep current track titles regular")
+    func nativeCurrentTrackTitleStaysRegular() throws {
+        let track = makeTracks(count: 1)[0]
+        let cell = NativeTrackTableCell(
+            frame: NSRect(x: 0, y: 0, width: 900, height: 58)
+        )
+        let active = TrackRowDisplayProjection(
+            track: track,
+            isCurrentTrack: true,
+            isPlaying: true
+        )
+        configureInteractionCell(
+            cell,
+            projection: active,
+            columns: [.album, .year, .time]
+        )
+        cell.layoutSubtreeIfNeeded()
+
+        let activeTitle = try nativeTextField(in: cell, value: active.title)
+        let activeFont = try #require(activeTitle.font)
+        #expect(
+            !activeFont.fontDescriptor.symbolicTraits.contains(.bold)
+        )
     }
 
     @Test("Native actions resolve the represented track after cell reuse")
@@ -2066,4 +2154,59 @@ private final class RealAppKitUpdateState {
             set: { self.selection = $0 }
         )
     }
+}
+
+@MainActor
+private func expectPlayingChrome(
+    indicator: NativePlaybackIndicatorView,
+    button: NSButton
+) {
+    #expect(!indicator.isHidden)
+    #expect(indicator.isAnimating)
+    #expect(button.isHidden)
+    #expect(button.image == nil)
+}
+
+@MainActor
+private func expectIdleChrome(
+    indicator: NativePlaybackIndicatorView,
+    button: NSButton,
+    projection: TrackRowDisplayProjection
+) {
+    #expect(indicator.isHidden)
+    #expect(!indicator.isAnimating)
+    #expect(!button.isHidden)
+    #expect(button.image != nil)
+    #expect(button.toolTip == "Play \(projection.title)")
+}
+
+@MainActor
+private func configureNoArtworkReuse(
+    _ cell: NativeTrackTableCell,
+    projection: TrackRowDisplayProjection
+) {
+    cell.configure(
+        .track(projection),
+        columns: [],
+        widths: TrackTableColumnPolicy.defaultWidths,
+        isSelected: false,
+        isFocused: false,
+        isLiveScrolling: false,
+        showsArtwork: false
+    )
+    cell.updatePointerHover(isHovered: true)
+    cell.layoutSubtreeIfNeeded()
+}
+
+@MainActor
+private func expectNoArtworkChrome(
+    indicator: NativePlaybackIndicatorView,
+    button: NSButton,
+    projection: TrackRowDisplayProjection
+) {
+    #expect(indicator.isHidden)
+    #expect(!indicator.isAnimating)
+    #expect(button.isHidden)
+    #expect(button.image != nil)
+    #expect(button.toolTip == "Play \(projection.title)")
 }

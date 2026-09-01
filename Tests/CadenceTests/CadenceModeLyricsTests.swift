@@ -3,6 +3,41 @@ import Foundation
 import Testing
 
 struct CadenceModeLyricsTests {
+    @Test("Only inactive Cadence lyrics receive a light blur")
+    func inactiveLyricsAreLightlyBlurred() {
+        let active = CadenceModeLyricLinePresentation.resolve(isActive: true)
+        let inactive = CadenceModeLyricLinePresentation.resolve(
+            isActive: false
+        )
+
+        #expect(active.blurRadius == 0)
+        #expect(inactive.blurRadius > 0)
+        #expect(inactive.blurRadius < 1)
+    }
+
+    @Test("Cadence Mode hides every unavailable lyric state")
+    func unavailableLyricsStayEmpty() {
+        #expect(
+            CadenceModeLyricContentPresentation.resolve(status: nil)
+                == .hidden
+        )
+        #expect(
+            CadenceModeLyricContentPresentation.resolve(
+                status: .unsynchronized
+            ) == .hidden
+        )
+        #expect(
+            CadenceModeLyricContentPresentation.resolve(
+                status: .partiallySynchronized
+            ) == .hidden
+        )
+        #expect(
+            CadenceModeLyricContentPresentation.resolve(
+                status: .synchronized
+            ) == .synchronized
+        )
+    }
+
     @MainActor
     @Test("Cadence lyric rows seek to their synchronized timestamp")
     func lyricRowSeekTarget() {

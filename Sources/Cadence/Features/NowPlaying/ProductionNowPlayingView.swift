@@ -59,13 +59,69 @@ struct ProductionNowPlayingView: View {
             )
             let isCadenceModeActive = rhythmPulseVisualQAState?.isCadenceModeActive
                 ?? cadenceModeSession.isActive
+            let cadenceModePalette = cadenceModeSession.pulseStore.palette
+                ?? .cadenceFallback
+            let cadenceModeHasLiveEffects = rhythmPulseVisualQAState.map {
+                !$0.lanes.isEmpty
+            } ?? cadenceModeSession.pulseStore.hasLiveEffects
+            let cadenceModeTint = CadenceModeBackgroundContrast.tint(
+                for: cadenceModePalette
+            )
+            let cadenceModeTintOpacity = cadenceModeHasLiveEffects
+                ? CadenceModeBackgroundContrast.activeTintOpacity(
+                    for: cadenceModePalette
+                )
+                : 0
+            let cadenceModeTintDuration = CadenceModeBackgroundContrast
+                .transitionDuration(
+                    hasLiveEffects: cadenceModeHasLiveEffects,
+                    reduceMotion: reduceMotion
+                )
+            let cadenceModePaletteAnimation: Animation? = reduceMotion
+                ? nil
+                : .easeInOut(
+                    duration: CadenceModeGradientPaletteTransition.duration
+                )
 
             ZStack {
                 if isCadenceModeActive {
                     ZStack {
                         CadenceModeBackground(
-                            palette: cadenceModeSession.pulseStore.palette
-                                ?? .cadenceFallback
+                            palette: cadenceModePalette
+                        )
+                        .allowsHitTesting(false)
+                        .accessibilityHidden(true)
+
+                        Color.black.opacity(
+                            CadenceModeBackgroundContrast.opacity(
+                                for: cadenceModePalette
+                            )
+                        )
+                        .animation(
+                            cadenceModePaletteAnimation,
+                            value: cadenceModePalette
+                        )
+                        .allowsHitTesting(false)
+                        .accessibilityHidden(true)
+
+                        Color(
+                            red: cadenceModeTint.red,
+                            green: cadenceModeTint.green,
+                            blue: cadenceModeTint.blue
+                        )
+                        .blendMode(.multiply)
+                        .opacity(cadenceModeTintOpacity)
+                        .animation(
+                            reduceMotion
+                                ? nil
+                                : .easeInOut(
+                                    duration: cadenceModeTintDuration
+                                ),
+                            value: cadenceModeHasLiveEffects
+                        )
+                        .animation(
+                            cadenceModePaletteAnimation,
+                            value: cadenceModePalette
                         )
                         .allowsHitTesting(false)
                         .accessibilityHidden(true)

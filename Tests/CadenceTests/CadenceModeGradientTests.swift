@@ -4,6 +4,119 @@ import MetalKit
 import simd
 import Testing
 
+struct CadenceModeBackgroundContrastTests {
+    @Test("Cadence Mode contrast follows palette luminance")
+    func contrastFollowsPaletteLuminance() {
+        let cases: [(RhythmAccentPalette, Double)] = [
+            (
+                RhythmAccentPalette(colors: [
+                    RhythmPulseColor(red: 0, green: 0, blue: 0),
+                ]),
+                0.10
+            ),
+            (
+                RhythmAccentPalette(colors: [
+                    RhythmPulseColor(red: 0.5, green: 0.5, blue: 0.5),
+                ]),
+                0.16
+            ),
+            (
+                RhythmAccentPalette(colors: [
+                    RhythmPulseColor(red: 1, green: 1, blue: 1),
+                ]),
+                0.22
+            ),
+        ]
+
+        for (palette, expectedOpacity) in cases {
+            #expect(
+                abs(
+                    CadenceModeBackgroundContrast.opacity(for: palette)
+                        - expectedOpacity
+                ) <= 0.000_001
+            )
+        }
+
+        #expect(
+            CadenceModeBackgroundContrast.opacity(
+                for: RhythmAccentPalette(colors: [])
+            ) == CadenceModeBackgroundContrast.opacity(
+                for: .cadenceFallback
+            )
+        )
+    }
+
+    @Test("Live effects reach one bounded background darkness")
+    func liveEffectsReachBoundedBackgroundDarkness() {
+        let palettes = [
+            RhythmAccentPalette(colors: [
+                RhythmPulseColor(red: 0, green: 0, blue: 0),
+            ]),
+            RhythmAccentPalette(colors: [
+                RhythmPulseColor(red: 0.5, green: 0.5, blue: 0.5),
+            ]),
+            RhythmAccentPalette(colors: [
+                RhythmPulseColor(red: 1, green: 1, blue: 1),
+            ]),
+        ]
+
+        for palette in palettes {
+            let idleOpacity = CadenceModeBackgroundContrast.opacity(
+                for: palette
+            )
+            let tintOpacity = CadenceModeBackgroundContrast
+                .activeTintOpacity(for: palette)
+            let combinedOpacity = 1
+                - (1 - idleOpacity) * (1 - tintOpacity)
+
+            #expect(abs(combinedOpacity - 0.62) <= 0.000_001)
+        }
+    }
+
+    @Test("Active tint keeps the darkest artwork hue")
+    func activeTintKeepsDarkestArtworkHue() {
+        let tint = CadenceModeBackgroundContrast.tint(
+            for: RhythmAccentPalette(colors: [
+                RhythmPulseColor(red: 1, green: 1, blue: 1),
+                RhythmPulseColor(red: 0, green: 0, blue: 0.5),
+            ])
+        )
+
+        #expect(abs(tint.red) <= 0.000_001)
+        #expect(abs(tint.green) <= 0.000_001)
+        #expect(abs(tint.blue - 0.14) <= 0.000_001)
+        #expect(
+            CadenceModeBackgroundContrast.tint(
+                for: RhythmAccentPalette(colors: [])
+            ) == CadenceModeBackgroundContrast.tint(
+                for: .cadenceFallback
+            )
+        )
+    }
+
+    @Test("Tint darkening and brightening share one smooth duration")
+    func tintTransitionsAreSymmetric() {
+        #expect(
+            CadenceModeBackgroundContrast.transitionDuration(
+                hasLiveEffects: true,
+                reduceMotion: false
+            ) == 1.4
+        )
+        #expect(
+            CadenceModeBackgroundContrast.transitionDuration(
+                hasLiveEffects: false,
+                reduceMotion: false
+            ) == 1.4
+        )
+        #expect(
+            CadenceModeBackgroundContrast.transitionDuration(
+                hasLiveEffects: false,
+                reduceMotion: true
+            ) == 0.1
+        )
+    }
+}
+
 struct CadenceModeGradientTests {
     @Test("Cadence Mode gradient reproduces the reference plane topology")
     func reproducesReferencePlaneTopology() {

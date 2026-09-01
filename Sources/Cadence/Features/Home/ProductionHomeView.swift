@@ -161,7 +161,7 @@ struct ProductionHomeView: View {
     }
 
     @ViewBuilder
-    private var recentlyPlayed: some View {
+    var recentlyPlayed: some View {
         let tracks = HomeListeningSelection.recentItems(
             store.recentlyPlayedTracks,
             limit: 6

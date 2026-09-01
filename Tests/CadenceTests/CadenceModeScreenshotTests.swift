@@ -818,39 +818,43 @@ private enum CadenceModeRecordsOnlyRenderer {
         let contentSize = NSSize.minimum
         let trackID = try #require(fixture.model.currentPlaybackTrack?.id)
         let visualReadiness = CadenceModeVisualReadinessTracker()
+        let cadenceModeSession = preparedSession(for: visualQAState)
         fixture.readinessTracker.prepareForCapture(.nowPlaying)
-        let rootView = CadenceRootView(model: fixture.model)
-            .frame(width: contentSize.width, height: contentSize.height)
-            .transaction { transaction in
-                transaction.animation = nil
-                transaction.disablesAnimations = true
-            }
-            .environment(\.colorScheme, .dark)
-            .environment(
-                \.cadenceModeVisualQABackgroundReduceMotionOverride,
-                true
+        let rootView = CadenceRootView(
+            model: fixture.model,
+            cadenceModeSession: cadenceModeSession
+        )
+        .frame(width: contentSize.width, height: contentSize.height)
+        .transaction { transaction in
+            transaction.animation = nil
+            transaction.disablesAnimations = true
+        }
+        .environment(\.colorScheme, .dark)
+        .environment(
+            \.cadenceModeVisualQABackgroundReduceMotionOverride,
+            true
+        )
+        .environment(
+            \.cadenceModeVisualQAReduceMotionOverride,
+            reduceMotion
+        )
+        .environment(
+            \.cadenceModeVisualReadinessObserver,
+            visualReadiness.observer
+        )
+        .environment(\.rhythmPulseVisualQAState, visualQAState)
+        .environment(
+            \.nowPlayingReadinessObserver,
+            NowPlayingReadinessObserver(
+                notify: fixture.readinessTracker.didRenderNowPlaying
             )
-            .environment(
-                \.cadenceModeVisualQAReduceMotionOverride,
-                reduceMotion
-            )
-            .environment(
-                \.cadenceModeVisualReadinessObserver,
-                visualReadiness.observer
-            )
-            .environment(\.rhythmPulseVisualQAState, visualQAState)
-            .environment(
-                \.nowPlayingReadinessObserver,
-                NowPlayingReadinessObserver(
-                    notify: fixture.readinessTracker.didRenderNowPlaying
-                )
-            )
-            .environment(\.visualRegressionUsesStableSystemControls, true)
-            .environment(\.visualRegressionFreezesHighlights, true)
-            .environment(\.controlActiveState, .key)
-            .defaultAppStorage(DocumentationScreenshotDefaults.userDefaults)
-            .environment(\.visualRegressionHidesPreviewChrome, true)
-            .tint(CadenceTheme.primaryAccent)
+        )
+        .environment(\.visualRegressionUsesStableSystemControls, true)
+        .environment(\.visualRegressionFreezesHighlights, true)
+        .environment(\.controlActiveState, .key)
+        .defaultAppStorage(DocumentationScreenshotDefaults.userDefaults)
+        .environment(\.visualRegressionHidesPreviewChrome, true)
+        .tint(CadenceTheme.primaryAccent)
         let hostingView = NSHostingView(rootView: rootView)
         let window = NSWindow(
             contentRect: NSRect(origin: .zero, size: contentSize),
@@ -914,6 +918,14 @@ private enum CadenceModeRecordsOnlyRenderer {
             artworkFrame: artworkSnapshot.artworkFrame,
             artworkScale: artworkSnapshot.artworkScale
         )
+    }
+
+    private static func preparedSession(
+        for visualQAState: RhythmPulseVisualQAState
+    ) -> CadenceModeSession {
+        let session = CadenceModeSession(automatesTiming: false)
+        session.pulseStore.prepare(visualQAState: visualQAState)
+        return session
     }
 
     private static func rgbaPixels(

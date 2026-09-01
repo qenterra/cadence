@@ -485,12 +485,11 @@ struct CadenceModeRegressionTests {
         #expect(normal.animatesScroll)
     }
 
-    @Test("Unavailable lyrics reserve display-scale type for the track")
-    func unavailableLyricsTypography() {
-        #expect(CadenceModeUnavailableLyricsMetrics.titleSize >= 32)
+    @Test("Cadence Mode leaves unavailable lyrics visually empty")
+    func unavailableLyricsStayHidden() {
         #expect(
-            CadenceModeUnavailableLyricsMetrics.titleSize
-                > CadenceModeUnavailableLyricsMetrics.artistSize
+            CadenceModeLyricContentPresentation.resolve(status: .missing)
+                == .hidden
         )
     }
 

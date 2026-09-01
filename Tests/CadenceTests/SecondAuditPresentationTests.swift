@@ -4,8 +4,8 @@ import Foundation
 import Testing
 
 struct SecondAuditPresentationTests {
-    @Test("Home removes content already represented by a higher-priority shelf")
-    func homeCrossShelfDeduplication() {
+    @Test("Home selection can exclude identities when a shelf requires it")
+    func homeExplicitShelfDeduplication() {
         struct Item: Identifiable, Equatable {
             let id: Int
         }
@@ -18,6 +18,39 @@ struct SecondAuditPresentationTests {
         )
 
         #expect(result.map(\.id) == [2, 4, 6])
+    }
+
+    @MainActor
+    @Test("Home renders one stored track in both listening shelves")
+    func homeFavoriteAndRecentShelvesShareTrack() {
+        let model = CadenceAppModel.testFixture()
+        let store = model.librarySession.store
+        let shared = LibraryTrackProjection(
+            id: UUID(),
+            title: "Shared Home Track",
+            artistID: nil,
+            artist: "Artist",
+            albumID: nil,
+            album: "Album",
+            duration: 180,
+            year: 2026,
+            codec: "FLAC",
+            sampleRate: 48000,
+            channelCount: 2,
+            bitDepth: 24,
+            isFavorite: true,
+            customArtworkID: nil,
+            artworkID: nil,
+            relativeMediaPath: "shared-home-track.flac",
+            lastPlayedAt: Date(timeIntervalSince1970: 1_800_000_000),
+            hasSynchronizedLyrics: false
+        )
+        store.favoriteTracks = [shared]
+        store.recentlyPlayedTracks = [shared]
+        let view = ProductionHomeView(model: model, store: store)
+
+        #expect(reflectedTrackIDs(in: view.recentlyPlayed).contains(shared.id))
+        #expect(reflectedTrackIDs(in: view.favorites).contains(shared.id))
     }
 
     @Test("Browse gives the track column an explicit idle, loading, and empty state")
@@ -228,5 +261,24 @@ struct SecondAuditPresentationTests {
             contentsOf: projectRoot.appending(path: relativePath),
             encoding: .utf8
         )
+    }
+}
+
+private func reflectedTrackIDs(
+    in value: Any,
+    depth: Int = 0
+) -> [UUID] {
+    if let tracks = value as? [LibraryTrackProjection] {
+        return tracks.map(\.id)
+    }
+    guard depth < 32 else {
+        return []
+    }
+    let mirror = Mirror(reflecting: value)
+    guard mirror.displayStyle != .class else {
+        return []
+    }
+    return mirror.children.flatMap {
+        reflectedTrackIDs(in: $0.value, depth: depth + 1)
     }
 }

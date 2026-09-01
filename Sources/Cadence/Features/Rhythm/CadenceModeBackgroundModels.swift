@@ -194,6 +194,63 @@ enum CadenceModeGradientReference {
     }
 }
 
+struct CadenceModeGradientPaletteTransition: Sendable {
+    static let duration: TimeInterval = 0.8
+
+    private var sourceColors: [SIMD3<Float>]
+    private var targetColors: [SIMD3<Float>]
+    private var startedAt: TimeInterval
+    private var transitionDuration: TimeInterval
+
+    init(palette: RhythmAccentPalette) {
+        let colors = CadenceModeGradientReference.shaderColors(for: palette)
+        sourceColors = colors
+        targetColors = colors
+        startedAt = 0
+        transitionDuration = 0
+    }
+
+    mutating func retarget(
+        to palette: RhythmAccentPalette,
+        at timestamp: TimeInterval,
+        reduceMotion: Bool
+    ) {
+        let nextColors = CadenceModeGradientReference.shaderColors(
+            for: palette
+        )
+        if nextColors == targetColors {
+            if reduceMotion {
+                sourceColors = nextColors
+                startedAt = timestamp
+                transitionDuration = 0
+            }
+            return
+        }
+
+        let visibleColors = colors(at: timestamp)
+        sourceColors = reduceMotion ? nextColors : visibleColors
+        targetColors = nextColors
+        startedAt = timestamp
+        transitionDuration = reduceMotion ? 0 : Self.duration
+    }
+
+    func colors(at timestamp: TimeInterval) -> [SIMD3<Float>] {
+        guard transitionDuration > 0 else {
+            return targetColors
+        }
+        let progress = Float(
+            min(
+                max((timestamp - startedAt) / transitionDuration, 0),
+                1
+            )
+        )
+        let easedProgress = progress * progress * (3 - 2 * progress)
+        return zip(sourceColors, targetColors).map { source, target in
+            source + (target - source) * easedProgress
+        }
+    }
+}
+
 private extension RhythmPulseColor {
     func mixedForGradient(
         with other: RhythmPulseColor,
@@ -212,6 +269,63 @@ private extension RhythmPulseColor {
             green: min(max(green * amount, 0), 1),
             blue: min(max(blue * amount, 0), 1)
         )
+    }
+}
+
+enum CadenceModeBackgroundContrast {
+    private static let minimumOpacity = 0.10
+    private static let maximumOpacity = 0.22
+    private static let activeCombinedOpacity = 0.62
+    private static let lowerLuminance = 0.15
+    private static let upperLuminance = 0.85
+    private static let tintScale = 0.28
+
+    static func opacity(for palette: RhythmAccentPalette) -> Double {
+        let peakLuminance = colors(for: palette)
+            .map(\.relativeLuminance)
+            .max() ?? lowerLuminance
+        let progress = min(
+            max(
+                (peakLuminance - lowerLuminance)
+                    / (upperLuminance - lowerLuminance),
+                0
+            ),
+            1
+        )
+        return minimumOpacity
+            + (maximumOpacity - minimumOpacity) * progress
+    }
+
+    static func activeTintOpacity(
+        for palette: RhythmAccentPalette
+    ) -> Double {
+        let idleOpacity = opacity(for: palette)
+        return (activeCombinedOpacity - idleOpacity) / (1 - idleOpacity)
+    }
+
+    static func tint(for palette: RhythmAccentPalette) -> RhythmPulseColor {
+        let darkestColor = colors(for: palette).min {
+            $0.relativeLuminance < $1.relativeLuminance
+        } ?? RhythmPulseColor(red: 0, green: 0, blue: 0)
+        return darkestColor.scaledForGradient(by: tintScale)
+    }
+
+    static func transitionDuration(
+        hasLiveEffects _: Bool,
+        reduceMotion: Bool
+    ) -> TimeInterval {
+        if reduceMotion {
+            return 0.1
+        }
+        return 1.4
+    }
+
+    private static func colors(
+        for palette: RhythmAccentPalette
+    ) -> [RhythmPulseColor] {
+        palette.colors.isEmpty
+            ? RhythmAccentPalette.cadenceFallback.colors
+            : palette.colors
     }
 }
 

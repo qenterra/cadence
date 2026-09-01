@@ -117,9 +117,18 @@ final class DocumentationScreenshotFixture {
         appearance: DocumentationScreenshotAppearance = .dark,
         rhythmPulseVisualQAState: RhythmPulseVisualQAState? = nil
     ) async throws {
+        let cadenceModeSession = CadenceModeSession(automatesTiming: false)
+        if let rhythmPulseVisualQAState {
+            cadenceModeSession.pulseStore.prepare(
+                visualQAState: rhythmPulseVisualQAState
+            )
+        }
         try await capture(
             filename,
-            rootView: CadenceRootView(model: model),
+            rootView: CadenceRootView(
+                model: model,
+                cadenceModeSession: cadenceModeSession
+            ),
             contentSize: contentSize,
             appearance: appearance,
             scene: inferredScene,

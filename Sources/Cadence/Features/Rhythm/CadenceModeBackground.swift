@@ -122,6 +122,8 @@ final class CadenceModeGradientRenderer: NSObject, MTKViewDelegate {
     private let indexCount: Int
 
     private var colors: [SIMD4<Float>]
+    private var paletteTransition: CadenceModeGradientPaletteTransition
+    private var hasReceivedPalette = false
     private var isAnimated = true
     private var startedAt = CACurrentMediaTime()
 
@@ -157,6 +159,9 @@ final class CadenceModeGradientRenderer: NSObject, MTKViewDelegate {
         colors = Self.metalColors(
             for: RhythmAccentPalette.cadenceFallback
         )
+        paletteTransition = CadenceModeGradientPaletteTransition(
+            palette: .cadenceFallback
+        )
         super.init()
     }
 
@@ -164,9 +169,18 @@ final class CadenceModeGradientRenderer: NSObject, MTKViewDelegate {
         palette: RhythmAccentPalette,
         appearance: CadenceModeBackgroundAppearance
     ) {
-        colors = Self.metalColors(for: palette)
+        let currentTime = CACurrentMediaTime()
+        paletteTransition.retarget(
+            to: palette,
+            at: currentTime,
+            reduceMotion: !hasReceivedPalette || !appearance.isAnimated
+        )
+        colors = Self.metalColors(
+            paletteTransition.colors(at: currentTime)
+        )
+        hasReceivedPalette = true
         if appearance.isAnimated, !isAnimated {
-            startedAt = CACurrentMediaTime()
+            startedAt = currentTime
         }
         isAnimated = appearance.isAnimated
     }
@@ -174,6 +188,7 @@ final class CadenceModeGradientRenderer: NSObject, MTKViewDelegate {
     func mtkView(_: MTKView, drawableSizeWillChange _: CGSize) {}
 
     func draw(in view: MTKView) {
+        let currentTime = CACurrentMediaTime()
         guard
             view.drawableSize.width > 0,
             view.drawableSize.height > 0,
@@ -187,6 +202,10 @@ final class CadenceModeGradientRenderer: NSObject, MTKViewDelegate {
             return
         }
 
+        colors = Self.metalColors(
+            paletteTransition.colors(at: currentTime)
+        )
+
         let aspectRatio = Float(
             view.drawableSize.width / view.drawableSize.height
         )
@@ -196,7 +215,7 @@ final class CadenceModeGradientRenderer: NSObject, MTKViewDelegate {
             aspectRatio: aspectRatio,
             time: CadenceModeGradientTimeline.elapsedTime(
                 startedAt: startedAt,
-                currentTime: CACurrentMediaTime(),
+                currentTime: currentTime,
                 isAnimated: isAnimated
             )
         )
@@ -254,7 +273,13 @@ final class CadenceModeGradientRenderer: NSObject, MTKViewDelegate {
     private static func metalColors(
         for palette: RhythmAccentPalette
     ) -> [SIMD4<Float>] {
-        CadenceModeGradientReference.shaderColors(for: palette).map {
+        metalColors(CadenceModeGradientReference.shaderColors(for: palette))
+    }
+
+    private static func metalColors(
+        _ colors: [SIMD3<Float>]
+    ) -> [SIMD4<Float>] {
+        colors.map {
             SIMD4($0.x, $0.y, $0.z, 1)
         }
     }

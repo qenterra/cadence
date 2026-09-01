@@ -16,13 +16,7 @@ extension ProductionTrackTableRow {
         VStack(alignment: .leading, spacing: 3) {
             HStack(spacing: 7) {
                 Text(track.title)
-                    .font(
-                        .body.weight(
-                            model.isCurrentProductionTrack(track.id)
-                                ? .semibold
-                                : .regular
-                        )
-                    )
+                    .font(.body)
                     .foregroundStyle(.primary)
                     .lineLimit(1)
 
@@ -62,13 +56,7 @@ extension ProductionTrackTableRow {
         VStack(alignment: .leading, spacing: 3) {
             HStack(spacing: 7) {
                 Text(track.title)
-                    .font(
-                        .body.weight(
-                            model.isCurrentProductionTrack(track.id)
-                                ? .semibold
-                                : .regular
-                        )
-                    )
+                    .font(.body)
                     .foregroundStyle(.primary)
                     .lineLimit(1)
 

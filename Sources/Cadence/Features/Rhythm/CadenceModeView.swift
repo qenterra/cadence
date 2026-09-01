@@ -242,11 +242,11 @@ struct CadenceModeView: View {
 
     @ViewBuilder
     private var lyricContent: some View {
-        if let lyricDocument,
-           lyricDocument.timingStatus == .synchronized {
+        if CadenceModeLyricContentPresentation.resolve(
+            status: lyricDocument?.timingStatus
+        ) == .synchronized,
+            let lyricDocument {
             synchronizedLyrics(lyricDocument)
-        } else {
-            unavailableLyrics
         }
     }
 
@@ -293,35 +293,17 @@ struct CadenceModeView: View {
             seek: model.seekProductionPlayback
         )
     }
-
-    private var unavailableLyrics: some View {
-        VStack(spacing: CadenceLayout.controlGap) {
-            Text(unavailableLyricsCaption)
-                .font(.caption)
-                .foregroundStyle(.tertiary)
-        }
-        .multilineTextAlignment(.center)
-        .padding(.horizontal, CadenceLayout.pageInset)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-
-    private var unavailableLyricsCaption: String {
-        switch lyricDocument?.timingStatus ?? .missing {
-        case .missing:
-            "No synchronized lyrics"
-        case .unsynchronized:
-            "Lyrics are not synchronized"
-        case .partiallySynchronized:
-            "Lyrics are only partially synchronized"
-        case .synchronized:
-            ""
-        }
-    }
 }
 
-enum CadenceModeUnavailableLyricsMetrics {
-    static let titleSize: CGFloat = 36
-    static let artistSize: CGFloat = 17
+enum CadenceModeLyricContentPresentation: Equatable, Sendable {
+    case synchronized
+    case hidden
+
+    static func resolve(
+        status: LyricTimingStatus?
+    ) -> CadenceModeLyricContentPresentation {
+        status == .synchronized ? .synchronized : .hidden
+    }
 }
 
 struct CadenceModeBassResponse: Equatable, Sendable {
@@ -445,6 +427,8 @@ private struct CadenceModeLyricStack: View {
                     Color.clear.frame(height: slotHeight * 2)
                     ForEach(contentLines) { line in
                         let isActive = line.id == activeLineID
+                        let presentation = CadenceModeLyricLinePresentation
+                            .resolve(isActive: isActive)
                         Button {
                             guard let seekTime = CadenceModeLyricInteraction
                                 .seekTime(for: line) else {
@@ -459,6 +443,7 @@ private struct CadenceModeLyricStack: View {
                                 alignment: .center,
                                 lineLimit: 2
                             )
+                            .blur(radius: presentation.blurRadius)
                             .frame(maxWidth: .infinity)
                             .frame(height: slotHeight)
                             .contentShape(Rectangle())
@@ -498,6 +483,18 @@ private struct CadenceModeLyricStack: View {
 
     private var contentLines: [LyricLine] {
         document.lines.filter { !$0.isBlank }
+    }
+}
+
+struct CadenceModeLyricLinePresentation: Equatable, Sendable {
+    let blurRadius: CGFloat
+
+    static func resolve(
+        isActive: Bool
+    ) -> CadenceModeLyricLinePresentation {
+        CadenceModeLyricLinePresentation(
+            blurRadius: isActive ? 0 : 0.6
+        )
     }
 }
 
