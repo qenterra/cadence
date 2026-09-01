@@ -272,8 +272,7 @@ def has_source_reference(source: str, symbol: str) -> bool:
     return re.search(rf"(?<![A-Za-z0-9_.]){re.escape(symbol)}(?![A-Za-z0-9_.])", source) is not None
 
 
-def action_symbols(source: str) -> set[str]:
-    """Find callable inputs and concrete lower-case mutations in one declaration."""
+def source_depths(source: str) -> list[int]:
     depth = 0
     depths: list[int] = []
     for character in source:
@@ -282,56 +281,84 @@ def action_symbols(source: str) -> set[str]:
             depth += 1
         elif character == "}":
             depth -= 1
-    actions = {
-        match.group(1)
-        for match in re.finditer(
-            r"\b(?:let|var)\s+([A-Za-z_]\w*)\s*:\s*[^\n={]*->", source
-        )
-        if depths[match.start()] == 1
-    }
+    return depths
+
+
+def stored_consumer_inputs(source: str) -> dict[str, str]:
+    """Return top-level consumer inputs, excluding private/local implementation state."""
+    depths = source_depths(source)
+    inputs: dict[str, str] = {}
+    property_pattern = re.compile(
+        r"(?m)^[ \t]*(?P<prefix>(?:@\w+(?:\([^\n)]*\))?\s+)*)"
+        r"(?P<access>(?:(?:private|fileprivate|internal|public|open)\s+)?)"
+        r"(?P<keyword>let|var)\s+(?P<name>[A-Za-z_]\w*)"
+        r"(?:\s*:\s*(?P<type>[^\n={]+))?"
+    )
+    for match in property_pattern.finditer(source):
+        if depths[match.start("keyword")] != 1:
+            continue
+        name = match.group("name")
+        prefix = match.group("prefix") or ""
+        access = match.group("access") or ""
+        if name == "body" or "@State" in prefix or "@FocusState" in prefix or "@GestureState" in prefix:
+            continue
+        if access.strip() in {"private", "fileprivate"} and not prefix:
+            continue
+        line_end = source.find("\n", match.end())
+        line_end = len(source) if line_end == -1 else line_end
+        if source[match.end() : line_end].lstrip().startswith("{"):
+            continue
+        inputs[name] = (match.group("type") or "").strip()
+    return inputs
+
+
+def closure_returns_void(type_annotation: str) -> bool:
+    match = re.search(r"->\s*(?:@\w+\s+)*(?P<return>.+)$", type_annotation)
+    if match is None:
+        return False
+    return re.sub(r"[\s?)]", "", match.group("return")) in {"Void", "("}
+
+
+def consumer_dependency_symbols(source: str) -> tuple[set[str], set[str]]:
+    """Infer data and commands from consumer-owned declaration inputs only."""
+    inputs = stored_consumer_inputs(source)
+    data: set[str] = set()
+    actions: set[str] = set()
+    for name, type_annotation in inputs.items():
+        if "->" in type_annotation and closure_returns_void(type_annotation):
+            actions.add(name)
+        else:
+            data.add(name)
+
+    # SwiftUI provides these visual contracts to the component itself; lifecycle
+    # parameters of representables and layout callbacks remain implementation detail.
+    if re.search(r"\bfunc\s+body\s*\(\s*content\s*:\s*Content\s*\)", source):
+        data.add("content")
+    if re.search(r"\bfunc\s+makeBody\s*\(\s*configuration\s*:\s*Configuration\s*\)", source):
+        members = sorted(set(re.findall(r"\bconfiguration\.([A-Za-z_]\w*)\b", source)))
+        data.update(f"configuration.{member}" for member in members)
+
     actions.update(
         match.group(1)
         for match in re.finditer(
             r"\b((?:[A-Za-z_]\w*\.)+[A-Za-z_]\w*)\s*\(", source
         )
+        if match.group(1).split(".", 1)[0] in data
+        if match.group(1).split(".", 1)[0] not in {"context", "coordinator", "nsView"}
         if re.search(
             r"(?:^|\.)(?:set|toggle|play|select|open|close|dismiss|delete|remove|insert|update|move|reorder|perform|handle|activate|pause|stop|save|import|export|choose|show)[A-Z_]",
             match.group(1),
         )
     )
-    return actions
+    return data, actions
+
+
+def action_symbols(source: str) -> set[str]:
+    return consumer_dependency_symbols(source)[1]
 
 
 def data_symbols(source: str) -> set[str]:
-    """Find declaration inputs; local body variables are intentionally excluded."""
-    depth = 0
-    depths: list[int] = []
-    for character in source:
-        depths.append(depth)
-        if character == "{":
-            depth += 1
-        elif character == "}":
-            depth -= 1
-    symbols = {
-        match.group(1)
-        for match in re.finditer(r"\b(?:let|var)\s+([A-Za-z_]\w*)\b", source)
-        if depths[match.start()] == 1 and match.group(1) not in {"_", "body"}
-    }
-    for match in re.finditer(r"\b(?:init|func)\s+\w+\s*\(([^)]*)\)", source):
-        if depths[match.start()] != 1:
-            continue
-        for parameter in re.finditer(
-            r"(?:\b[A-Za-z_]\w*\s+)?([A-Za-z_]\w*)\s*:", match.group(1)
-        ):
-            symbols.add(parameter.group(1))
-    if "configuration" in symbols:
-        members = sorted(
-            set(re.findall(r"\bconfiguration\.([A-Za-z_]\w*)\b", source))
-        )
-        if members:
-            symbols.remove("configuration")
-            symbols.update(f"configuration.{member}" for member in members)
-    return symbols
+    return consumer_dependency_symbols(source)[0]
 
 
 def load_manifest(path: Path) -> dict[str, Any]:

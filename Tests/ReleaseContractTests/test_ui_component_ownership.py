@@ -354,6 +354,36 @@ class UIComponentOwnershipTests(unittest.TestCase):
                 mutate(candidate)
                 self.assertTrue(verifier.validate_manifest(ROOT / "Sources" / "Cadence", candidate))
 
+    def test_dependency_roles_follow_consumer_contracts_not_closure_or_lifecycle_names(self) -> None:
+        """Result/content closures are data; Void commands are actions; framework lifecycle values are local."""
+        verifier = load_verifier()
+        manifest = verifier.load_manifest(MANIFEST_PATH)
+
+        catalog = next(item for item in manifest["components"] if item["symbol"] == "CatalogSortMenu")
+        self.assertIn("fieldTitle", [entry["symbol"] for entry in catalog["dependencies"]["data"]])
+        self.assertNotIn("fieldTitle", [entry["symbol"] for entry in catalog["dependencies"]["actions"]])
+
+        keyboard = next(item for item in manifest["components"] if item["symbol"] == "RhythmKeyboardCapture")
+        keyboard_data = [entry["symbol"] for entry in keyboard["dependencies"]["data"]]
+        keyboard_actions = [entry["symbol"] for entry in keyboard["dependencies"]["actions"]]
+        self.assertIn("isCadenceModeActive", keyboard_data)
+        self.assertNotIn("isCadenceModeActive", keyboard_actions)
+        self.assertCountEqual(
+            ["onExitCadenceMode", "onKeyDown", "onKeyUp", "onReleaseAllKeys"],
+            keyboard_actions,
+        )
+        self.assertFalse({"_", "context", "coordinator", "nsView"} & set(keyboard_data))
+        self.assertNotIn("coordinator.removeMonitor", keyboard_actions)
+
+        track_table = next(item for item in manifest["components"] if item["symbol"] == "TrackTableCore")
+        track_actions = [entry["symbol"] for entry in track_table["dependencies"]["actions"]]
+        self.assertCountEqual(["onReachEnd", "reorderAction"], track_actions)
+        self.assertFalse(any(symbol.startswith("context.coordinator.") for symbol in track_actions))
+
+        pane_header = next(item for item in manifest["components"] if item["symbol"] == "WorkspacePaneHeader")
+        self.assertIn("trailing", [entry["symbol"] for entry in pane_header["dependencies"]["data"]])
+        self.assertEqual([], pane_header["dependencies"]["actions"])
+
     def test_manifest_rejects_stale_and_provisional_entries(self) -> None:
         """A stale path or an unclassified component must be rejected before migration starts."""
         verifier = load_verifier()

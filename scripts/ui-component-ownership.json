@@ -14,14 +14,6 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "_",
-            "role": "data"
-          },
-          {
-            "symbol": "picker",
-            "role": "data"
-          },
-          {
             "symbol": "player",
             "role": "data"
           }
@@ -73,10 +65,6 @@
             "role": "data"
           },
           {
-            "symbol": "placeholderPadding",
-            "role": "data"
-          },
-          {
             "symbol": "showsBorder",
             "role": "data"
           }
@@ -120,10 +108,6 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "artwork",
-            "role": "data"
-          },
-          {
             "symbol": "cornerRadius",
             "role": "data"
           },
@@ -137,10 +121,6 @@
           },
           {
             "symbol": "showsBorder",
-            "role": "data"
-          },
-          {
-            "symbol": "size",
             "role": "data"
           },
           {
@@ -189,27 +169,11 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "activeCacheKey",
-            "role": "data"
-          },
-          {
             "symbol": "asset",
             "role": "data"
           },
           {
-            "symbol": "assetCacheKey",
-            "role": "data"
-          },
-          {
             "symbol": "cornerRadius",
-            "role": "data"
-          },
-          {
-            "symbol": "image",
-            "role": "data"
-          },
-          {
-            "symbol": "loadedCacheKey",
             "role": "data"
           },
           {
@@ -341,10 +305,6 @@
           {
             "symbol": "reduceMotion",
             "role": "data"
-          },
-          {
-            "symbol": "state",
-            "role": "data"
           }
         ],
         "actions": []
@@ -437,31 +397,11 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "_",
-            "role": "data"
-          },
-          {
-            "symbol": "bounds",
-            "role": "data"
-          },
-          {
             "symbol": "horizontalSpacing",
             "role": "data"
           },
           {
-            "symbol": "proposal",
-            "role": "data"
-          },
-          {
-            "symbol": "subviews",
-            "role": "data"
-          },
-          {
             "symbol": "verticalSpacing",
-            "role": "data"
-          },
-          {
-            "symbol": "width",
             "role": "data"
           }
         ],
@@ -571,10 +511,6 @@
             "role": "data"
           },
           {
-            "symbol": "scrollContent",
-            "role": "data"
-          },
-          {
             "symbol": "sectionSpacing",
             "role": "data"
           }
@@ -620,10 +556,6 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "dragStartWidth",
-            "role": "data"
-          },
-          {
             "symbol": "fixedMaximum",
             "role": "data"
           },
@@ -644,19 +576,7 @@
             "role": "data"
           },
           {
-            "symbol": "isDividerHovered",
-            "role": "data"
-          },
-          {
             "symbol": "leading",
-            "role": "data"
-          },
-          {
-            "symbol": "liveWidth",
-            "role": "data"
-          },
-          {
-            "symbol": "totalWidth",
             "role": "data"
           },
           {
@@ -750,11 +670,11 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "fields",
+            "symbol": "fieldTitle",
             "role": "data"
           },
           {
-            "symbol": "isSelected",
+            "symbol": "fields",
             "role": "data"
           },
           {
@@ -764,18 +684,9 @@
           {
             "symbol": "selection",
             "role": "data"
-          },
-          {
-            "symbol": "title",
-            "role": "data"
           }
         ],
-        "actions": [
-          {
-            "symbol": "fieldTitle",
-            "role": "actions"
-          }
-        ]
+        "actions": []
       },
       "states": {
         "appearance": [
@@ -864,15 +775,11 @@
       "dependencies": {
         "data": [
           {
+            "symbol": "action",
+            "role": "data"
+          },
+          {
             "symbol": "controlSize",
-            "role": "data"
-          },
-          {
-            "symbol": "currentPendingValue",
-            "role": "data"
-          },
-          {
-            "symbol": "displayedValue",
             "role": "data"
           },
           {
@@ -886,18 +793,9 @@
           {
             "symbol": "itemName",
             "role": "data"
-          },
-          {
-            "symbol": "transientState",
-            "role": "data"
           }
         ],
-        "actions": [
-          {
-            "symbol": "action",
-            "role": "actions"
-          }
-        ]
+        "actions": []
       },
       "states": {
         "appearance": [
@@ -938,23 +836,11 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "canRetry",
-            "role": "data"
-          },
-          {
             "symbol": "failure",
-            "role": "data"
-          },
-          {
-            "symbol": "summary",
             "role": "data"
           }
         ],
         "actions": [
-          {
-            "symbol": "NSWorkspace.shared.activateFileViewerSelecting",
-            "role": "actions"
-          },
           {
             "symbol": "locate",
             "role": "actions"
@@ -1006,18 +892,6 @@
           },
           {
             "symbol": "disablesInteractiveHighlights",
-            "role": "data"
-          },
-          {
-            "symbol": "isFocused",
-            "role": "data"
-          },
-          {
-            "symbol": "isHighlighted",
-            "role": "data"
-          },
-          {
-            "symbol": "isHovered",
             "role": "data"
           },
           {
@@ -1075,22 +949,6 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "bottomDestinations",
-            "role": "data"
-          },
-          {
-            "symbol": "destination",
-            "role": "data"
-          },
-          {
-            "symbol": "expansionButton",
-            "role": "data"
-          },
-          {
-            "symbol": "focusedDestination",
-            "role": "data"
-          },
-          {
             "symbol": "freezesVisualRegressionHighlights",
             "role": "data"
           },
@@ -1099,27 +957,11 @@
             "role": "data"
           },
           {
-            "symbol": "hoveredDestination",
-            "role": "data"
-          },
-          {
             "symbol": "isExpanded",
             "role": "data"
           },
           {
             "symbol": "orderRawValue",
-            "role": "data"
-          },
-          {
-            "symbol": "primaryDestinations",
-            "role": "data"
-          },
-          {
-            "symbol": "primaryNavigation",
-            "role": "data"
-          },
-          {
-            "symbol": "primarySections",
             "role": "data"
           },
           {
@@ -1132,14 +974,6 @@
           },
           {
             "symbol": "suppressesSelection",
-            "role": "data"
-          },
-          {
-            "symbol": "systemName",
-            "role": "data"
-          },
-          {
-            "symbol": "title",
             "role": "data"
           }
         ],
@@ -1181,31 +1015,11 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "accessibility",
-            "role": "data"
-          },
-          {
-            "symbol": "durationText",
-            "role": "data"
-          },
-          {
-            "symbol": "elapsedText",
-            "role": "data"
-          },
-          {
-            "symbol": "isEditing",
-            "role": "data"
-          },
-          {
             "symbol": "model",
             "role": "data"
           },
           {
             "symbol": "pendingSeekProgress",
-            "role": "data"
-          },
-          {
-            "symbol": "progressBinding",
             "role": "data"
           },
           {
@@ -1256,15 +1070,7 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "isArtworkHovered",
-            "role": "data"
-          },
-          {
             "symbol": "model",
-            "role": "data"
-          },
-          {
-            "symbol": "pendingSeekProgress",
             "role": "data"
           },
           {
@@ -1315,10 +1121,6 @@
         "data": [
           {
             "symbol": "model",
-            "role": "data"
-          },
-          {
-            "symbol": "region",
             "role": "data"
           }
         ],
@@ -1382,15 +1184,7 @@
             "role": "data"
           },
           {
-            "symbol": "ownedLoadState",
-            "role": "data"
-          },
-          {
             "symbol": "placeholder",
-            "role": "data"
-          },
-          {
-            "symbol": "request",
             "role": "data"
           },
           {
@@ -1460,14 +1254,13 @@
           {
             "symbol": "title",
             "role": "data"
-          }
-        ],
-        "actions": [
+          },
           {
             "symbol": "trailing",
-            "role": "actions"
+            "role": "data"
           }
-        ]
+        ],
+        "actions": []
       },
       "states": {
         "appearance": [
@@ -1605,39 +1398,7 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "album",
-            "role": "data"
-          },
-          {
             "symbol": "albumID",
-            "role": "data"
-          },
-          {
-            "symbol": "albumTagChips",
-            "role": "data"
-          },
-          {
-            "symbol": "albumTags",
-            "role": "data"
-          },
-          {
-            "symbol": "backButton",
-            "role": "data"
-          },
-          {
-            "symbol": "isLoading",
-            "role": "data"
-          },
-          {
-            "symbol": "isRenamePresented",
-            "role": "data"
-          },
-          {
-            "symbol": "loadFailure",
-            "role": "data"
-          },
-          {
-            "symbol": "loadGeneration",
             "role": "data"
           },
           {
@@ -1649,19 +1410,7 @@
             "role": "data"
           },
           {
-            "symbol": "renameDraft",
-            "role": "data"
-          },
-          {
             "symbol": "store",
-            "role": "data"
-          },
-          {
-            "symbol": "tracks",
-            "role": "data"
-          },
-          {
-            "symbol": "tracksClock",
             "role": "data"
           }
         ],
@@ -1716,26 +1465,6 @@
             "role": "data"
           },
           {
-            "symbol": "albumActions",
-            "role": "data"
-          },
-          {
-            "symbol": "favoritePresentation",
-            "role": "data"
-          },
-          {
-            "symbol": "isFavoriteFocused",
-            "role": "data"
-          },
-          {
-            "symbol": "isHovered",
-            "role": "data"
-          },
-          {
-            "symbol": "isRenamePresented",
-            "role": "data"
-          },
-          {
             "symbol": "model",
             "role": "data"
           },
@@ -1745,10 +1474,6 @@
           },
           {
             "symbol": "reduceMotion",
-            "role": "data"
-          },
-          {
-            "symbol": "renameDraft",
             "role": "data"
           },
           {
@@ -1803,27 +1528,7 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "album",
-            "role": "data"
-          },
-          {
-            "symbol": "albumSortSelection",
-            "role": "data"
-          },
-          {
             "symbol": "catalogCardSize",
-            "role": "data"
-          },
-          {
-            "symbol": "emptyContent",
-            "role": "data"
-          },
-          {
-            "symbol": "header",
-            "role": "data"
-          },
-          {
-            "symbol": "lhs",
             "role": "data"
           },
           {
@@ -1831,15 +1536,7 @@
             "role": "data"
           },
           {
-            "symbol": "rhs",
-            "role": "data"
-          },
-          {
             "symbol": "sortFieldRaw",
-            "role": "data"
-          },
-          {
-            "symbol": "sortedAlbums",
             "role": "data"
           },
           {
@@ -1931,10 +1628,6 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "artist",
-            "role": "data"
-          },
-          {
             "symbol": "artistID",
             "role": "data"
           },
@@ -1943,43 +1636,11 @@
             "role": "data"
           },
           {
-            "symbol": "isLoading",
-            "role": "data"
-          },
-          {
-            "symbol": "isRenamePresented",
-            "role": "data"
-          },
-          {
-            "symbol": "loadFailure",
-            "role": "data"
-          },
-          {
-            "symbol": "loadGeneration",
-            "role": "data"
-          },
-          {
             "symbol": "model",
             "role": "data"
           },
           {
-            "symbol": "releases",
-            "role": "data"
-          },
-          {
-            "symbol": "renameDraft",
-            "role": "data"
-          },
-          {
             "symbol": "store",
-            "role": "data"
-          },
-          {
-            "symbol": "tracks",
-            "role": "data"
-          },
-          {
-            "symbol": "tracksClock",
             "role": "data"
           }
         ],
@@ -2025,26 +1686,6 @@
             "role": "data"
           },
           {
-            "symbol": "artistActions",
-            "role": "data"
-          },
-          {
-            "symbol": "favoritePresentation",
-            "role": "data"
-          },
-          {
-            "symbol": "isFavoriteFocused",
-            "role": "data"
-          },
-          {
-            "symbol": "isHovered",
-            "role": "data"
-          },
-          {
-            "symbol": "isRenamePresented",
-            "role": "data"
-          },
-          {
             "symbol": "model",
             "role": "data"
           },
@@ -2054,10 +1695,6 @@
           },
           {
             "symbol": "reduceMotion",
-            "role": "data"
-          },
-          {
-            "symbol": "renameDraft",
             "role": "data"
           },
           {
@@ -2112,31 +1749,7 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "artist",
-            "role": "data"
-          },
-          {
-            "symbol": "artistSortFields",
-            "role": "data"
-          },
-          {
-            "symbol": "artistSortSelection",
-            "role": "data"
-          },
-          {
             "symbol": "catalogCardSize",
-            "role": "data"
-          },
-          {
-            "symbol": "emptyContent",
-            "role": "data"
-          },
-          {
-            "symbol": "header",
-            "role": "data"
-          },
-          {
-            "symbol": "lhs",
             "role": "data"
           },
           {
@@ -2144,15 +1757,7 @@
             "role": "data"
           },
           {
-            "symbol": "rhs",
-            "role": "data"
-          },
-          {
             "symbol": "sortFieldRaw",
-            "role": "data"
-          },
-          {
-            "symbol": "sortedArtists",
             "role": "data"
           },
           {
@@ -2202,55 +1807,7 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "cropPreview",
-            "role": "data"
-          },
-          {
-            "symbol": "cropShape",
-            "role": "data"
-          },
-          {
             "symbol": "draft",
-            "role": "data"
-          },
-          {
-            "symbol": "dragGesture",
-            "role": "data"
-          },
-          {
-            "symbol": "dragTranslation",
-            "role": "data"
-          },
-          {
-            "symbol": "instruction",
-            "role": "data"
-          },
-          {
-            "symbol": "liveOffset",
-            "role": "data"
-          },
-          {
-            "symbol": "offset",
-            "role": "data"
-          },
-          {
-            "symbol": "previewSize",
-            "role": "data"
-          },
-          {
-            "symbol": "proposedOffset",
-            "role": "data"
-          },
-          {
-            "symbol": "scale",
-            "role": "data"
-          },
-          {
-            "symbol": "shapeName",
-            "role": "data"
-          },
-          {
-            "symbol": "sheetTitle",
             "role": "data"
           }
         ],
@@ -2307,19 +1864,11 @@
           {
             "symbol": "model",
             "role": "data"
-          },
-          {
-            "symbol": "result",
-            "role": "data"
           }
         ],
         "actions": [
           {
             "symbol": "model.dismissArtworkImportError",
-            "role": "actions"
-          },
-          {
-            "symbol": "url.stopAccessingSecurityScopedResource",
             "role": "actions"
           }
         ]
@@ -2546,19 +2095,7 @@
             "role": "data"
           },
           {
-            "symbol": "artworkCard",
-            "role": "data"
-          },
-          {
             "symbol": "artworkID",
-            "role": "data"
-          },
-          {
-            "symbol": "isHovered",
-            "role": "data"
-          },
-          {
-            "symbol": "labels",
             "role": "data"
           },
           {
@@ -2802,10 +2339,6 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "hasRecentItems",
-            "role": "data"
-          },
-          {
             "symbol": "hiddenHomeSectionsRawValue",
             "role": "data"
           },
@@ -2818,23 +2351,11 @@
             "role": "data"
           },
           {
-            "symbol": "personalizationEmptyState",
-            "role": "data"
-          },
-          {
             "symbol": "pinRevision",
             "role": "data"
           },
           {
-            "symbol": "recentlyPlayed",
-            "role": "data"
-          },
-          {
             "symbol": "store",
-            "role": "data"
-          },
-          {
-            "symbol": "visibleSections",
             "role": "data"
           }
         ],
@@ -2876,10 +2397,6 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "label",
-            "role": "data"
-          },
-          {
             "symbol": "message",
             "role": "data"
           },
@@ -2893,10 +2410,6 @@
           },
           {
             "symbol": "title",
-            "role": "data"
-          },
-          {
-            "symbol": "value",
             "role": "data"
           }
         ],
@@ -3082,10 +2595,6 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "isImporting",
-            "role": "data"
-          },
-          {
             "symbol": "model",
             "role": "data"
           }
@@ -3128,39 +2637,11 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "accessibilityLabel",
-            "role": "data"
-          },
-          {
-            "symbol": "accessibilityValue",
-            "role": "data"
-          },
-          {
             "symbol": "candidate",
             "role": "data"
           },
           {
-            "symbol": "inclusionButton",
-            "role": "data"
-          },
-          {
-            "symbol": "inclusionHelp",
-            "role": "data"
-          },
-          {
-            "symbol": "inclusionSymbol",
-            "role": "data"
-          },
-          {
             "symbol": "isDisabled",
-            "role": "data"
-          },
-          {
-            "symbol": "isFocused",
-            "role": "data"
-          },
-          {
-            "symbol": "isHovered",
             "role": "data"
           },
           {
@@ -3169,18 +2650,6 @@
           },
           {
             "symbol": "model",
-            "role": "data"
-          },
-          {
-            "symbol": "rowContent",
-            "role": "data"
-          },
-          {
-            "symbol": "symbolName",
-            "role": "data"
-          },
-          {
-            "symbol": "title",
             "role": "data"
           }
         ],
@@ -3235,14 +2704,6 @@
             "role": "data"
           },
           {
-            "symbol": "determinateImportProgress",
-            "role": "data"
-          },
-          {
-            "symbol": "footer",
-            "role": "data"
-          },
-          {
             "symbol": "importProgressText",
             "role": "data"
           },
@@ -3255,27 +2716,11 @@
             "role": "data"
           },
           {
-            "symbol": "layoutMode",
-            "role": "data"
-          },
-          {
             "symbol": "model",
-            "role": "data"
-          },
-          {
-            "symbol": "reviewTabs",
-            "role": "data"
-          },
-          {
-            "symbol": "selectionSummary",
             "role": "data"
           }
         ],
         "actions": [
-          {
-            "symbol": "ImportReviewCopy.importAction",
-            "role": "actions"
-          },
           {
             "symbol": "cancelImport",
             "role": "actions"
@@ -3393,19 +2838,7 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "header",
-            "role": "data"
-          },
-          {
             "symbol": "hidesPreviewChrome",
-            "role": "data"
-          },
-          {
-            "symbol": "isImporting",
-            "role": "data"
-          },
-          {
-            "symbol": "isKeyboardTarget",
             "role": "data"
           },
           {
@@ -3413,27 +2846,7 @@
             "role": "data"
           },
           {
-            "symbol": "pageSubtitle",
-            "role": "data"
-          },
-          {
-            "symbol": "pageTitle",
-            "role": "data"
-          },
-          {
-            "symbol": "productionImportProgressText",
-            "role": "data"
-          },
-          {
-            "symbol": "productionImportStageContent",
-            "role": "data"
-          },
-          {
             "symbol": "reduceMotion",
-            "role": "data"
-          },
-          {
-            "symbol": "stateContent",
             "role": "data"
           }
         ],
@@ -3484,27 +2897,11 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "header",
-            "role": "data"
-          },
-          {
             "symbol": "model",
             "role": "data"
           },
           {
-            "symbol": "selection",
-            "role": "data"
-          },
-          {
             "symbol": "store",
-            "role": "data"
-          },
-          {
-            "symbol": "trackWindowConfigurationID",
-            "role": "data"
-          },
-          {
-            "symbol": "window",
             "role": "data"
           }
         ],
@@ -3555,59 +2952,7 @@
             "role": "data"
           },
           {
-            "symbol": "catalogGrid",
-            "role": "data"
-          },
-          {
-            "symbol": "content",
-            "role": "data"
-          },
-          {
-            "symbol": "description",
-            "role": "data"
-          },
-          {
-            "symbol": "favoriteAlbums",
-            "role": "data"
-          },
-          {
-            "symbol": "favoriteArtists",
-            "role": "data"
-          },
-          {
-            "symbol": "favoriteCount",
-            "role": "data"
-          },
-          {
-            "symbol": "favoriteSongs",
-            "role": "data"
-          },
-          {
-            "symbol": "favoriteSort",
-            "role": "data"
-          },
-          {
-            "symbol": "favoriteWindowConfigurationID",
-            "role": "data"
-          },
-          {
-            "symbol": "header",
-            "role": "data"
-          },
-          {
             "symbol": "model",
-            "role": "data"
-          },
-          {
-            "symbol": "section",
-            "role": "data"
-          },
-          {
-            "symbol": "sectionBinding",
-            "role": "data"
-          },
-          {
-            "symbol": "sectionPicker",
             "role": "data"
           },
           {
@@ -3615,19 +2960,7 @@
             "role": "data"
           },
           {
-            "symbol": "selection",
-            "role": "data"
-          },
-          {
             "symbol": "store",
-            "role": "data"
-          },
-          {
-            "symbol": "title",
-            "role": "data"
-          },
-          {
-            "symbol": "window",
             "role": "data"
           }
         ],
@@ -3822,54 +3155,8 @@
       "sharedSymbol": "NativePlaybackIndicatorView",
       "remainingCadenceSymbol": "Cadence.NativePlaybackIndicatorView",
       "dependencies": {
-        "data": [
-          {
-            "symbol": "_",
-            "role": "data"
-          },
-          {
-            "symbol": "animationKey",
-            "role": "data"
-          },
-          {
-            "symbol": "barCount",
-            "role": "data"
-          },
-          {
-            "symbol": "bars",
-            "role": "data"
-          },
-          {
-            "symbol": "disabledLayerActions",
-            "role": "data"
-          },
-          {
-            "symbol": "isAnimating",
-            "role": "data"
-          },
-          {
-            "symbol": "isPlaying",
-            "role": "data"
-          },
-          {
-            "symbol": "reduceMotion",
-            "role": "data"
-          },
-          {
-            "symbol": "staticScales",
-            "role": "data"
-          }
-        ],
-        "actions": [
-          {
-            "symbol": "CATransaction.setDisableActions",
-            "role": "actions"
-          },
-          {
-            "symbol": "bar.removeAnimation",
-            "role": "actions"
-          }
-        ]
+        "data": [],
+        "actions": []
       },
       "states": {
         "appearance": [
@@ -3908,281 +3195,21 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "_",
-            "role": "data"
-          },
-          {
-            "symbol": "action",
-            "role": "data"
-          },
-          {
-            "symbol": "actionButton",
-            "role": "data"
-          },
-          {
-            "symbol": "albumButton",
-            "role": "data"
-          },
-          {
-            "symbol": "artistButton",
-            "role": "data"
-          },
-          {
-            "symbol": "artworkButton",
-            "role": "data"
-          },
-          {
-            "symbol": "artworkGeneration",
-            "role": "data"
-          },
-          {
-            "symbol": "artworkLayer",
-            "role": "data"
-          },
-          {
             "symbol": "artworkLoader",
             "role": "data"
           },
           {
-            "symbol": "artworkOverlayLayer",
-            "role": "data"
-          },
-          {
-            "symbol": "artworkRequest",
-            "role": "data"
-          },
-          {
-            "symbol": "artworkTask",
-            "role": "data"
-          },
-          {
-            "symbol": "asset",
-            "role": "data"
-          },
-          {
-            "symbol": "button",
-            "role": "data"
-          },
-          {
-            "symbol": "columns",
-            "role": "data"
-          },
-          {
-            "symbol": "content",
-            "role": "data"
-          },
-          {
-            "symbol": "control",
-            "role": "data"
-          },
-          {
-            "symbol": "density",
-            "role": "data"
-          },
-          {
-            "symbol": "disabledLayerActions",
-            "role": "data"
-          },
-          {
-            "symbol": "durationLabel",
-            "role": "data"
-          },
-          {
-            "symbol": "emptyHeartImage",
-            "role": "data"
-          },
-          {
-            "symbol": "event",
-            "role": "data"
-          },
-          {
-            "symbol": "explicitLabel",
-            "role": "data"
-          },
-          {
-            "symbol": "favoriteButton",
-            "role": "data"
-          },
-          {
-            "symbol": "filledHeartImage",
-            "role": "data"
-          },
-          {
-            "symbol": "font",
-            "role": "data"
-          },
-          {
-            "symbol": "geometry",
-            "role": "data"
-          },
-          {
-            "symbol": "hasConfiguredContent",
-            "role": "data"
-          },
-          {
-            "symbol": "image",
-            "role": "data"
-          },
-          {
-            "symbol": "interactiveSubviews",
-            "role": "data"
-          },
-          {
-            "symbol": "isFocused",
-            "role": "data"
-          },
-          {
-            "symbol": "isHovered",
-            "role": "data"
-          },
-          {
-            "symbol": "isLiveScrolling",
-            "role": "data"
-          },
-          {
-            "symbol": "isSelected",
-            "role": "data"
-          },
-          {
-            "symbol": "label",
-            "role": "data"
-          },
-          {
-            "symbol": "maximum",
-            "role": "data"
-          },
-          {
-            "symbol": "newSuperview",
-            "role": "data"
-          },
-          {
-            "symbol": "ofSize",
-            "role": "data"
-          },
-          {
-            "symbol": "originX",
-            "role": "data"
-          },
-          {
-            "symbol": "playImage",
-            "role": "data"
-          },
-          {
-            "symbol": "playbackIndicator",
-            "role": "data"
-          },
-          {
-            "symbol": "probe",
-            "role": "data"
-          },
-          {
-            "symbol": "projection",
-            "role": "data"
-          },
-          {
-            "symbol": "publishedArtworkContentsRect",
-            "role": "data"
-          },
-          {
-            "symbol": "publishedArtworkRequest",
-            "role": "data"
-          },
-          {
-            "symbol": "reduceMotion",
-            "role": "data"
-          },
-          {
-            "symbol": "renderHierarchyIdentity",
-            "role": "data"
-          },
-          {
-            "symbol": "representedTrackID",
-            "role": "data"
-          },
-          {
-            "symbol": "request",
-            "role": "data"
-          },
-          {
-            "symbol": "resetRequest",
-            "role": "data"
-          },
-          {
-            "symbol": "selectionLayer",
-            "role": "data"
-          },
-          {
-            "symbol": "showsArtwork",
-            "role": "data"
-          },
-          {
-            "symbol": "textSize",
-            "role": "data"
-          },
-          {
-            "symbol": "titleLabel",
-            "role": "data"
-          },
-          {
-            "symbol": "tone",
-            "role": "data"
-          },
-          {
-            "symbol": "trackingArea",
-            "role": "data"
-          },
-          {
-            "symbol": "unitContentsRect",
-            "role": "data"
-          },
-          {
-            "symbol": "width",
-            "role": "data"
-          },
-          {
-            "symbol": "widths",
-            "role": "data"
-          },
-          {
-            "symbol": "windowPoint",
-            "role": "data"
-          },
-          {
-            "symbol": "yearLabel",
+            "symbol": "onContextMenu",
             "role": "data"
           }
         ],
         "actions": [
-          {
-            "symbol": "CATransaction.setDisableActions",
-            "role": "actions"
-          },
-          {
-            "symbol": "control.setAccessibilityRole",
-            "role": "actions"
-          },
-          {
-            "symbol": "favoriteButton.setAccessibilityLabel",
-            "role": "actions"
-          },
           {
             "symbol": "onAction",
             "role": "actions"
           },
           {
             "symbol": "onActionsMenu",
-            "role": "actions"
-          },
-          {
-            "symbol": "onContextMenu",
-            "role": "actions"
-          },
-          {
-            "symbol": "playbackIndicator.setPlaying",
-            "role": "actions"
-          },
-          {
-            "symbol": "super.updateTrackingAreas",
             "role": "actions"
           }
         ]
@@ -4226,51 +3253,11 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "columns",
-            "role": "data"
-          },
-          {
-            "symbol": "content",
-            "role": "data"
-          },
-          {
-            "symbol": "count",
-            "role": "data"
-          },
-          {
             "symbol": "model",
             "role": "data"
           },
           {
-            "symbol": "selectedAlbumID",
-            "role": "data"
-          },
-          {
-            "symbol": "selectedArtistID",
-            "role": "data"
-          },
-          {
-            "symbol": "selectedTrackID",
-            "role": "data"
-          },
-          {
             "symbol": "store",
-            "role": "data"
-          },
-          {
-            "symbol": "title",
-            "role": "data"
-          },
-          {
-            "symbol": "trackColumnContent",
-            "role": "data"
-          },
-          {
-            "symbol": "visibleAlbums",
-            "role": "data"
-          },
-          {
-            "symbol": "visibleTracks",
             "role": "data"
           }
         ],
@@ -4325,10 +3312,6 @@
           },
           {
             "symbol": "defaultSortDescriptor",
-            "role": "data"
-          },
-          {
-            "symbol": "density",
             "role": "data"
           },
           {
@@ -4447,19 +3430,11 @@
             "role": "data"
           },
           {
-            "symbol": "localSelection",
-            "role": "data"
-          },
-          {
             "symbol": "model",
             "role": "data"
           },
           {
             "symbol": "playlistID",
-            "role": "data"
-          },
-          {
-            "symbol": "projectionCache",
             "role": "data"
           },
           {
@@ -4504,10 +3479,6 @@
           },
           {
             "symbol": "tracks",
-            "role": "data"
-          },
-          {
-            "symbol": "usesDefaultSort",
             "role": "data"
           },
           {
@@ -4570,27 +3541,11 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "actionControl",
-            "role": "data"
-          },
-          {
             "symbol": "actionMenuMaterializationPolicy",
             "role": "data"
           },
           {
             "symbol": "actionTrackIDs",
-            "role": "data"
-          },
-          {
-            "symbol": "animatesCurrentTrack",
-            "role": "data"
-          },
-          {
-            "symbol": "artworkControl",
-            "role": "data"
-          },
-          {
-            "symbol": "artworkLoadState",
             "role": "data"
           },
           {
@@ -4606,19 +3561,7 @@
             "role": "data"
           },
           {
-            "symbol": "favoriteControl",
-            "role": "data"
-          },
-          {
-            "symbol": "favoritePresentation",
-            "role": "data"
-          },
-          {
             "symbol": "interactionState",
-            "role": "data"
-          },
-          {
-            "symbol": "interactiveRow",
             "role": "data"
           },
           {
@@ -4626,43 +3569,11 @@
             "role": "data"
           },
           {
-            "symbol": "isActionControlFocused",
-            "role": "data"
-          },
-          {
-            "symbol": "isContentControlFocused",
-            "role": "data"
-          },
-          {
-            "symbol": "isFavoriteFocused",
-            "role": "data"
-          },
-          {
             "symbol": "isFocused",
             "role": "data"
           },
           {
-            "symbol": "isHovered",
-            "role": "data"
-          },
-          {
-            "symbol": "isLiveScrolling",
-            "role": "data"
-          },
-          {
             "symbol": "isSelected",
-            "role": "data"
-          },
-          {
-            "symbol": "lightweightPointerScrollRow",
-            "role": "data"
-          },
-          {
-            "symbol": "lightweightSong",
-            "role": "data"
-          },
-          {
-            "symbol": "liveScrollPresentation",
             "role": "data"
           },
           {
@@ -4686,15 +3597,7 @@
             "role": "data"
           },
           {
-            "symbol": "rowLayout",
-            "role": "data"
-          },
-          {
-            "symbol": "showsHoverOverlay",
-            "role": "data"
-          },
-          {
-            "symbol": "song",
+            "symbol": "resolveDraggedTrackIDs",
             "role": "data"
           },
           {
@@ -4725,10 +3628,6 @@
           },
           {
             "symbol": "reorderAction",
-            "role": "actions"
-          },
-          {
-            "symbol": "resolveDraggedTrackIDs",
             "role": "actions"
           },
           {
@@ -4773,27 +3672,7 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "confirmsEmptyTrash",
-            "role": "data"
-          },
-          {
-            "symbol": "header",
-            "role": "data"
-          },
-          {
             "symbol": "model",
-            "role": "data"
-          },
-          {
-            "symbol": "operation",
-            "role": "data"
-          },
-          {
-            "symbol": "pendingPermanentDeletion",
-            "role": "data"
-          },
-          {
-            "symbol": "store",
             "role": "data"
           }
         ],
@@ -4835,19 +3714,11 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "_",
-            "role": "data"
-          },
-          {
             "symbol": "columns",
             "role": "data"
           },
           {
             "symbol": "context",
-            "role": "data"
-          },
-          {
-            "symbol": "coordinator",
             "role": "data"
           },
           {
@@ -4871,10 +3742,6 @@
             "role": "data"
           },
           {
-            "symbol": "presentation",
-            "role": "data"
-          },
-          {
             "symbol": "queueSource",
             "role": "data"
           },
@@ -4888,10 +3755,6 @@
           },
           {
             "symbol": "scrollOwnership",
-            "role": "data"
-          },
-          {
-            "symbol": "scrollView",
             "role": "data"
           },
           {
@@ -4911,14 +3774,6 @@
             "role": "data"
           },
           {
-            "symbol": "totalCount",
-            "role": "data"
-          },
-          {
-            "symbol": "tracks",
-            "role": "data"
-          },
-          {
             "symbol": "virtualWindow",
             "role": "data"
           },
@@ -4933,27 +3788,11 @@
         ],
         "actions": [
           {
-            "symbol": "context.coordinator.updateRefreshAffordance",
-            "role": "actions"
-          },
-          {
-            "symbol": "coordinator.updateColumnWidth",
-            "role": "actions"
-          },
-          {
-            "symbol": "coordinator.updateRefreshAffordance",
-            "role": "actions"
-          },
-          {
             "symbol": "onReachEnd",
             "role": "actions"
           },
           {
             "symbol": "reorderAction",
-            "role": "actions"
-          },
-          {
-            "symbol": "tableView.setDraggingSourceOperationMask",
             "role": "actions"
           }
         ]
@@ -5040,23 +3879,7 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "content",
-            "role": "data"
-          },
-          {
             "symbol": "hostState",
-            "role": "data"
-          },
-          {
-            "symbol": "hostingSizingOptions",
-            "role": "data"
-          },
-          {
-            "symbol": "hostingView",
-            "role": "data"
-          },
-          {
-            "symbol": "probe",
             "role": "data"
           }
         ],
@@ -5137,28 +3960,7 @@
       "sharedSymbol": "",
       "remainingCadenceSymbol": "Cadence.TrackTableView",
       "dependencies": {
-        "data": [
-          {
-            "symbol": "acceptsFirstResponder",
-            "role": "data"
-          },
-          {
-            "symbol": "event",
-            "role": "data"
-          },
-          {
-            "symbol": "focusNotificationGeneration",
-            "role": "data"
-          },
-          {
-            "symbol": "hasFocus",
-            "role": "data"
-          },
-          {
-            "symbol": "hasTableFocus",
-            "role": "data"
-          }
-        ],
+        "data": [],
         "actions": [
           {
             "symbol": "onDelete",
@@ -5285,10 +4087,6 @@
             "role": "data"
           },
           {
-            "symbol": "isActive",
-            "role": "data"
-          },
-          {
             "symbol": "issue",
             "role": "data"
           },
@@ -5366,27 +4164,7 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "exportPreview",
-            "role": "data"
-          },
-          {
-            "symbol": "importFailed",
-            "role": "data"
-          },
-          {
-            "symbol": "lineID",
-            "role": "data"
-          },
-          {
             "symbol": "model",
-            "role": "data"
-          },
-          {
-            "symbol": "tableHeader",
-            "role": "data"
-          },
-          {
-            "symbol": "tableToolbar",
             "role": "data"
           },
           {
@@ -5394,12 +4172,7 @@
             "role": "data"
           }
         ],
-        "actions": [
-          {
-            "symbol": "NSPasteboard.general.setString",
-            "role": "actions"
-          }
-        ]
+        "actions": []
       },
       "states": {
         "appearance": [
@@ -5440,18 +4213,6 @@
         "data": [
           {
             "symbol": "hasError",
-            "role": "data"
-          },
-          {
-            "symbol": "isFocused",
-            "role": "data"
-          },
-          {
-            "symbol": "source",
-            "role": "data"
-          },
-          {
-            "symbol": "text",
             "role": "data"
           },
           {
@@ -5702,35 +4463,7 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "action",
-            "role": "data"
-          },
-          {
-            "symbol": "activeLine",
-            "role": "data"
-          },
-          {
-            "symbol": "activeLinePosition",
-            "role": "data"
-          },
-          {
-            "symbol": "key",
-            "role": "data"
-          },
-          {
             "symbol": "model",
-            "role": "data"
-          },
-          {
-            "symbol": "ownsKeyboard",
-            "role": "data"
-          },
-          {
-            "symbol": "playbackClock",
-            "role": "data"
-          },
-          {
-            "symbol": "presentationTime",
             "role": "data"
           },
           {
@@ -5928,15 +4661,7 @@
             "role": "data"
           },
           {
-            "symbol": "backgroundStrength",
-            "role": "data"
-          },
-          {
             "symbol": "colorScheme",
-            "role": "data"
-          },
-          {
-            "symbol": "leadingStrength",
             "role": "data"
           },
           {
@@ -5944,15 +4669,7 @@
             "role": "data"
           },
           {
-            "symbol": "palette",
-            "role": "data"
-          },
-          {
             "symbol": "reduceTransparency",
-            "role": "data"
-          },
-          {
-            "symbol": "trailingStrength",
             "role": "data"
           }
         ],
@@ -6075,10 +4792,6 @@
             "role": "data"
           },
           {
-            "symbol": "lyricsTextSize",
-            "role": "data"
-          },
-          {
             "symbol": "lyricsTextSizeRaw",
             "role": "data"
           },
@@ -6127,46 +4840,6 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "action",
-            "role": "data"
-          },
-          {
-            "symbol": "activeLineID",
-            "role": "data"
-          },
-          {
-            "symbol": "document",
-            "role": "data"
-          },
-          {
-            "symbol": "editingLineID",
-            "role": "data"
-          },
-          {
-            "symbol": "editingText",
-            "role": "data"
-          },
-          {
-            "symbol": "focusedEditingLineID",
-            "role": "data"
-          },
-          {
-            "symbol": "isActive",
-            "role": "data"
-          },
-          {
-            "symbol": "line",
-            "role": "data"
-          },
-          {
-            "symbol": "lineID",
-            "role": "data"
-          },
-          {
-            "symbol": "lyricsTextSize",
-            "role": "data"
-          },
-          {
             "symbol": "lyricsTextSizeRaw",
             "role": "data"
           },
@@ -6175,23 +4848,7 @@
             "role": "data"
           },
           {
-            "symbol": "motion",
-            "role": "data"
-          },
-          {
-            "symbol": "presentation",
-            "role": "data"
-          },
-          {
-            "symbol": "proxy",
-            "role": "data"
-          },
-          {
             "symbol": "reduceMotion",
-            "role": "data"
-          },
-          {
-            "symbol": "scrollPresentation",
             "role": "data"
           },
           {
@@ -6202,10 +4859,6 @@
         "actions": [
           {
             "symbol": "model.updateProductionLyricLine",
-            "role": "actions"
-          },
-          {
-            "symbol": "presentation.updateActiveLineID",
             "role": "actions"
           }
         ]
@@ -6260,27 +4913,7 @@
             "role": "data"
           },
           {
-            "symbol": "isAddingTag",
-            "role": "data"
-          },
-          {
-            "symbol": "isAudioDetailsPresented",
-            "role": "data"
-          },
-          {
-            "symbol": "isRenamePresented",
-            "role": "data"
-          },
-          {
             "symbol": "model",
-            "role": "data"
-          },
-          {
-            "symbol": "newTagPath",
-            "role": "data"
-          },
-          {
-            "symbol": "nowPlayingLyricDocument",
             "role": "data"
           },
           {
@@ -6292,27 +4925,11 @@
             "role": "data"
           },
           {
-            "symbol": "renameDraft",
-            "role": "data"
-          },
-          {
-            "symbol": "renamedTrackTitle",
-            "role": "data"
-          },
-          {
             "symbol": "rhythmPulseVisualQAState",
             "role": "data"
           },
           {
             "symbol": "showsTechnicalInformation",
-            "role": "data"
-          },
-          {
-            "symbol": "tagError",
-            "role": "data"
-          },
-          {
-            "symbol": "tagStates",
             "role": "data"
           },
           {
@@ -6520,14 +5137,13 @@
           {
             "symbol": "payload",
             "role": "data"
-          }
-        ],
-        "actions": [
+          },
           {
             "symbol": "reorder",
-            "role": "actions"
+            "role": "data"
           }
-        ]
+        ],
+        "actions": []
       },
       "states": {
         "appearance": [
@@ -6624,27 +5240,7 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "activeDropTarget",
-            "role": "data"
-          },
-          {
             "symbol": "model",
-            "role": "data"
-          },
-          {
-            "symbol": "queueHasFocus",
-            "role": "data"
-          },
-          {
-            "symbol": "queueHeader",
-            "role": "data"
-          },
-          {
-            "symbol": "selection",
-            "role": "data"
-          },
-          {
-            "symbol": "selectionAnchor",
             "role": "data"
           },
           {
@@ -6652,12 +5248,7 @@
             "role": "data"
           }
         ],
-        "actions": [
-          {
-            "symbol": "selection.removeAll",
-            "role": "actions"
-          }
-        ]
+        "actions": []
       },
       "states": {
         "appearance": [
@@ -6695,14 +5286,6 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "artwork",
-            "role": "data"
-          },
-          {
-            "symbol": "contextMenu",
-            "role": "data"
-          },
-          {
             "symbol": "isCurrent",
             "role": "data"
           },
@@ -6720,26 +5303,6 @@
           },
           {
             "symbol": "model",
-            "role": "data"
-          },
-          {
-            "symbol": "stateDetail",
-            "role": "data"
-          },
-          {
-            "symbol": "stateIcon",
-            "role": "data"
-          },
-          {
-            "symbol": "stateTitle",
-            "role": "data"
-          },
-          {
-            "symbol": "trackDetails",
-            "role": "data"
-          },
-          {
-            "symbol": "trailingState",
             "role": "data"
           }
         ],
@@ -6936,19 +5499,7 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "isDeletingPlaylist",
-            "role": "data"
-          },
-          {
             "symbol": "model",
-            "role": "data"
-          },
-          {
-            "symbol": "playlistName",
-            "role": "data"
-          },
-          {
-            "symbol": "playlistNameOperation",
             "role": "data"
           },
           {
@@ -7003,10 +5554,6 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "_",
-            "role": "data"
-          },
-          {
             "symbol": "colorSchemeContrast",
             "role": "data"
           },
@@ -7020,10 +5567,6 @@
           },
           {
             "symbol": "reduceTransparency",
-            "role": "data"
-          },
-          {
-            "symbol": "view",
             "role": "data"
           },
           {
@@ -7072,32 +5615,7 @@
       "sharedSymbol": "",
       "remainingCadenceSymbol": "Cadence.CadenceModeBackgroundView",
       "dependencies": {
-        "data": [
-          {
-            "symbol": "appearance",
-            "role": "data"
-          },
-          {
-            "symbol": "gradientRenderer",
-            "role": "data"
-          },
-          {
-            "symbol": "isOpaque",
-            "role": "data"
-          },
-          {
-            "symbol": "palette",
-            "role": "data"
-          },
-          {
-            "symbol": "size",
-            "role": "data"
-          },
-          {
-            "symbol": "time",
-            "role": "data"
-          }
-        ],
+        "data": [],
         "actions": []
       },
       "states": {
@@ -7139,27 +5657,7 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "_",
-            "role": "data"
-          },
-          {
-            "symbol": "appearance",
-            "role": "data"
-          },
-          {
-            "symbol": "aspectRatio",
-            "role": "data"
-          },
-          {
-            "symbol": "colors",
-            "role": "data"
-          },
-          {
             "symbol": "commandQueue",
-            "role": "data"
-          },
-          {
-            "symbol": "depthStencilState",
             "role": "data"
           },
           {
@@ -7167,84 +5665,11 @@
             "role": "data"
           },
           {
-            "symbol": "encoder",
-            "role": "data"
-          },
-          {
-            "symbol": "hasReceivedPalette",
-            "role": "data"
-          },
-          {
-            "symbol": "indexBuffer",
-            "role": "data"
-          },
-          {
-            "symbol": "indexCount",
-            "role": "data"
-          },
-          {
-            "symbol": "isAnimated",
-            "role": "data"
-          },
-          {
-            "symbol": "palette",
-            "role": "data"
-          },
-          {
-            "symbol": "paletteTransition",
-            "role": "data"
-          },
-          {
-            "symbol": "pipelineState",
-            "role": "data"
-          },
-          {
             "symbol": "snapshotPipelineState",
-            "role": "data"
-          },
-          {
-            "symbol": "startedAt",
-            "role": "data"
-          },
-          {
-            "symbol": "time",
-            "role": "data"
-          },
-          {
-            "symbol": "vertexBuffer",
-            "role": "data"
-          },
-          {
-            "symbol": "view",
             "role": "data"
           }
         ],
-        "actions": [
-          {
-            "symbol": "encoder.setCullMode",
-            "role": "actions"
-          },
-          {
-            "symbol": "encoder.setDepthStencilState",
-            "role": "actions"
-          },
-          {
-            "symbol": "encoder.setFrontFacing",
-            "role": "actions"
-          },
-          {
-            "symbol": "encoder.setRenderPipelineState",
-            "role": "actions"
-          },
-          {
-            "symbol": "encoder.setVertexBuffer",
-            "role": "actions"
-          },
-          {
-            "symbol": "encoder.setVertexBytes",
-            "role": "actions"
-          }
-        ]
+        "actions": []
       },
       "states": {
         "appearance": [
@@ -7285,20 +5710,7 @@
       "sharedSymbol": "",
       "remainingCadenceSymbol": "Cadence.CadenceModeHint",
       "dependencies": {
-        "data": [
-          {
-            "symbol": "accessibilityCopy",
-            "role": "data"
-          },
-          {
-            "symbol": "copy",
-            "role": "data"
-          },
-          {
-            "symbol": "key",
-            "role": "data"
-          }
-        ],
+        "data": [],
         "actions": [
           {
             "symbol": "action",
@@ -7346,27 +5758,11 @@
             "role": "data"
           },
           {
-            "symbol": "lane",
-            "role": "data"
-          },
-          {
             "symbol": "model",
             "role": "data"
           },
           {
-            "symbol": "newID",
-            "role": "data"
-          },
-          {
-            "symbol": "oldID",
-            "role": "data"
-          },
-          {
             "symbol": "session",
-            "role": "data"
-          },
-          {
-            "symbol": "workspace",
             "role": "data"
           }
         ],
@@ -7467,10 +5863,6 @@
             "role": "data"
           },
           {
-            "symbol": "contentLines",
-            "role": "data"
-          },
-          {
             "symbol": "document",
             "role": "data"
           },
@@ -7530,16 +5922,7 @@
       "sharedSymbol": "CadenceModeLyricsEdgeFade",
       "remainingCadenceSymbol": "Cadence.CadenceModeLyricsEdgeFade",
       "dependencies": {
-        "data": [
-          {
-            "symbol": "bottomFadeLocation",
-            "role": "data"
-          },
-          {
-            "symbol": "topOpaqueLocation",
-            "role": "data"
-          }
-        ],
+        "data": [],
         "actions": []
       },
       "states": {
@@ -7580,10 +5963,6 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "activeLineID",
-            "role": "data"
-          },
-          {
             "symbol": "artist",
             "role": "data"
           },
@@ -7596,27 +5975,7 @@
             "role": "data"
           },
           {
-            "symbol": "bassReactiveArtwork",
-            "role": "data"
-          },
-          {
-            "symbol": "bassSmoother",
-            "role": "data"
-          },
-          {
-            "symbol": "document",
-            "role": "data"
-          },
-          {
-            "symbol": "effectiveReduceMotion",
-            "role": "data"
-          },
-          {
             "symbol": "layout",
-            "role": "data"
-          },
-          {
-            "symbol": "lyricContent",
             "role": "data"
           },
           {
@@ -7628,15 +5987,7 @@
             "role": "data"
           },
           {
-            "symbol": "observer",
-            "role": "data"
-          },
-          {
             "symbol": "options",
-            "role": "data"
-          },
-          {
-            "symbol": "response",
             "role": "data"
           },
           {
@@ -7645,10 +5996,6 @@
           },
           {
             "symbol": "track",
-            "role": "data"
-          },
-          {
-            "symbol": "trackInformation",
             "role": "data"
           },
           {
@@ -7710,35 +6057,15 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "_",
-            "role": "data"
-          },
-          {
             "symbol": "canActivateCadenceMode",
             "role": "data"
           },
           {
-            "symbol": "context",
-            "role": "data"
-          },
-          {
-            "symbol": "coordinator",
-            "role": "data"
-          },
-          {
-            "symbol": "nsView",
+            "symbol": "isCadenceModeActive",
             "role": "data"
           }
         ],
         "actions": [
-          {
-            "symbol": "coordinator.removeMonitor",
-            "role": "actions"
-          },
-          {
-            "symbol": "isCadenceModeActive",
-            "role": "actions"
-          },
           {
             "symbol": "onExitCadenceMode",
             "role": "actions"
@@ -7794,10 +6121,6 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "_",
-            "role": "data"
-          },
-          {
             "symbol": "colorScheme",
             "role": "data"
           },
@@ -7815,10 +6138,6 @@
           },
           {
             "symbol": "store",
-            "role": "data"
-          },
-          {
-            "symbol": "view",
             "role": "data"
           }
         ],
@@ -7861,27 +6180,7 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "count",
-            "role": "data"
-          },
-          {
             "symbol": "effectLayer",
-            "role": "data"
-          },
-          {
-            "symbol": "isFlipped",
-            "role": "data"
-          },
-          {
-            "symbol": "keepingParticleIDs",
-            "role": "data"
-          },
-          {
-            "symbol": "keepingWashIDs",
-            "role": "data"
-          },
-          {
-            "symbol": "layer",
             "role": "data"
           },
           {
@@ -7893,23 +6192,7 @@
             "role": "data"
           },
           {
-            "symbol": "particles",
-            "role": "data"
-          },
-          {
-            "symbol": "previousBounds",
-            "role": "data"
-          },
-          {
             "symbol": "state",
-            "role": "data"
-          },
-          {
-            "symbol": "visibleEffectCount",
-            "role": "data"
-          },
-          {
-            "symbol": "visualQATime",
             "role": "data"
           },
           {
@@ -7926,10 +6209,6 @@
           },
           {
             "symbol": "washTextureCache",
-            "role": "data"
-          },
-          {
-            "symbol": "washes",
             "role": "data"
           }
         ],
@@ -7996,18 +6275,6 @@
       "remainingCadenceSymbol": "Cadence.LyricsSearchPreviewView",
       "dependencies": {
         "data": [
-          {
-            "symbol": "didLoad",
-            "role": "data"
-          },
-          {
-            "symbol": "document",
-            "role": "data"
-          },
-          {
-            "symbol": "loadError",
-            "role": "data"
-          },
           {
             "symbol": "model",
             "role": "data"
@@ -8113,10 +6380,6 @@
             "role": "data"
           },
           {
-            "symbol": "expandedGroup",
-            "role": "data"
-          },
-          {
             "symbol": "model",
             "role": "data"
           },
@@ -8163,51 +6426,11 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "deletionAction",
-            "role": "data"
-          },
-          {
-            "symbol": "destination",
-            "role": "data"
-          },
-          {
-            "symbol": "isDeleteConfirmationPresented",
-            "role": "data"
-          },
-          {
-            "symbol": "libraryActions",
-            "role": "data"
-          },
-          {
-            "symbol": "libraryDetails",
-            "role": "data"
-          },
-          {
-            "symbol": "libraryPath",
-            "role": "data"
-          },
-          {
-            "symbol": "libraryStorageSize",
-            "role": "data"
-          },
-          {
             "symbol": "model",
-            "role": "data"
-          },
-          {
-            "symbol": "relocationProgress",
-            "role": "data"
-          },
-          {
-            "symbol": "store",
             "role": "data"
           }
         ],
         "actions": [
-          {
-            "symbol": "NSWorkspace.shared.activateFileViewerSelecting",
-            "role": "actions"
-          },
           {
             "symbol": "model.chooseLibraryLocation",
             "role": "actions"
@@ -8262,19 +6485,7 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "authorizationDenied",
-            "role": "data"
-          },
-          {
-            "symbol": "enable",
-            "role": "data"
-          },
-          {
             "symbol": "notificationController",
-            "role": "data"
-          },
-          {
-            "symbol": "notificationHelp",
             "role": "data"
           },
           {
@@ -8287,14 +6498,6 @@
           },
           {
             "symbol": "showsForegroundBanners",
-            "role": "data"
-          },
-          {
-            "symbol": "trackNotificationsBinding",
-            "role": "data"
-          },
-          {
-            "symbol": "updateNotificationsBinding",
             "role": "data"
           }
         ],
@@ -8336,23 +6539,11 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "appearanceCard",
-            "role": "data"
-          },
-          {
             "symbol": "appearanceRawValue",
             "role": "data"
           },
           {
             "symbol": "catalogCardSizeRawValue",
-            "role": "data"
-          },
-          {
-            "symbol": "defaultAudioApplication",
-            "role": "data"
-          },
-          {
-            "symbol": "defaultAudioApplicationCard",
             "role": "data"
           },
           {
@@ -8392,19 +6583,11 @@
             "role": "data"
           },
           {
-            "symbol": "tabContent",
-            "role": "data"
-          },
-          {
             "symbol": "updateController",
             "role": "data"
           }
         ],
         "actions": [
-          {
-            "symbol": "defaultAudioApplication.setCadenceAsDefault",
-            "role": "actions"
-          },
           {
             "symbol": "model.chooseAnotherLibraryLocation",
             "role": "actions"
@@ -8512,47 +6695,11 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "canConnect",
-            "role": "data"
-          },
-          {
-            "symbol": "clientID",
-            "role": "data"
-          },
-          {
             "symbol": "controller",
             "role": "data"
           },
           {
-            "symbol": "folderID",
-            "role": "data"
-          },
-          {
             "symbol": "isPresented",
-            "role": "data"
-          },
-          {
-            "symbol": "manifestFileID",
-            "role": "data"
-          },
-          {
-            "symbol": "password",
-            "role": "data"
-          },
-          {
-            "symbol": "provider",
-            "role": "data"
-          },
-          {
-            "symbol": "redirectURL",
-            "role": "data"
-          },
-          {
-            "symbol": "username",
-            "role": "data"
-          },
-          {
-            "symbol": "webDAVURL",
             "role": "data"
           }
         ],
@@ -8594,51 +6741,7 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "cacheBudgetBinding",
-            "role": "data"
-          },
-          {
-            "symbol": "cacheBudgets",
-            "role": "data"
-          },
-          {
             "symbol": "controller",
-            "role": "data"
-          },
-          {
-            "symbol": "hasActiveCache",
-            "role": "data"
-          },
-          {
-            "symbol": "isCacheClearConfirmationPresented",
-            "role": "data"
-          },
-          {
-            "symbol": "isConnecting",
-            "role": "data"
-          },
-          {
-            "symbol": "isConnectionSheetPresented",
-            "role": "data"
-          },
-          {
-            "symbol": "result",
-            "role": "data"
-          },
-          {
-            "symbol": "statusColor",
-            "role": "data"
-          },
-          {
-            "symbol": "statusDetail",
-            "role": "data"
-          },
-          {
-            "symbol": "statusSymbol",
-            "role": "data"
-          },
-          {
-            "symbol": "statusTitle",
             "role": "data"
           }
         ],
@@ -8685,10 +6788,6 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "isHovered",
-            "role": "data"
-          },
-          {
             "symbol": "resource",
             "role": "data"
           }
@@ -8731,20 +6830,7 @@
       "sharedSymbol": "",
       "remainingCadenceSymbol": "Cadence.SettingsAboutSection",
       "dependencies": {
-        "data": [
-          {
-            "symbol": "appVersion",
-            "role": "data"
-          },
-          {
-            "symbol": "buildNumber",
-            "role": "data"
-          },
-          {
-            "symbol": "productHero",
-            "role": "data"
-          }
-        ],
+        "data": [],
         "actions": []
       },
       "states": {
@@ -8781,20 +6867,7 @@
       "sharedSymbol": "",
       "remainingCadenceSymbol": "Cadence.SettingsDataCard",
       "dependencies": {
-        "data": [
-          {
-            "symbol": "error",
-            "role": "data"
-          },
-          {
-            "symbol": "isResetConfirmationPresented",
-            "role": "data"
-          },
-          {
-            "symbol": "notice",
-            "role": "data"
-          }
-        ],
+        "data": [],
         "actions": [
           {
             "symbol": "preferencesDidChange",
@@ -8838,39 +6911,11 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "draggedSection",
-            "role": "data"
-          },
-          {
-            "symbol": "dropTarget",
-            "role": "data"
-          },
-          {
-            "symbol": "fixedRecentlyPlayedRow",
-            "role": "data"
-          },
-          {
             "symbol": "hiddenRawValue",
             "role": "data"
           },
           {
             "symbol": "orderRawValue",
-            "role": "data"
-          },
-          {
-            "symbol": "orderedSections",
-            "role": "data"
-          },
-          {
-            "symbol": "section",
-            "role": "data"
-          },
-          {
-            "symbol": "source",
-            "role": "data"
-          },
-          {
-            "symbol": "target",
             "role": "data"
           }
         ],
@@ -8952,19 +6997,11 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "listeningHistoryRetentionBinding",
-            "role": "data"
-          },
-          {
             "symbol": "listeningHistoryRetentionRawValue",
             "role": "data"
           },
           {
             "symbol": "model",
-            "role": "data"
-          },
-          {
-            "symbol": "trashCleanupRetentionBinding",
             "role": "data"
           },
           {
@@ -9010,14 +7047,6 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "cadenceModeCard",
-            "role": "data"
-          },
-          {
-            "symbol": "cadenceModeHelpText",
-            "role": "data"
-          },
-          {
             "symbol": "cadenceModeReactsToBass",
             "role": "data"
           },
@@ -9030,19 +7059,11 @@
             "role": "data"
           },
           {
-            "symbol": "crossfadeDurationBinding",
-            "role": "data"
-          },
-          {
             "symbol": "crossfadeDurationRawValue",
             "role": "data"
           },
           {
             "symbol": "isCadenceModeEnabled",
-            "role": "data"
-          },
-          {
-            "symbol": "lyricsTextSizeBinding",
             "role": "data"
           },
           {
@@ -9054,27 +7075,11 @@
             "role": "data"
           },
           {
-            "symbol": "normalizationBinding",
-            "role": "data"
-          },
-          {
             "symbol": "normalizationRawValue",
             "role": "data"
           },
           {
-            "symbol": "nowPlayingCard",
-            "role": "data"
-          },
-          {
-            "symbol": "playbackBehaviorCard",
-            "role": "data"
-          },
-          {
             "symbol": "preventsDisplaySleep",
-            "role": "data"
-          },
-          {
-            "symbol": "previousBehaviorBinding",
             "role": "data"
           },
           {
@@ -9090,10 +7095,6 @@
             "role": "data"
           },
           {
-            "symbol": "seekIntervalBinding",
-            "role": "data"
-          },
-          {
             "symbol": "seekIntervalRawValue",
             "role": "data"
           },
@@ -9106,15 +7107,7 @@
             "role": "data"
           },
           {
-            "symbol": "timeDisplayBinding",
-            "role": "data"
-          },
-          {
             "symbol": "timeDisplayRawValue",
-            "role": "data"
-          },
-          {
-            "symbol": "volumeAdjustmentStepBinding",
             "role": "data"
           },
           {
@@ -9160,18 +7153,6 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "destination",
-            "role": "data"
-          },
-          {
-            "symbol": "draggedDestination",
-            "role": "data"
-          },
-          {
-            "symbol": "dropTarget",
-            "role": "data"
-          },
-          {
             "symbol": "hiddenRawValue",
             "role": "data"
           },
@@ -9180,23 +7161,7 @@
             "role": "data"
           },
           {
-            "symbol": "offset",
-            "role": "data"
-          },
-          {
             "symbol": "orderRawValue",
-            "role": "data"
-          },
-          {
-            "symbol": "orderedDestinations",
-            "role": "data"
-          },
-          {
-            "symbol": "source",
-            "role": "data"
-          },
-          {
-            "symbol": "target",
             "role": "data"
           }
         ],
@@ -9359,10 +7324,6 @@
           {
             "symbol": "selection",
             "role": "data"
-          },
-          {
-            "symbol": "tab",
-            "role": "data"
           }
         ],
         "actions": []
@@ -9454,10 +7415,6 @@
       "remainingCadenceSymbol": "Cadence.SettingsTrackListsCard",
       "dependencies": {
         "data": [
-          {
-            "symbol": "densityBinding",
-            "role": "data"
-          },
           {
             "symbol": "densityRawValue",
             "role": "data"
@@ -9587,22 +7544,6 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "appVersion",
-            "role": "data"
-          },
-          {
-            "symbol": "automaticallyChecksForUpdates",
-            "role": "data"
-          },
-          {
-            "symbol": "automaticallyDownloadsUpdates",
-            "role": "data"
-          },
-          {
-            "symbol": "buildNumber",
-            "role": "data"
-          },
-          {
             "symbol": "includesBetaUpdates",
             "role": "data"
           },
@@ -9720,10 +7661,6 @@
             "role": "data"
           },
           {
-            "symbol": "cadenceModeSession",
-            "role": "data"
-          },
-          {
             "symbol": "cadenceModeShowsLyrics",
             "role": "data"
           },
@@ -9740,23 +7677,7 @@
             "role": "data"
           },
           {
-            "symbol": "displaySleepController",
-            "role": "data"
-          },
-          {
-            "symbol": "folderIconController",
-            "role": "data"
-          },
-          {
-            "symbol": "hasAppliedStartupDestination",
-            "role": "data"
-          },
-          {
             "symbol": "isCadenceModeEnabled",
-            "role": "data"
-          },
-          {
-            "symbol": "isSearchPresented",
             "role": "data"
           },
           {
@@ -9841,16 +7762,7 @@
       "sharedSymbol": "",
       "remainingCadenceSymbol": "Cadence.WindowContentLayout",
       "dependencies": {
-        "data": [
-          {
-            "symbol": "content",
-            "role": "data"
-          },
-          {
-            "symbol": "placement",
-            "role": "data"
-          }
-        ],
+        "data": [],
         "actions": []
       },
       "states": {
@@ -9887,16 +7799,7 @@
       "sharedSymbol": "",
       "remainingCadenceSymbol": "Cadence.WindowContentLayoutProbe",
       "dependencies": {
-        "data": [
-          {
-            "symbol": "_",
-            "role": "data"
-          },
-          {
-            "symbol": "nsView",
-            "role": "data"
-          }
-        ],
+        "data": [],
         "actions": [
           {
             "symbol": "onChange",
@@ -9939,29 +7842,8 @@
       "sharedSymbol": "",
       "remainingCadenceSymbol": "Cadence.WindowContentLayoutProbe.ProbeView",
       "dependencies": {
-        "data": [
-          {
-            "symbol": "_",
-            "role": "data"
-          },
-          {
-            "symbol": "lastPlacement",
-            "role": "data"
-          },
-          {
-            "symbol": "observedWindow",
-            "role": "data"
-          },
-          {
-            "symbol": "placement",
-            "role": "data"
-          }
-        ],
+        "data": [],
         "actions": [
-          {
-            "symbol": "NotificationCenter.default.removeObserver",
-            "role": "actions"
-          },
           {
             "symbol": "onChange",
             "role": "actions"
@@ -10006,14 +7888,6 @@
         "data": [
           {
             "symbol": "artworkID",
-            "role": "data"
-          },
-          {
-            "symbol": "emptyArtwork",
-            "role": "data"
-          },
-          {
-            "symbol": "index",
             "role": "data"
           },
           {
@@ -10068,14 +7942,6 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "emptyState",
-            "role": "data"
-          },
-          {
-            "symbol": "header",
-            "role": "data"
-          },
-          {
             "symbol": "model",
             "role": "data"
           }
@@ -10118,27 +7984,7 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "displayName",
-            "role": "data"
-          },
-          {
-            "symbol": "durationText",
-            "role": "data"
-          },
-          {
-            "symbol": "isFocused",
-            "role": "data"
-          },
-          {
-            "symbol": "isHovered",
-            "role": "data"
-          },
-          {
             "symbol": "item",
-            "role": "data"
-          },
-          {
-            "symbol": "matchSummary",
             "role": "data"
           },
           {
@@ -10192,39 +8038,7 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "collectionID",
-            "role": "data"
-          },
-          {
-            "symbol": "collectionMenu",
-            "role": "data"
-          },
-          {
-            "symbol": "controls",
-            "role": "data"
-          },
-          {
-            "symbol": "durationText",
-            "role": "data"
-          },
-          {
-            "symbol": "isRuleInfoPresented",
-            "role": "data"
-          },
-          {
-            "symbol": "metadata",
-            "role": "data"
-          },
-          {
             "symbol": "model",
-            "role": "data"
-          },
-          {
-            "symbol": "selectedTracksAreEmpty",
-            "role": "data"
-          },
-          {
-            "symbol": "smartCollectionTagTitles",
             "role": "data"
           }
         ],
@@ -10273,22 +8087,6 @@
           {
             "symbol": "model",
             "role": "data"
-          },
-          {
-            "symbol": "noMatches",
-            "role": "data"
-          },
-          {
-            "symbol": "noSelection",
-            "role": "data"
-          },
-          {
-            "symbol": "selectedProductionQueueSource",
-            "role": "data"
-          },
-          {
-            "symbol": "selectedTrackTableContext",
-            "role": "data"
           }
         ],
         "actions": []
@@ -10329,39 +8127,7 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "emptyLibrary",
-            "role": "data"
-          },
-          {
-            "symbol": "header",
-            "role": "data"
-          },
-          {
             "symbol": "model",
-            "role": "data"
-          },
-          {
-            "symbol": "noMatches",
-            "role": "data"
-          },
-          {
-            "symbol": "noSelection",
-            "role": "data"
-          },
-          {
-            "symbol": "resultCount",
-            "role": "data"
-          },
-          {
-            "symbol": "results",
-            "role": "data"
-          },
-          {
-            "symbol": "selectedProductionQueueSource",
-            "role": "data"
-          },
-          {
-            "symbol": "selectedTrackTableContext",
             "role": "data"
           }
         ],
@@ -10403,27 +8169,7 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "draft",
-            "role": "data"
-          },
-          {
-            "symbol": "editorStatus",
-            "role": "data"
-          },
-          {
-            "symbol": "emptyRuleHint",
-            "role": "data"
-          },
-          {
-            "symbol": "isNameFocused",
-            "role": "data"
-          },
-          {
             "symbol": "model",
-            "role": "data"
-          },
-          {
-            "symbol": "rootID",
             "role": "data"
           }
         ],
@@ -10478,10 +8224,6 @@
             "role": "data"
           },
           {
-            "symbol": "rows",
-            "role": "data"
-          },
-          {
             "symbol": "tagTitlesByID",
             "role": "data"
           }
@@ -10524,10 +8266,6 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "availableFields",
-            "role": "data"
-          },
-          {
             "symbol": "condition",
             "role": "data"
           },
@@ -10536,15 +8274,7 @@
             "role": "data"
           },
           {
-            "symbol": "fieldBinding",
-            "role": "data"
-          },
-          {
             "symbol": "model",
-            "role": "data"
-          },
-          {
-            "symbol": "operatorBinding",
             "role": "data"
           },
           {
@@ -10670,10 +8400,6 @@
           {
             "symbol": "model",
             "role": "data"
-          },
-          {
-            "symbol": "rows",
-            "role": "data"
           }
         ],
         "actions": []
@@ -10718,35 +8444,7 @@
             "role": "data"
           },
           {
-            "symbol": "editsLower",
-            "role": "data"
-          },
-          {
-            "symbol": "id",
-            "role": "data"
-          },
-          {
-            "symbol": "lower",
-            "role": "data"
-          },
-          {
             "symbol": "model",
-            "role": "data"
-          },
-          {
-            "symbol": "scope",
-            "role": "data"
-          },
-          {
-            "symbol": "sortedTags",
-            "role": "data"
-          },
-          {
-            "symbol": "upper",
-            "role": "data"
-          },
-          {
-            "symbol": "value",
             "role": "data"
           }
         ],
@@ -10797,10 +8495,6 @@
             "role": "data"
           },
           {
-            "symbol": "draftResultRequest",
-            "role": "data"
-          },
-          {
             "symbol": "listWidth",
             "role": "data"
           },
@@ -10809,27 +8503,7 @@
             "role": "data"
           },
           {
-            "symbol": "pendingDeletionBinding",
-            "role": "data"
-          },
-          {
-            "symbol": "pendingSwitchBinding",
-            "role": "data"
-          },
-          {
             "symbol": "reduceMotion",
-            "role": "data"
-          },
-          {
-            "symbol": "selectedResultRequest",
-            "role": "data"
-          },
-          {
-            "symbol": "smartCollectionDataRequest",
-            "role": "data"
-          },
-          {
-            "symbol": "workspace",
             "role": "data"
           }
         ],
@@ -10871,35 +8545,7 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "assigned",
-            "role": "data"
-          },
-          {
-            "symbol": "assignedStates",
-            "role": "data"
-          },
-          {
-            "symbol": "errorMessage",
-            "role": "data"
-          },
-          {
-            "symbol": "header",
-            "role": "data"
-          },
-          {
-            "symbol": "isNewTagFieldFocused",
-            "role": "data"
-          },
-          {
-            "symbol": "isWorking",
-            "role": "data"
-          },
-          {
             "symbol": "model",
-            "role": "data"
-          },
-          {
-            "symbol": "newTagPath",
             "role": "data"
           },
           {
@@ -10907,19 +8553,7 @@
             "role": "data"
           },
           {
-            "symbol": "tag",
-            "role": "data"
-          },
-          {
             "symbol": "trackID",
-            "role": "data"
-          },
-          {
-            "symbol": "trackTitle",
-            "role": "data"
-          },
-          {
-            "symbol": "trimmedNewTagPath",
             "role": "data"
           }
         ],
@@ -10970,19 +8604,7 @@
             "role": "data"
           },
           {
-            "symbol": "isLoadingTracks",
-            "role": "data"
-          },
-          {
-            "symbol": "isTrackPickerPresented",
-            "role": "data"
-          },
-          {
             "symbol": "model",
-            "role": "data"
-          },
-          {
-            "symbol": "newTagPath",
             "role": "data"
           },
           {
@@ -10991,26 +8613,6 @@
           },
           {
             "symbol": "store",
-            "role": "data"
-          },
-          {
-            "symbol": "tagDialog",
-            "role": "data"
-          },
-          {
-            "symbol": "taggedTracks",
-            "role": "data"
-          },
-          {
-            "symbol": "trackLoadFailure",
-            "role": "data"
-          },
-          {
-            "symbol": "trackLoadGeneration",
-            "role": "data"
-          },
-          {
-            "symbol": "tracksClock",
             "role": "data"
           }
         ],
@@ -11144,47 +8746,11 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "directlyAssignedIDs",
-            "role": "data"
-          },
-          {
             "symbol": "dismiss",
             "role": "data"
           },
           {
-            "symbol": "errorMessage",
-            "role": "data"
-          },
-          {
-            "symbol": "isLoading",
-            "role": "data"
-          },
-          {
-            "symbol": "isLoadingNext",
-            "role": "data"
-          },
-          {
-            "symbol": "isSaving",
-            "role": "data"
-          },
-          {
-            "symbol": "loadGeneration",
-            "role": "data"
-          },
-          {
             "symbol": "model",
-            "role": "data"
-          },
-          {
-            "symbol": "nextCursor",
-            "role": "data"
-          },
-          {
-            "symbol": "searchQuery",
-            "role": "data"
-          },
-          {
-            "symbol": "selectedIDs",
             "role": "data"
           },
           {
@@ -11193,10 +8759,6 @@
           },
           {
             "symbol": "tag",
-            "role": "data"
-          },
-          {
-            "symbol": "tracks",
             "role": "data"
           }
         ],
