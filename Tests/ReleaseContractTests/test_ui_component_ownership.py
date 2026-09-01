@@ -184,10 +184,8 @@ class UIComponentOwnershipTests(unittest.TestCase):
                 for dependency in dependencies:
                     self.assertEqual(set(dependency), {"symbol", "role"})
                     self.assertEqual(dependency["role"], dependency_kind)
-                    self.assertTrue(
-                        dependency["symbol"] is None
-                        or isinstance(dependency["symbol"], str) and dependency["symbol"]
-                    )
+                    self.assertIsInstance(dependency["symbol"], str)
+                    self.assertTrue(dependency["symbol"])
             self.assertEqual(
                 set(item["states"]),
                 {"appearance", "motion", "accessibility", "interaction"},
@@ -235,6 +233,120 @@ class UIComponentOwnershipTests(unittest.TestCase):
             "unknown state": lambda value: value["components"][0]["states"].__setitem__("appearance", ["bogus"]),
             "unknown wave": lambda value: value["components"][0].__setitem__("wave", "bogus"),
             "missing evidence with reference": lambda value: value["components"][0]["evidence"].__setitem__("references", ["bogus"]),
+        }
+        for name, mutate in mutations.items():
+            with self.subTest(name=name):
+                candidate = copy.deepcopy(manifest)
+                mutate(candidate)
+                self.assertTrue(verifier.validate_manifest(ROOT / "Sources" / "Cadence", candidate))
+
+    def test_manifest_records_favorite_mutation_as_an_action(self) -> None:
+        """A favorite-changing closure must not be represented as an action-free component."""
+        verifier = load_verifier()
+        manifest = verifier.load_manifest(MANIFEST_PATH)
+        component = next(item for item in manifest["components"] if item["symbol"] == "PlayerBarFavoriteControl")
+
+        self.assertIn(
+            "model.setProductionPlaybackTrackFavorite",
+            [entry["symbol"] for entry in component["dependencies"]["actions"]],
+        )
+
+    def test_manifest_keeps_queue_play_and_select_in_action_dependencies(self) -> None:
+        """Queue interaction closures are commands, not presentation data."""
+        verifier = load_verifier()
+        manifest = verifier.load_manifest(MANIFEST_PATH)
+        component = next(
+            item for item in manifest["components"]
+            if item["symbol"] == "ProductionQueueRowInteractionModifier"
+        )
+
+        data_symbols = [entry["symbol"] for entry in component["dependencies"]["data"]]
+        action_symbols = [entry["symbol"] for entry in component["dependencies"]["actions"]]
+        self.assertNotIn("play", data_symbols)
+        self.assertNotIn("select", data_symbols)
+        self.assertIn("play", action_symbols)
+        self.assertIn("select", action_symbols)
+
+    def test_manifest_records_row_button_configuration_as_data(self) -> None:
+        """ButtonStyle configuration label and pressed state are source-backed visual inputs."""
+        verifier = load_verifier()
+        manifest = verifier.load_manifest(MANIFEST_PATH)
+        component = next(item for item in manifest["components"] if item["symbol"] == "CadenceRowButtonStyle")
+
+        self.assertCountEqual(
+            ["configuration.label", "configuration.isPressed"],
+            [entry["symbol"] for entry in component["dependencies"]["data"]],
+        )
+        self.assertEqual([], component["dependencies"]["actions"])
+
+    def test_dependency_roles_and_empty_lists_are_checked_within_each_declaration(self) -> None:
+        """A token elsewhere in a file cannot excuse false none or an action listed as data."""
+        verifier = load_verifier()
+        manifest = verifier.load_manifest(MANIFEST_PATH)
+        mutations = {
+            "whole-file token": lambda value: next(
+                item for item in value["components"] if item["symbol"] == "CadenceRowButtonStyle"
+            )["dependencies"].__setitem__(
+                "data", [{"symbol": "CadenceTheme", "role": "data"}]
+            ),
+            "favorite action none": lambda value: next(
+                item for item in value["components"] if item["symbol"] == "PlayerBarFavoriteControl"
+            )["dependencies"].__setitem__("actions", []),
+            "queue actions as data": lambda value: next(
+                item for item in value["components"]
+                if item["symbol"] == "ProductionQueueRowInteractionModifier"
+            )["dependencies"].update(
+                {"data": [{"symbol": "play", "role": "data"}], "actions": []}
+            ),
+            "button style data none": lambda value: next(
+                item for item in value["components"] if item["symbol"] == "CadenceRowButtonStyle"
+            )["dependencies"].__setitem__("data", []),
+        }
+        for name, mutate in mutations.items():
+            with self.subTest(name=name):
+                candidate = copy.deepcopy(manifest)
+                mutate(candidate)
+                self.assertTrue(verifier.validate_manifest(ROOT / "Sources" / "Cadence", candidate))
+
+    def test_dependency_source_excludes_nonvisual_nested_declarations(self) -> None:
+        """A nested helper's state must not be attributed to its enclosing visual declaration."""
+        verifier = load_verifier()
+        fixture = '''
+        struct Outer: View {
+            let outerValue: Int
+            final class Helper {
+                let hiddenValue: Int
+            }
+            var body: some View { EmptyView() }
+        }
+        '''
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "NestedDependencyFixture.swift").write_text(fixture, encoding="utf-8")
+            contexts = verifier.discover_declaration_contexts(root)
+            source = verifier.declaration_source(
+                contexts[("NestedDependencyFixture.swift", "Outer")], contexts
+            )
+
+        self.assertIn("outerValue", source)
+        self.assertNotIn("hiddenValue", source)
+
+    def test_dependency_lists_must_cover_every_declaration_bounded_reference(self) -> None:
+        """A nonempty list cannot conceal an omitted visual input or command."""
+        verifier = load_verifier()
+        manifest = verifier.load_manifest(MANIFEST_PATH)
+        mutations = {
+            "omitted queue select": lambda value: next(
+                item for item in value["components"]
+                if item["symbol"] == "ProductionQueueRowInteractionModifier"
+            )["dependencies"].__setitem__(
+                "actions", [{"symbol": "play", "role": "actions"}]
+            ),
+            "omitted button style pressed state": lambda value: next(
+                item for item in value["components"] if item["symbol"] == "CadenceRowButtonStyle"
+            )["dependencies"].__setitem__(
+                "data", [{"symbol": "configuration.label", "role": "data"}]
+            ),
         }
         for name, mutate in mutations.items():
             with self.subTest(name=name):

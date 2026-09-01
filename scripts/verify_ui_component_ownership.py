@@ -77,6 +77,16 @@ class VisualDeclaration:
     line: int
 
 
+@dataclass(frozen=True)
+class DeclarationContext:
+    """A visual declaration and the masked source owned by that declaration."""
+
+    declaration: VisualDeclaration
+    start: int
+    end: int
+    masked_source: str
+
+
 def mask_comments_and_strings(source: str) -> str:
     """Replace Swift comments and strings with spaces while retaining newlines."""
     masked = list(source)
@@ -151,7 +161,7 @@ def matching_brace(source: str, opening_brace: int) -> int | None:
     return None
 
 
-def declarations_in_file(path: Path, relative_path: str) -> list[VisualDeclaration]:
+def declaration_contexts_in_file(path: Path, relative_path: str) -> list[DeclarationContext]:
     source = path.read_text(encoding="utf-8")
     masked = mask_comments_and_strings(source)
     candidates: list[tuple[int, int, int, str, str | None]] = []
@@ -177,7 +187,7 @@ def declarations_in_file(path: Path, relative_path: str) -> list[VisualDeclarati
             (match.start("keyword"), opening_brace, closing_brace, name, kinds[0] if kinds else None)
         )
 
-    declarations: list[VisualDeclaration] = []
+    contexts: list[DeclarationContext] = []
     for start, _opening, closing, name, kind in candidates:
         if kind is None:
             continue
@@ -188,15 +198,24 @@ def declarations_in_file(path: Path, relative_path: str) -> list[VisualDeclarati
         ]
         parents.sort(key=lambda candidate: candidate[0])
         symbol = ".".join([*(parent[3] for parent in parents), name])
-        declarations.append(
-            VisualDeclaration(
+        contexts.append(
+            DeclarationContext(
+                declaration=VisualDeclaration(
                 path=relative_path,
                 symbol=symbol,
                 kind=kind,
                 line=masked.count("\n", 0, start) + 1,
+                ),
+                start=start,
+                end=closing + 1,
+                masked_source=masked,
             )
         )
-    return declarations
+    return contexts
+
+
+def declarations_in_file(path: Path, relative_path: str) -> list[VisualDeclaration]:
+    return [context.declaration for context in declaration_contexts_in_file(path, relative_path)]
 
 
 def swift_source_files(root: Path) -> list[Path]:
@@ -218,6 +237,101 @@ def discover_visual_declarations(root: Path) -> list[VisualDeclaration]:
         for declaration in declarations_in_file(source, source.relative_to(root).as_posix())
     ]
     return sorted(declarations)
+
+
+def discover_declaration_contexts(root: Path) -> dict[tuple[str, str], DeclarationContext]:
+    contexts = [
+        context
+        for source in swift_source_files(root)
+        for context in declaration_contexts_in_file(source, source.relative_to(root).as_posix())
+    ]
+    return {(context.declaration.path, context.declaration.symbol): context for context in contexts}
+
+
+def declaration_source(context: DeclarationContext, all_contexts: dict[tuple[str, str], DeclarationContext]) -> str:
+    """Return the declaration signature/body, excluding nested declaration scopes."""
+    source = list(context.masked_source[context.start : context.end])
+    for match in DECLARATION.finditer(context.masked_source):
+        start = match.start("keyword")
+        opening_brace = context.masked_source.find("{", match.end("name"))
+        if opening_brace == -1:
+            continue
+        end = matching_brace(context.masked_source, opening_brace)
+        if end is None:
+            continue
+        if context.start < start and end < context.end:
+            start -= context.start
+            end = end - context.start + 1
+            for index in range(start, end):
+                if source[index] != "\n":
+                    source[index] = " "
+    return "".join(source)
+
+
+def has_source_reference(source: str, symbol: str) -> bool:
+    return re.search(rf"(?<![A-Za-z0-9_.]){re.escape(symbol)}(?![A-Za-z0-9_.])", source) is not None
+
+
+def action_symbols(source: str) -> set[str]:
+    """Find callable inputs and concrete lower-case mutations in one declaration."""
+    depth = 0
+    depths: list[int] = []
+    for character in source:
+        depths.append(depth)
+        if character == "{":
+            depth += 1
+        elif character == "}":
+            depth -= 1
+    actions = {
+        match.group(1)
+        for match in re.finditer(
+            r"\b(?:let|var)\s+([A-Za-z_]\w*)\s*:\s*[^\n={]*->", source
+        )
+        if depths[match.start()] == 1
+    }
+    actions.update(
+        match.group(1)
+        for match in re.finditer(
+            r"\b((?:[A-Za-z_]\w*\.)+[A-Za-z_]\w*)\s*\(", source
+        )
+        if re.search(
+            r"(?:^|\.)(?:set|toggle|play|select|open|close|dismiss|delete|remove|insert|update|move|reorder|perform|handle|activate|pause|stop|save|import|export|choose|show)[A-Z_]",
+            match.group(1),
+        )
+    )
+    return actions
+
+
+def data_symbols(source: str) -> set[str]:
+    """Find declaration inputs; local body variables are intentionally excluded."""
+    depth = 0
+    depths: list[int] = []
+    for character in source:
+        depths.append(depth)
+        if character == "{":
+            depth += 1
+        elif character == "}":
+            depth -= 1
+    symbols = {
+        match.group(1)
+        for match in re.finditer(r"\b(?:let|var)\s+([A-Za-z_]\w*)\b", source)
+        if depths[match.start()] == 1 and match.group(1) not in {"_", "body"}
+    }
+    for match in re.finditer(r"\b(?:init|func)\s+\w+\s*\(([^)]*)\)", source):
+        if depths[match.start()] != 1:
+            continue
+        for parameter in re.finditer(
+            r"(?:\b[A-Za-z_]\w*\s+)?([A-Za-z_]\w*)\s*:", match.group(1)
+        ):
+            symbols.add(parameter.group(1))
+    if "configuration" in symbols:
+        members = sorted(
+            set(re.findall(r"\bconfiguration\.([A-Za-z_]\w*)\b", source))
+        )
+        if members:
+            symbols.remove("configuration")
+            symbols.update(f"configuration.{member}" for member in members)
+    return symbols
 
 
 def load_manifest(path: Path) -> dict[str, Any]:
@@ -268,10 +382,11 @@ def validate_manifest(source_root: Path, manifest: dict[str, Any]) -> list[str]:
     if not isinstance(components, list):
         return ["manifest components must be an array"]
 
-    expected = {(item.path, item.symbol): item for item in discover_visual_declarations(source_root)}
-    source_texts = {
-        path: (source_root / path).read_text(encoding="utf-8")
-        for path, _symbol in expected
+    contexts = discover_declaration_contexts(source_root)
+    expected = {key: context.declaration for key, context in contexts.items()}
+    declaration_sources = {
+        key: declaration_source(context, contexts)
+        for key, context in contexts.items()
     }
     actual: dict[tuple[str, str], dict[str, Any]] = {}
     for item in components:
@@ -321,11 +436,22 @@ def validate_manifest(source_root: Path, manifest: dict[str, Any]) -> list[str]:
             item.get("dependencies"), DEPENDENCY_FIELDS, f"dependencies for {key[0]}::{key[1]}", errors
         )
         if dependencies is not None:
+            source = declaration_sources.get(key, "")
+            action_references = action_symbols(source)
+            data_references = data_symbols(source) - action_references
             for field in DEPENDENCY_FIELDS:
                 dependency_entries = dependencies.get(field)
-                if not isinstance(dependency_entries, list) or not dependency_entries:
-                    errors.append(f"dependencies.{field} for {key[0]}::{key[1]} must be a non-empty array")
+                if not isinstance(dependency_entries, list):
+                    errors.append(f"dependencies.{field} for {key[0]}::{key[1]} must be an array")
                     continue
+                if not dependency_entries:
+                    references = action_references if field == "actions" else data_references
+                    if references:
+                        errors.append(
+                            f"dependencies.{field} cannot be none for {key[0]}::{key[1]}: "
+                            f"{', '.join(sorted(references))}"
+                        )
+                recorded_symbols: set[str] = set()
                 for dependency in dependency_entries:
                     dependency = validate_exact_object(
                         dependency,
@@ -339,11 +465,32 @@ def validate_manifest(source_root: Path, manifest: dict[str, Any]) -> list[str]:
                         errors.append(f"dependencies.{field} role mismatch for {key[0]}::{key[1]}")
                     symbol = dependency.get("symbol")
                     if symbol is None:
-                        continue
-                    if not isinstance(symbol, str) or not symbol.strip():
+                        errors.append(
+                            f"dependencies.{field} must use [] for none for {key[0]}::{key[1]}"
+                        )
+                    elif not isinstance(symbol, str) or not symbol.strip():
                         errors.append(f"dependencies.{field} symbol missing for {key[0]}::{key[1]}")
-                    elif symbol not in source_texts.get(key[0], ""):
-                        errors.append(f"dependencies.{field} symbol is not source-backed for {key[0]}::{key[1]}")
+                    else:
+                        recorded_symbols.add(symbol)
+                    if isinstance(symbol, str) and symbol.strip() and not has_source_reference(source, symbol):
+                        errors.append(
+                            f"dependencies.{field} symbol is not declaration-backed for {key[0]}::{key[1]}"
+                        )
+                    elif isinstance(symbol, str) and field == "data" and symbol in action_references:
+                        errors.append(
+                            f"dependencies.data symbol is an action for {key[0]}::{key[1]}: {symbol}"
+                        )
+                    elif isinstance(symbol, str) and field == "actions" and symbol not in action_references:
+                        errors.append(
+                            f"dependencies.actions symbol is not an action for {key[0]}::{key[1]}: {symbol}"
+                        )
+                references = action_references if field == "actions" else data_references
+                missing_symbols = sorted(references - recorded_symbols)
+                if missing_symbols:
+                    errors.append(
+                        f"dependencies.{field} is incomplete for {key[0]}::{key[1]}: "
+                        f"{', '.join(missing_symbols)}"
+                    )
         states = validate_exact_object(item.get("states"), STATE_FIELDS, f"states for {key[0]}::{key[1]}", errors)
         if states is not None:
             for field in STATE_FIELDS:
