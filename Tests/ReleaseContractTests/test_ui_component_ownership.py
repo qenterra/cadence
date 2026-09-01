@@ -184,7 +184,10 @@ class UIComponentOwnershipTests(unittest.TestCase):
                 for dependency in dependencies:
                     self.assertEqual(set(dependency), {"symbol", "role"})
                     self.assertEqual(dependency["role"], dependency_kind)
-                    self.assertTrue(dependency["symbol"])
+                    self.assertTrue(
+                        dependency["symbol"] is None
+                        or isinstance(dependency["symbol"], str) and dependency["symbol"]
+                    )
             self.assertEqual(
                 set(item["states"]),
                 {"appearance", "motion", "accessibility", "interaction"},
@@ -226,6 +229,9 @@ class UIComponentOwnershipTests(unittest.TestCase):
         manifest = verifier.load_manifest(MANIFEST_PATH)
         mutations = {
             "string dependency": lambda value: value["components"][0]["dependencies"].__setitem__("data", ["bogus"]),
+            "generic dependency": lambda value: value["components"][0]["dependencies"]["data"][0].__setitem__(
+                "symbol", "CadenceModeHint Cadence feature presentation state"
+            ),
             "unknown state": lambda value: value["components"][0]["states"].__setitem__("appearance", ["bogus"]),
             "unknown wave": lambda value: value["components"][0].__setitem__("wave", "bogus"),
             "missing evidence with reference": lambda value: value["components"][0]["evidence"].__setitem__("references", ["bogus"]),

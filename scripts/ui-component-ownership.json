@@ -14,13 +14,17 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "AirPlayRoutePicker native bridge configuration",
+            "symbol": "player",
+            "role": "data"
+          },
+          {
+            "symbol": "picker",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "AirPlayRoutePicker native lifecycle update",
+            "symbol": null,
             "role": "actions"
           }
         ]
@@ -62,13 +66,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "ArtworkPlaceholderView media presentation inputs",
+            "symbol": "kind",
+            "role": "data"
+          },
+          {
+            "symbol": "cornerRadius",
+            "role": "data"
+          },
+          {
+            "symbol": "showsBorder",
+            "role": "data"
+          },
+          {
+            "symbol": "placeholderPadding",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "ArtworkPlaceholderView consumer-owned media action",
+            "symbol": null,
             "role": "actions"
           }
         ]
@@ -110,21 +126,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "Artwork image content",
+            "symbol": "palette",
             "role": "data"
           },
           {
-            "symbol": "artwork placeholder state",
+            "symbol": "title",
             "role": "data"
           },
           {
-            "symbol": "display size",
+            "symbol": "cornerRadius",
+            "role": "data"
+          },
+          {
+            "symbol": "showsBorder",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "No direct action; consumer supplies artwork content",
+            "symbol": null,
             "role": "actions"
           }
         ]
@@ -168,13 +188,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "CustomArtworkContent media presentation inputs",
+            "symbol": "asset",
+            "role": "data"
+          },
+          {
+            "symbol": "placeholder",
+            "role": "data"
+          },
+          {
+            "symbol": "cornerRadius",
+            "role": "data"
+          },
+          {
+            "symbol": "showsBorder",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "CustomArtworkContent consumer-owned media action",
+            "symbol": null,
             "role": "actions"
           }
         ]
@@ -216,13 +248,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "MediaArtworkView media presentation inputs",
+            "symbol": "source",
+            "role": "data"
+          },
+          {
+            "symbol": "title",
+            "role": "data"
+          },
+          {
+            "symbol": "placeholder",
+            "role": "data"
+          },
+          {
+            "symbol": "cornerRadius",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "MediaArtworkView consumer-owned media action",
+            "symbol": null,
             "role": "actions"
           }
         ]
@@ -264,13 +308,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "BrowserRowSurface styling and layout configuration",
+            "symbol": "contrast",
+            "role": "data"
+          },
+          {
+            "symbol": "reduceMotion",
+            "role": "data"
+          },
+          {
+            "symbol": "isSelected",
+            "role": "data"
+          },
+          {
+            "symbol": "isHovered",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "BrowserRowSurface consumer-owned interaction closure",
+            "symbol": null,
             "role": "actions"
           }
         ]
@@ -314,13 +370,13 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "CadenceRowButtonStyle styling and layout configuration",
+            "symbol": null,
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "CadenceRowButtonStyle consumer-owned interaction closure",
+            "symbol": null,
             "role": "actions"
           }
         ]
@@ -364,13 +420,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "CadenceFlowLayout styling and layout configuration",
+            "symbol": "horizontalSpacing",
+            "role": "data"
+          },
+          {
+            "symbol": "verticalSpacing",
+            "role": "data"
+          },
+          {
+            "symbol": "result",
+            "role": "data"
+          },
+          {
+            "symbol": "origins",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "CadenceFlowLayout consumer-owned interaction closure",
+            "symbol": null,
             "role": "actions"
           }
         ]
@@ -414,13 +482,21 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "CadencePageHeader styling and layout configuration",
+            "symbol": "title",
+            "role": "data"
+          },
+          {
+            "symbol": "subtitle",
+            "role": "data"
+          },
+          {
+            "symbol": "actions",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "CadencePageHeader consumer-owned interaction closure",
+            "symbol": null,
             "role": "actions"
           }
         ]
@@ -464,13 +540,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "CadencePageScrollView styling and layout configuration",
+            "symbol": "maxContentWidth",
+            "role": "data"
+          },
+          {
+            "symbol": "sectionSpacing",
+            "role": "data"
+          },
+          {
+            "symbol": "refreshAction",
+            "role": "data"
+          },
+          {
+            "symbol": "content",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "CadencePageScrollView consumer-owned interaction closure",
+            "symbol": null,
             "role": "actions"
           }
         ]
@@ -514,13 +602,29 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "CadenceResizableSplitView styling and layout configuration",
+            "symbol": "fixedPane",
+            "role": "data"
+          },
+          {
+            "symbol": "fixedWidth",
+            "role": "data"
+          },
+          {
+            "symbol": "fixedMinimum",
+            "role": "data"
+          },
+          {
+            "symbol": "fixedMaximum",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "CadenceResizableSplitView consumer-owned interaction closure",
+            "symbol": "gesture",
+            "role": "actions"
+          },
+          {
+            "symbol": "onHover",
             "role": "actions"
           }
         ]
@@ -564,13 +668,13 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "CadenceSeparator styling and layout configuration",
+            "symbol": "axis",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "CadenceSeparator consumer-owned interaction closure",
+            "symbol": null,
             "role": "actions"
           }
         ]
@@ -614,13 +718,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "CatalogSortMenu Cadence feature presentation state",
+            "symbol": "label",
+            "role": "data"
+          },
+          {
+            "symbol": "fields",
+            "role": "data"
+          },
+          {
+            "symbol": "selection",
+            "role": "data"
+          },
+          {
+            "symbol": "fieldTitle",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "CatalogSortMenu feature-owned action",
+            "symbol": "Button",
             "role": "actions"
           }
         ]
@@ -661,13 +777,21 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "EmptyLibraryView Cadence feature presentation state",
+            "symbol": "title",
+            "role": "data"
+          },
+          {
+            "symbol": "description",
+            "role": "data"
+          },
+          {
+            "symbol": "importAction",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "EmptyLibraryView feature-owned action",
+            "symbol": "Button",
             "role": "actions"
           }
         ]
@@ -708,13 +832,29 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "FavoriteButton styling and layout configuration",
+            "symbol": "itemID",
+            "role": "data"
+          },
+          {
+            "symbol": "isFavorite",
+            "role": "data"
+          },
+          {
+            "symbol": "itemName",
+            "role": "data"
+          },
+          {
+            "symbol": "controlSize",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "FavoriteButton consumer-owned interaction closure",
+            "symbol": "Button",
+            "role": "actions"
+          },
+          {
+            "symbol": "onChange",
             "role": "actions"
           }
         ]
@@ -758,13 +898,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "LibraryUnavailableView Cadence feature presentation state",
+            "symbol": "failure",
+            "role": "data"
+          },
+          {
+            "symbol": "retry",
+            "role": "data"
+          },
+          {
+            "symbol": "locate",
+            "role": "data"
+          },
+          {
+            "symbol": "revealURL",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "LibraryUnavailableView feature-owned action",
+            "symbol": "Button",
             "role": "actions"
           }
         ]
@@ -805,13 +957,29 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "MediaMetadataLink styling and layout configuration",
+            "symbol": "title",
+            "role": "data"
+          },
+          {
+            "symbol": "accessibilityLabel",
+            "role": "data"
+          },
+          {
+            "symbol": "action",
+            "role": "data"
+          },
+          {
+            "symbol": "reduceMotion",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "MediaMetadataLink consumer-owned interaction closure",
+            "symbol": "Button",
+            "role": "actions"
+          },
+          {
+            "symbol": "onHover",
             "role": "actions"
           }
         ]
@@ -855,13 +1023,33 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "NavigationRail Cadence feature presentation state",
+            "symbol": "selection",
+            "role": "data"
+          },
+          {
+            "symbol": "suppressesSelection",
+            "role": "data"
+          },
+          {
+            "symbol": "reduceMotion",
+            "role": "data"
+          },
+          {
+            "symbol": "freezesVisualRegressionHighlights",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "NavigationRail feature-owned action",
+            "symbol": "Button",
+            "role": "actions"
+          },
+          {
+            "symbol": "toggle",
+            "role": "actions"
+          },
+          {
+            "symbol": "onHover",
             "role": "actions"
           }
         ]
@@ -902,13 +1090,33 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "PlaybackProgressControl media presentation inputs",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "pendingSeekProgress",
+            "role": "data"
+          },
+          {
+            "symbol": "suspendsProgressAnimation",
+            "role": "data"
+          },
+          {
+            "symbol": "timeDisplayRaw",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "PlaybackProgressControl consumer-owned media action",
+            "symbol": "Button",
+            "role": "actions"
+          },
+          {
+            "symbol": "onHover",
+            "role": "actions"
+          },
+          {
+            "symbol": "toggle",
             "role": "actions"
           }
         ]
@@ -950,13 +1158,33 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "PlayerBar Cadence feature presentation state",
+            "symbol": "usesStableSystemControls",
+            "role": "data"
+          },
+          {
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "suspendsProgressAnimation",
+            "role": "data"
+          },
+          {
+            "symbol": "pendingSeekProgress",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "PlayerBar feature-owned action",
+            "symbol": "Button",
+            "role": "actions"
+          },
+          {
+            "symbol": "onHover",
+            "role": "actions"
+          },
+          {
+            "symbol": "toggle",
             "role": "actions"
           }
         ]
@@ -997,13 +1225,21 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "PlayerBarFavoriteControl media presentation inputs",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "track",
+            "role": "data"
+          },
+          {
+            "symbol": "region",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "PlayerBarFavoriteControl consumer-owned media action",
+            "symbol": null,
             "role": "actions"
           }
         ]
@@ -1045,13 +1281,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "ProductionArtworkView media presentation inputs",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "artworkID",
+            "role": "data"
+          },
+          {
+            "symbol": "title",
+            "role": "data"
+          },
+          {
+            "symbol": "placeholder",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "ProductionArtworkView consumer-owned media action",
+            "symbol": null,
             "role": "actions"
           }
         ]
@@ -1093,13 +1341,17 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "WorkspacePaneHeader styling and layout configuration",
+            "symbol": "title",
+            "role": "data"
+          },
+          {
+            "symbol": "trailing",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "WorkspacePaneHeader consumer-owned interaction closure",
+            "symbol": null,
             "role": "actions"
           }
         ]
@@ -1143,13 +1395,21 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "CadenceGlassSurfaceModifier native bridge configuration",
+            "symbol": "usesStableSystemControls",
+            "role": "data"
+          },
+          {
+            "symbol": "reduceTransparency",
+            "role": "data"
+          },
+          {
+            "symbol": "cornerRadius",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "CadenceGlassSurfaceModifier native lifecycle update",
+            "symbol": null,
             "role": "actions"
           }
         ]
@@ -1191,13 +1451,13 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "AlbumsView Cadence feature presentation state",
+            "symbol": "model",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "AlbumsView feature-owned action",
+            "symbol": null,
             "role": "actions"
           }
         ]
@@ -1238,13 +1498,33 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "ProductionAlbumDetailView Cadence feature presentation state",
+            "symbol": "readinessObserver",
+            "role": "data"
+          },
+          {
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "store",
+            "role": "data"
+          },
+          {
+            "symbol": "albumID",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "ProductionAlbumDetailView feature-owned action",
+            "symbol": "Button",
+            "role": "actions"
+          },
+          {
+            "symbol": "onChange",
+            "role": "actions"
+          },
+          {
+            "symbol": "onTapGesture",
             "role": "actions"
           }
         ]
@@ -1285,13 +1565,33 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "ProductionAlbumTile Cadence feature presentation state",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "store",
+            "role": "data"
+          },
+          {
+            "symbol": "album",
+            "role": "data"
+          },
+          {
+            "symbol": "orderedTargets",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "ProductionAlbumTile feature-owned action",
+            "symbol": "Button",
+            "role": "actions"
+          },
+          {
+            "symbol": "onHover",
+            "role": "actions"
+          },
+          {
+            "symbol": "toggle",
             "role": "actions"
           }
         ]
@@ -1332,13 +1632,33 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "ProductionAlbumsView Cadence feature presentation state",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "store",
+            "role": "data"
+          },
+          {
+            "symbol": "catalogCardSize",
+            "role": "data"
+          },
+          {
+            "symbol": "sortFieldRaw",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "ProductionAlbumsView feature-owned action",
+            "symbol": "Button",
+            "role": "actions"
+          },
+          {
+            "symbol": "onHover",
+            "role": "actions"
+          },
+          {
+            "symbol": "toggle",
             "role": "actions"
           }
         ]
@@ -1379,13 +1699,13 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "ArtistsView Cadence feature presentation state",
+            "symbol": "model",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "ArtistsView feature-owned action",
+            "symbol": null,
             "role": "actions"
           }
         ]
@@ -1426,13 +1746,37 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "ProductionArtistDetailView Cadence feature presentation state",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "store",
+            "role": "data"
+          },
+          {
+            "symbol": "catalogCardSize",
+            "role": "data"
+          },
+          {
+            "symbol": "artistID",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "ProductionArtistDetailView feature-owned action",
+            "symbol": "Button",
+            "role": "actions"
+          },
+          {
+            "symbol": "onChange",
+            "role": "actions"
+          },
+          {
+            "symbol": "onTapGesture",
+            "role": "actions"
+          },
+          {
+            "symbol": "toggle",
             "role": "actions"
           }
         ]
@@ -1473,13 +1817,33 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "ProductionArtistTile Cadence feature presentation state",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "store",
+            "role": "data"
+          },
+          {
+            "symbol": "artist",
+            "role": "data"
+          },
+          {
+            "symbol": "orderedTargets",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "ProductionArtistTile feature-owned action",
+            "symbol": "Button",
+            "role": "actions"
+          },
+          {
+            "symbol": "onHover",
+            "role": "actions"
+          },
+          {
+            "symbol": "toggle",
             "role": "actions"
           }
         ]
@@ -1520,13 +1884,33 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "ProductionArtistsView Cadence feature presentation state",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "store",
+            "role": "data"
+          },
+          {
+            "symbol": "catalogCardSize",
+            "role": "data"
+          },
+          {
+            "symbol": "sortFieldRaw",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "ProductionArtistsView feature-owned action",
+            "symbol": "Button",
+            "role": "actions"
+          },
+          {
+            "symbol": "onHover",
+            "role": "actions"
+          },
+          {
+            "symbol": "toggle",
             "role": "actions"
           }
         ]
@@ -1567,13 +1951,37 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "ArtworkCropSheet Cadence feature presentation state",
+            "symbol": "draft",
+            "role": "data"
+          },
+          {
+            "symbol": "cancel",
+            "role": "data"
+          },
+          {
+            "symbol": "save",
+            "role": "data"
+          },
+          {
+            "symbol": "scale",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "ArtworkCropSheet feature-owned action",
+            "symbol": "Button",
+            "role": "actions"
+          },
+          {
+            "symbol": "keyboardShortcut",
+            "role": "actions"
+          },
+          {
+            "symbol": "onChange",
+            "role": "actions"
+          },
+          {
+            "symbol": "gesture",
             "role": "actions"
           }
         ]
@@ -1614,13 +2022,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "ArtworkManagementModifier Cadence feature presentation state",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "url",
+            "role": "data"
+          },
+          {
+            "symbol": "didAccess",
+            "role": "data"
+          },
+          {
+            "symbol": "data",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "ArtworkManagementModifier feature-owned action",
+            "symbol": "Button",
             "role": "actions"
           }
         ]
@@ -1661,13 +2081,21 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "ArtworkMenuItems Cadence feature presentation state",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "target",
+            "role": "data"
+          },
+          {
+            "symbol": "label",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "ArtworkMenuItems feature-owned action",
+            "symbol": "Button",
             "role": "actions"
           }
         ]
@@ -1708,13 +2136,17 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "HomeCompactGrid styling and layout configuration",
+            "symbol": "content",
+            "role": "data"
+          },
+          {
+            "symbol": "catalogCardSize",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "HomeCompactGrid consumer-owned interaction closure",
+            "symbol": null,
             "role": "actions"
           }
         ]
@@ -1758,13 +2190,29 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "HomeDestinationTile styling and layout configuration",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "title",
+            "role": "data"
+          },
+          {
+            "symbol": "subtitle",
+            "role": "data"
+          },
+          {
+            "symbol": "artworkID",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "HomeDestinationTile consumer-owned interaction closure",
+            "symbol": "Button",
+            "role": "actions"
+          },
+          {
+            "symbol": "onHover",
             "role": "actions"
           }
         ]
@@ -1808,13 +2256,29 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "HomeMediaTile Cadence feature presentation state",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "title",
+            "role": "data"
+          },
+          {
+            "symbol": "subtitle",
+            "role": "data"
+          },
+          {
+            "symbol": "artworkID",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "HomeMediaTile feature-owned action",
+            "symbol": "Button",
+            "role": "actions"
+          },
+          {
+            "symbol": "onHover",
             "role": "actions"
           }
         ]
@@ -1855,13 +2319,29 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "HomeShelf styling and layout configuration",
+            "symbol": "title",
+            "role": "data"
+          },
+          {
+            "symbol": "subtitle",
+            "role": "data"
+          },
+          {
+            "symbol": "actionTitle",
+            "role": "data"
+          },
+          {
+            "symbol": "action",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "HomeShelf consumer-owned interaction closure",
+            "symbol": "Button",
+            "role": "actions"
+          },
+          {
+            "symbol": "onHover",
             "role": "actions"
           }
         ]
@@ -1905,13 +2385,29 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "HomeTrackGrid styling and layout configuration",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "tracks",
+            "role": "data"
+          },
+          {
+            "symbol": "queueSource",
+            "role": "data"
+          },
+          {
+            "symbol": "catalogCardSize",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "HomeTrackGrid consumer-owned interaction closure",
+            "symbol": "Button",
+            "role": "actions"
+          },
+          {
+            "symbol": "onHover",
             "role": "actions"
           }
         ]
@@ -1955,13 +2451,29 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "HomeTrackTile styling and layout configuration",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "track",
+            "role": "data"
+          },
+          {
+            "symbol": "queue",
+            "role": "data"
+          },
+          {
+            "symbol": "queueSource",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "HomeTrackTile consumer-owned interaction closure",
+            "symbol": "Button",
+            "role": "actions"
+          },
+          {
+            "symbol": "onHover",
             "role": "actions"
           }
         ]
@@ -2005,13 +2517,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "ProductionHomeView Cadence feature presentation state",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "store",
+            "role": "data"
+          },
+          {
+            "symbol": "pinRevision",
+            "role": "data"
+          },
+          {
+            "symbol": "homeSectionOrderRawValue",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "ProductionHomeView feature-owned action",
+            "symbol": "Button",
             "role": "actions"
           }
         ]
@@ -2052,13 +2576,29 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "ImportMusicCompleteState Cadence feature presentation state",
+            "symbol": "summary",
+            "role": "data"
+          },
+          {
+            "symbol": "title",
+            "role": "data"
+          },
+          {
+            "symbol": "message",
+            "role": "data"
+          },
+          {
+            "symbol": "sizeSummary",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "ImportMusicCompleteState feature-owned action",
+            "symbol": "Button",
+            "role": "actions"
+          },
+          {
+            "symbol": "keyboardShortcut",
             "role": "actions"
           }
         ]
@@ -2099,13 +2639,13 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "ImportMusicDropOverlay Cadence feature presentation state",
+            "symbol": null,
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "ImportMusicDropOverlay feature-owned action",
+            "symbol": null,
             "role": "actions"
           }
         ]
@@ -2146,13 +2686,21 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "ImportMusicEmptyState Cadence feature presentation state",
+            "symbol": "supportingText",
+            "role": "data"
+          },
+          {
+            "symbol": "footnote",
+            "role": "data"
+          },
+          {
+            "symbol": "startScanning",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "ImportMusicEmptyState feature-owned action",
+            "symbol": "Button",
             "role": "actions"
           }
         ]
@@ -2193,13 +2741,17 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "ImportMusicPreviewHeaderControls Cadence feature presentation state",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "startingStage",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "ImportMusicPreviewHeaderControls feature-owned action",
+            "symbol": "Button",
             "role": "actions"
           }
         ]
@@ -2240,13 +2792,17 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "ImportMusicPreviewStageContent Cadence feature presentation state",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "startingStage",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "ImportMusicPreviewStageContent feature-owned action",
+            "symbol": null,
             "role": "actions"
           }
         ]
@@ -2287,13 +2843,29 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "ImportMusicCandidateRow Cadence feature presentation state",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "candidate",
+            "role": "data"
+          },
+          {
+            "symbol": "isDisabled",
+            "role": "data"
+          },
+          {
+            "symbol": "layoutMode",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "ImportMusicCandidateRow feature-owned action",
+            "symbol": "Button",
+            "role": "actions"
+          },
+          {
+            "symbol": "onHover",
             "role": "actions"
           }
         ]
@@ -2334,13 +2906,33 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "ImportMusicReview Cadence feature presentation state",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "isImporting",
+            "role": "data"
+          },
+          {
+            "symbol": "importingStatusLabel",
+            "role": "data"
+          },
+          {
+            "symbol": "importProgressText",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "ImportMusicReview feature-owned action",
+            "symbol": "Button",
+            "role": "actions"
+          },
+          {
+            "symbol": "keyboardShortcut",
+            "role": "actions"
+          },
+          {
+            "symbol": "onHover",
             "role": "actions"
           }
         ]
@@ -2381,13 +2973,29 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "ImportMusicScanningState Cadence feature presentation state",
+            "symbol": "sampleCandidates",
+            "role": "data"
+          },
+          {
+            "symbol": "title",
+            "role": "data"
+          },
+          {
+            "symbol": "progress",
+            "role": "data"
+          },
+          {
+            "symbol": "displayedProgress",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "ImportMusicScanningState feature-owned action",
+            "symbol": "Button",
+            "role": "actions"
+          },
+          {
+            "symbol": "keyboardShortcut",
             "role": "actions"
           }
         ]
@@ -2428,13 +3036,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "ImportMusicView Cadence feature presentation state",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "reduceMotion",
+            "role": "data"
+          },
+          {
+            "symbol": "hidesPreviewChrome",
+            "role": "data"
+          },
+          {
+            "symbol": "isKeyboardTarget",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "ImportMusicView feature-owned action",
+            "symbol": "Button",
             "role": "actions"
           }
         ]
@@ -2475,13 +3095,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "AllTracksView Cadence feature presentation state",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "store",
+            "role": "data"
+          },
+          {
+            "symbol": "selection",
+            "role": "data"
+          },
+          {
+            "symbol": "window",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "AllTracksView feature-owned action",
+            "symbol": "Button",
             "role": "actions"
           }
         ]
@@ -2522,13 +3154,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "LibraryFavoritesView Cadence feature presentation state",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "store",
+            "role": "data"
+          },
+          {
+            "symbol": "catalogCardSize",
+            "role": "data"
+          },
+          {
+            "symbol": "sectionRawValue",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "LibraryFavoritesView feature-owned action",
+            "symbol": "Button",
             "role": "actions"
           }
         ]
@@ -2569,13 +3213,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "LibraryColumnHeader styling and layout configuration",
+            "symbol": "title",
+            "role": "data"
+          },
+          {
+            "symbol": "detail",
+            "role": "data"
+          },
+          {
+            "symbol": "artists",
+            "role": "data"
+          },
+          {
+            "symbol": "albums",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "LibraryColumnHeader consumer-owned interaction closure",
+            "symbol": null,
             "role": "actions"
           }
         ]
@@ -2619,13 +3275,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "LibraryView Cadence feature presentation state",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "title",
+            "role": "data"
+          },
+          {
+            "symbol": "detail",
+            "role": "data"
+          },
+          {
+            "symbol": "artists",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "LibraryView feature-owned action",
+            "symbol": null,
             "role": "actions"
           }
         ]
@@ -2666,13 +3334,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "NativeAllTracksTable Cadence feature presentation state",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "window",
+            "role": "data"
+          },
+          {
+            "symbol": "repositorySortAction",
+            "role": "data"
+          },
+          {
+            "symbol": "refreshAction",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "NativeAllTracksTable feature-owned action",
+            "symbol": null,
             "role": "actions"
           }
         ]
@@ -2713,13 +3393,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "NativePlaybackIndicatorView media presentation inputs",
+            "symbol": "animationKey",
+            "role": "data"
+          },
+          {
+            "symbol": "staticScales",
+            "role": "data"
+          },
+          {
+            "symbol": "bars",
+            "role": "data"
+          },
+          {
+            "symbol": "isAnimating",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "NativePlaybackIndicatorView consumer-owned media action",
+            "symbol": null,
             "role": "actions"
           }
         ]
@@ -2761,25 +3453,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "TrackTableProjection",
+            "symbol": "emptyHeartImage",
             "role": "data"
           },
           {
-            "symbol": "track identity",
+            "symbol": "filledHeartImage",
             "role": "data"
           },
           {
-            "symbol": "row selection and playback presentation",
+            "symbol": "playImage",
+            "role": "data"
+          },
+          {
+            "symbol": "probe",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "NativeTrackTableAction.play",
-            "role": "actions"
-          },
-          {
-            "symbol": "NativeTrackTableAction.favorite",
+            "symbol": "performAction",
             "role": "actions"
           }
         ]
@@ -2823,13 +3515,29 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "ProductionLibraryView Cadence feature presentation state",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "store",
+            "role": "data"
+          },
+          {
+            "symbol": "selectedArtistID",
+            "role": "data"
+          },
+          {
+            "symbol": "selectedAlbumID",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "ProductionLibraryView feature-owned action",
+            "symbol": "Button",
+            "role": "actions"
+          },
+          {
+            "symbol": "onChange",
             "role": "actions"
           }
         ]
@@ -2870,13 +3578,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "ProductionTrackList Cadence feature presentation state",
+            "symbol": "densityRawValue",
+            "role": "data"
+          },
+          {
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "tracks",
+            "role": "data"
+          },
+          {
+            "symbol": "contentVersion",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "ProductionTrackList feature-owned action",
+            "symbol": null,
             "role": "actions"
           }
         ]
@@ -2917,13 +3637,29 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "ProductionTrackTable Cadence feature presentation state",
+            "symbol": "reduceMotion",
+            "role": "data"
+          },
+          {
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "tracks",
+            "role": "data"
+          },
+          {
+            "symbol": "contentVersion",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "ProductionTrackTable feature-owned action",
+            "symbol": "onChange",
+            "role": "actions"
+          },
+          {
+            "symbol": "toggle",
             "role": "actions"
           }
         ]
@@ -2964,13 +3700,37 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "ProductionTrackTableRow Cadence feature presentation state",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "track",
+            "role": "data"
+          },
+          {
+            "symbol": "queueIDProvider",
+            "role": "data"
+          },
+          {
+            "symbol": "columns",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "ProductionTrackTableRow feature-owned action",
+            "symbol": "onChange",
+            "role": "actions"
+          },
+          {
+            "symbol": "onHover",
+            "role": "actions"
+          },
+          {
+            "symbol": "onTapGesture",
+            "role": "actions"
+          },
+          {
+            "symbol": "Button",
             "role": "actions"
           }
         ]
@@ -3011,13 +3771,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "ProductionTrashView Cadence feature presentation state",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "confirmsEmptyTrash",
+            "role": "data"
+          },
+          {
+            "symbol": "pendingPermanentDeletion",
+            "role": "data"
+          },
+          {
+            "symbol": "store",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "ProductionTrashView feature-owned action",
+            "symbol": "Button",
             "role": "actions"
           }
         ]
@@ -3058,13 +3830,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "TrackTableCore native bridge configuration",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "context",
+            "role": "data"
+          },
+          {
+            "symbol": "snapshot",
+            "role": "data"
+          },
+          {
+            "symbol": "virtualWindow",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "TrackTableCore native lifecycle update",
+            "symbol": null,
             "role": "actions"
           }
         ]
@@ -3106,13 +3890,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "TrackTableHostedRoot styling and layout configuration",
+            "symbol": "state",
+            "role": "data"
+          },
+          {
+            "symbol": "probe",
+            "role": "data"
+          },
+          {
+            "symbol": "hostState",
+            "role": "data"
+          },
+          {
+            "symbol": "hostingView",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "TrackTableHostedRoot consumer-owned interaction closure",
+            "symbol": null,
             "role": "actions"
           }
         ]
@@ -3156,13 +3952,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "TrackTableHostingCell native bridge configuration",
+            "symbol": "probe",
+            "role": "data"
+          },
+          {
+            "symbol": "hostState",
+            "role": "data"
+          },
+          {
+            "symbol": "hostingView",
+            "role": "data"
+          },
+          {
+            "symbol": "previousTrackID",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "TrackTableHostingCell native lifecycle update",
+            "symbol": null,
             "role": "actions"
           }
         ]
@@ -3204,13 +4012,13 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "TrackTablePlaceholderRow styling and layout configuration",
+            "symbol": null,
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "TrackTablePlaceholderRow consumer-owned interaction closure",
+            "symbol": null,
             "role": "actions"
           }
         ]
@@ -3254,13 +4062,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "TrackTableView native bridge configuration",
+            "symbol": "onReturn",
+            "role": "data"
+          },
+          {
+            "symbol": "onSpace",
+            "role": "data"
+          },
+          {
+            "symbol": "onDelete",
+            "role": "data"
+          },
+          {
+            "symbol": "onFocusChange",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "TrackTableView native lifecycle update",
+            "symbol": null,
             "role": "actions"
           }
         ]
@@ -3302,13 +4122,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "TrackTableHeaderCell styling and layout configuration",
+            "symbol": "title",
+            "role": "data"
+          },
+          {
+            "symbol": "alignment",
+            "role": "data"
+          },
+          {
+            "symbol": "isSorted",
+            "role": "data"
+          },
+          {
+            "symbol": "direction",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "TrackTableHeaderCell consumer-owned interaction closure",
+            "symbol": "Button",
             "role": "actions"
           }
         ]
@@ -3352,13 +4184,37 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "LyricLineEditorRow Cadence feature presentation state",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "line",
+            "role": "data"
+          },
+          {
+            "symbol": "displayIndex",
+            "role": "data"
+          },
+          {
+            "symbol": "issue",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "LyricLineEditorRow feature-owned action",
+            "symbol": "Button",
+            "role": "actions"
+          },
+          {
+            "symbol": "onTapGesture",
+            "role": "actions"
+          },
+          {
+            "symbol": "onChange",
+            "role": "actions"
+          },
+          {
+            "symbol": "dismiss",
             "role": "actions"
           }
         ]
@@ -3401,13 +4257,37 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "LyricLineTable Cadence feature presentation state",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "undoManager",
+            "role": "data"
+          },
+          {
+            "symbol": "exportPreview",
+            "role": "data"
+          },
+          {
+            "symbol": "importFailed",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "LyricLineTable feature-owned action",
+            "symbol": "onChange",
+            "role": "actions"
+          },
+          {
+            "symbol": "Button",
+            "role": "actions"
+          },
+          {
+            "symbol": "onTapGesture",
+            "role": "actions"
+          },
+          {
+            "symbol": "dismiss",
             "role": "actions"
           }
         ]
@@ -3450,13 +4330,37 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "LyricTimestampField Cadence feature presentation state",
+            "symbol": "value",
+            "role": "data"
+          },
+          {
+            "symbol": "hasError",
+            "role": "data"
+          },
+          {
+            "symbol": "onCommit",
+            "role": "data"
+          },
+          {
+            "symbol": "isFocused",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "LyricTimestampField feature-owned action",
+            "symbol": "onChange",
+            "role": "actions"
+          },
+          {
+            "symbol": "dismiss",
+            "role": "actions"
+          },
+          {
+            "symbol": "Button",
+            "role": "actions"
+          },
+          {
+            "symbol": "keyboardShortcut",
             "role": "actions"
           }
         ]
@@ -3499,13 +4403,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "LyricsExportPreview Cadence feature presentation state",
+            "symbol": "source",
+            "role": "data"
+          },
+          {
+            "symbol": "dismiss",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "LyricsExportPreview feature-owned action",
+            "symbol": "dismiss",
+            "role": "actions"
+          },
+          {
+            "symbol": "Button",
+            "role": "actions"
+          },
+          {
+            "symbol": "keyboardShortcut",
             "role": "actions"
           }
         ]
@@ -3548,13 +4464,13 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "LyricsDraftTransitionAlert Cadence feature presentation state",
+            "symbol": "model",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "LyricsDraftTransitionAlert feature-owned action",
+            "symbol": "Button",
             "role": "actions"
           }
         ]
@@ -3597,13 +4513,17 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "LyricsEditorHeader Cadence feature presentation state",
+            "symbol": "model",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "LyricsEditorHeader feature-owned action",
+            "symbol": "Button",
+            "role": "actions"
+          },
+          {
+            "symbol": "keyboardShortcut",
             "role": "actions"
           }
         ]
@@ -3646,13 +4566,17 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "LyricsEditorView Cadence feature presentation state",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "timingWidth",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "LyricsEditorView feature-owned action",
+            "symbol": "Button",
             "role": "actions"
           }
         ]
@@ -3695,13 +4619,29 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "TapToSyncPanel Cadence feature presentation state",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "undoManager",
+            "role": "data"
+          },
+          {
+            "symbol": "ownsKeyboard",
+            "role": "data"
+          },
+          {
+            "symbol": "track",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "TapToSyncPanel feature-owned action",
+            "symbol": "Button",
+            "role": "actions"
+          },
+          {
+            "symbol": "onTapGesture",
             "role": "actions"
           }
         ]
@@ -3742,13 +4682,13 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "AudioDetailsPopover Cadence feature presentation state",
+            "symbol": "presentation",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "AudioDetailsPopover feature-owned action",
+            "symbol": null,
             "role": "actions"
           }
         ]
@@ -3789,13 +4729,13 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "NowPlayingPanelPicker Cadence feature presentation state",
+            "symbol": "model",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "NowPlayingPanelPicker feature-owned action",
+            "symbol": null,
             "role": "actions"
           }
         ]
@@ -3836,13 +4776,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "NowPlayingView Cadence feature presentation state",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "cadenceModeSession",
+            "role": "data"
+          },
+          {
+            "symbol": "cadenceModeOptions",
+            "role": "data"
+          },
+          {
+            "symbol": "track",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "NowPlayingView feature-owned action",
+            "symbol": null,
             "role": "actions"
           }
         ]
@@ -3883,13 +4835,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "ProductionArtworkHaze media presentation inputs",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "artworkID",
+            "role": "data"
+          },
+          {
+            "symbol": "reduceTransparency",
+            "role": "data"
+          },
+          {
+            "symbol": "colorScheme",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "ProductionArtworkHaze consumer-owned media action",
+            "symbol": null,
             "role": "actions"
           }
         ]
@@ -3931,13 +4895,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "PlaybackLyricActiveLineObserver Cadence feature presentation state",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "trackID",
+            "role": "data"
+          },
+          {
+            "symbol": "document",
+            "role": "data"
+          },
+          {
+            "symbol": "acceptedDocumentGeneration",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "PlaybackLyricActiveLineObserver feature-owned action",
+            "symbol": null,
             "role": "actions"
           }
         ]
@@ -3980,21 +4956,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "lyric line text",
+            "symbol": "text",
             "role": "data"
           },
           {
-            "symbol": "current-line identity",
+            "symbol": "isActive",
             "role": "data"
           },
           {
-            "symbol": "playback lyric state",
+            "symbol": "isSynchronized",
+            "role": "data"
+          },
+          {
+            "symbol": "alignment",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "No direct action; parent owns lyric seeking",
+            "symbol": null,
             "role": "actions"
           }
         ]
@@ -4037,13 +5017,29 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "ProductionLyricsPanel Cadence feature presentation state",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "track",
+            "role": "data"
+          },
+          {
+            "symbol": "reduceMotion",
+            "role": "data"
+          },
+          {
+            "symbol": "lyricsTextSizeRaw",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "ProductionLyricsPanel feature-owned action",
+            "symbol": "Button",
+            "role": "actions"
+          },
+          {
+            "symbol": "onChange",
             "role": "actions"
           }
         ]
@@ -4086,13 +5082,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "ProductionNowPlayingView Cadence feature presentation state",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "track",
+            "role": "data"
+          },
+          {
+            "symbol": "cadenceModeSession",
+            "role": "data"
+          },
+          {
+            "symbol": "cadenceModeOptions",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "ProductionNowPlayingView feature-owned action",
+            "symbol": "Button",
             "role": "actions"
           }
         ]
@@ -4133,13 +5141,21 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "ProductionQueueDragModifier Cadence feature presentation state",
+            "symbol": "payload",
+            "role": "data"
+          },
+          {
+            "symbol": "item",
+            "role": "data"
+          },
+          {
+            "symbol": "isEnabled",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "ProductionQueueDragModifier feature-owned action",
+            "symbol": null,
             "role": "actions"
           }
         ]
@@ -4180,13 +5196,13 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "ProductionQueueDragPreview styling and layout configuration",
+            "symbol": "item",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "ProductionQueueDragPreview consumer-owned interaction closure",
+            "symbol": null,
             "role": "actions"
           }
         ]
@@ -4230,13 +5246,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "ProductionQueueInsertionIndicator styling and layout configuration",
+            "symbol": "isUpNext",
+            "role": "data"
+          },
+          {
+            "symbol": "isSelected",
+            "role": "data"
+          },
+          {
+            "symbol": "play",
+            "role": "data"
+          },
+          {
+            "symbol": "select",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "ProductionQueueInsertionIndicator consumer-owned interaction closure",
+            "symbol": null,
             "role": "actions"
           }
         ]
@@ -4280,13 +5308,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "ProductionQueueRowDropModifier Cadence feature presentation state",
+            "symbol": "item",
+            "role": "data"
+          },
+          {
+            "symbol": "isUpNext",
+            "role": "data"
+          },
+          {
+            "symbol": "payload",
+            "role": "data"
+          },
+          {
+            "symbol": "activeDropTarget",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "ProductionQueueRowDropModifier feature-owned action",
+            "symbol": null,
             "role": "actions"
           }
         ]
@@ -4327,13 +5367,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "ProductionQueueRowInteractionModifier Cadence feature presentation state",
+            "symbol": "isUpNext",
+            "role": "data"
+          },
+          {
+            "symbol": "isSelected",
+            "role": "data"
+          },
+          {
+            "symbol": "play",
+            "role": "data"
+          },
+          {
+            "symbol": "select",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "ProductionQueueRowInteractionModifier feature-owned action",
+            "symbol": null,
             "role": "actions"
           }
         ]
@@ -4374,13 +5426,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "ProductionPlaybackQueuePanel Cadence feature presentation state",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "undoManager",
+            "role": "data"
+          },
+          {
+            "symbol": "selection",
+            "role": "data"
+          },
+          {
+            "symbol": "selectionAnchor",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "ProductionPlaybackQueuePanel feature-owned action",
+            "symbol": "Button",
             "role": "actions"
           }
         ]
@@ -4421,13 +5485,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "ProductionPlaybackQueueRow Cadence feature presentation state",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "item",
+            "role": "data"
+          },
+          {
+            "symbol": "isCurrent",
+            "role": "data"
+          },
+          {
+            "symbol": "isSelected",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "ProductionPlaybackQueueRow feature-owned action",
+            "symbol": "Button",
             "role": "actions"
           }
         ]
@@ -4468,13 +5544,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "AddAlbumToPlaylistMenuItems Cadence feature presentation state",
+            "symbol": "store",
+            "role": "data"
+          },
+          {
+            "symbol": "albumID",
+            "role": "data"
+          },
+          {
+            "symbol": "playlistID",
+            "role": "data"
+          },
+          {
+            "symbol": "artistID",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "AddAlbumToPlaylistMenuItems feature-owned action",
+            "symbol": "Button",
             "role": "actions"
           }
         ]
@@ -4515,13 +5603,21 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "AddArtistToPlaylistMenuItems Cadence feature presentation state",
+            "symbol": "store",
+            "role": "data"
+          },
+          {
+            "symbol": "artistID",
+            "role": "data"
+          },
+          {
+            "symbol": "playlistID",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "AddArtistToPlaylistMenuItems feature-owned action",
+            "symbol": "Button",
             "role": "actions"
           }
         ]
@@ -4562,13 +5658,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "AddToPlaylistMenuItems Cadence feature presentation state",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "store",
+            "role": "data"
+          },
+          {
+            "symbol": "trackIDs",
+            "role": "data"
+          },
+          {
+            "symbol": "albumID",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "AddToPlaylistMenuItems feature-owned action",
+            "symbol": "Button",
             "role": "actions"
           }
         ]
@@ -4609,13 +5717,33 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "PlaylistsView Cadence feature presentation state",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "store",
+            "role": "data"
+          },
+          {
+            "symbol": "playlistNameOperation",
+            "role": "data"
+          },
+          {
+            "symbol": "isDeletingPlaylist",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "PlaylistsView feature-owned action",
+            "symbol": "Button",
+            "role": "actions"
+          },
+          {
+            "symbol": "onTapGesture",
+            "role": "actions"
+          },
+          {
+            "symbol": "toggle",
             "role": "actions"
           }
         ]
@@ -4656,25 +5784,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "RhythmAccentPalette",
+            "symbol": "palette",
             "role": "data"
           },
           {
-            "symbol": "accessibilityReduceMotion",
+            "symbol": "reduceMotion",
             "role": "data"
           },
           {
-            "symbol": "accessibilityReduceTransparency",
+            "symbol": "visualQAReduceMotionOverride",
             "role": "data"
           },
           {
-            "symbol": "colorSchemeContrast",
+            "symbol": "reduceTransparency",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "updateNSView(_:context:)",
+            "symbol": null,
             "role": "actions"
           }
         ]
@@ -4720,13 +5848,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "CadenceModeBackgroundView native bridge configuration",
+            "symbol": "gradientRenderer",
+            "role": "data"
+          },
+          {
+            "symbol": "isOpaque",
+            "role": "data"
+          },
+          {
+            "symbol": "device",
+            "role": "data"
+          },
+          {
+            "symbol": "metalLayer",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "CadenceModeBackgroundView native lifecycle update",
+            "symbol": null,
             "role": "actions"
           }
         ]
@@ -4770,29 +5910,29 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "RhythmAccentPalette",
+            "symbol": "device",
             "role": "data"
           },
           {
-            "symbol": "CadenceModeBackgroundAppearance",
+            "symbol": "commandQueue",
             "role": "data"
           },
           {
-            "symbol": "MTLDevice",
+            "symbol": "pipelineState",
             "role": "data"
           },
           {
-            "symbol": "MTLPixelFormat",
+            "symbol": "snapshotPipelineState",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "MTKViewDelegate.draw(in:)",
+            "symbol": "draw",
             "role": "actions"
           },
           {
-            "symbol": "MTKViewDelegate.mtkView(_:drawableSizeWillChange:)",
+            "symbol": "mtkView",
             "role": "actions"
           }
         ]
@@ -4838,13 +5978,21 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "CadenceModeHint Cadence feature presentation state",
+            "symbol": "copy",
+            "role": "data"
+          },
+          {
+            "symbol": "accessibilityCopy",
+            "role": "data"
+          },
+          {
+            "symbol": "action",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "CadenceModeHint feature-owned action",
+            "symbol": "Button",
             "role": "actions"
           }
         ]
@@ -4885,13 +6033,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "CadenceModeInputCapture Cadence feature presentation state",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "session",
+            "role": "data"
+          },
+          {
+            "symbol": "isEnabled",
+            "role": "data"
+          },
+          {
+            "symbol": "action",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "CadenceModeInputCapture feature-owned action",
+            "symbol": "onChange",
             "role": "actions"
           }
         ]
@@ -4932,13 +6092,29 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "CadenceModeLayerModifier Cadence feature presentation state",
+            "symbol": "opacity",
+            "role": "data"
+          },
+          {
+            "symbol": "scale",
+            "role": "data"
+          },
+          {
+            "symbol": "document",
+            "role": "data"
+          },
+          {
+            "symbol": "activeLineID",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "CadenceModeLayerModifier feature-owned action",
+            "symbol": "Button",
+            "role": "actions"
+          },
+          {
+            "symbol": "onChange",
             "role": "actions"
           }
         ]
@@ -4979,13 +6155,29 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "CadenceModeLyricStack media presentation inputs",
+            "symbol": "document",
+            "role": "data"
+          },
+          {
+            "symbol": "activeLineID",
+            "role": "data"
+          },
+          {
+            "symbol": "slotHeight",
+            "role": "data"
+          },
+          {
+            "symbol": "seek",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "CadenceModeLyricStack consumer-owned media action",
+            "symbol": "Button",
+            "role": "actions"
+          },
+          {
+            "symbol": "onChange",
             "role": "actions"
           }
         ]
@@ -5028,13 +6220,17 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "CadenceModeLyricsEdgeFade media presentation inputs",
+            "symbol": "topOpaqueLocation",
+            "role": "data"
+          },
+          {
+            "symbol": "bottomFadeLocation",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "CadenceModeLyricsEdgeFade consumer-owned media action",
+            "symbol": null,
             "role": "actions"
           }
         ]
@@ -5077,13 +6273,29 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "CadenceModeView Cadence feature presentation state",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "track",
+            "role": "data"
+          },
+          {
+            "symbol": "artworkID",
+            "role": "data"
+          },
+          {
+            "symbol": "trackTitle",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "CadenceModeView feature-owned action",
+            "symbol": "onChange",
+            "role": "actions"
+          },
+          {
+            "symbol": "Button",
             "role": "actions"
           }
         ]
@@ -5124,13 +6336,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "RhythmKeyboardCapture native bridge configuration",
+            "symbol": "canActivateCadenceMode",
+            "role": "data"
+          },
+          {
+            "symbol": "isCadenceModeActive",
+            "role": "data"
+          },
+          {
+            "symbol": "onKeyDown",
+            "role": "data"
+          },
+          {
+            "symbol": "onKeyUp",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "RhythmKeyboardCapture native lifecycle update",
+            "symbol": null,
             "role": "actions"
           }
         ]
@@ -5172,13 +6396,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "RhythmPulseCanvas native bridge configuration",
+            "symbol": "store",
+            "role": "data"
+          },
+          {
+            "symbol": "panelStartX",
+            "role": "data"
+          },
+          {
+            "symbol": "reduceMotion",
+            "role": "data"
+          },
+          {
+            "symbol": "reduceTransparency",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "RhythmPulseCanvas native lifecycle update",
+            "symbol": null,
             "role": "actions"
           }
         ]
@@ -5220,13 +6456,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "RhythmPulseCompositorView native bridge configuration",
+            "symbol": "effectLayer",
+            "role": "data"
+          },
+          {
+            "symbol": "state",
+            "role": "data"
+          },
+          {
+            "symbol": "washLayers",
+            "role": "data"
+          },
+          {
+            "symbol": "particleLayers",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "RhythmPulseCompositorView native lifecycle update",
+            "symbol": null,
             "role": "actions"
           }
         ]
@@ -5268,13 +6516,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "LyricsSearchPreviewView Cadence feature presentation state",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "target",
+            "role": "data"
+          },
+          {
+            "symbol": "reduceMotion",
+            "role": "data"
+          },
+          {
+            "symbol": "document",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "LyricsSearchPreviewView feature-owned action",
+            "symbol": "Button",
             "role": "actions"
           }
         ]
@@ -5317,13 +6577,29 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "LyricsSearchResultsSection Cadence feature presentation state",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "store",
+            "role": "data"
+          },
+          {
+            "symbol": "components",
+            "role": "data"
+          },
+          {
+            "symbol": "result",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "LyricsSearchResultsSection feature-owned action",
+            "symbol": "onTapGesture",
+            "role": "actions"
+          },
+          {
+            "symbol": "Button",
             "role": "actions"
           }
         ]
@@ -5366,13 +6642,29 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "ProductionSearchResultsView Cadence feature presentation state",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "store",
+            "role": "data"
+          },
+          {
+            "symbol": "catalogCardSize",
+            "role": "data"
+          },
+          {
+            "symbol": "expandedGroup",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "ProductionSearchResultsView feature-owned action",
+            "symbol": "onChange",
+            "role": "actions"
+          },
+          {
+            "symbol": "Button",
             "role": "actions"
           }
         ]
@@ -5413,13 +6705,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "ManagedLibrarySettingsCard Cadence feature presentation state",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "openDestination",
+            "role": "data"
+          },
+          {
+            "symbol": "libraryStorageSize",
+            "role": "data"
+          },
+          {
+            "symbol": "isDeleteConfirmationPresented",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "ManagedLibrarySettingsCard feature-owned action",
+            "symbol": "Button",
             "role": "actions"
           }
         ]
@@ -5460,13 +6764,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "NotificationsSettingsCard Cadence feature presentation state",
+            "symbol": "notificationController",
+            "role": "data"
+          },
+          {
+            "symbol": "notifiesWhenTrackChanges",
+            "role": "data"
+          },
+          {
+            "symbol": "notifiesWhenUpdateIsAvailable",
+            "role": "data"
+          },
+          {
+            "symbol": "showsForegroundBanners",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "NotificationsSettingsCard feature-owned action",
+            "symbol": null,
             "role": "actions"
           }
         ]
@@ -5507,13 +6823,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "ProductionSettingsView Cadence feature presentation state",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "tab",
+            "role": "data"
+          },
+          {
+            "symbol": "updateController",
+            "role": "data"
+          },
+          {
+            "symbol": "notificationController",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "ProductionSettingsView feature-owned action",
+            "symbol": "Button",
             "role": "actions"
           }
         ]
@@ -5554,13 +6882,21 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "SettingsCard styling and layout configuration",
+            "symbol": "title",
+            "role": "data"
+          },
+          {
+            "symbol": "symbol",
+            "role": "data"
+          },
+          {
+            "symbol": "content",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "SettingsCard consumer-owned interaction closure",
+            "symbol": null,
             "role": "actions"
           }
         ]
@@ -5604,13 +6940,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "RemoteLibraryConnectionSheet Cadence feature presentation state",
+            "symbol": "controller",
+            "role": "data"
+          },
+          {
+            "symbol": "isPresented",
+            "role": "data"
+          },
+          {
+            "symbol": "provider",
+            "role": "data"
+          },
+          {
+            "symbol": "webDAVURL",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "RemoteLibraryConnectionSheet feature-owned action",
+            "symbol": "Button",
             "role": "actions"
           }
         ]
@@ -5651,13 +6999,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "RemoteLibrarySettingsView Cadence feature presentation state",
+            "symbol": "controller",
+            "role": "data"
+          },
+          {
+            "symbol": "isConnectionSheetPresented",
+            "role": "data"
+          },
+          {
+            "symbol": "isCacheClearConfirmationPresented",
+            "role": "data"
+          },
+          {
+            "symbol": "detail",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "RemoteLibrarySettingsView feature-owned action",
+            "symbol": "Button",
             "role": "actions"
           }
         ]
@@ -5698,13 +7058,21 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "SettingsAboutResourceRow Cadence feature presentation state",
+            "symbol": "resource",
+            "role": "data"
+          },
+          {
+            "symbol": "isHovered",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "SettingsAboutResourceRow feature-owned action",
+            "symbol": "Link",
+            "role": "actions"
+          },
+          {
+            "symbol": "onHover",
             "role": "actions"
           }
         ]
@@ -5751,25 +7119,25 @@
             "role": "data"
           },
           {
-            "symbol": "AppConfiguration product metadata",
+            "symbol": "AppConfiguration",
             "role": "data"
           },
           {
-            "symbol": "Bundle.main version/build",
+            "symbol": "Bundle.main",
             "role": "data"
           },
           {
-            "symbol": "NSApp application icon",
+            "symbol": "NSApp",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "Link(destination:) resource navigation",
+            "symbol": "Link",
             "role": "actions"
           },
           {
-            "symbol": "hover feedback",
+            "symbol": "onHover",
             "role": "actions"
           }
         ]
@@ -5810,13 +7178,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "SettingsDataCard Cadence feature presentation state",
+            "symbol": "preferencesDidChange",
+            "role": "data"
+          },
+          {
+            "symbol": "isResetConfirmationPresented",
+            "role": "data"
+          },
+          {
+            "symbol": "notice",
+            "role": "data"
+          },
+          {
+            "symbol": "panel",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "SettingsDataCard feature-owned action",
+            "symbol": "Button",
             "role": "actions"
           }
         ]
@@ -5857,13 +7237,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "SettingsHomeSectionsCard Cadence feature presentation state",
+            "symbol": "orderRawValue",
+            "role": "data"
+          },
+          {
+            "symbol": "hiddenRawValue",
+            "role": "data"
+          },
+          {
+            "symbol": "draggedSection",
+            "role": "data"
+          },
+          {
+            "symbol": "dropTarget",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "SettingsHomeSectionsCard feature-owned action",
+            "symbol": "Button",
             "role": "actions"
           }
         ]
@@ -5904,13 +7296,13 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "SettingsRowSeparator styling and layout configuration",
+            "symbol": null,
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "SettingsRowSeparator consumer-owned interaction closure",
+            "symbol": null,
             "role": "actions"
           }
         ]
@@ -5954,13 +7346,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "SettingsLibraryRetentionCard Cadence feature presentation state",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "listeningHistoryRetentionRawValue",
+            "role": "data"
+          },
+          {
+            "symbol": "trashCleanupRetentionRawValue",
+            "role": "data"
+          },
+          {
+            "symbol": "listeningHistoryRetentionBinding",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "SettingsLibraryRetentionCard feature-owned action",
+            "symbol": "onChange",
             "role": "actions"
           }
         ]
@@ -6001,13 +7405,29 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "SettingsPlaybackView Cadence feature presentation state",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "timeDisplayRawValue",
+            "role": "data"
+          },
+          {
+            "symbol": "restoresQueue",
+            "role": "data"
+          },
+          {
+            "symbol": "previousBehaviorRawValue",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "SettingsPlaybackView feature-owned action",
+            "symbol": "Button",
+            "role": "actions"
+          },
+          {
+            "symbol": "onChange",
             "role": "actions"
           }
         ]
@@ -6048,13 +7468,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "SettingsSidebarCard Cadence feature presentation state",
+            "symbol": "orderRawValue",
+            "role": "data"
+          },
+          {
+            "symbol": "hiddenRawValue",
+            "role": "data"
+          },
+          {
+            "symbol": "isSidebarExpanded",
+            "role": "data"
+          },
+          {
+            "symbol": "draggedDestination",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "SettingsSidebarCard feature-owned action",
+            "symbol": "Button",
             "role": "actions"
           }
         ]
@@ -6095,13 +7527,13 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "SettingsSidebarDragPreview styling and layout configuration",
+            "symbol": "destination",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "SettingsSidebarDragPreview consumer-owned interaction closure",
+            "symbol": null,
             "role": "actions"
           }
         ]
@@ -6145,13 +7577,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "SettingsSidebarRow styling and layout configuration",
+            "symbol": "destination",
+            "role": "data"
+          },
+          {
+            "symbol": "isVisible",
+            "role": "data"
+          },
+          {
+            "symbol": "isDragging",
+            "role": "data"
+          },
+          {
+            "symbol": "isDropTarget",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "SettingsSidebarRow consumer-owned interaction closure",
+            "symbol": "Button",
             "role": "actions"
           }
         ]
@@ -6195,13 +7639,13 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "SettingsTabStrip styling and layout configuration",
+            "symbol": "selection",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "SettingsTabStrip consumer-owned interaction closure",
+            "symbol": "Button",
             "role": "actions"
           }
         ]
@@ -6245,13 +7689,17 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "SettingsToggleRow styling and layout configuration",
+            "symbol": "title",
+            "role": "data"
+          },
+          {
+            "symbol": "isOn",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "SettingsToggleRow consumer-owned interaction closure",
+            "symbol": null,
             "role": "actions"
           }
         ]
@@ -6295,13 +7743,21 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "SettingsTrackListsCard Cadence feature presentation state",
+            "symbol": "densityRawValue",
+            "role": "data"
+          },
+          {
+            "symbol": "showsTrackArtwork",
+            "role": "data"
+          },
+          {
+            "symbol": "densityBinding",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "SettingsTrackListsCard feature-owned action",
+            "symbol": "Button",
             "role": "actions"
           }
         ]
@@ -6342,13 +7798,17 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "ShortcutKeyGlyphs styling and layout configuration",
+            "symbol": "keys",
+            "role": "data"
+          },
+          {
+            "symbol": "symbolName",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "ShortcutKeyGlyphs consumer-owned interaction closure",
+            "symbol": null,
             "role": "actions"
           }
         ]
@@ -6392,13 +7852,17 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "ShortcutsSettingsView Cadence feature presentation state",
+            "symbol": "keys",
+            "role": "data"
+          },
+          {
+            "symbol": "symbolName",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "ShortcutsSettingsView feature-owned action",
+            "symbol": null,
             "role": "actions"
           }
         ]
@@ -6439,13 +7903,29 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "UpdatesSettingsView Cadence feature presentation state",
+            "symbol": "updateController",
+            "role": "data"
+          },
+          {
+            "symbol": "automaticallyChecksForUpdates",
+            "role": "data"
+          },
+          {
+            "symbol": "automaticallyDownloadsUpdates",
+            "role": "data"
+          },
+          {
+            "symbol": "includesBetaUpdates",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "UpdatesSettingsView feature-owned action",
+            "symbol": "onChange",
+            "role": "actions"
+          },
+          {
+            "symbol": "Button",
             "role": "actions"
           }
         ]
@@ -6486,13 +7966,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "CadenceSearchModifier Cadence feature presentation state",
+            "symbol": "isEnabled",
+            "role": "data"
+          },
+          {
+            "symbol": "text",
+            "role": "data"
+          },
+          {
+            "symbol": "isPresented",
+            "role": "data"
+          },
+          {
+            "symbol": "prompt",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "CadenceSearchModifier feature-owned action",
+            "symbol": null,
             "role": "actions"
           }
         ]
@@ -6533,13 +8025,33 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "CadenceRootView Cadence feature presentation state",
+            "symbol": "usesStableSystemControls",
+            "role": "data"
+          },
+          {
+            "symbol": "colorScheme",
+            "role": "data"
+          },
+          {
+            "symbol": "reduceMotion",
+            "role": "data"
+          },
+          {
+            "symbol": "model",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "CadenceRootView feature-owned action",
+            "symbol": "Button",
+            "role": "actions"
+          },
+          {
+            "symbol": "dismiss",
+            "role": "actions"
+          },
+          {
+            "symbol": "onChange",
             "role": "actions"
           }
         ]
@@ -6580,13 +8092,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "WindowContentLayout Cadence feature presentation state",
+            "symbol": "placement",
+            "role": "data"
+          },
+          {
+            "symbol": "content",
+            "role": "data"
+          },
+          {
+            "symbol": "offset",
+            "role": "data"
+          },
+          {
+            "symbol": "size",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "WindowContentLayout feature-owned action",
+            "symbol": "onChange",
             "role": "actions"
           }
         ]
@@ -6627,13 +8151,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "WindowContentLayoutProbe native bridge configuration",
+            "symbol": "onChange",
+            "role": "data"
+          },
+          {
+            "symbol": "lastPlacement",
+            "role": "data"
+          },
+          {
+            "symbol": "observedWindow",
+            "role": "data"
+          },
+          {
+            "symbol": "window",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "WindowContentLayoutProbe native lifecycle update",
+            "symbol": "onChange",
             "role": "actions"
           }
         ]
@@ -6675,13 +8211,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "WindowContentLayoutProbe.ProbeView native bridge configuration",
+            "symbol": "onChange",
+            "role": "data"
+          },
+          {
+            "symbol": "lastPlacement",
+            "role": "data"
+          },
+          {
+            "symbol": "observedWindow",
+            "role": "data"
+          },
+          {
+            "symbol": "window",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "WindowContentLayoutProbe.ProbeView native lifecycle update",
+            "symbol": "onChange",
             "role": "actions"
           }
         ]
@@ -6723,13 +8271,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "SmartCollectionArtworkMosaic media presentation inputs",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "layout",
+            "role": "data"
+          },
+          {
+            "symbol": "title",
+            "role": "data"
+          },
+          {
+            "symbol": "artworkID",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "SmartCollectionArtworkMosaic consumer-owned media action",
+            "symbol": null,
             "role": "actions"
           }
         ]
@@ -6771,13 +8331,33 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "SmartCollectionListColumn Cadence feature presentation state",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "header",
+            "role": "data"
+          },
+          {
+            "symbol": "emptyState",
+            "role": "data"
+          },
+          {
+            "symbol": "item",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "SmartCollectionListColumn feature-owned action",
+            "symbol": "Button",
+            "role": "actions"
+          },
+          {
+            "symbol": "onHover",
+            "role": "actions"
+          },
+          {
+            "symbol": "toggle",
             "role": "actions"
           }
         ]
@@ -6818,13 +8398,33 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "SmartCollectionListRow styling and layout configuration",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "item",
+            "role": "data"
+          },
+          {
+            "symbol": "isFocused",
+            "role": "data"
+          },
+          {
+            "symbol": "isHovered",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "SmartCollectionListRow consumer-owned interaction closure",
+            "symbol": "Button",
+            "role": "actions"
+          },
+          {
+            "symbol": "onHover",
+            "role": "actions"
+          },
+          {
+            "symbol": "toggle",
             "role": "actions"
           }
         ]
@@ -6868,13 +8468,33 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "SmartCollectionListeningHeader Cadence feature presentation state",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "isRuleInfoPresented",
+            "role": "data"
+          },
+          {
+            "symbol": "collection",
+            "role": "data"
+          },
+          {
+            "symbol": "controls",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "SmartCollectionListeningHeader feature-owned action",
+            "symbol": "Button",
+            "role": "actions"
+          },
+          {
+            "symbol": "keyboardShortcut",
+            "role": "actions"
+          },
+          {
+            "symbol": "toggle",
             "role": "actions"
           }
         ]
@@ -6915,13 +8535,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "SmartCollectionListeningPage Cadence feature presentation state",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "source",
+            "role": "data"
+          },
+          {
+            "symbol": "noSelection",
+            "role": "data"
+          },
+          {
+            "symbol": "noMatches",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "SmartCollectionListeningPage feature-owned action",
+            "symbol": "Button",
             "role": "actions"
           }
         ]
@@ -6962,13 +8594,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "SmartCollectionResultsColumn Cadence feature presentation state",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "header",
+            "role": "data"
+          },
+          {
+            "symbol": "results",
+            "role": "data"
+          },
+          {
+            "symbol": "source",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "SmartCollectionResultsColumn feature-owned action",
+            "symbol": "Button",
             "role": "actions"
           }
         ]
@@ -7009,13 +8653,29 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "SmartCollectionRuleBuilder Cadence feature presentation state",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "isNameFocused",
+            "role": "data"
+          },
+          {
+            "symbol": "draft",
+            "role": "data"
+          },
+          {
+            "symbol": "editorStatus",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "SmartCollectionRuleBuilder feature-owned action",
+            "symbol": "onChange",
+            "role": "actions"
+          },
+          {
+            "symbol": "Button",
             "role": "actions"
           }
         ]
@@ -7056,13 +8716,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "SmartCollectionRuleInfoPopover Cadence feature presentation state",
+            "symbol": "collection",
+            "role": "data"
+          },
+          {
+            "symbol": "tagTitlesByID",
+            "role": "data"
+          },
+          {
+            "symbol": "rows",
+            "role": "data"
+          },
+          {
+            "symbol": "detail",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "SmartCollectionRuleInfoPopover feature-owned action",
+            "symbol": null,
             "role": "actions"
           }
         ]
@@ -7103,13 +8775,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "SmartCollectionConditionRow styling and layout configuration",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "condition",
+            "role": "data"
+          },
+          {
+            "symbol": "depth",
+            "role": "data"
+          },
+          {
+            "symbol": "reduceMotion",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "SmartCollectionConditionRow consumer-owned interaction closure",
+            "symbol": "Button",
             "role": "actions"
           }
         ]
@@ -7153,13 +8837,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "SmartCollectionGroupRow styling and layout configuration",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "group",
+            "role": "data"
+          },
+          {
+            "symbol": "depth",
+            "role": "data"
+          },
+          {
+            "symbol": "condition",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "SmartCollectionGroupRow consumer-owned interaction closure",
+            "symbol": "Button",
             "role": "actions"
           }
         ]
@@ -7203,13 +8899,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "SmartCollectionRuleRows Cadence feature presentation state",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "rows",
+            "role": "data"
+          },
+          {
+            "symbol": "rule",
+            "role": "data"
+          },
+          {
+            "symbol": "group",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "SmartCollectionRuleRows feature-owned action",
+            "symbol": "Button",
             "role": "actions"
           }
         ]
@@ -7250,13 +8958,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "SmartCollectionRuleValueEditor Cadence feature presentation state",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "condition",
+            "role": "data"
+          },
+          {
+            "symbol": "sortedTags",
+            "role": "data"
+          },
+          {
+            "symbol": "options",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "SmartCollectionRuleValueEditor feature-owned action",
+            "symbol": null,
             "role": "actions"
           }
         ]
@@ -7297,13 +9017,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "SmartCollectionsView Cadence feature presentation state",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "reduceMotion",
+            "role": "data"
+          },
+          {
+            "symbol": "listWidth",
+            "role": "data"
+          },
+          {
+            "symbol": "builderWidth",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "SmartCollectionsView feature-owned action",
+            "symbol": "Button",
             "role": "actions"
           }
         ]
@@ -7344,13 +9076,25 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "ProductionTagEditorInspector Cadence feature presentation state",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "store",
+            "role": "data"
+          },
+          {
+            "symbol": "trackID",
+            "role": "data"
+          },
+          {
+            "symbol": "assignedStates",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "ProductionTagEditorInspector feature-owned action",
+            "symbol": "Button",
             "role": "actions"
           }
         ]
@@ -7391,13 +9135,29 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "ProductionTagsView Cadence feature presentation state",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "store",
+            "role": "data"
+          },
+          {
+            "symbol": "taggedTracks",
+            "role": "data"
+          },
+          {
+            "symbol": "tracksClock",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "ProductionTagsView feature-owned action",
+            "symbol": "onChange",
+            "role": "actions"
+          },
+          {
+            "symbol": "Button",
             "role": "actions"
           }
         ]
@@ -7438,13 +9198,17 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "QuickAlbumTagMenuItems Cadence feature presentation state",
+            "symbol": "store",
+            "role": "data"
+          },
+          {
+            "symbol": "albumID",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "QuickAlbumTagMenuItems feature-owned action",
+            "symbol": "Button",
             "role": "actions"
           }
         ]
@@ -7485,13 +9249,21 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "QuickTrackTagMenuItems Cadence feature presentation state",
+            "symbol": "store",
+            "role": "data"
+          },
+          {
+            "symbol": "trackIDs",
+            "role": "data"
+          },
+          {
+            "symbol": "albumID",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "QuickTrackTagMenuItems feature-owned action",
+            "symbol": "Button",
             "role": "actions"
           }
         ]
@@ -7532,13 +9304,37 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "TagTrackPickerSheet Cadence feature presentation state",
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "store",
+            "role": "data"
+          },
+          {
+            "symbol": "tag",
+            "role": "data"
+          },
+          {
+            "symbol": "dismiss",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "TagTrackPickerSheet feature-owned action",
+            "symbol": "dismiss",
+            "role": "actions"
+          },
+          {
+            "symbol": "onChange",
+            "role": "actions"
+          },
+          {
+            "symbol": "Button",
+            "role": "actions"
+          },
+          {
+            "symbol": "keyboardShortcut",
             "role": "actions"
           }
         ]
@@ -7579,13 +9375,13 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "TagsView Cadence feature presentation state",
+            "symbol": "model",
             "role": "data"
           }
         ],
         "actions": [
           {
-            "symbol": "TagsView feature-owned action",
+            "symbol": null,
             "role": "actions"
           }
         ]

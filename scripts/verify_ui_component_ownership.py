@@ -269,6 +269,10 @@ def validate_manifest(source_root: Path, manifest: dict[str, Any]) -> list[str]:
         return ["manifest components must be an array"]
 
     expected = {(item.path, item.symbol): item for item in discover_visual_declarations(source_root)}
+    source_texts = {
+        path: (source_root / path).read_text(encoding="utf-8")
+        for path, _symbol in expected
+    }
     actual: dict[tuple[str, str], dict[str, Any]] = {}
     for item in components:
         item = validate_exact_object(item, COMPONENT_FIELDS, "manifest component", errors)
@@ -333,8 +337,13 @@ def validate_manifest(source_root: Path, manifest: dict[str, Any]) -> list[str]:
                         continue
                     if dependency.get("role") != field:
                         errors.append(f"dependencies.{field} role mismatch for {key[0]}::{key[1]}")
-                    if not isinstance(dependency.get("symbol"), str) or not dependency["symbol"].strip():
+                    symbol = dependency.get("symbol")
+                    if symbol is None:
+                        continue
+                    if not isinstance(symbol, str) or not symbol.strip():
                         errors.append(f"dependencies.{field} symbol missing for {key[0]}::{key[1]}")
+                    elif symbol not in source_texts.get(key[0], ""):
+                        errors.append(f"dependencies.{field} symbol is not source-backed for {key[0]}::{key[1]}")
         states = validate_exact_object(item.get("states"), STATE_FIELDS, f"states for {key[0]}::{key[1]}", errors)
         if states is not None:
             for field in STATE_FIELDS:
