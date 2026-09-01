@@ -384,6 +384,87 @@ class UIComponentOwnershipTests(unittest.TestCase):
         self.assertIn("trailing", [entry["symbol"] for entry in pane_header["dependencies"]["data"]])
         self.assertEqual([], pane_header["dependencies"]["actions"])
 
+    def test_internal_compositor_storage_is_not_a_consumer_contract(self) -> None:
+        """An NSView's layer maps, pools, and caches must not become data or actions."""
+        verifier = load_verifier()
+        manifest = verifier.load_manifest(MANIFEST_PATH)
+        compositor = next(item for item in manifest["components"] if item["symbol"] == "RhythmPulseCompositorView")
+        data_symbols = {entry["symbol"] for entry in compositor["dependencies"]["data"]}
+        action_symbols = {entry["symbol"] for entry in compositor["dependencies"]["actions"]}
+        owned = {
+            "effectLayer", "state", "washLayers", "particleLayers", "washReplacementTimes",
+            "washLayerPool", "particleLayerPool", "washTextureCache",
+        }
+        self.assertFalse(owned & data_symbols)
+        self.assertFalse(any(symbol.startswith(("washLayers.", "particleLayers.", "washReplacementTimes.")) for symbol in action_symbols))
+
+        hosting_cell = next(item for item in manifest["components"] if item["symbol"] == "TrackTableHostingCell")
+        self.assertNotIn("hostState", [entry["symbol"] for entry in hosting_cell["dependencies"]["data"]])
+
+        renderer = next(item for item in manifest["components"] if item["symbol"] == "CadenceModeGradientRenderer")
+        renderer_data = {entry["symbol"] for entry in renderer["dependencies"]["data"]}
+        self.assertIn("device", renderer_data)
+        self.assertFalse({"commandQueue", "snapshotPipelineState"} & renderer_data)
+
+    def test_private_init_injected_closures_remain_consumer_dependencies(self) -> None:
+        """Private access does not erase a callback or formatter supplied by the initializer."""
+        verifier = load_verifier()
+        source = '''
+        final class PrivateInjectedSurface: NSView {
+            private let save: () -> Void
+            private let titleForValue: (Int) -> String
+
+            init(save: @escaping () -> Void, titleForValue: @escaping (Int) -> String) {
+                self.save = save
+                self.titleForValue = titleForValue
+                super.init(frame: .zero)
+            }
+        }
+        '''
+        data, actions = verifier.consumer_dependency_symbols(source)
+        self.assertEqual({"titleForValue"}, data)
+        self.assertEqual({"save"}, actions)
+
+    def test_external_wrappers_remain_inputs_while_owned_wrappers_do_not(self) -> None:
+        """Bindings, environment, and app storage are external; State-family storage is owned."""
+        verifier = load_verifier()
+        source = '''
+        struct WrapperSurface: View {
+            @Binding var selection: Bool
+            @Environment(\\.colorScheme) private var colorScheme
+            @AppStorage("surface.enabled") private var isEnabled = true
+            @State private var isHovered = false
+            @StateObject private var model = SurfaceModel()
+            @FocusState private var isFocused: Bool
+            @GestureState private var dragOffset = .zero
+        }
+        '''
+        data, actions = verifier.consumer_dependency_symbols(source)
+        self.assertEqual({"selection", "colorScheme", "isEnabled"}, data)
+        self.assertEqual(set(), actions)
+
+    def test_struct_defaults_and_init_assignment_are_configurable_but_class_defaults_are_owned(self) -> None:
+        """Configurable SwiftUI structs retain defaults; initialized class storage stays local."""
+        verifier = load_verifier()
+        struct_source = '''
+        struct ConfigurableSurface: View {
+            var showsArtwork = true
+            private let title: String
+
+            init(title: String) {
+                self.title = title
+            }
+        }
+        '''
+        class_source = '''
+        final class CachedSurface: NSView {
+            let cache = Cache()
+            var layers: [Int: CALayer] = [:]
+        }
+        '''
+        self.assertEqual({"showsArtwork", "title"}, verifier.data_symbols(struct_source))
+        self.assertEqual(set(), verifier.data_symbols(class_source))
+
     def test_manifest_rejects_stale_and_provisional_entries(self) -> None:
         """A stale path or an unclassified component must be rejected before migration starts."""
         verifier = load_verifier()

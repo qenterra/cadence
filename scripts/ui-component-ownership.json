@@ -3201,6 +3201,10 @@
           {
             "symbol": "onContextMenu",
             "role": "data"
+          },
+          {
+            "symbol": "probe",
+            "role": "data"
           }
         ],
         "actions": [
@@ -3565,10 +3569,6 @@
             "role": "data"
           },
           {
-            "symbol": "isActionControlAccessibilityFocused",
-            "role": "data"
-          },
-          {
             "symbol": "isFocused",
             "role": "data"
           },
@@ -3879,7 +3879,7 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "hostState",
+            "symbol": "probe",
             "role": "data"
           }
         ],
@@ -4901,10 +4901,6 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "cadenceModeNamespace",
-            "role": "data"
-          },
-          {
             "symbol": "cadenceModeOptions",
             "role": "data"
           },
@@ -5657,15 +5653,7 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "commandQueue",
-            "role": "data"
-          },
-          {
             "symbol": "device",
-            "role": "data"
-          },
-          {
-            "symbol": "snapshotPipelineState",
             "role": "data"
           }
         ],
@@ -6178,66 +6166,8 @@
       "sharedSymbol": "",
       "remainingCadenceSymbol": "Cadence.RhythmPulseCompositorView",
       "dependencies": {
-        "data": [
-          {
-            "symbol": "effectLayer",
-            "role": "data"
-          },
-          {
-            "symbol": "particleLayerPool",
-            "role": "data"
-          },
-          {
-            "symbol": "particleLayers",
-            "role": "data"
-          },
-          {
-            "symbol": "state",
-            "role": "data"
-          },
-          {
-            "symbol": "washLayerPool",
-            "role": "data"
-          },
-          {
-            "symbol": "washLayers",
-            "role": "data"
-          },
-          {
-            "symbol": "washReplacementTimes",
-            "role": "data"
-          },
-          {
-            "symbol": "washTextureCache",
-            "role": "data"
-          }
-        ],
-        "actions": [
-          {
-            "symbol": "particleLayers.removeAll",
-            "role": "actions"
-          },
-          {
-            "symbol": "particleLayers.removeValue",
-            "role": "actions"
-          },
-          {
-            "symbol": "washLayers.removeAll",
-            "role": "actions"
-          },
-          {
-            "symbol": "washLayers.removeValue",
-            "role": "actions"
-          },
-          {
-            "symbol": "washReplacementTimes.removeAll",
-            "role": "actions"
-          },
-          {
-            "symbol": "washReplacementTimes.removeValue",
-            "role": "actions"
-          }
-        ]
+        "data": [],
+        "actions": []
       },
       "states": {
         "appearance": [
@@ -7762,7 +7692,12 @@
       "sharedSymbol": "",
       "remainingCadenceSymbol": "Cadence.WindowContentLayout",
       "dependencies": {
-        "data": [],
+        "data": [
+          {
+            "symbol": "content",
+            "role": "data"
+          }
+        ],
         "actions": []
       },
       "states": {

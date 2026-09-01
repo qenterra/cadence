@@ -284,9 +284,71 @@ def source_depths(source: str) -> list[int]:
     return depths
 
 
-def stored_consumer_inputs(source: str) -> dict[str, str]:
-    """Return top-level consumer inputs, excluding private/local implementation state."""
+EXTERNAL_WRAPPERS = frozenset({
+    "Binding", "Environment", "EnvironmentObject", "ObservedObject", "AppStorage", "Bindable",
+})
+OWNED_WRAPPERS = frozenset({"State", "StateObject", "FocusState", "GestureState"})
+
+
+def matching_delimiter(source: str, opening: int, opening_character: str, closing_character: str) -> int | None:
+    depth = 0
+    for index in range(opening, len(source)):
+        if source[index] == opening_character:
+            depth += 1
+        elif source[index] == closing_character:
+            depth -= 1
+            if depth == 0:
+                return index
+    return None
+
+
+def initializer_property_assignments(source: str) -> tuple[set[str], set[str]]:
+    """Return every initializer assignment and the subset assigned from a parameter."""
     depths = source_depths(source)
+    assigned: set[str] = set()
+    injected: set[str] = set()
+    for match in re.finditer(r"\binit\??\s*\(", source):
+        if depths[match.start()] != 1:
+            continue
+        opening_parenthesis = source.find("(", match.start())
+        closing_parenthesis = matching_delimiter(source, opening_parenthesis, "(", ")")
+        if closing_parenthesis is None:
+            continue
+        opening_brace = source.find("{", closing_parenthesis)
+        if opening_brace == -1:
+            continue
+        closing_brace = matching_brace(source, opening_brace)
+        if closing_brace is None:
+            continue
+        parameters = set(
+            re.findall(
+                r"(?:^|[,(])\s*(?:@\w+\s+)*(?:_\s+)?([A-Za-z_]\w*)\s*:",
+                source[opening_parenthesis : closing_parenthesis + 1],
+            )
+        )
+        for assignment in re.finditer(
+            r"(?m)^\s*(?:self\.)?([A-Za-z_]\w*)\s*=\s*([A-Za-z_]\w*)\b",
+            source[opening_brace + 1 : closing_brace],
+        ):
+            assigned.add(assignment.group(1))
+            if assignment.group(2) in parameters:
+                injected.add(assignment.group(1))
+    return assigned, injected
+
+
+def init_injected_properties(source: str) -> set[str]:
+    return initializer_property_assignments(source)[1]
+
+
+def is_struct_declaration(source: str) -> bool:
+    return re.search(r"(?m)^\s*(?:final\s+)?struct\b", source) is not None
+
+
+def stored_consumer_inputs(source: str) -> dict[str, str]:
+    """Return inputs whose ownership is proven external to the declaration."""
+    depths = source_depths(source)
+    initialized_in_init, injected = initializer_property_assignments(source)
+    is_struct = is_struct_declaration(source)
     inputs: dict[str, str] = {}
     property_pattern = re.compile(
         r"(?m)^[ \t]*(?P<prefix>(?:@\w+(?:\([^\n)]*\))?\s+)*)"
@@ -300,13 +362,32 @@ def stored_consumer_inputs(source: str) -> dict[str, str]:
         name = match.group("name")
         prefix = match.group("prefix") or ""
         access = match.group("access") or ""
-        if name == "body" or "@State" in prefix or "@FocusState" in prefix or "@GestureState" in prefix:
-            continue
-        if access.strip() in {"private", "fileprivate"} and not prefix:
+        wrappers = set(re.findall(r"@(\w+)", prefix))
+        if name == "body" or wrappers & OWNED_WRAPPERS:
             continue
         line_end = source.find("\n", match.end())
         line_end = len(source) if line_end == -1 else line_end
-        if source[match.end() : line_end].lstrip().startswith("{"):
+        tail = source[match.end() : line_end].lstrip()
+        if tail.startswith("{"):
+            continue
+        initialized = tail.startswith("=")
+        private = access.strip() in {"private", "fileprivate"}
+        external_wrapper = bool(wrappers & EXTERNAL_WRAPPERS)
+        consumer_settable_struct_default = (
+            is_struct and not private and name not in initialized_in_init
+        )
+        uninitialized_external_storage = (
+            not is_struct
+            and not initialized
+            and name not in initialized_in_init
+            and not private
+        )
+        if not (
+            external_wrapper
+            or name in injected
+            or consumer_settable_struct_default
+            or uninitialized_external_storage
+        ):
             continue
         inputs[name] = (match.group("type") or "").strip()
     return inputs
