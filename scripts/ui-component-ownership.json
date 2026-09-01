@@ -1,0 +1,3132 @@
+{
+  "schemaVersion": 1,
+  "sourceRoot": "Sources/Cadence",
+  "components": [
+    {
+      "path": "Components/AirPlayRoutePicker.swift",
+      "symbol": "AirPlayRoutePicker",
+      "kind": "NSViewRepresentable",
+      "line": 3,
+      "classification": "cadence-adapter",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.AirPlayRoutePicker",
+      "dependencies": [
+        "AVFoundation",
+        "AVKit",
+        "SwiftUI"
+      ],
+      "states": [
+        "mounted",
+        "updated"
+      ],
+      "wave": "wave-3-adapters",
+      "evidence": "Sources/Cadence/Components/AirPlayRoutePicker.swift:3"
+    },
+    {
+      "path": "Components/ArtworkView.swift",
+      "symbol": "ArtworkPlaceholderView",
+      "kind": "View",
+      "line": 188,
+      "classification": "media-component",
+      "deliveryProduct": "QenTerraMediaComponents",
+      "sharedSymbol": "ArtworkPlaceholderView",
+      "remainingCadenceSymbol": "Cadence.ArtworkPlaceholderView",
+      "dependencies": [
+        "AppKit",
+        "ImageIO",
+        "SwiftUI"
+      ],
+      "states": [
+        "placeholder",
+        "available"
+      ],
+      "wave": "wave-2-media",
+      "evidence": "Sources/Cadence/Components/ArtworkView.swift:188"
+    },
+    {
+      "path": "Components/ArtworkView.swift",
+      "symbol": "ArtworkView",
+      "kind": "View",
+      "line": 3,
+      "classification": "media-component",
+      "deliveryProduct": "QenTerraMediaComponents",
+      "sharedSymbol": "ArtworkView",
+      "remainingCadenceSymbol": "Cadence.ArtworkView",
+      "dependencies": [
+        "AppKit",
+        "ImageIO",
+        "SwiftUI"
+      ],
+      "states": [
+        "placeholder",
+        "available"
+      ],
+      "wave": "wave-2-media",
+      "evidence": "Sources/Cadence/Components/ArtworkView.swift:3"
+    },
+    {
+      "path": "Components/ArtworkView.swift",
+      "symbol": "CustomArtworkContent",
+      "kind": "View",
+      "line": 109,
+      "classification": "media-component",
+      "deliveryProduct": "QenTerraMediaComponents",
+      "sharedSymbol": "CustomArtworkContent",
+      "remainingCadenceSymbol": "Cadence.CustomArtworkContent",
+      "dependencies": [
+        "AppKit",
+        "ImageIO",
+        "SwiftUI"
+      ],
+      "states": [
+        "placeholder",
+        "available"
+      ],
+      "wave": "wave-2-media",
+      "evidence": "Sources/Cadence/Components/ArtworkView.swift:109"
+    },
+    {
+      "path": "Components/ArtworkView.swift",
+      "symbol": "MediaArtworkView",
+      "kind": "View",
+      "line": 70,
+      "classification": "media-component",
+      "deliveryProduct": "QenTerraMediaComponents",
+      "sharedSymbol": "MediaArtworkView",
+      "remainingCadenceSymbol": "Cadence.MediaArtworkView",
+      "dependencies": [
+        "AppKit",
+        "ImageIO",
+        "SwiftUI"
+      ],
+      "states": [
+        "placeholder",
+        "available"
+      ],
+      "wave": "wave-2-media",
+      "evidence": "Sources/Cadence/Components/ArtworkView.swift:70"
+    },
+    {
+      "path": "Components/BrowserRowSurface.swift",
+      "symbol": "BrowserRowSurface",
+      "kind": "View",
+      "line": 43,
+      "classification": "core-component",
+      "deliveryProduct": "QenTerraComponents",
+      "sharedSymbol": "BrowserRowSurface",
+      "remainingCadenceSymbol": "Cadence.BrowserRowSurface",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "enabled",
+        "disabled"
+      ],
+      "wave": "wave-1-core",
+      "evidence": "Sources/Cadence/Components/BrowserRowSurface.swift:43"
+    },
+    {
+      "path": "Components/BrowserRowSurface.swift",
+      "symbol": "CadenceRowButtonStyle",
+      "kind": "ButtonStyle",
+      "line": 96,
+      "classification": "core-component",
+      "deliveryProduct": "QenTerraComponents",
+      "sharedSymbol": "CadenceRowButtonStyle",
+      "remainingCadenceSymbol": "Cadence.CadenceRowButtonStyle",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "enabled",
+        "disabled"
+      ],
+      "wave": "wave-1-core",
+      "evidence": "Sources/Cadence/Components/BrowserRowSurface.swift:96"
+    },
+    {
+      "path": "Components/CadenceFlowLayout.swift",
+      "symbol": "CadenceFlowLayout",
+      "kind": "Layout",
+      "line": 1,
+      "classification": "core-component",
+      "deliveryProduct": "QenTerraComponents",
+      "sharedSymbol": "CadenceFlowLayout",
+      "remainingCadenceSymbol": "Cadence.CadenceFlowLayout",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "enabled",
+        "disabled"
+      ],
+      "wave": "wave-1-core",
+      "evidence": "Sources/Cadence/Components/CadenceFlowLayout.swift:1"
+    },
+    {
+      "path": "Components/CadencePageHeader.swift",
+      "symbol": "CadencePageHeader",
+      "kind": "View",
+      "line": 1,
+      "classification": "core-component",
+      "deliveryProduct": "QenTerraComponents",
+      "sharedSymbol": "CadencePageHeader",
+      "remainingCadenceSymbol": "Cadence.CadencePageHeader",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "enabled",
+        "disabled"
+      ],
+      "wave": "wave-1-core",
+      "evidence": "Sources/Cadence/Components/CadencePageHeader.swift:1"
+    },
+    {
+      "path": "Components/CadencePageScrollView.swift",
+      "symbol": "CadencePageScrollView",
+      "kind": "View",
+      "line": 3,
+      "classification": "core-component",
+      "deliveryProduct": "QenTerraComponents",
+      "sharedSymbol": "CadencePageScrollView",
+      "remainingCadenceSymbol": "Cadence.CadencePageScrollView",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "enabled",
+        "disabled"
+      ],
+      "wave": "wave-1-core",
+      "evidence": "Sources/Cadence/Components/CadencePageScrollView.swift:3"
+    },
+    {
+      "path": "Components/CadenceResizableSplitView.swift",
+      "symbol": "CadenceResizableSplitView",
+      "kind": "View",
+      "line": 37,
+      "classification": "core-component",
+      "deliveryProduct": "QenTerraComponents",
+      "sharedSymbol": "CadenceResizableSplitView",
+      "remainingCadenceSymbol": "Cadence.CadenceResizableSplitView",
+      "dependencies": [
+        "AppKit",
+        "SwiftUI"
+      ],
+      "states": [
+        "enabled",
+        "disabled"
+      ],
+      "wave": "wave-1-core",
+      "evidence": "Sources/Cadence/Components/CadenceResizableSplitView.swift:37"
+    },
+    {
+      "path": "Components/CadenceSeparator.swift",
+      "symbol": "CadenceSeparator",
+      "kind": "View",
+      "line": 1,
+      "classification": "core-component",
+      "deliveryProduct": "QenTerraComponents",
+      "sharedSymbol": "CadenceSeparator",
+      "remainingCadenceSymbol": "Cadence.CadenceSeparator",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "enabled",
+        "disabled"
+      ],
+      "wave": "wave-1-core",
+      "evidence": "Sources/Cadence/Components/CadenceSeparator.swift:1"
+    },
+    {
+      "path": "Components/CatalogSortMenu.swift",
+      "symbol": "CatalogSortMenu",
+      "kind": "View",
+      "line": 28,
+      "classification": "product-only-behaviour",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.CatalogSortMenu",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "default",
+        "interactive"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Components/CatalogSortMenu.swift:28"
+    },
+    {
+      "path": "Components/EmptyLibraryView.swift",
+      "symbol": "EmptyLibraryView",
+      "kind": "View",
+      "line": 1,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.EmptyLibraryView",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Components/EmptyLibraryView.swift:1"
+    },
+    {
+      "path": "Components/FavoriteButton.swift",
+      "symbol": "FavoriteButton",
+      "kind": "View",
+      "line": 90,
+      "classification": "core-component",
+      "deliveryProduct": "QenTerraComponents",
+      "sharedSymbol": "FavoriteButton",
+      "remainingCadenceSymbol": "Cadence.FavoriteButton",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "enabled",
+        "disabled"
+      ],
+      "wave": "wave-1-core",
+      "evidence": "Sources/Cadence/Components/FavoriteButton.swift:90"
+    },
+    {
+      "path": "Components/LibraryUnavailableView.swift",
+      "symbol": "LibraryUnavailableView",
+      "kind": "View",
+      "line": 2,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.LibraryUnavailableView",
+      "dependencies": [
+        "AppKit",
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Components/LibraryUnavailableView.swift:2"
+    },
+    {
+      "path": "Components/MediaMetadataLink.swift",
+      "symbol": "MediaMetadataLink",
+      "kind": "View",
+      "line": 1,
+      "classification": "core-component",
+      "deliveryProduct": "QenTerraComponents",
+      "sharedSymbol": "MediaMetadataLink",
+      "remainingCadenceSymbol": "Cadence.MediaMetadataLink",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "enabled",
+        "disabled"
+      ],
+      "wave": "wave-1-core",
+      "evidence": "Sources/Cadence/Components/MediaMetadataLink.swift:1"
+    },
+    {
+      "path": "Components/NavigationRail.swift",
+      "symbol": "NavigationRail",
+      "kind": "View",
+      "line": 44,
+      "classification": "product-only-behaviour",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.NavigationRail",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "default",
+        "interactive"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Components/NavigationRail.swift:44"
+    },
+    {
+      "path": "Components/PlayerBar.swift",
+      "symbol": "PlaybackProgressControl",
+      "kind": "View",
+      "line": 51,
+      "classification": "media-component",
+      "deliveryProduct": "QenTerraMediaComponents",
+      "sharedSymbol": "PlaybackProgressControl",
+      "remainingCadenceSymbol": "Cadence.PlaybackProgressControl",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "placeholder",
+        "available"
+      ],
+      "wave": "wave-2-media",
+      "evidence": "Sources/Cadence/Components/PlayerBar.swift:51"
+    },
+    {
+      "path": "Components/PlayerBar.swift",
+      "symbol": "PlayerBar",
+      "kind": "View",
+      "line": 1,
+      "classification": "product-only-behaviour",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.PlayerBar",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "default",
+        "interactive"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Components/PlayerBar.swift:1"
+    },
+    {
+      "path": "Components/PlayerBarFavoriteControl.swift",
+      "symbol": "PlayerBarFavoriteControl",
+      "kind": "View",
+      "line": 1,
+      "classification": "media-component",
+      "deliveryProduct": "QenTerraMediaComponents",
+      "sharedSymbol": "PlayerBarFavoriteControl",
+      "remainingCadenceSymbol": "Cadence.PlayerBarFavoriteControl",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "placeholder",
+        "available"
+      ],
+      "wave": "wave-2-media",
+      "evidence": "Sources/Cadence/Components/PlayerBarFavoriteControl.swift:1"
+    },
+    {
+      "path": "Components/ProductionArtworkView.swift",
+      "symbol": "ProductionArtworkView",
+      "kind": "View",
+      "line": 75,
+      "classification": "media-component",
+      "deliveryProduct": "QenTerraMediaComponents",
+      "sharedSymbol": "ProductionArtworkView",
+      "remainingCadenceSymbol": "Cadence.ProductionArtworkView",
+      "dependencies": [
+        "Observation",
+        "SwiftUI"
+      ],
+      "states": [
+        "placeholder",
+        "available"
+      ],
+      "wave": "wave-2-media",
+      "evidence": "Sources/Cadence/Components/ProductionArtworkView.swift:75"
+    },
+    {
+      "path": "Components/WorkspaceLayout.swift",
+      "symbol": "WorkspacePaneHeader",
+      "kind": "View",
+      "line": 13,
+      "classification": "core-component",
+      "deliveryProduct": "QenTerraComponents",
+      "sharedSymbol": "WorkspacePaneHeader",
+      "remainingCadenceSymbol": "Cadence.WorkspacePaneHeader",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "enabled",
+        "disabled"
+      ],
+      "wave": "wave-1-core",
+      "evidence": "Sources/Cadence/Components/WorkspaceLayout.swift:13"
+    },
+    {
+      "path": "DesignSystem/GlassCompatibility.swift",
+      "symbol": "CadenceGlassSurfaceModifier",
+      "kind": "ViewModifier",
+      "line": 23,
+      "classification": "cadence-adapter",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.CadenceGlassSurfaceModifier",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "mounted",
+        "updated"
+      ],
+      "wave": "wave-3-adapters",
+      "evidence": "Sources/Cadence/DesignSystem/GlassCompatibility.swift:23"
+    },
+    {
+      "path": "Features/Albums/AlbumsView.swift",
+      "symbol": "AlbumsView",
+      "kind": "View",
+      "line": 1,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.AlbumsView",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/Albums/AlbumsView.swift:1"
+    },
+    {
+      "path": "Features/Albums/ProductionAlbumDetailView.swift",
+      "symbol": "ProductionAlbumDetailView",
+      "kind": "View",
+      "line": 1,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.ProductionAlbumDetailView",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/Albums/ProductionAlbumDetailView.swift:1"
+    },
+    {
+      "path": "Features/Albums/ProductionAlbumsView.swift",
+      "symbol": "ProductionAlbumTile",
+      "kind": "View",
+      "line": 146,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.ProductionAlbumTile",
+      "dependencies": [
+        "AppKit",
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/Albums/ProductionAlbumsView.swift:146"
+    },
+    {
+      "path": "Features/Albums/ProductionAlbumsView.swift",
+      "symbol": "ProductionAlbumsView",
+      "kind": "View",
+      "line": 2,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.ProductionAlbumsView",
+      "dependencies": [
+        "AppKit",
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/Albums/ProductionAlbumsView.swift:2"
+    },
+    {
+      "path": "Features/Artists/ArtistsView.swift",
+      "symbol": "ArtistsView",
+      "kind": "View",
+      "line": 1,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.ArtistsView",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/Artists/ArtistsView.swift:1"
+    },
+    {
+      "path": "Features/Artists/ProductionArtistDetailView.swift",
+      "symbol": "ProductionArtistDetailView",
+      "kind": "View",
+      "line": 1,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.ProductionArtistDetailView",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/Artists/ProductionArtistDetailView.swift:1"
+    },
+    {
+      "path": "Features/Artists/ProductionArtistsView.swift",
+      "symbol": "ProductionArtistTile",
+      "kind": "View",
+      "line": 152,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.ProductionArtistTile",
+      "dependencies": [
+        "AppKit",
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/Artists/ProductionArtistsView.swift:152"
+    },
+    {
+      "path": "Features/Artists/ProductionArtistsView.swift",
+      "symbol": "ProductionArtistsView",
+      "kind": "View",
+      "line": 2,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.ProductionArtistsView",
+      "dependencies": [
+        "AppKit",
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/Artists/ProductionArtistsView.swift:2"
+    },
+    {
+      "path": "Features/Artwork/ArtworkCropSheet.swift",
+      "symbol": "ArtworkCropSheet",
+      "kind": "View",
+      "line": 2,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.ArtworkCropSheet",
+      "dependencies": [
+        "AppKit",
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/Artwork/ArtworkCropSheet.swift:2"
+    },
+    {
+      "path": "Features/Artwork/ArtworkManagementHost.swift",
+      "symbol": "ArtworkManagementModifier",
+      "kind": "ViewModifier",
+      "line": 4,
+      "classification": "product-only-behaviour",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.ArtworkManagementModifier",
+      "dependencies": [
+        "SwiftUI",
+        "UniformTypeIdentifiers"
+      ],
+      "states": [
+        "default",
+        "interactive"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/Artwork/ArtworkManagementHost.swift:4"
+    },
+    {
+      "path": "Features/Artwork/ArtworkMenuItems.swift",
+      "symbol": "ArtworkMenuItems",
+      "kind": "View",
+      "line": 1,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.ArtworkMenuItems",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/Artwork/ArtworkMenuItems.swift:1"
+    },
+    {
+      "path": "Features/Home/ProductionHomeSupport.swift",
+      "symbol": "HomeCompactGrid",
+      "kind": "View",
+      "line": 320,
+      "classification": "core-component",
+      "deliveryProduct": "QenTerraComponents",
+      "sharedSymbol": "HomeCompactGrid",
+      "remainingCadenceSymbol": "Cadence.HomeCompactGrid",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "enabled",
+        "disabled"
+      ],
+      "wave": "wave-1-core",
+      "evidence": "Sources/Cadence/Features/Home/ProductionHomeSupport.swift:320"
+    },
+    {
+      "path": "Features/Home/ProductionHomeSupport.swift",
+      "symbol": "HomeDestinationTile",
+      "kind": "View",
+      "line": 212,
+      "classification": "core-component",
+      "deliveryProduct": "QenTerraComponents",
+      "sharedSymbol": "HomeDestinationTile",
+      "remainingCadenceSymbol": "Cadence.HomeDestinationTile",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "enabled",
+        "disabled"
+      ],
+      "wave": "wave-1-core",
+      "evidence": "Sources/Cadence/Features/Home/ProductionHomeSupport.swift:212"
+    },
+    {
+      "path": "Features/Home/ProductionHomeSupport.swift",
+      "symbol": "HomeMediaTile",
+      "kind": "View",
+      "line": 238,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.HomeMediaTile",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/Home/ProductionHomeSupport.swift:238"
+    },
+    {
+      "path": "Features/Home/ProductionHomeSupport.swift",
+      "symbol": "HomeShelf",
+      "kind": "View",
+      "line": 105,
+      "classification": "core-component",
+      "deliveryProduct": "QenTerraComponents",
+      "sharedSymbol": "HomeShelf",
+      "remainingCadenceSymbol": "Cadence.HomeShelf",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "enabled",
+        "disabled"
+      ],
+      "wave": "wave-1-core",
+      "evidence": "Sources/Cadence/Features/Home/ProductionHomeSupport.swift:105"
+    },
+    {
+      "path": "Features/Home/ProductionHomeSupport.swift",
+      "symbol": "HomeTrackGrid",
+      "kind": "View",
+      "line": 157,
+      "classification": "core-component",
+      "deliveryProduct": "QenTerraComponents",
+      "sharedSymbol": "HomeTrackGrid",
+      "remainingCadenceSymbol": "Cadence.HomeTrackGrid",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "enabled",
+        "disabled"
+      ],
+      "wave": "wave-1-core",
+      "evidence": "Sources/Cadence/Features/Home/ProductionHomeSupport.swift:157"
+    },
+    {
+      "path": "Features/Home/ProductionHomeSupport.swift",
+      "symbol": "HomeTrackTile",
+      "kind": "View",
+      "line": 184,
+      "classification": "core-component",
+      "deliveryProduct": "QenTerraComponents",
+      "sharedSymbol": "HomeTrackTile",
+      "remainingCadenceSymbol": "Cadence.HomeTrackTile",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "enabled",
+        "disabled"
+      ],
+      "wave": "wave-1-core",
+      "evidence": "Sources/Cadence/Features/Home/ProductionHomeSupport.swift:184"
+    },
+    {
+      "path": "Features/Home/ProductionHomeView.swift",
+      "symbol": "ProductionHomeView",
+      "kind": "View",
+      "line": 107,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.ProductionHomeView",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/Home/ProductionHomeView.swift:107"
+    },
+    {
+      "path": "Features/ImportMusic/ImportMusicCompleteState.swift",
+      "symbol": "ImportMusicCompleteState",
+      "kind": "View",
+      "line": 1,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.ImportMusicCompleteState",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/ImportMusic/ImportMusicCompleteState.swift:1"
+    },
+    {
+      "path": "Features/ImportMusic/ImportMusicDropOverlay.swift",
+      "symbol": "ImportMusicDropOverlay",
+      "kind": "View",
+      "line": 1,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.ImportMusicDropOverlay",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/ImportMusic/ImportMusicDropOverlay.swift:1"
+    },
+    {
+      "path": "Features/ImportMusic/ImportMusicEmptyState.swift",
+      "symbol": "ImportMusicEmptyState",
+      "kind": "View",
+      "line": 1,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.ImportMusicEmptyState",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/ImportMusic/ImportMusicEmptyState.swift:1"
+    },
+    {
+      "path": "Features/ImportMusic/ImportMusicPreviewPresentation.swift",
+      "symbol": "ImportMusicPreviewHeaderControls",
+      "kind": "View",
+      "line": 1,
+      "classification": "product-only-behaviour",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.ImportMusicPreviewHeaderControls",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "default",
+        "interactive"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/ImportMusic/ImportMusicPreviewPresentation.swift:1"
+    },
+    {
+      "path": "Features/ImportMusic/ImportMusicPreviewPresentation.swift",
+      "symbol": "ImportMusicPreviewStageContent",
+      "kind": "View",
+      "line": 30,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.ImportMusicPreviewStageContent",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/ImportMusic/ImportMusicPreviewPresentation.swift:30"
+    },
+    {
+      "path": "Features/ImportMusic/ImportMusicReview.swift",
+      "symbol": "ImportMusicCandidateRow",
+      "kind": "View",
+      "line": 230,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.ImportMusicCandidateRow",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/ImportMusic/ImportMusicReview.swift:230"
+    },
+    {
+      "path": "Features/ImportMusic/ImportMusicReview.swift",
+      "symbol": "ImportMusicReview",
+      "kind": "View",
+      "line": 26,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.ImportMusicReview",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/ImportMusic/ImportMusicReview.swift:26"
+    },
+    {
+      "path": "Features/ImportMusic/ImportMusicScanningState.swift",
+      "symbol": "ImportMusicScanningState",
+      "kind": "View",
+      "line": 1,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.ImportMusicScanningState",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/ImportMusic/ImportMusicScanningState.swift:1"
+    },
+    {
+      "path": "Features/ImportMusic/ImportMusicView.swift",
+      "symbol": "ImportMusicView",
+      "kind": "View",
+      "line": 1,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.ImportMusicView",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/ImportMusic/ImportMusicView.swift:1"
+    },
+    {
+      "path": "Features/Library/AllTracksView.swift",
+      "symbol": "AllTracksView",
+      "kind": "View",
+      "line": 1,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.AllTracksView",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/Library/AllTracksView.swift:1"
+    },
+    {
+      "path": "Features/Library/LibraryFavoritesView.swift",
+      "symbol": "LibraryFavoritesView",
+      "kind": "View",
+      "line": 1,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.LibraryFavoritesView",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/Library/LibraryFavoritesView.swift:1"
+    },
+    {
+      "path": "Features/Library/LibraryView.swift",
+      "symbol": "LibraryColumnHeader",
+      "kind": "View",
+      "line": 20,
+      "classification": "core-component",
+      "deliveryProduct": "QenTerraComponents",
+      "sharedSymbol": "LibraryColumnHeader",
+      "remainingCadenceSymbol": "Cadence.LibraryColumnHeader",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "enabled",
+        "disabled"
+      ],
+      "wave": "wave-1-core",
+      "evidence": "Sources/Cadence/Features/Library/LibraryView.swift:20"
+    },
+    {
+      "path": "Features/Library/LibraryView.swift",
+      "symbol": "LibraryView",
+      "kind": "View",
+      "line": 1,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.LibraryView",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/Library/LibraryView.swift:1"
+    },
+    {
+      "path": "Features/Library/NativeAllTracksTable.swift",
+      "symbol": "NativeAllTracksTable",
+      "kind": "View",
+      "line": 1,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.NativeAllTracksTable",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/Library/NativeAllTracksTable.swift:1"
+    },
+    {
+      "path": "Features/Library/NativePlaybackIndicatorView.swift",
+      "symbol": "NativePlaybackIndicatorView",
+      "kind": "NSView",
+      "line": 4,
+      "classification": "media-component",
+      "deliveryProduct": "QenTerraMediaComponents",
+      "sharedSymbol": "NativePlaybackIndicatorView",
+      "remainingCadenceSymbol": "Cadence.NativePlaybackIndicatorView",
+      "dependencies": [
+        "AppKit",
+        "QuartzCore"
+      ],
+      "states": [
+        "placeholder",
+        "available"
+      ],
+      "wave": "wave-2-media",
+      "evidence": "Sources/Cadence/Features/Library/NativePlaybackIndicatorView.swift:4"
+    },
+    {
+      "path": "Features/Library/NativeTrackTableCell.swift",
+      "symbol": "NativeTrackTableCell",
+      "kind": "NSTableCellView",
+      "line": 86,
+      "classification": "cadence-adapter",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.NativeTrackTableCell",
+      "dependencies": [
+        "AppKit",
+        "QuartzCore"
+      ],
+      "states": [
+        "mounted",
+        "updated"
+      ],
+      "wave": "wave-3-adapters",
+      "evidence": "Sources/Cadence/Features/Library/NativeTrackTableCell.swift:86"
+    },
+    {
+      "path": "Features/Library/ProductionLibraryView.swift",
+      "symbol": "ProductionLibraryView",
+      "kind": "View",
+      "line": 1,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.ProductionLibraryView",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/Library/ProductionLibraryView.swift:1"
+    },
+    {
+      "path": "Features/Library/ProductionTrackList.swift",
+      "symbol": "ProductionTrackList",
+      "kind": "View",
+      "line": 19,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.ProductionTrackList",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/Library/ProductionTrackList.swift:19"
+    },
+    {
+      "path": "Features/Library/ProductionTrackTable.swift",
+      "symbol": "ProductionTrackTable",
+      "kind": "View",
+      "line": 1,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.ProductionTrackTable",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/Library/ProductionTrackTable.swift:1"
+    },
+    {
+      "path": "Features/Library/ProductionTrackTableRow.swift",
+      "symbol": "ProductionTrackTableRow",
+      "kind": "View",
+      "line": 67,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.ProductionTrackTableRow",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/Library/ProductionTrackTableRow.swift:67"
+    },
+    {
+      "path": "Features/Library/ProductionTrashView.swift",
+      "symbol": "ProductionTrashView",
+      "kind": "View",
+      "line": 1,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.ProductionTrashView",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/Library/ProductionTrashView.swift:1"
+    },
+    {
+      "path": "Features/Library/TrackTableCore.swift",
+      "symbol": "TrackTableCore",
+      "kind": "NSViewRepresentable",
+      "line": 780,
+      "classification": "cadence-adapter",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.TrackTableCore",
+      "dependencies": [
+        "AppKit",
+        "SwiftUI"
+      ],
+      "states": [
+        "mounted",
+        "updated"
+      ],
+      "wave": "wave-3-adapters",
+      "evidence": "Sources/Cadence/Features/Library/TrackTableCore.swift:780"
+    },
+    {
+      "path": "Features/Library/TrackTableCoreViews.swift",
+      "symbol": "TrackTableHostedRoot",
+      "kind": "View",
+      "line": 118,
+      "classification": "core-component",
+      "deliveryProduct": "QenTerraComponents",
+      "sharedSymbol": "TrackTableHostedRoot",
+      "remainingCadenceSymbol": "Cadence.TrackTableHostedRoot",
+      "dependencies": [
+        "AppKit",
+        "Observation",
+        "SwiftUI"
+      ],
+      "states": [
+        "enabled",
+        "disabled"
+      ],
+      "wave": "wave-1-core",
+      "evidence": "Sources/Cadence/Features/Library/TrackTableCoreViews.swift:118"
+    },
+    {
+      "path": "Features/Library/TrackTableCoreViews.swift",
+      "symbol": "TrackTableHostingCell",
+      "kind": "NSTableCellView",
+      "line": 149,
+      "classification": "cadence-adapter",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.TrackTableHostingCell",
+      "dependencies": [
+        "AppKit",
+        "Observation",
+        "SwiftUI"
+      ],
+      "states": [
+        "mounted",
+        "updated"
+      ],
+      "wave": "wave-3-adapters",
+      "evidence": "Sources/Cadence/Features/Library/TrackTableCoreViews.swift:149"
+    },
+    {
+      "path": "Features/Library/TrackTableCoreViews.swift",
+      "symbol": "TrackTablePlaceholderRow",
+      "kind": "View",
+      "line": 198,
+      "classification": "core-component",
+      "deliveryProduct": "QenTerraComponents",
+      "sharedSymbol": "TrackTablePlaceholderRow",
+      "remainingCadenceSymbol": "Cadence.TrackTablePlaceholderRow",
+      "dependencies": [
+        "AppKit",
+        "Observation",
+        "SwiftUI"
+      ],
+      "states": [
+        "enabled",
+        "disabled"
+      ],
+      "wave": "wave-1-core",
+      "evidence": "Sources/Cadence/Features/Library/TrackTableCoreViews.swift:198"
+    },
+    {
+      "path": "Features/Library/TrackTableCoreViews.swift",
+      "symbol": "TrackTableView",
+      "kind": "NSTableView",
+      "line": 5,
+      "classification": "cadence-adapter",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.TrackTableView",
+      "dependencies": [
+        "AppKit",
+        "Observation",
+        "SwiftUI"
+      ],
+      "states": [
+        "mounted",
+        "updated"
+      ],
+      "wave": "wave-3-adapters",
+      "evidence": "Sources/Cadence/Features/Library/TrackTableCoreViews.swift:5"
+    },
+    {
+      "path": "Features/Library/TrackTableLayout.swift",
+      "symbol": "TrackTableHeaderCell",
+      "kind": "View",
+      "line": 74,
+      "classification": "core-component",
+      "deliveryProduct": "QenTerraComponents",
+      "sharedSymbol": "TrackTableHeaderCell",
+      "remainingCadenceSymbol": "Cadence.TrackTableHeaderCell",
+      "dependencies": [
+        "Foundation",
+        "SwiftUI"
+      ],
+      "states": [
+        "enabled",
+        "disabled"
+      ],
+      "wave": "wave-1-core",
+      "evidence": "Sources/Cadence/Features/Library/TrackTableLayout.swift:74"
+    },
+    {
+      "path": "Features/LyricsEditor/LyricLineTable.swift",
+      "symbol": "LyricLineEditorRow",
+      "kind": "View",
+      "line": 187,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.LyricLineEditorRow",
+      "dependencies": [
+        "AppKit",
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/LyricsEditor/LyricLineTable.swift:187"
+    },
+    {
+      "path": "Features/LyricsEditor/LyricLineTable.swift",
+      "symbol": "LyricLineTable",
+      "kind": "View",
+      "line": 2,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.LyricLineTable",
+      "dependencies": [
+        "AppKit",
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/LyricsEditor/LyricLineTable.swift:2"
+    },
+    {
+      "path": "Features/LyricsEditor/LyricLineTable.swift",
+      "symbol": "LyricTimestampField",
+      "kind": "View",
+      "line": 303,
+      "classification": "product-only-behaviour",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.LyricTimestampField",
+      "dependencies": [
+        "AppKit",
+        "SwiftUI"
+      ],
+      "states": [
+        "default",
+        "interactive"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/LyricsEditor/LyricLineTable.swift:303"
+    },
+    {
+      "path": "Features/LyricsEditor/LyricLineTable.swift",
+      "symbol": "LyricsExportPreview",
+      "kind": "View",
+      "line": 370,
+      "classification": "product-only-behaviour",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.LyricsExportPreview",
+      "dependencies": [
+        "AppKit",
+        "SwiftUI"
+      ],
+      "states": [
+        "default",
+        "interactive"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/LyricsEditor/LyricLineTable.swift:370"
+    },
+    {
+      "path": "Features/LyricsEditor/LyricsDraftTransitionAlert.swift",
+      "symbol": "LyricsDraftTransitionAlert",
+      "kind": "ViewModifier",
+      "line": 1,
+      "classification": "product-only-behaviour",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.LyricsDraftTransitionAlert",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "default",
+        "interactive"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/LyricsEditor/LyricsDraftTransitionAlert.swift:1"
+    },
+    {
+      "path": "Features/LyricsEditor/LyricsEditorHeader.swift",
+      "symbol": "LyricsEditorHeader",
+      "kind": "View",
+      "line": 1,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.LyricsEditorHeader",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/LyricsEditor/LyricsEditorHeader.swift:1"
+    },
+    {
+      "path": "Features/LyricsEditor/LyricsEditorView.swift",
+      "symbol": "LyricsEditorView",
+      "kind": "View",
+      "line": 1,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.LyricsEditorView",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/LyricsEditor/LyricsEditorView.swift:1"
+    },
+    {
+      "path": "Features/LyricsEditor/TapToSyncPanel.swift",
+      "symbol": "TapToSyncPanel",
+      "kind": "View",
+      "line": 15,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.TapToSyncPanel",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/LyricsEditor/TapToSyncPanel.swift:15"
+    },
+    {
+      "path": "Features/NowPlaying/AudioDetailsPopover.swift",
+      "symbol": "AudioDetailsPopover",
+      "kind": "View",
+      "line": 1,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.AudioDetailsPopover",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/NowPlaying/AudioDetailsPopover.swift:1"
+    },
+    {
+      "path": "Features/NowPlaying/NowPlayingPanelPicker.swift",
+      "symbol": "NowPlayingPanelPicker",
+      "kind": "View",
+      "line": 1,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.NowPlayingPanelPicker",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/NowPlaying/NowPlayingPanelPicker.swift:1"
+    },
+    {
+      "path": "Features/NowPlaying/NowPlayingView.swift",
+      "symbol": "NowPlayingView",
+      "kind": "View",
+      "line": 1,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.NowPlayingView",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/NowPlaying/NowPlayingView.swift:1"
+    },
+    {
+      "path": "Features/NowPlaying/ProductionArtworkHaze.swift",
+      "symbol": "ProductionArtworkHaze",
+      "kind": "View",
+      "line": 2,
+      "classification": "media-component",
+      "deliveryProduct": "QenTerraMediaComponents",
+      "sharedSymbol": "ProductionArtworkHaze",
+      "remainingCadenceSymbol": "Cadence.ProductionArtworkHaze",
+      "dependencies": [
+        "CoreImage",
+        "SwiftUI"
+      ],
+      "states": [
+        "placeholder",
+        "available"
+      ],
+      "wave": "wave-2-media",
+      "evidence": "Sources/Cadence/Features/NowPlaying/ProductionArtworkHaze.swift:2"
+    },
+    {
+      "path": "Features/NowPlaying/ProductionLyricsPanel.swift",
+      "symbol": "PlaybackLyricActiveLineObserver",
+      "kind": "View",
+      "line": 309,
+      "classification": "product-only-behaviour",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.PlaybackLyricActiveLineObserver",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "default",
+        "interactive"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/NowPlaying/ProductionLyricsPanel.swift:309"
+    },
+    {
+      "path": "Features/NowPlaying/ProductionLyricsPanel.swift",
+      "symbol": "ProductionLyricLineLabel",
+      "kind": "View",
+      "line": 416,
+      "classification": "media-component",
+      "deliveryProduct": "QenTerraMediaComponents",
+      "sharedSymbol": "ProductionLyricLineLabel",
+      "remainingCadenceSymbol": "Cadence.ProductionLyricLineLabel",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "placeholder",
+        "available"
+      ],
+      "wave": "wave-2-media",
+      "evidence": "Sources/Cadence/Features/NowPlaying/ProductionLyricsPanel.swift:416"
+    },
+    {
+      "path": "Features/NowPlaying/ProductionLyricsPanel.swift",
+      "symbol": "ProductionLyricsPanel",
+      "kind": "View",
+      "line": 1,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.ProductionLyricsPanel",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/NowPlaying/ProductionLyricsPanel.swift:1"
+    },
+    {
+      "path": "Features/NowPlaying/ProductionNowPlayingView.swift",
+      "symbol": "ProductionNowPlayingView",
+      "kind": "View",
+      "line": 27,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.ProductionNowPlayingView",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/NowPlaying/ProductionNowPlayingView.swift:27"
+    },
+    {
+      "path": "Features/NowPlaying/ProductionPlaybackQueuePanel+Support.swift",
+      "symbol": "ProductionQueueDragModifier",
+      "kind": "ViewModifier",
+      "line": 95,
+      "classification": "product-only-behaviour",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.ProductionQueueDragModifier",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "default",
+        "interactive"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/NowPlaying/ProductionPlaybackQueuePanel+Support.swift:95"
+    },
+    {
+      "path": "Features/NowPlaying/ProductionPlaybackQueuePanel+Support.swift",
+      "symbol": "ProductionQueueDragPreview",
+      "kind": "View",
+      "line": 111,
+      "classification": "core-component",
+      "deliveryProduct": "QenTerraComponents",
+      "sharedSymbol": "ProductionQueueDragPreview",
+      "remainingCadenceSymbol": "Cadence.ProductionQueueDragPreview",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "enabled",
+        "disabled"
+      ],
+      "wave": "wave-1-core",
+      "evidence": "Sources/Cadence/Features/NowPlaying/ProductionPlaybackQueuePanel+Support.swift:111"
+    },
+    {
+      "path": "Features/NowPlaying/ProductionPlaybackQueuePanel+Support.swift",
+      "symbol": "ProductionQueueInsertionIndicator",
+      "kind": "View",
+      "line": 13,
+      "classification": "core-component",
+      "deliveryProduct": "QenTerraComponents",
+      "sharedSymbol": "ProductionQueueInsertionIndicator",
+      "remainingCadenceSymbol": "Cadence.ProductionQueueInsertionIndicator",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "enabled",
+        "disabled"
+      ],
+      "wave": "wave-1-core",
+      "evidence": "Sources/Cadence/Features/NowPlaying/ProductionPlaybackQueuePanel+Support.swift:13"
+    },
+    {
+      "path": "Features/NowPlaying/ProductionPlaybackQueuePanel+Support.swift",
+      "symbol": "ProductionQueueRowDropModifier",
+      "kind": "ViewModifier",
+      "line": 63,
+      "classification": "product-only-behaviour",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.ProductionQueueRowDropModifier",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "default",
+        "interactive"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/NowPlaying/ProductionPlaybackQueuePanel+Support.swift:63"
+    },
+    {
+      "path": "Features/NowPlaying/ProductionPlaybackQueuePanel+Support.swift",
+      "symbol": "ProductionQueueRowInteractionModifier",
+      "kind": "ViewModifier",
+      "line": 25,
+      "classification": "product-only-behaviour",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.ProductionQueueRowInteractionModifier",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "default",
+        "interactive"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/NowPlaying/ProductionPlaybackQueuePanel+Support.swift:25"
+    },
+    {
+      "path": "Features/NowPlaying/ProductionPlaybackQueuePanel.swift",
+      "symbol": "ProductionPlaybackQueuePanel",
+      "kind": "View",
+      "line": 1,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.ProductionPlaybackQueuePanel",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/NowPlaying/ProductionPlaybackQueuePanel.swift:1"
+    },
+    {
+      "path": "Features/NowPlaying/ProductionPlaybackQueueRow.swift",
+      "symbol": "ProductionPlaybackQueueRow",
+      "kind": "View",
+      "line": 1,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.ProductionPlaybackQueueRow",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/NowPlaying/ProductionPlaybackQueueRow.swift:1"
+    },
+    {
+      "path": "Features/Playlists/AddToPlaylistMenuItems.swift",
+      "symbol": "AddAlbumToPlaylistMenuItems",
+      "kind": "View",
+      "line": 37,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.AddAlbumToPlaylistMenuItems",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/Playlists/AddToPlaylistMenuItems.swift:37"
+    },
+    {
+      "path": "Features/Playlists/AddToPlaylistMenuItems.swift",
+      "symbol": "AddArtistToPlaylistMenuItems",
+      "kind": "View",
+      "line": 68,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.AddArtistToPlaylistMenuItems",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/Playlists/AddToPlaylistMenuItems.swift:68"
+    },
+    {
+      "path": "Features/Playlists/AddToPlaylistMenuItems.swift",
+      "symbol": "AddToPlaylistMenuItems",
+      "kind": "View",
+      "line": 1,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.AddToPlaylistMenuItems",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/Playlists/AddToPlaylistMenuItems.swift:1"
+    },
+    {
+      "path": "Features/Playlists/PlaylistsView.swift",
+      "symbol": "PlaylistsView",
+      "kind": "View",
+      "line": 2,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.PlaylistsView",
+      "dependencies": [
+        "AppKit",
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/Playlists/PlaylistsView.swift:2"
+    },
+    {
+      "path": "Features/Rhythm/CadenceModeBackground.swift",
+      "symbol": "CadenceModeBackground",
+      "kind": "NSViewRepresentable",
+      "line": 4,
+      "classification": "cadence-adapter",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.CadenceModeBackground",
+      "dependencies": [
+        "AppKit",
+        "MetalKit",
+        "QuartzCore",
+        "SwiftUI"
+      ],
+      "states": [
+        "mounted",
+        "updated"
+      ],
+      "wave": "wave-3-adapters",
+      "evidence": "Sources/Cadence/Features/Rhythm/CadenceModeBackground.swift:4"
+    },
+    {
+      "path": "Features/Rhythm/CadenceModeBackground.swift",
+      "symbol": "CadenceModeBackgroundView",
+      "kind": "MTKView",
+      "line": 38,
+      "classification": "cadence-adapter",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.CadenceModeBackgroundView",
+      "dependencies": [
+        "AppKit",
+        "MetalKit",
+        "QuartzCore",
+        "SwiftUI"
+      ],
+      "states": [
+        "mounted",
+        "updated"
+      ],
+      "wave": "wave-3-adapters",
+      "evidence": "Sources/Cadence/Features/Rhythm/CadenceModeBackground.swift:38"
+    },
+    {
+      "path": "Features/Rhythm/CadenceModeBackground.swift",
+      "symbol": "CadenceModeGradientRenderer",
+      "kind": "MTKViewDelegate",
+      "line": 114,
+      "classification": "cadence-adapter",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.CadenceModeGradientRenderer",
+      "dependencies": [
+        "AppKit",
+        "MetalKit",
+        "QuartzCore",
+        "SwiftUI"
+      ],
+      "states": [
+        "mounted",
+        "updated"
+      ],
+      "wave": "wave-3-adapters",
+      "evidence": "Sources/Cadence/Features/Rhythm/CadenceModeBackground.swift:114"
+    },
+    {
+      "path": "Features/Rhythm/CadenceModeHint.swift",
+      "symbol": "CadenceModeHint",
+      "kind": "View",
+      "line": 1,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.CadenceModeHint",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/Rhythm/CadenceModeHint.swift:1"
+    },
+    {
+      "path": "Features/Rhythm/CadenceModeInputCapture.swift",
+      "symbol": "CadenceModeInputCapture",
+      "kind": "View",
+      "line": 1,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.CadenceModeInputCapture",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/Rhythm/CadenceModeInputCapture.swift:1"
+    },
+    {
+      "path": "Features/Rhythm/CadenceModeView.swift",
+      "symbol": "CadenceModeLayerModifier",
+      "kind": "ViewModifier",
+      "line": 399,
+      "classification": "product-only-behaviour",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.CadenceModeLayerModifier",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "default",
+        "interactive"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/Rhythm/CadenceModeView.swift:399"
+    },
+    {
+      "path": "Features/Rhythm/CadenceModeView.swift",
+      "symbol": "CadenceModeLyricStack",
+      "kind": "View",
+      "line": 410,
+      "classification": "media-component",
+      "deliveryProduct": "QenTerraMediaComponents",
+      "sharedSymbol": "CadenceModeLyricStack",
+      "remainingCadenceSymbol": "Cadence.CadenceModeLyricStack",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "placeholder",
+        "available"
+      ],
+      "wave": "wave-2-media",
+      "evidence": "Sources/Cadence/Features/Rhythm/CadenceModeView.swift:410"
+    },
+    {
+      "path": "Features/Rhythm/CadenceModeView.swift",
+      "symbol": "CadenceModeLyricsEdgeFade",
+      "kind": "View",
+      "line": 507,
+      "classification": "media-component",
+      "deliveryProduct": "QenTerraMediaComponents",
+      "sharedSymbol": "CadenceModeLyricsEdgeFade",
+      "remainingCadenceSymbol": "Cadence.CadenceModeLyricsEdgeFade",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "placeholder",
+        "available"
+      ],
+      "wave": "wave-2-media",
+      "evidence": "Sources/Cadence/Features/Rhythm/CadenceModeView.swift:507"
+    },
+    {
+      "path": "Features/Rhythm/CadenceModeView.swift",
+      "symbol": "CadenceModeView",
+      "kind": "View",
+      "line": 68,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.CadenceModeView",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/Rhythm/CadenceModeView.swift:68"
+    },
+    {
+      "path": "Features/Rhythm/RhythmKeyboardCapture.swift",
+      "symbol": "RhythmKeyboardCapture",
+      "kind": "NSViewRepresentable",
+      "line": 67,
+      "classification": "cadence-adapter",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.RhythmKeyboardCapture",
+      "dependencies": [
+        "AppKit",
+        "SwiftUI"
+      ],
+      "states": [
+        "mounted",
+        "updated"
+      ],
+      "wave": "wave-3-adapters",
+      "evidence": "Sources/Cadence/Features/Rhythm/RhythmKeyboardCapture.swift:67"
+    },
+    {
+      "path": "Features/Rhythm/RhythmPulseCanvas.swift",
+      "symbol": "RhythmPulseCanvas",
+      "kind": "NSViewRepresentable",
+      "line": 1,
+      "classification": "cadence-adapter",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.RhythmPulseCanvas",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "mounted",
+        "updated"
+      ],
+      "wave": "wave-3-adapters",
+      "evidence": "Sources/Cadence/Features/Rhythm/RhythmPulseCanvas.swift:1"
+    },
+    {
+      "path": "Features/Rhythm/RhythmPulseCompositorView.swift",
+      "symbol": "RhythmPulseCompositorView",
+      "kind": "NSView",
+      "line": 68,
+      "classification": "cadence-adapter",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.RhythmPulseCompositorView",
+      "dependencies": [
+        "AppKit",
+        "QuartzCore"
+      ],
+      "states": [
+        "mounted",
+        "updated"
+      ],
+      "wave": "wave-3-adapters",
+      "evidence": "Sources/Cadence/Features/Rhythm/RhythmPulseCompositorView.swift:68"
+    },
+    {
+      "path": "Features/Search/LyricsSearchPreviewView.swift",
+      "symbol": "LyricsSearchPreviewView",
+      "kind": "View",
+      "line": 1,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.LyricsSearchPreviewView",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/Search/LyricsSearchPreviewView.swift:1"
+    },
+    {
+      "path": "Features/Search/LyricsSearchResultsSection.swift",
+      "symbol": "LyricsSearchResultsSection",
+      "kind": "View",
+      "line": 1,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.LyricsSearchResultsSection",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/Search/LyricsSearchResultsSection.swift:1"
+    },
+    {
+      "path": "Features/Search/ProductionSearchResultsView.swift",
+      "symbol": "ProductionSearchResultsView",
+      "kind": "View",
+      "line": 1,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.ProductionSearchResultsView",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/Search/ProductionSearchResultsView.swift:1"
+    },
+    {
+      "path": "Features/Settings/ManagedLibrarySettingsCard.swift",
+      "symbol": "ManagedLibrarySettingsCard",
+      "kind": "View",
+      "line": 2,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.ManagedLibrarySettingsCard",
+      "dependencies": [
+        "AppKit",
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/Settings/ManagedLibrarySettingsCard.swift:2"
+    },
+    {
+      "path": "Features/Settings/NotificationsSettingsCard.swift",
+      "symbol": "NotificationsSettingsCard",
+      "kind": "View",
+      "line": 1,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.NotificationsSettingsCard",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/Settings/NotificationsSettingsCard.swift:1"
+    },
+    {
+      "path": "Features/Settings/ProductionSettingsView.swift",
+      "symbol": "ProductionSettingsView",
+      "kind": "View",
+      "line": 51,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.ProductionSettingsView",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/Settings/ProductionSettingsView.swift:51"
+    },
+    {
+      "path": "Features/Settings/ProductionSettingsView.swift",
+      "symbol": "SettingsCard",
+      "kind": "View",
+      "line": 354,
+      "classification": "core-component",
+      "deliveryProduct": "QenTerraComponents",
+      "sharedSymbol": "SettingsCard",
+      "remainingCadenceSymbol": "Cadence.SettingsCard",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "enabled",
+        "disabled"
+      ],
+      "wave": "wave-1-core",
+      "evidence": "Sources/Cadence/Features/Settings/ProductionSettingsView.swift:354"
+    },
+    {
+      "path": "Features/Settings/RemoteLibrarySettingsView.swift",
+      "symbol": "RemoteLibraryConnectionSheet",
+      "kind": "View",
+      "line": 194,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.RemoteLibraryConnectionSheet",
+      "dependencies": [
+        "AppKit",
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/Settings/RemoteLibrarySettingsView.swift:194"
+    },
+    {
+      "path": "Features/Settings/RemoteLibrarySettingsView.swift",
+      "symbol": "RemoteLibrarySettingsView",
+      "kind": "View",
+      "line": 2,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.RemoteLibrarySettingsView",
+      "dependencies": [
+        "AppKit",
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/Settings/RemoteLibrarySettingsView.swift:2"
+    },
+    {
+      "path": "Features/Settings/SettingsAboutSection.swift",
+      "symbol": "SettingsAboutResourceRow",
+      "kind": "View",
+      "line": 164,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.SettingsAboutResourceRow",
+      "dependencies": [
+        "AppKit",
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/Settings/SettingsAboutSection.swift:164"
+    },
+    {
+      "path": "Features/Settings/SettingsAboutSection.swift",
+      "symbol": "SettingsAboutSection",
+      "kind": "View",
+      "line": 55,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.SettingsAboutSection",
+      "dependencies": [
+        "AppKit",
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/Settings/SettingsAboutSection.swift:55"
+    },
+    {
+      "path": "Features/Settings/SettingsDataCard.swift",
+      "symbol": "SettingsDataCard",
+      "kind": "View",
+      "line": 3,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.SettingsDataCard",
+      "dependencies": [
+        "AppKit",
+        "SwiftUI",
+        "UniformTypeIdentifiers"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/Settings/SettingsDataCard.swift:3"
+    },
+    {
+      "path": "Features/Settings/SettingsHomeSectionsCard.swift",
+      "symbol": "SettingsHomeSectionsCard",
+      "kind": "View",
+      "line": 1,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.SettingsHomeSectionsCard",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/Settings/SettingsHomeSectionsCard.swift:1"
+    },
+    {
+      "path": "Features/Settings/SettingsHomeSectionsCard.swift",
+      "symbol": "SettingsRowSeparator",
+      "kind": "View",
+      "line": 166,
+      "classification": "core-component",
+      "deliveryProduct": "QenTerraComponents",
+      "sharedSymbol": "SettingsRowSeparator",
+      "remainingCadenceSymbol": "Cadence.SettingsRowSeparator",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "enabled",
+        "disabled"
+      ],
+      "wave": "wave-1-core",
+      "evidence": "Sources/Cadence/Features/Settings/SettingsHomeSectionsCard.swift:166"
+    },
+    {
+      "path": "Features/Settings/SettingsLibraryRetentionCard.swift",
+      "symbol": "SettingsLibraryRetentionCard",
+      "kind": "View",
+      "line": 1,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.SettingsLibraryRetentionCard",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/Settings/SettingsLibraryRetentionCard.swift:1"
+    },
+    {
+      "path": "Features/Settings/SettingsPlaybackView.swift",
+      "symbol": "SettingsPlaybackView",
+      "kind": "View",
+      "line": 1,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.SettingsPlaybackView",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/Settings/SettingsPlaybackView.swift:1"
+    },
+    {
+      "path": "Features/Settings/SettingsSidebarCard.swift",
+      "symbol": "SettingsSidebarCard",
+      "kind": "View",
+      "line": 1,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.SettingsSidebarCard",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/Settings/SettingsSidebarCard.swift:1"
+    },
+    {
+      "path": "Features/Settings/SettingsSidebarCard.swift",
+      "symbol": "SettingsSidebarDragPreview",
+      "kind": "View",
+      "line": 249,
+      "classification": "core-component",
+      "deliveryProduct": "QenTerraComponents",
+      "sharedSymbol": "SettingsSidebarDragPreview",
+      "remainingCadenceSymbol": "Cadence.SettingsSidebarDragPreview",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "enabled",
+        "disabled"
+      ],
+      "wave": "wave-1-core",
+      "evidence": "Sources/Cadence/Features/Settings/SettingsSidebarCard.swift:249"
+    },
+    {
+      "path": "Features/Settings/SettingsSidebarCard.swift",
+      "symbol": "SettingsSidebarRow",
+      "kind": "View",
+      "line": 196,
+      "classification": "core-component",
+      "deliveryProduct": "QenTerraComponents",
+      "sharedSymbol": "SettingsSidebarRow",
+      "remainingCadenceSymbol": "Cadence.SettingsSidebarRow",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "enabled",
+        "disabled"
+      ],
+      "wave": "wave-1-core",
+      "evidence": "Sources/Cadence/Features/Settings/SettingsSidebarCard.swift:196"
+    },
+    {
+      "path": "Features/Settings/SettingsTabStrip.swift",
+      "symbol": "SettingsTabStrip",
+      "kind": "View",
+      "line": 31,
+      "classification": "core-component",
+      "deliveryProduct": "QenTerraComponents",
+      "sharedSymbol": "SettingsTabStrip",
+      "remainingCadenceSymbol": "Cadence.SettingsTabStrip",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "enabled",
+        "disabled"
+      ],
+      "wave": "wave-1-core",
+      "evidence": "Sources/Cadence/Features/Settings/SettingsTabStrip.swift:31"
+    },
+    {
+      "path": "Features/Settings/SettingsToggleRow.swift",
+      "symbol": "SettingsToggleRow",
+      "kind": "View",
+      "line": 21,
+      "classification": "core-component",
+      "deliveryProduct": "QenTerraComponents",
+      "sharedSymbol": "SettingsToggleRow",
+      "remainingCadenceSymbol": "Cadence.SettingsToggleRow",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "enabled",
+        "disabled"
+      ],
+      "wave": "wave-1-core",
+      "evidence": "Sources/Cadence/Features/Settings/SettingsToggleRow.swift:21"
+    },
+    {
+      "path": "Features/Settings/SettingsTrackListsCard.swift",
+      "symbol": "SettingsTrackListsCard",
+      "kind": "View",
+      "line": 1,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.SettingsTrackListsCard",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/Settings/SettingsTrackListsCard.swift:1"
+    },
+    {
+      "path": "Features/Settings/ShortcutsSettingsView.swift",
+      "symbol": "ShortcutKeyGlyphs",
+      "kind": "View",
+      "line": 148,
+      "classification": "core-component",
+      "deliveryProduct": "QenTerraComponents",
+      "sharedSymbol": "ShortcutKeyGlyphs",
+      "remainingCadenceSymbol": "Cadence.ShortcutKeyGlyphs",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "enabled",
+        "disabled"
+      ],
+      "wave": "wave-1-core",
+      "evidence": "Sources/Cadence/Features/Settings/ShortcutsSettingsView.swift:148"
+    },
+    {
+      "path": "Features/Settings/ShortcutsSettingsView.swift",
+      "symbol": "ShortcutsSettingsView",
+      "kind": "View",
+      "line": 117,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.ShortcutsSettingsView",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/Settings/ShortcutsSettingsView.swift:117"
+    },
+    {
+      "path": "Features/Settings/UpdatesSettingsView.swift",
+      "symbol": "UpdatesSettingsView",
+      "kind": "View",
+      "line": 1,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.UpdatesSettingsView",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/Settings/UpdatesSettingsView.swift:1"
+    },
+    {
+      "path": "Features/Shell/CadenceRootView+Bindings.swift",
+      "symbol": "CadenceSearchModifier",
+      "kind": "ViewModifier",
+      "line": 126,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.CadenceSearchModifier",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/Shell/CadenceRootView+Bindings.swift:126"
+    },
+    {
+      "path": "Features/Shell/CadenceRootView.swift",
+      "symbol": "CadenceRootView",
+      "kind": "View",
+      "line": 29,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.CadenceRootView",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/Shell/CadenceRootView.swift:29"
+    },
+    {
+      "path": "Features/Shell/WindowContentLayout.swift",
+      "symbol": "WindowContentLayout",
+      "kind": "View",
+      "line": 2,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.WindowContentLayout",
+      "dependencies": [
+        "AppKit",
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/Shell/WindowContentLayout.swift:2"
+    },
+    {
+      "path": "Features/Shell/WindowContentLayout.swift",
+      "symbol": "WindowContentLayoutProbe",
+      "kind": "NSViewRepresentable",
+      "line": 66,
+      "classification": "cadence-adapter",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.WindowContentLayoutProbe",
+      "dependencies": [
+        "AppKit",
+        "SwiftUI"
+      ],
+      "states": [
+        "mounted",
+        "updated"
+      ],
+      "wave": "wave-3-adapters",
+      "evidence": "Sources/Cadence/Features/Shell/WindowContentLayout.swift:66"
+    },
+    {
+      "path": "Features/Shell/WindowContentLayout.swift",
+      "symbol": "WindowContentLayoutProbe.ProbeView",
+      "kind": "NSView",
+      "line": 77,
+      "classification": "cadence-adapter",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.WindowContentLayoutProbe.ProbeView",
+      "dependencies": [
+        "AppKit",
+        "SwiftUI"
+      ],
+      "states": [
+        "mounted",
+        "updated"
+      ],
+      "wave": "wave-3-adapters",
+      "evidence": "Sources/Cadence/Features/Shell/WindowContentLayout.swift:77"
+    },
+    {
+      "path": "Features/SmartCollections/SmartCollectionArtworkMosaic.swift",
+      "symbol": "SmartCollectionArtworkMosaic",
+      "kind": "View",
+      "line": 1,
+      "classification": "media-component",
+      "deliveryProduct": "QenTerraMediaComponents",
+      "sharedSymbol": "SmartCollectionArtworkMosaic",
+      "remainingCadenceSymbol": "Cadence.SmartCollectionArtworkMosaic",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "placeholder",
+        "available"
+      ],
+      "wave": "wave-2-media",
+      "evidence": "Sources/Cadence/Features/SmartCollections/SmartCollectionArtworkMosaic.swift:1"
+    },
+    {
+      "path": "Features/SmartCollections/SmartCollectionListColumn.swift",
+      "symbol": "SmartCollectionListColumn",
+      "kind": "View",
+      "line": 1,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.SmartCollectionListColumn",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/SmartCollections/SmartCollectionListColumn.swift:1"
+    },
+    {
+      "path": "Features/SmartCollections/SmartCollectionListColumn.swift",
+      "symbol": "SmartCollectionListRow",
+      "kind": "View",
+      "line": 63,
+      "classification": "core-component",
+      "deliveryProduct": "QenTerraComponents",
+      "sharedSymbol": "SmartCollectionListRow",
+      "remainingCadenceSymbol": "Cadence.SmartCollectionListRow",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "enabled",
+        "disabled"
+      ],
+      "wave": "wave-1-core",
+      "evidence": "Sources/Cadence/Features/SmartCollections/SmartCollectionListColumn.swift:63"
+    },
+    {
+      "path": "Features/SmartCollections/SmartCollectionListeningHeader.swift",
+      "symbol": "SmartCollectionListeningHeader",
+      "kind": "View",
+      "line": 1,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.SmartCollectionListeningHeader",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/SmartCollections/SmartCollectionListeningHeader.swift:1"
+    },
+    {
+      "path": "Features/SmartCollections/SmartCollectionListeningPage.swift",
+      "symbol": "SmartCollectionListeningPage",
+      "kind": "View",
+      "line": 1,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.SmartCollectionListeningPage",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/SmartCollections/SmartCollectionListeningPage.swift:1"
+    },
+    {
+      "path": "Features/SmartCollections/SmartCollectionResultsColumn.swift",
+      "symbol": "SmartCollectionResultsColumn",
+      "kind": "View",
+      "line": 1,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.SmartCollectionResultsColumn",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/SmartCollections/SmartCollectionResultsColumn.swift:1"
+    },
+    {
+      "path": "Features/SmartCollections/SmartCollectionRuleBuilder.swift",
+      "symbol": "SmartCollectionRuleBuilder",
+      "kind": "View",
+      "line": 1,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.SmartCollectionRuleBuilder",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/SmartCollections/SmartCollectionRuleBuilder.swift:1"
+    },
+    {
+      "path": "Features/SmartCollections/SmartCollectionRuleInfoPopover.swift",
+      "symbol": "SmartCollectionRuleInfoPopover",
+      "kind": "View",
+      "line": 1,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.SmartCollectionRuleInfoPopover",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/SmartCollections/SmartCollectionRuleInfoPopover.swift:1"
+    },
+    {
+      "path": "Features/SmartCollections/SmartCollectionRuleRows.swift",
+      "symbol": "SmartCollectionConditionRow",
+      "kind": "View",
+      "line": 115,
+      "classification": "core-component",
+      "deliveryProduct": "QenTerraComponents",
+      "sharedSymbol": "SmartCollectionConditionRow",
+      "remainingCadenceSymbol": "Cadence.SmartCollectionConditionRow",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "enabled",
+        "disabled"
+      ],
+      "wave": "wave-1-core",
+      "evidence": "Sources/Cadence/Features/SmartCollections/SmartCollectionRuleRows.swift:115"
+    },
+    {
+      "path": "Features/SmartCollections/SmartCollectionRuleRows.swift",
+      "symbol": "SmartCollectionGroupRow",
+      "kind": "View",
+      "line": 42,
+      "classification": "core-component",
+      "deliveryProduct": "QenTerraComponents",
+      "sharedSymbol": "SmartCollectionGroupRow",
+      "remainingCadenceSymbol": "Cadence.SmartCollectionGroupRow",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "enabled",
+        "disabled"
+      ],
+      "wave": "wave-1-core",
+      "evidence": "Sources/Cadence/Features/SmartCollections/SmartCollectionRuleRows.swift:42"
+    },
+    {
+      "path": "Features/SmartCollections/SmartCollectionRuleRows.swift",
+      "symbol": "SmartCollectionRuleRows",
+      "kind": "View",
+      "line": 1,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.SmartCollectionRuleRows",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/SmartCollections/SmartCollectionRuleRows.swift:1"
+    },
+    {
+      "path": "Features/SmartCollections/SmartCollectionRuleValueEditor.swift",
+      "symbol": "SmartCollectionRuleValueEditor",
+      "kind": "View",
+      "line": 1,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.SmartCollectionRuleValueEditor",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/SmartCollections/SmartCollectionRuleValueEditor.swift:1"
+    },
+    {
+      "path": "Features/SmartCollections/SmartCollectionsView.swift",
+      "symbol": "SmartCollectionsView",
+      "kind": "View",
+      "line": 18,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.SmartCollectionsView",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/SmartCollections/SmartCollectionsView.swift:18"
+    },
+    {
+      "path": "Features/Tags/ProductionTagEditorInspector.swift",
+      "symbol": "ProductionTagEditorInspector",
+      "kind": "View",
+      "line": 1,
+      "classification": "product-only-behaviour",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.ProductionTagEditorInspector",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "default",
+        "interactive"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/Tags/ProductionTagEditorInspector.swift:1"
+    },
+    {
+      "path": "Features/Tags/ProductionTagsView.swift",
+      "symbol": "ProductionTagsView",
+      "kind": "View",
+      "line": 1,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.ProductionTagsView",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/Tags/ProductionTagsView.swift:1"
+    },
+    {
+      "path": "Features/Tags/QuickTagMenuItems.swift",
+      "symbol": "QuickAlbumTagMenuItems",
+      "kind": "View",
+      "line": 27,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.QuickAlbumTagMenuItems",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/Tags/QuickTagMenuItems.swift:27"
+    },
+    {
+      "path": "Features/Tags/QuickTagMenuItems.swift",
+      "symbol": "QuickTrackTagMenuItems",
+      "kind": "View",
+      "line": 1,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.QuickTrackTagMenuItems",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/Tags/QuickTagMenuItems.swift:1"
+    },
+    {
+      "path": "Features/Tags/TagTrackPickerSheet.swift",
+      "symbol": "TagTrackPickerSheet",
+      "kind": "View",
+      "line": 1,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.TagTrackPickerSheet",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/Tags/TagTrackPickerSheet.swift:1"
+    },
+    {
+      "path": "Features/Tags/TagsView.swift",
+      "symbol": "TagsView",
+      "kind": "View",
+      "line": 1,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.TagsView",
+      "dependencies": [
+        "SwiftUI"
+      ],
+      "states": [
+        "loading",
+        "content",
+        "empty"
+      ],
+      "wave": "wave-4-product",
+      "evidence": "Sources/Cadence/Features/Tags/TagsView.swift:1"
+    }
+  ]
+}
