@@ -14,14 +14,19 @@ final class CadenceUpdateController: NSObject, SPUUpdaterDelegate {
     static let includesBetaUpdatesKey = "updates.includesBeta"
 
     private let startsUpdater: Bool
+    private let notificationController: CadenceNotificationController?
     private lazy var standardController = SPUStandardUpdaterController(
         startingUpdater: startsUpdater,
         updaterDelegate: self,
         userDriverDelegate: nil
     )
 
-    init(startsUpdater: Bool) {
+    init(
+        startsUpdater: Bool,
+        notificationController: CadenceNotificationController? = nil
+    ) {
         self.startsUpdater = startsUpdater
+        self.notificationController = notificationController
         super.init()
         _ = standardController
     }
@@ -57,6 +62,16 @@ final class CadenceUpdateController: NSObject, SPUUpdaterDelegate {
             includesBetaUpdates: UserDefaults.standard.bool(
                 forKey: Self.includesBetaUpdatesKey
             )
+        )
+    }
+
+    func updater(
+        _: SPUUpdater,
+        didFindValidUpdate item: SUAppcastItem
+    ) {
+        notificationController?.updateDidBecomeAvailable(
+            version: item.versionString,
+            displayVersion: item.displayVersionString
         )
     }
 }

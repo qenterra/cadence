@@ -1,4 +1,3 @@
-import AudioToolbox
 import AVFAudio
 import Foundation
 
@@ -13,16 +12,21 @@ enum PCMGainAutomation {
         return max(20 * log10(scalar), silenceDecibels)
     }
 
-    static func frameCount(
-        duration: Duration,
-        sampleRate: Double
-    ) -> AUAudioFrameCount {
+    static func stepCount(for duration: Duration) -> Int {
         let components = duration.components
         let seconds = Double(components.seconds)
             + Double(components.attoseconds) / 1e18
-        return AUAudioFrameCount(
-            min(max(seconds * sampleRate, 0), Double(UInt32.max))
-        )
+        return max(Int(ceil(seconds * 60)), 1)
+    }
+}
+
+enum PCMCrossfadeTrebleAutomation {
+    static let shelfFrequency: Float = 7000
+    static let closedGainDecibels: Float = -6
+
+    static func gain(for openness: Float) -> Float {
+        let openness = min(max(openness, 0), 1)
+        return closedGainDecibels * (1 - openness)
     }
 }
 
@@ -188,6 +192,13 @@ extension PCMPlaybackBackend {
         startTime: TimeInterval
     ) throws -> ScheduledPCMItem {
         let file = try AVAudioFile(forReading: resolved.mediaURL)
+        guard file.length > 0 else {
+            throw PlaybackFailure(
+                trackID: resolved.track.id,
+                message: "The PCM asset contains no schedulable audio frames."
+            )
+        }
+        let lastSchedulableFrame = file.length - 1
         let startFrame = min(
             max(
                 AVAudioFramePosition(
@@ -195,9 +206,9 @@ extension PCMPlaybackBackend {
                 ),
                 0
             ),
-            file.length
+            lastSchedulableFrame
         )
-        let remaining = max(file.length - startFrame, 0)
+        let remaining = file.length - startFrame
         guard remaining <= AVAudioFramePosition(UInt32.max) else {
             throw PlaybackFailure(
                 trackID: resolved.track.id,
@@ -320,39 +331,22 @@ extension PCMPlaybackBackend {
     }
 
     func applyGain() {
-        applyGain(duration: .milliseconds(12))
-    }
-
-    func applyGain(
-        duration: Duration
-    ) {
         playerNode.volume = 1
         let targetScalar = min(
-            max(userVolume * presentationGain, 0),
+            max(userVolume * normalizationGain * presentationGain, 0),
             1
         )
         engine.mainMixerNode.outputVolume = 1
         let targetDecibels = PCMGainAutomation.decibels(
             for: targetScalar
         )
-        let frameCount = PCMGainAutomation.frameCount(
-            duration: duration,
-            sampleRate: max(engine.outputNode.outputFormat(forBus: 0).sampleRate, 1)
-        )
-        guard engine.isRunning, frameCount > 0,
-              let parameter = gainUnit.auAudioUnit.parameterTree?
-              .allParameters.first(where: {
-                  $0.identifier.localizedCaseInsensitiveContains("gain")
-              })
-        else {
-            gainUnit.globalGain = targetDecibels
-            return
-        }
-        gainUnit.auAudioUnit.scheduleParameterBlock(
-            AUEventSampleTimeImmediate,
-            frameCount,
-            parameter.address,
-            targetDecibels
+        gainUnit.globalGain = targetDecibels
+        applyCrossfadeTreble()
+    }
+
+    func applyCrossfadeTreble() {
+        gainUnit.bands[0].gain = PCMCrossfadeTrebleAutomation.gain(
+            for: crossfadeTrebleOpenness
         )
     }
 

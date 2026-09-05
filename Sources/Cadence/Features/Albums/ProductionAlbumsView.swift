@@ -4,6 +4,7 @@ import SwiftUI
 struct ProductionAlbumsView: View {
     @Bindable var model: CadenceAppModel
     @Bindable var store: LibraryStore
+    @Environment(\.catalogCardSize) private var catalogCardSize
     @AppStorage("albums.sortField") private var sortFieldRaw = AlbumSortField.artist.rawValue
     @AppStorage("albums.sortDescending") private var sortsDescending = false
 
@@ -24,7 +25,8 @@ struct ProductionAlbumsView: View {
 
                         LazyVGrid(
                             columns: CatalogCardLayoutMetrics.layoutColumns(
-                                spacing: 18
+                                spacing: 18,
+                                size: catalogCardSize
                             ),
                             alignment: .leading,
                             spacing: 24
@@ -218,7 +220,7 @@ struct ProductionAlbumTile: View {
                 .frame(maxWidth: .infinity)
         }
         .padding(10)
-        .frame(width: CatalogCardLayoutMetrics.cardWidth)
+        .frame(maxWidth: .infinity)
         .background {
             BrowserRowSurface(
                 isSelected: model.catalogActivationSelection.contains(

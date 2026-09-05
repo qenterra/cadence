@@ -48,26 +48,44 @@ struct NowPlayingMetadataBadgesTests {
         #expect(presentation.showsSynchronizedLyrics)
     }
 
+    @Test("Technical information can be hidden without hiding lyric status")
+    func hiddenTechnicalInformation() {
+        let trackID = UUID()
+        let presentation = NowPlayingMetadataBadges.resolve(
+            audioPath: audioPath,
+            currentTrackID: trackID,
+            lyricDocument: document(trackID: trackID, times: [0, 10]),
+            showsTechnicalInformation: false
+        )
+
+        #expect(presentation.audioQuality == nil)
+        #expect(presentation.showsSynchronizedLyrics)
+    }
+
     private func badges(
         trackID: UUID,
         document: LyricDocument?
     ) -> NowPlayingMetadataBadges {
         NowPlayingMetadataBadges.resolve(
-            audioPath: AudioPathSnapshot(
-                codec: "flac",
-                container: "flac",
-                sourceBitDepth: 24,
-                sourceSampleRate: 96000,
-                sourceChannelCount: 2,
-                sourceSpatialFormat: .stereo,
-                backend: .pcm,
-                rendererSampleRate: 96000,
-                rendererChannelCount: 2,
-                outputRoute: .unknown,
-                nextTransitionIsGapless: true
-            ),
+            audioPath: audioPath,
             currentTrackID: trackID,
             lyricDocument: document
+        )
+    }
+
+    private var audioPath: AudioPathSnapshot {
+        AudioPathSnapshot(
+            codec: "flac",
+            container: "flac",
+            sourceBitDepth: 24,
+            sourceSampleRate: 96000,
+            sourceChannelCount: 2,
+            sourceSpatialFormat: .stereo,
+            backend: .pcm,
+            rendererSampleRate: 96000,
+            rendererChannelCount: 2,
+            outputRoute: .unknown,
+            nextTransitionIsGapless: true
         )
     }
 

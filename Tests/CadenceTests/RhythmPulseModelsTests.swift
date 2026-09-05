@@ -190,6 +190,16 @@ struct RhythmPulseModelsTests {
     }
 }
 
+private extension RhythmAccentPalette {
+    static let fixture = RhythmAccentPalette(
+        colors: [
+            RhythmPulseColor(red: 0.86, green: 0.37, blue: 0.66),
+            RhythmPulseColor(red: 0.49, green: 0.38, blue: 1),
+            RhythmPulseColor(red: 0, green: 0.8, blue: 0.89),
+        ]
+    )
+}
+
 struct RhythmPulseCompositorTests {
     @MainActor
     @Test("Recycled compositor layers are hidden with neutral model state")
@@ -308,8 +318,8 @@ struct RhythmPulseCompositorTests {
         #expect(!appearance.usesLiveBlur)
     }
 
-    @Test("Cadence Mode background uses bounded compositor motion")
-    func cadenceModeBackgroundUsesBoundedCompositorMotion() {
+    @Test("Cadence Mode background uses display-paced Metal motion")
+    func cadenceModeBackgroundUsesDisplayPacedMetalMotion() {
         let appearance = CadenceModeBackgroundAppearance.resolve(
             reduceMotion: false,
             reduceTransparency: false,
@@ -317,21 +327,10 @@ struct RhythmPulseCompositorTests {
         )
 
         #expect(appearance.isAnimated)
-        #expect(appearance.blurRadius == 0)
-        #expect((12 ... 18).contains(appearance.animationDuration))
         #expect(appearance.maximumAnimationFramesPerSecond == 60)
-        #expect(appearance.gradientRasterizationScale == 0.25)
-        #expect(appearance.animatedLayerCount == 2)
-        #expect(appearance.baseOpacity >= 0.78)
-        #expect(appearance.fieldOpacity >= 0.7)
-        #expect(appearance.scrimOpacity >= 0.35)
-        #expect(
-            RhythmAccentPalette.fixture.backgroundColors
-                .allSatisfy { $0.relativeLuminance < 0.5 }
-        )
     }
 
-    @Test("A flat artwork accent expands into distinct dark gradient zones")
+    @Test("A flat artwork accent expands into five shader colors")
     func flatArtworkStillProducesDynamicBackgroundZones() {
         let palette = RhythmAccentPalette(
             colors: [
@@ -339,12 +338,12 @@ struct RhythmPulseCompositorTests {
             ]
         )
 
-        let backgroundColors = palette.backgroundColors
-        let luminances = backgroundColors.map(\.relativeLuminance)
+        let shaderColors = CadenceModeGradientReference.shaderColors(
+            for: palette
+        )
 
-        #expect(backgroundColors.count >= 3)
-        #expect((luminances.max() ?? 0) - (luminances.min() ?? 0) >= 0.08)
-        #expect(backgroundColors.allSatisfy { $0.relativeLuminance < 0.5 })
+        #expect(shaderColors.count == 5)
+        #expect(Set(shaderColors).count >= 4)
     }
 
     @Test("Cadence Mode background honors accessibility display settings")
@@ -361,17 +360,6 @@ struct RhythmPulseCompositorTests {
         )
 
         #expect(!accessible.isAnimated)
-        #expect(accessible.baseOpacity == 1)
-        #expect(accessible.scrimOpacity > normal.scrimOpacity)
+        #expect(normal.isAnimated)
     }
-}
-
-private extension RhythmAccentPalette {
-    static let fixture = RhythmAccentPalette(
-        colors: [
-            RhythmPulseColor(red: 0.86, green: 0.37, blue: 0.66),
-            RhythmPulseColor(red: 0.49, green: 0.38, blue: 1),
-            RhythmPulseColor(red: 0, green: 0.8, blue: 0.89),
-        ]
-    )
 }

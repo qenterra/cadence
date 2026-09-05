@@ -3,18 +3,8 @@ import SwiftUI
 extension ProductionHomeView {
     @ViewBuilder
     var favorites: some View {
-        let recentTrackIDs = Set(
-            HomeListeningSelection.recentItems(
-                store.recentlyPlayedTracks,
-                limit: 6
-            ).map(\.id)
-        )
-        let excludedTrackIDs = recentTrackIDs.union(
-            [model.currentPlaybackTrack?.id].compactMap(\.self)
-        )
-        let candidateTracks = HomeListeningSelection.items(
+        let candidateTracks = HomeListeningSelection.favoriteItems(
             store.favoriteTracks,
-            excludingIDs: excludedTrackIDs,
             limit: store.favoriteTracks.count
         )
         let candidateAlbums = HomeListeningSelection.items(

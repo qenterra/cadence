@@ -3,6 +3,7 @@ import SwiftUI
 struct LibraryFavoritesView: View {
     @Bindable var model: CadenceAppModel
     @Bindable var store: LibraryStore
+    @Environment(\.catalogCardSize) private var catalogCardSize
     @AppStorage("library.favoriteSection")
     private var sectionRawValue = FavoriteCatalogSection.songs.rawValue
     @State private var selection: Set<UUID> = []
@@ -105,7 +106,7 @@ struct LibraryFavoritesView: View {
         } else if let window = store.favoriteTracksWindow {
             favoriteWindowContent(window)
         } else {
-            ProductionTrackTable(
+            ProductionTrackList(
                 model: model,
                 tracks: store.favoriteTracks,
                 contentVersion: store.favoriteTracksVersion,
@@ -146,7 +147,7 @@ struct LibraryFavoritesView: View {
                 .padding(.bottom, CadenceLayout.sectionGap)
             }
         case .ready:
-            ProductionTrackTable(
+            ProductionTrackList(
                 model: model,
                 tracks: [],
                 contentVersion: nil,
@@ -273,7 +274,10 @@ struct LibraryFavoritesView: View {
     }
 
     private var catalogGrid: [GridItem] {
-        CatalogCardLayoutMetrics.layoutColumns(spacing: 18)
+        CatalogCardLayoutMetrics.layoutColumns(
+            spacing: 18,
+            size: catalogCardSize
+        )
     }
 
     private func emptyState(

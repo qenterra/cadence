@@ -9,7 +9,6 @@ enum HomeTilePresentation: Equatable, Sendable {
 }
 
 enum HomeLayoutMetrics {
-    static let artworkCardHeight: CGFloat = 236
     static let titleLineLimit = 2
     static let subtitleLineLimit = 1
 }
@@ -41,6 +40,16 @@ enum HomeListeningSelection {
     }
 
     static func recentItems<Item: Identifiable>(
+        _ items: [Item],
+        limit: Int
+    ) -> [Item] {
+        guard limit > 0 else {
+            return []
+        }
+        return Array(items.prefix(limit))
+    }
+
+    static func favoriteItems<Item: Identifiable>(
         _ items: [Item],
         limit: Int
     ) -> [Item] {
@@ -149,11 +158,13 @@ struct HomeTrackGrid: View {
     @Bindable var model: CadenceAppModel
     let tracks: [LibraryTrackProjection]
     let queueSource: PlaybackQueueSource
+    @Environment(\.catalogCardSize) private var catalogCardSize
 
     var body: some View {
         LazyVGrid(
             columns: CatalogCardLayoutMetrics.layoutColumns(
-                spacing: CadenceLayout.contentGap
+                spacing: CadenceLayout.contentGap,
+                size: catalogCardSize
             ),
             alignment: .leading,
             spacing: CadenceLayout.contentGap
@@ -269,11 +280,7 @@ private struct HomeMediaTile: View {
             labels
         }
         .padding(CadenceLayout.compactGap)
-        .frame(width: CatalogCardLayoutMetrics.cardWidth)
-        .frame(
-            minHeight: HomeLayoutMetrics.artworkCardHeight,
-            alignment: .topLeading
-        )
+        .frame(maxWidth: .infinity)
         .background(
             model.catalogActivationSelection.selected == activationTarget
                 ? CadenceTheme.selectionFill
@@ -312,11 +319,13 @@ private struct HomeMediaTile: View {
 
 struct HomeCompactGrid<Content: View>: View {
     @ViewBuilder let content: Content
+    @Environment(\.catalogCardSize) private var catalogCardSize
 
     var body: some View {
         LazyVGrid(
             columns: CatalogCardLayoutMetrics.layoutColumns(
-                spacing: CadenceLayout.contentGap
+                spacing: CadenceLayout.contentGap,
+                size: catalogCardSize
             ),
             alignment: .leading,
             spacing: CadenceLayout.contentGap

@@ -124,7 +124,7 @@ enum NavigationRailGroup: String, CaseIterable, Hashable, Identifiable, Sendable
     }
 }
 
-enum RepeatMode: String, Sendable {
+enum RepeatMode: String, Codable, Sendable {
     case off
     case all
     case one

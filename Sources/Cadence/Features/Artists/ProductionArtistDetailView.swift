@@ -3,6 +3,7 @@ import SwiftUI
 struct ProductionArtistDetailView: View {
     @Bindable var model: CadenceAppModel
     @Bindable var store: LibraryStore
+    @Environment(\.catalogCardSize) private var catalogCardSize
     let artistID: UUID
     @State private var artist: LibraryArtistProjection?
     @State private var releases = ArtistReleaseSections.empty
@@ -37,13 +38,8 @@ struct ProductionArtistDetailView: View {
                             defaultSortDescriptor: TrackTableSortDescriptor(
                                 field: .year,
                                 direction: .descending
-                            )
-                        )
-                        .frame(
-                            height: min(
-                                max(CGFloat(tracks.count * 58 + 38), 240),
-                                520
-                            )
+                            ),
+                            scrollOwnership: .page
                         )
                     }
                     .padding(28)
@@ -161,13 +157,8 @@ private extension ProductionArtistDetailView {
                 defaultSortDescriptor: TrackTableSortDescriptor(
                     field: .year,
                     direction: .descending
-                )
-            )
-            .frame(
-                height: min(
-                    max(CGFloat(favorites.count * 58 + 38), 154),
-                    386
-                )
+                ),
+                scrollOwnership: .page
             )
         }
     }
@@ -176,7 +167,10 @@ private extension ProductionArtistDetailView {
         _ albums: [LibraryAlbumProjection]
     ) -> some View {
         LazyVGrid(
-            columns: CatalogCardLayoutMetrics.layoutColumns(spacing: 16),
+            columns: CatalogCardLayoutMetrics.layoutColumns(
+                spacing: 16,
+                size: catalogCardSize
+            ),
             alignment: .leading,
             spacing: 18
         ) {
@@ -235,7 +229,7 @@ private extension ProductionArtistDetailView {
             .font(.caption)
             .foregroundStyle(.secondary)
         }
-        .frame(width: CatalogCardLayoutMetrics.cardWidth)
+        .frame(maxWidth: .infinity)
         .contentShape(Rectangle())
     }
 

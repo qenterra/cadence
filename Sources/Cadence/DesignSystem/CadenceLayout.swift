@@ -18,20 +18,50 @@ enum CadenceLayout {
 }
 
 enum CatalogCardLayoutMetrics {
-    static let cardWidth: CGFloat = 196
+    static let minimumCardWidth: CGFloat = 164
+    static let maximumCardWidth: CGFloat = 196
+    static let cardWidth = minimumCardWidth
+
+    static func widthRange(
+        for size: CatalogCardSize
+    ) -> ClosedRange<CGFloat> {
+        switch size {
+        case .automatic:
+            164 ... 196
+        case .small:
+            136 ... 156
+        case .medium:
+            184 ... 220
+        case .large:
+            224 ... 272
+        }
+    }
 
     static func columns(
         availableWidth: CGFloat,
         spacing: CGFloat
     ) -> [GridItem] {
-        let resolvedWidth = max(availableWidth, cardWidth)
+        let resolvedWidth = max(availableWidth, minimumCardWidth)
         let count = max(
-            Int((resolvedWidth + spacing) / (cardWidth + spacing)),
+            Int(
+                (resolvedWidth + spacing)
+                    / (minimumCardWidth + spacing)
+            ),
             1
+        )
+        let distributedWidth = min(
+            max(
+                (
+                    resolvedWidth
+                        - CGFloat(max(count - 1, 0)) * spacing
+                ) / CGFloat(count),
+                minimumCardWidth
+            ),
+            maximumCardWidth
         )
         return Array(
             repeating: GridItem(
-                .fixed(cardWidth),
+                .fixed(distributedWidth),
                 spacing: spacing,
                 alignment: .top
             ),
@@ -39,15 +69,29 @@ enum CatalogCardLayoutMetrics {
         )
     }
 
-    /// SwiftUI performs the column-count calculation while both bounds keep
-    /// every rendered card at the exact shared catalog width.
+    /// SwiftUI chooses the count, then distributes useful width across cards.
     static func layoutColumns(spacing: CGFloat) -> [GridItem] {
-        [
+        layoutColumns(spacing: spacing, size: .automatic)
+    }
+
+    static func layoutColumns(
+        spacing: CGFloat,
+        size: CatalogCardSize
+    ) -> [GridItem] {
+        let range = widthRange(for: size)
+        return [
             GridItem(
-                .adaptive(minimum: cardWidth, maximum: cardWidth),
+                .adaptive(
+                    minimum: range.lowerBound,
+                    maximum: range.upperBound
+                ),
                 spacing: spacing,
                 alignment: .top
             ),
         ]
     }
+}
+
+extension EnvironmentValues {
+    @Entry var catalogCardSize: CatalogCardSize = .automatic
 }

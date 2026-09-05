@@ -41,7 +41,7 @@ struct NowPlayingContextOverflowPolicy: Hashable, Sendable {
     private static let topContentInset: CGFloat = 42
 
     let usesVerticalScrolling = true
-    let bottomContentInset: CGFloat = 42
+    let bottomContentInset: CGFloat = 72
     let minimumContentHeight: CGFloat
 
     init(height: CGFloat) {

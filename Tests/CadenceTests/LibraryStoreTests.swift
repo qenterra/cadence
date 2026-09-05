@@ -400,6 +400,44 @@ extension LibraryStoreTests {
         #expect(store.playlists.contains { $0.id == created?.id })
     }
 
+    @Test("Listening history retention clears only play dates older than the cutoff")
+    func pruneListeningHistory() async throws {
+        let container = try makeContainer(
+            titles: ["Old Play", "Boundary Play", "Fresh Play"]
+        )
+        let context = ModelContext(container)
+        let records = try context.fetch(
+            FetchDescriptor<TrackRecord>(
+                sortBy: [SortDescriptor(\.normalizedTitle)]
+            )
+        )
+        let cutoff = Date(timeIntervalSince1970: 10000)
+        records[0].lastPlayedAt = cutoff
+        records[1].lastPlayedAt = cutoff.addingTimeInterval(1)
+        records[2].lastPlayedAt = cutoff.addingTimeInterval(-1)
+        try context.save()
+
+        let store = LibraryStore(container: container)
+        await store.loadInitialLibrary()
+
+        let clearedCount = try await store.pruneListeningHistory(
+            olderThan: cutoff
+        )
+
+        #expect(clearedCount == 1)
+        #expect(store.tracks.count == 3)
+        #expect(store.recentlyPlayedTracks.count == 2)
+        #expect(
+            Set(store.recentlyPlayedTracks.map(\.title))
+                == ["Boundary Play", "Fresh Play"]
+        )
+        let durableRecords = try context.fetch(FetchDescriptor<TrackRecord>())
+        #expect(
+            durableRecords.first { $0.title == "Old Play" }?.lastPlayedAt
+                == nil
+        )
+    }
+
     private func makeContainer(
         trackCount: Int
     ) throws -> ModelContainer {

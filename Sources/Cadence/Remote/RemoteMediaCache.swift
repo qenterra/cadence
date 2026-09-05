@@ -13,12 +13,12 @@ actor RemoteMediaCache {
     private let indexURL: URL
     private let provider: any RemoteLibraryProvider
     private let fileManager: FileManager
-    private var index: RemoteCacheIndex
+    var index: RemoteCacheIndex
     private var budgetBytes: Int64
     private var reservedBytes: Int64 = 0
-    private var pinnedIDs: Set<RemoteObjectID> = []
-    private var inFlight: [RemoteObjectID: Task<URL, Error>] = [:]
-    private var prefetchTasks: [RemoteObjectID: Task<Void, Never>] = [:]
+    var pinnedIDs: Set<RemoteObjectID> = []
+    var inFlight: [RemoteObjectID: Task<URL, Error>] = [:]
+    var prefetchTasks: [RemoteObjectID: Task<Void, Never>] = [:]
     private let logger = Logger(
         subsystem: AppConfiguration.bundleIdentifier,
         category: "RemoteMediaCache"
@@ -154,8 +154,8 @@ actor RemoteMediaCache {
     }
 }
 
-private extension RemoteMediaCache {
-    func materialize(
+extension RemoteMediaCache {
+    private func materialize(
         _ object: RemoteMediaObject,
         protectedFromEviction: Bool
     ) async throws -> URL {
@@ -194,7 +194,7 @@ private extension RemoteMediaCache {
         return url
     }
 
-    func downloadAndPromote(
+    private func downloadAndPromote(
         _ object: RemoteMediaObject
     ) async throws -> URL {
         let stagedURL = stagingURL.appending(
@@ -248,7 +248,7 @@ private extension RemoteMediaCache {
         return destinationURL
     }
 
-    func reserveSpace(
+    private func reserveSpace(
         for object: RemoteMediaObject
     ) throws {
         guard object.byteCount <= budgetBytes else {
@@ -263,13 +263,13 @@ private extension RemoteMediaCache {
         reservedBytes += object.byteCount
     }
 
-    func releaseSpace(
+    private func releaseSpace(
         for object: RemoteMediaObject
     ) {
         reservedBytes = max(reservedBytes - object.byteCount, 0)
     }
 
-    func validCachedURL(
+    private func validCachedURL(
         for object: RemoteMediaObject
     ) throws -> URL? {
         guard let entry = index[object.id],
@@ -296,7 +296,7 @@ private extension RemoteMediaCache {
         return url
     }
 
-    func touch(
+    private func touch(
         _ id: RemoteObjectID
     ) throws {
         guard var entry = index[id] else {
@@ -309,7 +309,7 @@ private extension RemoteMediaCache {
         index = updatedIndex
     }
 
-    func enforceBudget(
+    private func enforceBudget(
         protectedID: RemoteObjectID?,
         reservingBytes: Int64 = 0
     ) throws {
@@ -333,7 +333,7 @@ private extension RemoteMediaCache {
         }
     }
 
-    func removeEntry(
+    private func removeEntry(
         for id: RemoteObjectID
     ) throws {
         guard let entry = index[id] else {
@@ -378,7 +378,7 @@ private extension RemoteMediaCache {
         }
     }
 
-    func finishPrefetch(
+    private func finishPrefetch(
         _ id: RemoteObjectID
     ) {
         prefetchTasks[id] = nil

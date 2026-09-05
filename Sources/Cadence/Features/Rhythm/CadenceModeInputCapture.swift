@@ -24,6 +24,7 @@ struct CadenceModeInputCapture: View {
             }
         )
         .task {
+            CadenceModeGradientPrewarmer.prepare()
             session.setEnabled(isEnabled)
         }
         .onChange(of: isEnabled) { _, enabled in

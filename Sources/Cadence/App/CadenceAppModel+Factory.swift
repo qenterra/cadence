@@ -13,7 +13,8 @@ private struct RemoteRuntime {
 
 extension CadenceAppModel {
     static func production(
-        librarySession: LibrarySession
+        librarySession: LibrarySession,
+        notificationController: CadenceNotificationController? = nil
     ) -> CadenceAppModel {
         let importRuntime = importRuntime(librarySession: librarySession)
         let remote = remoteRuntime(librarySession: librarySession)
@@ -36,14 +37,12 @@ extension CadenceAppModel {
                     remoteSource: remote.source
                 )
             ),
-            backends: [
-                PCMPlaybackBackend(),
-                NativePlaybackBackend(),
-            ],
+            backends: productionPlaybackBackends(),
             systemMediaSession: SystemMediaSession(
                 artworkProvider: systemMediaArtworkProvider
             ),
-            audioRouteProvider: SystemAudioRouteProvider()
+            audioRouteProvider: SystemAudioRouteProvider(),
+            notificationController: notificationController
         )
         let model = CadenceAppModel(
             runtimeEnvironment: .production,
@@ -98,6 +97,21 @@ extension CadenceAppModel {
 }
 
 private extension CadenceAppModel {
+    static func productionPlaybackBackends() -> [any PlaybackBackend] {
+        [
+            CrossfadePlaybackBackend(
+                kind: .pcm,
+                primary: PCMPlaybackBackend(),
+                secondary: PCMPlaybackBackend()
+            ),
+            CrossfadePlaybackBackend(
+                kind: .native,
+                primary: NativePlaybackBackend(),
+                secondary: NativePlaybackBackend()
+            ),
+        ]
+    }
+
     static func importRuntime(
         librarySession: LibrarySession
     ) -> ImportRuntime {

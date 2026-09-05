@@ -34,6 +34,7 @@ struct ProductionTagEditorInspector: View {
                     .onSubmit(createTag)
                     .onExitCommand(perform: cancelNewTagEntry)
                 Button("Add", action: createTag)
+                    .cadenceActionTint(.confirmation)
                     .disabled(trimmedNewTagPath.isEmpty || isWorking)
             }
 

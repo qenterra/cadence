@@ -4,6 +4,346 @@
     "" : {
 
     },
+    "1 Year" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 год"
+          }
+        }
+      }
+    },
+    "12 seconds" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "12 секунд"
+          }
+        }
+      }
+    },
+    "2 seconds" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "2 секунды"
+          }
+        }
+      }
+    },
+    "30 Days" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "30 дней"
+          }
+        }
+      }
+    },
+    "4 seconds" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "4 секунды"
+          }
+        }
+      }
+    },
+    "6 seconds" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "6 секунд"
+          }
+        }
+      }
+    },
+    "8 seconds" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "8 секунд"
+          }
+        }
+      }
+    },
+    "90 Days" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "90 дней"
+          }
+        }
+      }
+    },
+    "A restored queue opens paused. Crossfade applies only between normally advancing tracks. Track ReplayGain is used only when the file provides it." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Восстановленная очередь открывается на паузе. Кроссфейд применяется только при обычном переходе к следующему треку. ReplayGain трека используется только при наличии этих данных в файле."
+          }
+        }
+      }
+    },
+    "After 1 Year" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Через 1 год"
+          }
+        }
+      }
+    },
+    "After 30 Days" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Через 30 дней"
+          }
+        }
+      }
+    },
+    "After 90 Days" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Через 90 дней"
+          }
+        }
+      }
+    },
+    "Cadence is playing audio" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cadence воспроизводит аудио"
+          }
+        }
+      }
+    },
+    "Card size applies to albums, artists, playlists, smart collections, and Home. Text size applies throughout the app. Track-list layout has its own Library settings." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Размер карточек применяется к альбомам, артистам, плейлистам, смарт-коллекциям и странице «Главная». Размер текста применяется во всём приложении. Вид списков треков настраивается отдельно в разделе «Медиатека»."
+          }
+        }
+      }
+    },
+    "Comfortable" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Просторно"
+          }
+        }
+      }
+    },
+    "Compact" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Компактно"
+          }
+        }
+      }
+    },
+    "Crossfade" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Кроссфейд"
+          }
+        }
+      }
+    },
+    "Empty Trash Automatically" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Очищать корзину автоматически"
+          }
+        }
+      }
+    },
+    "Forever" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Бессрочно"
+          }
+        }
+      }
+    },
+    "Keep Listening History" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Хранить историю прослушивания"
+          }
+        }
+      }
+    },
+    "Last Opened" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Последняя открытая"
+          }
+        }
+      }
+    },
+    "Never" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Никогда"
+          }
+        }
+      }
+    },
+    "Page at Launch" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Страница при запуске"
+          }
+        }
+      }
+    },
+    "Prevent Display Sleep While Playing" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не выключать дисплей во время воспроизведения"
+          }
+        }
+      }
+    },
+    "Reset Track Lists" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сбросить вид списков треков"
+          }
+        }
+      }
+    },
+    "Restores the default columns, sorting, density, and artwork layout in every track list." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Восстанавливает стандартные колонки, сортировку, плотность и расположение обложек во всех списках треков."
+          }
+        }
+      }
+    },
+    "Row Density" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Плотность строк"
+          }
+        }
+      }
+    },
+    "Shorter history periods clear old play dates without deleting tracks. Automatic Trash cleanup permanently removes expired items from the managed library." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Короткий срок хранения очищает старые даты прослушивания, не удаляя треки. Автоматическая очистка корзины безвозвратно удаляет просроченные элементы из управляемой медиатеки."
+          }
+        }
+      }
+    },
+    "Show Artwork" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показывать обложки"
+          }
+        }
+      }
+    },
+    "Show Banners While Cadence Is Active" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показывать баннеры при активном окне Cadence"
+          }
+        }
+      }
+    },
+    "Show Technical Audio Information" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показывать техническую информацию об аудио"
+          }
+        }
+      }
+    },
+    "Table Layout" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вид таблиц"
+          }
+        }
+      }
+    },
+    "Text Size" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Размер текста"
+          }
+        }
+      }
+    },
+    "Volume Step" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Шаг изменения громкости"
+          }
+        }
+      }
+    },
     " · " : {
       "localizations" : {
         "ru" : {
@@ -875,6 +1215,16 @@
         }
       }
     },
+    "Cadence asks for permission only when you enable an alert. Delivery follows macOS notification and Focus settings." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cadence запрашивает разрешение только при включении уведомления. Доставка зависит от настроек уведомлений и режима «Фокусирование» в macOS."
+          }
+        }
+      }
+    },
     "Cadence copies included audio only after you review the selection." : {
       "localizations" : {
         "ru" : {
@@ -1051,6 +1401,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Cadence PCM"
+          }
+        }
+      }
+    },
+    "Cadence Update Available" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Доступно обновление Cadence"
           }
         }
       }
@@ -1925,12 +2285,18 @@
         }
       }
     },
-    "Created by" : {
+    "Created by %@" : {
       "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Created by %1$@"
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Автор"
+            "value" : "Автор: %@"
           }
         }
       }
@@ -3613,6 +3979,16 @@
         }
       }
     },
+    "Native music, kept focused." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Нативная музыка — ничего лишнего."
+          }
+        }
+      }
+    },
     "New Collection" : {
       "localizations" : {
         "ru" : {
@@ -3854,6 +4230,26 @@
         }
       }
     },
+    "Notifications" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Уведомления"
+          }
+        }
+      }
+    },
+    "Notifications are disabled for Cadence in System Settings." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Уведомления для Cadence отключены в Системных настройках."
+          }
+        }
+      }
+    },
     "Nothing currently matches %@." : {
       "localizations" : {
         "ru" : {
@@ -3880,6 +4276,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ничего не импортировано."
+          }
+        }
+      }
+    },
+    "Now Playing" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сейчас играет"
           }
         }
       }
@@ -5283,16 +5689,6 @@
         }
       }
     },
-    "Sidebar" : {
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Боковая панель"
-          }
-        }
-      }
-    },
     "Simulating the managed-library copy…" : {
       "localizations" : {
         "ru" : {
@@ -6283,16 +6679,6 @@
         }
       }
     },
-    "Version %@" : {
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Версия %@"
-          }
-        }
-      }
-    },
     "Version %@ (%@)" : {
       "localizations" : {
         "en" : {
@@ -6305,6 +6691,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Версия %@ (%@)"
+          }
+        }
+      }
+    },
+    "Version %@ is ready to install." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Version %1$@ is ready to install."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Версия %@ готова к установке."
           }
         }
       }
@@ -6355,6 +6757,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Увеличить громкость"
+          }
+        }
+      }
+    },
+    "When Track Changes" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "При смене трека"
+          }
+        }
+      }
+    },
+    "When Updates Are Available" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Когда доступны обновления"
           }
         }
       }
@@ -6415,6 +6837,590 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Несохранённый текст строк и изменения тайминга будут потеряны."
+          }
+        }
+      }
+    },
+    "10 seconds" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "10 секунд"
+          }
+        }
+      }
+    },
+    "15 seconds" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "15 секунд"
+          }
+        }
+      }
+    },
+    "30 seconds" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "30 секунд"
+          }
+        }
+      }
+    },
+    "5 seconds" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "5 секунд"
+          }
+        }
+      }
+    },
+    "A restored queue opens paused. Track ReplayGain is used only when the file provides it." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Восстановленная очередь открывается на паузе. ReplayGain трека применяется только при наличии этих данных в файле."
+          }
+        }
+      }
+    },
+    "Always Previous Track" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Всегда предыдущий трек"
+          }
+        }
+      }
+    },
+    "Automatic" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Автоматически"
+          }
+        }
+      }
+    },
+    "Cache cleared: %@. Removed: %lld." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Cache cleared: %1$@. Removed: %2$lld."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Кэш очищен: %1$@. Удалено: %2$lld."
+          }
+        }
+      }
+    },
+    "Cache cleared: %@. Removed: %lld. Kept for the active queue: %lld." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Cache cleared: %1$@. Removed: %2$lld. Kept for the active queue: %3$lld."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Кэш очищен: %1$@. Удалено: %2$lld. Сохранено для активной очереди: %3$lld."
+          }
+        }
+      }
+    },
+    "Cadence applied the imported customization." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cadence применила импортированные настройки."
+          }
+        }
+      }
+    },
+    "Cadence restored its default settings. Your library, remote connection, cache, and saved queue were not changed." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cadence восстановила настройки по умолчанию. Медиатека, удалённое подключение, кэш и сохранённая очередь не изменены."
+          }
+        }
+      }
+    },
+    "Card Size" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Размер карточек"
+          }
+        }
+      }
+    },
+    "Clear Cache" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Очистить кэш"
+          }
+        }
+      }
+    },
+    "Clear Cache…" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Очистить кэш…"
+          }
+        }
+      }
+    },
+    "Clear Downloaded Remote Media?" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Очистить загруженные удалённые медиафайлы?"
+          }
+        }
+      }
+    },
+    "Downloaded files outside the active playback queue will be removed. Catalog data and remote credentials stay intact." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Загруженные файлы вне активной очереди воспроизведения будут удалены. Каталог и учётные данные удалённого подключения останутся без изменений."
+          }
+        }
+      }
+    },
+    "Elapsed" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Прошло"
+          }
+        }
+      }
+    },
+    "Export Settings…" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Экспортировать настройки…"
+          }
+        }
+      }
+    },
+    "Export includes interface and playback customization, but never the library, remote credentials, cache, or saved queue." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Экспорт включает настройки интерфейса и воспроизведения, но не медиатеку, учётные данные удалённого подключения, кэш или сохранённую очередь."
+          }
+        }
+      }
+    },
+    "Import Settings…" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Импортировать настройки…"
+          }
+        }
+      }
+    },
+    "Large" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Большой"
+          }
+        }
+      }
+    },
+    "Lyrics Text Size" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Размер текста песен"
+          }
+        }
+      }
+    },
+    "Medium" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Средний"
+          }
+        }
+      }
+    },
+    "Navigation" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Навигация"
+          }
+        }
+      }
+    },
+    "Off" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выключено"
+          }
+        }
+      }
+    },
+    "Pinned" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Закреплённое"
+          }
+        }
+      }
+    },
+    "Previous Button" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Кнопка «Назад»"
+          }
+        }
+      }
+    },
+    "Recently Played always stays first" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "«Недавно прослушанные» всегда остаются первыми"
+          }
+        }
+      }
+    },
+    "Recently Played always stays first. Choose which other sections appear and drag them into order." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "«Недавно прослушанные» всегда остаются первыми. Выберите остальные разделы и перетащите их в нужном порядке."
+          }
+        }
+      }
+    },
+    "Remaining" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Осталось"
+          }
+        }
+      }
+    },
+    "Reset All Settings?" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сбросить все настройки?"
+          }
+        }
+      }
+    },
+    "Reset All Settings…" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сбросить все настройки…"
+          }
+        }
+      }
+    },
+    "Reset Home" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сбросить главную"
+          }
+        }
+      }
+    },
+    "Reset Settings" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сбросить настройки"
+          }
+        }
+      }
+    },
+    "Reset Sidebar" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сбросить боковую панель"
+          }
+        }
+      }
+    },
+    "Reset restores the default order and makes every destination visible." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сброс восстанавливает стандартный порядок и показывает все разделы."
+          }
+        }
+      }
+    },
+    "Restart, Then Previous" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сначала заново, затем предыдущий трек"
+          }
+        }
+      }
+    },
+    "Restore Queue" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Восстанавливать очередь"
+          }
+        }
+      }
+    },
+    "Resume After Output Reconnects" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Продолжать после восстановления аудиовыхода"
+          }
+        }
+      }
+    },
+    "Seek Step" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Шаг перемотки"
+          }
+        }
+      }
+    },
+    "Settings" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Настройки"
+          }
+        }
+      }
+    },
+    "Settings Couldn’t Be Changed" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось изменить настройки"
+          }
+        }
+      }
+    },
+    "Settings Exported" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Настройки экспортированы"
+          }
+        }
+      }
+    },
+    "Settings Imported" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Настройки импортированы"
+          }
+        }
+      }
+    },
+    "Settings Reset" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Настройки сброшены"
+          }
+        }
+      }
+    },
+    "Settings format version %lld is not supported." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Версия формата настроек %lld не поддерживается."
+          }
+        }
+      }
+    },
+    "Show Artwork in Track Lists" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показывать обложки в списках треков"
+          }
+        }
+      }
+    },
+    "Show in Finder" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показать в Finder"
+          }
+        }
+      }
+    },
+    "Small" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Маленький"
+          }
+        }
+      }
+    },
+    "Standard" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Стандартный"
+          }
+        }
+      }
+    },
+    "The settings file could not be read." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось прочитать файл настроек."
+          }
+        }
+      }
+    },
+    "The value for “%@” is not valid." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Недопустимое значение для «%@»."
+          }
+        }
+      }
+    },
+    "This resets customization only. Your music library and its files remain untouched." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Будут сброшены только пользовательские настройки. Медиатека и музыкальные файлы останутся без изменений."
+          }
+        }
+      }
+    },
+    "Time Display" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отображение времени"
+          }
+        }
+      }
+    },
+    "Track ReplayGain" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ReplayGain трека"
+          }
+        }
+      }
+    },
+    "Volume Normalization" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Нормализация громкости"
+          }
+        }
+      }
+    },
+    "© 2026 QenTerra" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "© 2026 QenTerra"
           }
         }
       }

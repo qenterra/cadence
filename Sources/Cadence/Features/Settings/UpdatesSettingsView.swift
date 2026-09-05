@@ -24,7 +24,7 @@ struct UpdatesSettingsView: View {
             title: "Software Updates",
             symbol: "arrow.triangle.2.circlepath"
         ) {
-            Toggle(
+            SettingsToggleRow(
                 "Check for updates automatically",
                 isOn: $automaticallyChecksForUpdates
             )
@@ -33,7 +33,7 @@ struct UpdatesSettingsView: View {
                     automaticallyChecksForUpdates
             }
 
-            Toggle(
+            SettingsToggleRow(
                 "Download and install updates automatically",
                 isOn: $automaticallyDownloadsUpdates
             )
@@ -48,10 +48,13 @@ struct UpdatesSettingsView: View {
 
             Divider()
 
-            Toggle("Include beta updates", isOn: $includesBetaUpdates)
-                .onChange(of: includesBetaUpdates) {
-                    updateController.updateChannelPreferenceDidChange()
-                }
+            SettingsToggleRow(
+                "Include beta updates",
+                isOn: $includesBetaUpdates
+            )
+            .onChange(of: includesBetaUpdates) {
+                updateController.updateChannelPreferenceDidChange()
+            }
 
             Text(
                 includesBetaUpdates
@@ -66,6 +69,7 @@ struct UpdatesSettingsView: View {
                     updateController.checkForUpdates()
                 }
                 .buttonStyle(.borderedProminent)
+                .cadenceActionTint(.confirmation)
 
                 Spacer()
 

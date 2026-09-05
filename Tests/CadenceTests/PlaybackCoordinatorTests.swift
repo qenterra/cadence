@@ -126,6 +126,43 @@ struct PlaybackCoordinatorTests {
         #expect(media.activationCount == 1)
     }
 
+    @Test("Coordinator alerts once when each new track starts playing")
+    func trackChangeNotifications() async throws {
+        let suiteName = "PlaybackNotificationTests-\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suiteName))
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        defaults.set(
+            true,
+            forKey: CadenceNotificationPreferences.trackChangesKey
+        )
+        let notificationCenter = CadenceNotificationCenterSpy()
+        let notificationController = CadenceNotificationController(
+            center: notificationCenter,
+            defaults: defaults
+        )
+        let tracks = [
+            playbackTestTrack(id: UUID(), title: "One"),
+            playbackTestTrack(id: UUID(), title: "Two"),
+        ]
+        let coordinator = makePlaybackCoordinator(
+            resolver: PlaybackTestResolver(tracks: tracks),
+            backends: [PlaybackTestBackend(kind: .pcm)],
+            notificationController: notificationController
+        )
+
+        #expect(
+            await coordinator.startQueue(
+                source: .adHoc,
+                trackIDs: tracks.map(\.track.id)
+            )
+        )
+        coordinator.pause()
+        coordinator.play()
+        await coordinator.next()
+
+        #expect(notificationCenter.notifications.map(\.title) == ["One", "Two"])
+    }
+
     @Test("Backend time is the canonical progress source")
     func canonicalProgress() async {
         let track = playbackTestTrack(

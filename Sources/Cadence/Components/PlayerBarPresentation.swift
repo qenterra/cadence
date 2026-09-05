@@ -1,5 +1,70 @@
 import Foundation
 
+enum PlayerBarLayoutMetrics {
+    static let height: CGFloat = 96
+    static let contentHeight: CGFloat = 56
+    static let opticalVerticalAdjustment = CadenceLayout.textStack
+    static let horizontalInset = CadenceLayout.panelInset
+    static let regionSpacing = CadenceLayout.pageInset
+    static let controlSpacing = CadenceLayout.contentGap
+    static let transportSpacing = CadenceLayout.controlGap
+    static let metadataSpacing = CadenceLayout.textStack
+    static let metadataMinimumWidth: CGFloat = 244
+    static let metadataMaximumWidth: CGFloat = 380
+    static let outputWidth: CGFloat = 244
+    static let transportMinimumWidth: CGFloat = 500
+
+    static func contentFrame(availableWidth: CGFloat) -> CGRect {
+        CGRect(
+            x: 0,
+            y: (height - contentHeight) / 2
+                - opticalVerticalAdjustment,
+            width: max(availableWidth, 0),
+            height: contentHeight
+        )
+    }
+
+    static func metadataWidth(availableWidth: CGFloat) -> CGFloat {
+        min(
+            max(
+                availableWidth
+                    - outputWidth
+                    - transportMinimumWidth
+                    - regionSpacing * 2,
+                metadataMinimumWidth
+            ),
+            metadataMaximumWidth
+        )
+    }
+}
+
+enum PlayerBarFavoriteRegion: Equatable, Sendable {
+    case hidden
+    case transport
+
+    static func resolve(
+        hasPlaybackItem: Bool,
+        isExternal: Bool
+    ) -> PlayerBarFavoriteRegion {
+        hasPlaybackItem && !isExternal ? .transport : .hidden
+    }
+}
+
+enum PlaybackTimePresentation {
+    static func leadingText(
+        mode: PlaybackTimeDisplayMode,
+        currentTime: TimeInterval,
+        duration: TimeInterval
+    ) -> String {
+        switch mode {
+        case .elapsed:
+            TrackPreview.timeText(max(currentTime, 0))
+        case .remaining:
+            "−" + TrackPreview.timeText(max(duration - currentTime, 0))
+        }
+    }
+}
+
 enum PlayerControlVisualState: CaseIterable, Sendable {
     case normal
     case active

@@ -19,6 +19,7 @@ struct ProductionTrackTable: View {
     var selection: Binding<Set<UUID>>?
     var defaultSortDescriptor: TrackTableSortDescriptor?
     var refreshAction: CadenceRefreshAction?
+    var scrollOwnership = TrackListScrollOwnership.contained
 
     @State private var localSelection: Set<UUID> = []
     @State private var usesDefaultSort = true
@@ -32,6 +33,12 @@ struct ProductionTrackTable: View {
     private var sortFieldRaw = TrackTableSortField.song.rawValue
     @AppStorage("trackTable.sortDirection")
     private var sortDirectionRaw = TrackTableSortDirection.ascending.rawValue
+    @AppStorage(CadencePreferences.Keys.showsTrackArtwork)
+    private var showsArtwork = true
+    @AppStorage(CadencePreferences.Keys.trackTableDensity)
+    private var densityRawValue = TrackTableDensity.standard.rawValue
+    @AppStorage(CadencePreferences.Keys.interfaceTextSize)
+    private var textSizeRawValue = InterfaceTextSize.standard.rawValue
 
     var body: some View {
         let snapshot = resolvedSnapshot
@@ -72,9 +79,13 @@ struct ProductionTrackTable: View {
                     reorderAction: reorderAction,
                     onReachEnd: onReachEnd,
                     refreshAction: refreshAction,
+                    scrollOwnership: scrollOwnership,
                     currentTrackID: model.currentProductionTrackID,
                     isCurrentTrackPlaying:
                     model.isCurrentProductionTrackPlaying,
+                    showsArtwork: showsArtwork,
+                    density: density,
+                    textSize: textSize,
                     selection: selectedTrackIDs
                 )
             }
@@ -112,6 +123,14 @@ struct ProductionTrackTable: View {
 }
 
 private extension ProductionTrackTable {
+    var density: TrackTableDensity {
+        TrackTableDensity(rawValue: densityRawValue) ?? .standard
+    }
+
+    var textSize: InterfaceTextSize {
+        InterfaceTextSize(rawValue: textSizeRawValue) ?? .standard
+    }
+
     var visibleColumns: [TrackTableColumn] {
         TrackTableColumn.decode(visibleColumnsRaw)
     }
@@ -196,7 +215,7 @@ private extension ProductionTrackTable {
         .font(.caption.weight(.semibold))
         .foregroundStyle(.secondary)
         .padding(.horizontal, TrackTableColumnPolicy.horizontalInset)
-        .frame(height: 38)
+        .frame(height: density.headerHeight)
         .overlay(alignment: .bottom) {
             Rectangle()
                 .fill(CadenceTheme.separator)

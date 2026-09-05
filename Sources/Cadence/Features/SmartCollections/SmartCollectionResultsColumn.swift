@@ -60,7 +60,7 @@ struct SmartCollectionResultsColumn: View {
     @ViewBuilder
     private var results: some View {
         if let source = model.productionSmartCollectionLiveTrackSource {
-            ProductionTrackTable(
+            ProductionTrackList(
                 model: model,
                 tracks: source.tracks,
                 contentVersion: source.contentVersion,

@@ -18,7 +18,7 @@ struct SmartCollectionListeningPage: View {
                     noMatches
                 } else if let source = model
                     .selectedProductionSmartCollectionTrackSource {
-                    ProductionTrackTable(
+                    ProductionTrackList(
                         model: model,
                         tracks: source.tracks,
                         contentVersion: source.contentVersion,

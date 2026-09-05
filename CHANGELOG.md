@@ -5,10 +5,21 @@ uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- Added advanced playback, library, notification, and interface settings.
+- Added an artwork-colored Metal background in Cadence Mode with smooth track-color transitions and activity-aware tinting for keyboard effects.
+
 ### Changed
 
 - Adopted QenTerra repository standard 1.3.0 with maintained governance, collaboration, Wiki-source, and repository-health documentation.
 - Standardised the README Contact block across the QenTerra repository family.
+- Updated GRDB to 7.11.1 and AppAuth to 3.0.0, with canonical XcodeGen dependency pins.
+
+### Fixed
+
+- Improved track-row playback indicators, allowed tracks to appear in both Favorites and Recently Played, and applied inactive-line blur to lyrics instead of track titles.
+- Kept automatic library maintenance out of preview sessions so retention settings cannot erase fixture history or interrupt previews with library alerts.
 
 ### Removed
 

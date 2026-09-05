@@ -2671,6 +2671,7 @@ class ReleasePreparationOrderingTests(unittest.TestCase):
             "test_release_provenance.py",
             "test_dmg_background.py",
             "test_swiftlint_debt_gate.py",
+            "test_ui_component_ownership.py",
         ):
             (release_tests / name).write_text(
                 "import unittest\n\n"

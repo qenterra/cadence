@@ -1,0 +1,186 @@
+// Runtime-compiled because the standalone Metal toolchain is optional in Xcode.
+#include <metal_stdlib>
+using namespace metal;
+
+struct GradientVertex {
+    float3 position;
+    float2 textureCoordinate;
+};
+
+struct GradientUniforms {
+    float4x4 modelMatrix;
+    float4x4 viewProjectionMatrix;
+    float2 noiseFrequency;
+    float time;
+    float noiseAmount;
+    float noiseSpeed;
+};
+
+struct GradientVertexOutput {
+    float4 position [[position]];
+    float3 color;
+};
+
+float3 mod289(float3 value) {
+    return value - floor(value * (1.0 / 289.0)) * 289.0;
+}
+
+float4 mod289(float4 value) {
+    return value - floor(value * (1.0 / 289.0)) * 289.0;
+}
+
+float4 permute(float4 value) {
+    return mod289(((value * 34.0) + 1.0) * value);
+}
+
+float4 taylorInvSqrt(float4 value) {
+    return 1.79284291400159 - 0.85373472095314 * value;
+}
+
+float snoise(float3 value) {
+    const float2 C = float2(1.0 / 6.0, 1.0 / 3.0);
+    const float4 D = float4(0.0, 0.5, 1.0, 2.0);
+
+    float3 i = floor(value + dot(value, C.yyy));
+    float3 x0 = value - i + dot(i, C.xxx);
+    float3 g = step(x0.yzx, x0.xyz);
+    float3 l = 1.0 - g;
+    float3 i1 = min(g.xyz, l.zxy);
+    float3 i2 = max(g.xyz, l.zxy);
+    float3 x1 = x0 - i1 + C.xxx;
+    float3 x2 = x0 - i2 + C.yyy;
+    float3 x3 = x0 - D.yyy;
+
+    i = mod289(i);
+    float4 p = permute(
+        permute(
+            permute(
+                i.z + float4(0.0, i1.z, i2.z, 1.0)
+            ) + i.y + float4(0.0, i1.y, i2.y, 1.0)
+        ) + i.x + float4(0.0, i1.x, i2.x, 1.0)
+    );
+
+    float n_ = 1.0 / 7.0;
+    float3 ns = n_ * D.wyz - D.xzx;
+    float4 j = p - 49.0 * floor(p * ns.z * ns.z);
+    float4 x_ = floor(j * ns.z);
+    float4 y_ = floor(j - 7.0 * x_);
+    float4 x = x_ * ns.x + ns.yyyy;
+    float4 y = y_ * ns.x + ns.yyyy;
+    float4 h = 1.0 - abs(x) - abs(y);
+    float4 b0 = float4(x.xy, y.xy);
+    float4 b1 = float4(x.zw, y.zw);
+    float4 s0 = floor(b0) * 2.0 + 1.0;
+    float4 s1 = floor(b1) * 2.0 + 1.0;
+    float4 sh = -step(h, float4(0.0));
+    float4 a0 = b0.xzyw + s0.xzyw * sh.xxyy;
+    float4 a1 = b1.xzyw + s1.xzyw * sh.zzww;
+    float3 p0 = float3(a0.xy, h.x);
+    float3 p1 = float3(a0.zw, h.y);
+    float3 p2 = float3(a1.xy, h.z);
+    float3 p3 = float3(a1.zw, h.w);
+    float4 norm = taylorInvSqrt(
+        float4(dot(p0, p0), dot(p1, p1), dot(p2, p2), dot(p3, p3))
+    );
+    p0 *= norm.x;
+    p1 *= norm.y;
+    p2 *= norm.z;
+    p3 *= norm.w;
+    float4 m = max(
+        0.6 - float4(
+            dot(x0, x0), dot(x1, x1), dot(x2, x2), dot(x3, x3)
+        ),
+        0.0
+    );
+    m *= m;
+    return 42.0 * dot(
+        m * m,
+        float4(dot(p0, x0), dot(p1, x1), dot(p2, x2), dot(p3, x3))
+    );
+}
+
+float colorMask(
+    float2 uv,
+    float time,
+    float flow,
+    float speed,
+    float seed,
+    float floorValue,
+    float ceilingValue
+) {
+    float noiseValue = snoise(
+        float3(
+            uv.x * 0.3 + time * flow,
+            uv.y * 0.6,
+            time * speed + seed
+        )
+    );
+    return smoothstep(floorValue, ceilingValue, noiseValue);
+}
+
+vertex GradientVertexOutput cadenceGradientVertex(
+    uint vertexID [[vertex_id]],
+    constant GradientVertex *vertices [[buffer(0)]],
+    constant GradientUniforms &uniforms [[buffer(1)]],
+    constant float4 *colors [[buffer(2)]]
+) {
+    GradientVertex input = vertices[vertexID];
+    float2 noiseCoordinate = input.textureCoordinate
+        * uniforms.noiseFrequency;
+    float elevation = snoise(
+        float3(
+            noiseCoordinate.x + uniforms.time * 0.02,
+            noiseCoordinate.y,
+            uniforms.time * uniforms.noiseSpeed
+        )
+    ) * uniforms.noiseAmount;
+
+    float4 modelPosition = uniforms.modelMatrix
+        * float4(input.position, 1.0);
+    modelPosition.y += elevation;
+
+    float3 color = colors[4].rgb;
+    color = mix(
+        color,
+        colors[0].rgb,
+        colorMask(
+            noiseCoordinate, uniforms.time,
+            0.0002, 0.0001, 1.0, 0.1, 0.6
+        )
+    );
+    color = mix(
+        color,
+        colors[1].rgb,
+        colorMask(
+            noiseCoordinate, uniforms.time,
+            0.0502, 0.0301, 11.0, 0.1, 0.68
+        )
+    );
+    color = mix(
+        color,
+        colors[2].rgb,
+        colorMask(
+            noiseCoordinate, uniforms.time,
+            0.1002, 0.0601, 21.0, 0.1, 0.76
+        )
+    );
+    color = mix(
+        color,
+        colors[3].rgb,
+        colorMask(
+            noiseCoordinate, uniforms.time,
+            0.1502, 0.0901, 31.0, 0.1, 0.84
+        )
+    );
+
+    GradientVertexOutput output;
+    output.position = uniforms.viewProjectionMatrix * modelPosition;
+    output.color = color;
+    return output;
+}
+
+fragment float4 cadenceGradientFragment(
+    GradientVertexOutput input [[stage_in]]
+) {
+    return float4(input.color, 1.0);
+}

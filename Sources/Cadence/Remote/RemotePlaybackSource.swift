@@ -66,4 +66,13 @@ actor RemotePlaybackSource {
         }
         try await cache.setBudget(bytes: bytes)
     }
+
+    func clearCache() async throws -> RemoteCacheClearResult {
+        guard let cache else {
+            throw RemoteProviderError.serviceUnavailable(
+                "The remote library cache is not active."
+            )
+        }
+        return try await cache.clear()
+    }
 }

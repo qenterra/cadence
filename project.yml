@@ -20,10 +20,10 @@ settings:
 packages:
   GRDB:
     url: https://github.com/groue/GRDB.swift.git
-    exactVersion: 7.10.0
+    exactVersion: 7.11.1
   AppAuth:
     url: https://github.com/openid/AppAuth-iOS.git
-    exactVersion: 2.1.0
+    exactVersion: 3.0.0
   Sparkle:
     url: https://github.com/sparkle-project/Sparkle.git
     exactVersion: 2.9.6
@@ -35,6 +35,10 @@ targets:
     deploymentTarget: "26.0"
     sources:
       - path: Sources/Cadence
+        excludes:
+          - Features/Rhythm/CadenceModeGradientShader.metal.txt
+      - path: Sources/Cadence/Features/Rhythm/CadenceModeGradientShader.metal.txt
+        buildPhase: resources
       - path: icon/Cadence.icon
     dependencies:
       - package: GRDB

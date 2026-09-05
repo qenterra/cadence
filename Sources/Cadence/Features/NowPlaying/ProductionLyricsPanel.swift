@@ -5,6 +5,8 @@ struct ProductionLyricsPanel: View {
     let track: PlaybackTrack
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @AppStorage(CadencePreferences.Keys.lyricsTextSize)
+    private var lyricsTextSizeRaw = LyricsTextSize.standard.rawValue
     @State private var presentation = LyricDocumentPresentationState()
     @State private var editingLineID: LyricLine.ID?
     @State private var editingText = ""
@@ -209,7 +211,7 @@ struct ProductionLyricsPanel: View {
     ) -> some View {
         if editingLineID == line.id {
             TextField("Lyric Line", text: $editingText, axis: .vertical)
-                .font(.system(size: 24, weight: .semibold))
+                .font(.system(size: lyricsTextSize.pointSize, weight: .semibold))
                 .textFieldStyle(.plain)
                 .lineLimit(1 ... 4)
                 .focused($focusedEditingLineID, equals: line.id)
@@ -297,6 +299,10 @@ struct ProductionLyricsPanel: View {
         editingLineID = nil
         focusedEditingLineID = nil
         editingText = ""
+    }
+
+    private var lyricsTextSize: LyricsTextSize {
+        LyricsTextSize(rawValue: lyricsTextSizeRaw) ?? .standard
     }
 }
 
@@ -413,6 +419,8 @@ struct ProductionLyricLineLabel: View {
     let isSynchronized: Bool
     let alignment: TextAlignment
     let lineLimit: Int?
+    @AppStorage(CadencePreferences.Keys.lyricsTextSize)
+    private var lyricsTextSizeRaw = LyricsTextSize.standard.rawValue
 
     init(
         text: String,
@@ -434,7 +442,7 @@ struct ProductionLyricLineLabel: View {
             isSynchronized: isSynchronized
         )
         Text(text)
-            .font(.system(size: 24, weight: .semibold))
+            .font(.system(size: lyricsTextSize.pointSize, weight: .semibold))
             .multilineTextAlignment(alignment)
             .lineSpacing(3)
             .lineLimit(lineLimit)
@@ -445,5 +453,9 @@ struct ProductionLyricLineLabel: View {
                     : Color.secondary
             )
             .opacity(appearance.opacity)
+    }
+
+    private var lyricsTextSize: LyricsTextSize {
+        LyricsTextSize(rawValue: lyricsTextSizeRaw) ?? .standard
     }
 }

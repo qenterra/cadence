@@ -1,7 +1,35 @@
+@testable import Cadence
 import Foundation
 import Testing
 
 struct InterfaceScrollPolicyTests {
+    @Test("Page-owned track lists expand to every row")
+    func pageOwnedTrackListHeight() {
+        #expect(
+            TrackListLayout.contentHeight(
+                rowCount: 4,
+                showsHeader: true
+            ) == 270
+        )
+        #expect(
+            TrackListLayout.contentHeight(
+                rowCount: 0,
+                showsHeader: true
+            ) == 38
+        )
+        #expect(
+            TrackListLayout.contentHeight(
+                rowCount: -4,
+                showsHeader: false
+            ) == 0
+        )
+    }
+
+    @Test("Contained and page-owned lists remain distinct policies")
+    func trackListScrollOwnership() {
+        #expect(TrackListScrollOwnership.contained != .page)
+    }
+
     @Test("Interface scroll containers never enable horizontal scrolling")
     func verticalScrollPolicy() throws {
         let sourceRoot = URL(filePath: #filePath)

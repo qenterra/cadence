@@ -30,10 +30,9 @@ enum NavigationRailConfiguration {
             .filter(allowed.contains)
         var seen = Set<NavigationDestination>()
         let unique = decoded.filter {
-            $0 != .home && seen.insert($0).inserted
+            seen.insert($0).inserted
         }
-        seen.insert(.home)
-        return [.home] + unique + configurableDestinations.filter {
+        return unique + configurableDestinations.filter {
             !seen.contains($0)
         }
     }
@@ -91,7 +90,6 @@ enum NavigationRailConfiguration {
     ) -> [NavigationDestination] {
         guard
             source != target,
-            source != .home,
             let sourceIndex = destinations.firstIndex(of: source),
             let targetIndex = destinations.firstIndex(of: target)
         else {
@@ -100,17 +98,10 @@ enum NavigationRailConfiguration {
 
         var reordered = destinations
         let destination = reordered.remove(at: sourceIndex)
-        let insertionIndex = target == .home
-            ? min(1, reordered.endIndex)
-            : min(targetIndex, reordered.endIndex)
         reordered.insert(
             destination,
-            at: insertionIndex
+            at: min(targetIndex, reordered.endIndex)
         )
-        if let homeIndex = reordered.firstIndex(of: .home), homeIndex != 0 {
-            let home = reordered.remove(at: homeIndex)
-            reordered.insert(home, at: 0)
-        }
         return reordered
     }
 
@@ -118,6 +109,20 @@ enum NavigationRailConfiguration {
         _ destinations: some Sequence<NavigationDestination>
     ) -> String {
         destinations.map(\.rawValue).joined(separator: ",")
+    }
+
+    static func reset(
+        in defaults: UserDefaults = .standard
+    ) {
+        defaults.set(
+            defaultOrderRawValue,
+            forKey: "navigationRail.order"
+        )
+        defaults.set("", forKey: "navigationRail.hidden")
+        defaults.set(
+            defaultIsExpanded,
+            forKey: "navigationRail.expanded"
+        )
     }
 }
 

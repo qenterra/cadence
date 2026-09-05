@@ -97,6 +97,7 @@ struct ProductionTagsView: View {
                 Button("Create") {
                     createTag()
                 }
+                .cadenceActionTint(.confirmation)
                 .disabled(
                     newTagPath.trimmingCharacters(
                         in: .whitespacesAndNewlines
@@ -292,6 +293,7 @@ private extension ProductionTagsView {
                     Button("Add Tracks", systemImage: "plus") {
                         isTrackPickerPresented = true
                     }
+                    .cadenceActionTint(.confirmation)
                 }
             }
         }

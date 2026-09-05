@@ -1,6 +1,7 @@
 import AppKit
 import AVFAudio
 @testable import Cadence
+import Metal
 import QuartzCore
 import Synchronization
 import Testing
@@ -484,12 +485,11 @@ struct CadenceModeRegressionTests {
         #expect(normal.animatesScroll)
     }
 
-    @Test("Unavailable lyrics reserve display-scale type for the track")
-    func unavailableLyricsTypography() {
-        #expect(CadenceModeUnavailableLyricsMetrics.titleSize >= 32)
+    @Test("Cadence Mode leaves unavailable lyrics visually empty")
+    func unavailableLyricsStayHidden() {
         #expect(
-            CadenceModeUnavailableLyricsMetrics.titleSize
-                > CadenceModeUnavailableLyricsMetrics.artistSize
+            CadenceModeLyricContentPresentation.resolve(status: .missing)
+                == .hidden
         )
     }
 
@@ -544,45 +544,57 @@ struct CadenceModeRegressionTests {
     }
 
     @MainActor
-    @Test("The rotating background field covers every fullscreen corner")
-    func rotatingBackgroundCoversFullscreenCorners() throws {
-        let canvas = CGRect(x: 0, y: 0, width: 2560, height: 1400)
-        let view = CadenceModeBackgroundView(frame: canvas)
+    @Test(
+        "The Metal terrain covers every fullscreen corner",
+        .appKitExclusive
+    )
+    func metalTerrainCoversFullscreenCorners() {
+        let size = CGSize(width: 2560, height: 1400)
+        guard let device = MTLCreateSystemDefaultDevice() else {
+            Issue.record("Metal is unavailable on the test host")
+            return
+        }
+        let view = CadenceModeBackgroundView(
+            frame: CGRect(origin: .zero, size: size),
+            device: device
+        )
         view.update(
             palette: .fixture,
             appearance: .resolve(
-                reduceMotion: false,
+                reduceMotion: true,
                 reduceTransparency: false,
                 increasedContrast: false
             )
         )
-        view.layoutSubtreeIfNeeded()
 
-        let conicLayer = try #require(
-            view.layer?.sublayers?
-                .compactMap { $0 as? CAGradientLayer }
-                .first { $0.type == .conic }
-        )
-        let minimumScale = 1.02
-        let farthestHorizontalEdge = canvas.width * 0.56
-        let farthestVerticalEdge = canvas.height * 0.57
-
-        #expect(
-            conicLayer.bounds.width * minimumScale / 2
-                >= farthestHorizontalEdge + 2
-        )
-        #expect(
-            conicLayer.bounds.height * minimumScale / 2
-                >= farthestVerticalEdge + 2
-        )
-        #expect(conicLayer.shouldRasterize)
-        #expect(!conicLayer.drawsAsynchronously)
-        let animatedKeyPaths = conicLayer.animationKeys()?.flatMap { key in
-            (conicLayer.animation(forKey: key) as? CAAnimationGroup)?
-                .animations?
-                .compactMap { ($0 as? CAPropertyAnimation)?.keyPath } ?? []
-        } ?? []
-        #expect(!animatedKeyPaths.contains("transform.rotation.z"))
+        guard let image = view.makeSnapshot(size: size, time: 0) else {
+            Issue.record("Metal renderer did not produce a fullscreen frame")
+            return
+        }
+        let bitmap = NSBitmapImageRep(cgImage: image)
+        let corners = [
+            CGPoint(x: 1, y: 1),
+            CGPoint(x: bitmap.pixelsWide - 2, y: 1),
+            CGPoint(x: 1, y: bitmap.pixelsHigh - 2),
+            CGPoint(x: bitmap.pixelsWide - 2, y: bitmap.pixelsHigh - 2),
+        ]
+        for corner in corners {
+            guard let color = bitmap.colorAt(
+                x: Int(corner.x),
+                y: Int(corner.y)
+            )?.usingColorSpace(.deviceRGB) else {
+                Issue.record("Metal corner could not be sampled")
+                continue
+            }
+            #expect(
+                max(
+                    color.redComponent,
+                    color.greenComponent,
+                    color.blueComponent
+                ) > 0.01
+            )
+            #expect(color.alphaComponent > 0.99)
+        }
     }
 }
 

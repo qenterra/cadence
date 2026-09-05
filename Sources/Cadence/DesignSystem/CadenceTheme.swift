@@ -6,6 +6,35 @@ struct CadenceColorValue: Equatable, Sendable {
     let dark: String
 }
 
+enum CadenceActionSemanticColor: Equatable, Sendable {
+    case systemBlue
+    case systemRed
+}
+
+enum CadenceActionTone: Equatable, Sendable {
+    case confirmation
+    case destructive
+
+    var semanticColor: CadenceActionSemanticColor {
+        switch self {
+        case .confirmation: .systemBlue
+        case .destructive: .systemRed
+        }
+    }
+}
+
+extension View {
+    @ViewBuilder
+    func cadenceActionTint(_ tone: CadenceActionTone) -> some View {
+        switch tone.semanticColor {
+        case .systemBlue:
+            tint(.blue)
+        case .systemRed:
+            tint(.red)
+        }
+    }
+}
+
 enum CadenceAppearance: String, CaseIterable, Identifiable {
     case system
     case light
@@ -20,14 +49,6 @@ enum CadenceAppearance: String, CaseIterable, Identifiable {
         case .system: String(localized: "System")
         case .light: String(localized: "Light")
         case .dark: String(localized: "Dark")
-        }
-    }
-
-    var colorScheme: ColorScheme? {
-        switch self {
-        case .system: nil
-        case .light: .light
-        case .dark: .dark
         }
     }
 

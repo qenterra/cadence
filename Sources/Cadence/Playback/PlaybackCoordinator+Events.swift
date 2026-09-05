@@ -83,9 +83,15 @@ extension PlaybackCoordinator {
             play()
         case .previous:
             Task { await previous() }
-        case let .skipBackward(interval):
+        case .skipBackward:
+            let interval = CadencePreferences.seekInterval(
+                in: preferences
+            ).seconds
             Task { await seek(to: presentationTime() - interval) }
-        case let .skipForward(interval):
+        case .skipForward:
+            let interval = CadencePreferences.seekInterval(
+                in: preferences
+            ).seconds
             Task { await seek(to: presentationTime() + interval) }
         case .toggle:
             togglePlayback()
@@ -149,6 +155,8 @@ extension PlaybackCoordinator {
             )
         }
         systemMediaSession.update(state: state)
+        notificationController?.playbackStateDidChange(state)
+        persistPlaybackSession()
     }
 
     func refreshManagedArtwork(
@@ -267,6 +275,13 @@ extension PlaybackCoordinator {
         state.duration = successor.track.duration
         state.transport = intendedTransport.state
         state.isBuffering = false
+        if let backend = state.activeBackend {
+            state.audioPath = audioPath(
+                current: successor.track,
+                backend: backend,
+                next: nil
+            )
+        }
         if intendedTransport == .playing {
             state.failure = nil
         }

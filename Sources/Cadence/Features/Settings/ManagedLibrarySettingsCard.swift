@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 struct ManagedLibrarySettingsCard: View {
@@ -40,6 +41,7 @@ struct ManagedLibrarySettingsCard: View {
             Button("Delete Library", role: .destructive) {
                 Task { await model.deleteEntireManagedLibrary() }
             }
+            .cadenceActionTint(.destructive)
             Button("Cancel", role: .cancel) {}
         } message: {
             Text(
@@ -100,6 +102,13 @@ struct ManagedLibrarySettingsCard: View {
                 model.chooseLibraryLocation()
             }
             .disabled(model.isMovingLibrary)
+            Button("Show in Finder", systemImage: "folder") {
+                guard let packageURL = model.librarySession.location?.packageURL else {
+                    return
+                }
+                NSWorkspace.shared.activateFileViewerSelecting([packageURL])
+            }
+            .disabled(model.librarySession.location == nil)
         }
     }
 
@@ -112,6 +121,7 @@ struct ManagedLibrarySettingsCard: View {
             ) {
                 isDeleteConfirmationPresented = true
             }
+            .cadenceActionTint(.destructive)
             .disabled(
                 model.librarySession.location == nil
                     || model.isMovingLibrary

@@ -8,7 +8,7 @@ struct NativeAllTracksTable: View {
     @Binding var selection: Set<UUID>
 
     var body: some View {
-        ProductionTrackTable(
+        ProductionTrackList(
             model: model,
             tracks: [],
             contentVersion: nil,

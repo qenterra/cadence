@@ -370,6 +370,9 @@ struct TrackTablePresentationKey: Equatable {
     let renderer: TrackTableRenderer
     let currentTrackID: UUID?
     let isCurrentTrackPlaying: Bool
+    let showsArtwork: Bool
+    let density: TrackTableDensity
+    let textSize: InterfaceTextSize
 
     init(
         modelID: ObjectIdentifier,
@@ -381,7 +384,10 @@ struct TrackTablePresentationKey: Equatable {
         canReorder: Bool,
         renderer: TrackTableRenderer = .native,
         currentTrackID: UUID? = nil,
-        isCurrentTrackPlaying: Bool = false
+        isCurrentTrackPlaying: Bool = false,
+        showsArtwork: Bool = true,
+        density: TrackTableDensity = .standard,
+        textSize: InterfaceTextSize = .standard
     ) {
         self.modelID = modelID
         self.context = context
@@ -393,6 +399,9 @@ struct TrackTablePresentationKey: Equatable {
         self.renderer = renderer
         self.currentTrackID = currentTrackID
         self.isCurrentTrackPlaying = isCurrentTrackPlaying
+        self.showsArtwork = showsArtwork
+        self.density = density
+        self.textSize = textSize
     }
 }
 
@@ -780,9 +789,13 @@ struct TrackTableCore: NSViewRepresentable {
     let reorderAction: (([UUID]) -> Void)?
     let onReachEnd: (() async -> Void)?
     var refreshAction: CadenceRefreshAction?
+    var scrollOwnership = TrackListScrollOwnership.contained
     var renderer: TrackTableRenderer = .native
     var currentTrackID: UUID?
     var isCurrentTrackPlaying = false
+    var showsArtwork = true
+    var density = TrackTableDensity.standard
+    var textSize = InterfaceTextSize.standard
     var workProbe: TrackTableWorkProbe?
     @Binding var selection: Set<UUID>
 
@@ -805,7 +818,10 @@ struct TrackTableCore: NSViewRepresentable {
             canReorder: reorderAction != nil,
             renderer: renderer,
             currentTrackID: currentTrackID,
-            isCurrentTrackPlaying: isCurrentTrackPlaying
+            isCurrentTrackPlaying: isCurrentTrackPlaying,
+            showsArtwork: showsArtwork,
+            density: density,
+            textSize: textSize
         )
     }
 
@@ -818,7 +834,7 @@ struct TrackTableCore: NSViewRepresentable {
         tableView.headerView = nil
         tableView.style = .plain
         tableView.backgroundColor = .clear
-        tableView.rowHeight = 58
+        tableView.rowHeight = density.rowHeight
         tableView.intercellSpacing = .zero
         tableView.selectionHighlightStyle = .none
         tableView.allowsMultipleSelection = true
@@ -850,10 +866,13 @@ struct TrackTableCore: NSViewRepresentable {
 
         let scrollView = NSScrollView()
         scrollView.drawsBackground = false
-        scrollView.hasVerticalScroller = true
+        scrollView.hasVerticalScroller = scrollOwnership == .contained
         scrollView.hasHorizontalScroller = false
         scrollView.horizontalScrollElasticity = .none
         scrollView.autohidesScrollers = true
+        scrollView.verticalScrollElasticity = scrollOwnership == .contained
+            ? .automatic
+            : .none
         scrollView.documentView = tableView
         scrollView.contentView.postsBoundsChangedNotifications = true
 
@@ -876,9 +895,17 @@ struct TrackTableCore: NSViewRepresentable {
         to scrollView: NSScrollView,
         coordinator: Coordinator
     ) {
-        guard scrollView.documentView is NSTableView else {
+        guard let tableView = scrollView.documentView as? NSTableView else {
             return
         }
+        if tableView.rowHeight != density.rowHeight {
+            tableView.rowHeight = density.rowHeight
+            tableView.noteHeightOfRows(withIndexesChanged: IndexSet(integersIn: 0 ..< totalCount))
+        }
+        scrollView.hasVerticalScroller = scrollOwnership == .contained
+        scrollView.verticalScrollElasticity = scrollOwnership == .contained
+            ? .automatic
+            : .none
         workProbe?.recordAppliedUpdate()
         let visibleRows = coordinator.visibleRowIndexes(
             totalCount: totalCount

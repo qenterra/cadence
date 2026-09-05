@@ -3,6 +3,8 @@ import SwiftUI
 struct SettingsSidebarCard: View {
     @Binding var orderRawValue: String
     @Binding var hiddenRawValue: String
+    @AppStorage("navigationRail.expanded")
+    private var isSidebarExpanded = NavigationRailConfiguration.defaultIsExpanded
 
     @State private var draggedDestination: NavigationDestination?
     @State private var dropTarget: NavigationDestination?
@@ -45,6 +47,18 @@ struct SettingsSidebarCard: View {
                     lineWidth: 0.5
                 )
             }
+
+            HStack {
+                Text("Reset restores the default order and makes every destination visible.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+                Spacer(minLength: CadenceLayout.contentGap)
+
+                Button("Reset Sidebar", systemImage: "arrow.counterclockwise") {
+                    resetSidebar()
+                }
+            }
         }
     }
 
@@ -76,8 +90,7 @@ struct SettingsSidebarCard: View {
                 let rawValue = values.first,
                 let source = NavigationDestination(rawValue: rawValue),
                 NavigationRailConfiguration.configurableDestinations
-                .contains(source),
-                source != .home
+                .contains(source)
             else {
                 return false
             }
@@ -145,13 +158,12 @@ struct SettingsSidebarCard: View {
         offset: Int
     ) -> Bool {
         guard
-            destination != .home,
             let sourceIndex = orderedDestinations.firstIndex(of: destination),
             orderedDestinations.indices.contains(sourceIndex + offset)
         else {
             return false
         }
-        return orderedDestinations[sourceIndex + offset] != .home
+        return true
     }
 
     private func reorder(
@@ -169,6 +181,14 @@ struct SettingsSidebarCard: View {
 
         withAnimation(.smooth(duration: CadenceTheme.motionDismiss)) {
             orderRawValue = NavigationRailConfiguration.encode(reordered)
+        }
+    }
+
+    private func resetSidebar() {
+        withAnimation(.smooth(duration: CadenceTheme.motionDismiss)) {
+            orderRawValue = NavigationRailConfiguration.defaultOrderRawValue
+            hiddenRawValue = ""
+            isSidebarExpanded = NavigationRailConfiguration.defaultIsExpanded
         }
     }
 }
@@ -191,6 +211,7 @@ private struct SettingsSidebarRow: View {
                     systemImage: destination.symbolName
                 )
             }
+            .toggleStyle(.checkbox)
 
             Spacer(minLength: CadenceLayout.compactGap)
 

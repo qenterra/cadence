@@ -47,6 +47,10 @@ final class PlaybackCoordinator {
     let backends: [PlaybackBackendKind: any PlaybackBackend]
     let systemMediaSession: any SystemMediaSessionControlling
     let audioRouteProvider: any AudioRouteProviding
+    let notificationController: CadenceNotificationController?
+    let preferences: UserDefaults
+    let playbackSessionStore: PlaybackSessionStore
+    let persistsPlaybackSession: Bool
     var resolvedTracks: [UUID: ResolvedPlaybackTrack] = [:]
     var failedTrackIDs: Set<UUID> = []
     var canonicalOrder: [UUID] = []
@@ -59,6 +63,10 @@ final class PlaybackCoordinator {
     var routeFailureAuthority: PlaybackRouteFailureAuthority?
     @ObservationIgnored
     var routeTransitionTask: Task<Void, Never>?
+    @ObservationIgnored
+    var routeRecoveryShouldResume = false
+    @ObservationIgnored
+    var sessionRestoreAttempted = false
     @ObservationIgnored
     var playbackIntent = PlaybackIntentAuthority(
         generation: 0,
@@ -94,6 +102,9 @@ final class PlaybackCoordinator {
         backends: [any PlaybackBackend],
         systemMediaSession: any SystemMediaSessionControlling,
         audioRouteProvider: any AudioRouteProviding,
+        notificationController: CadenceNotificationController? = nil,
+        preferences: UserDefaults = .standard,
+        persistsPlaybackSession: Bool = true,
         bassEnvelopeLoader: @escaping PlaybackBassEnvelopeLoading =
             defaultPlaybackBassEnvelopeLoader
     ) {
@@ -103,7 +114,13 @@ final class PlaybackCoordinator {
         )
         self.systemMediaSession = systemMediaSession
         self.audioRouteProvider = audioRouteProvider
+        self.notificationController = notificationController
+        self.preferences = preferences
+        playbackSessionStore = PlaybackSessionStore(defaults: preferences)
+        self.persistsPlaybackSession = persistsPlaybackSession
         self.bassEnvelopeLoader = bassEnvelopeLoader
+
+        CadencePreferences.registerDefaults(in: preferences)
 
         for backend in backends {
             backend.onEvent = { [weak self] event in
@@ -113,6 +130,9 @@ final class PlaybackCoordinator {
     }
 
     func activateSystemMediaSession() {
+        systemMediaSession.setSkipInterval(
+            CadencePreferences.seekInterval(in: preferences).seconds
+        )
         systemMediaSession.activate { [weak self] command in
             self?.perform(command)
         }
@@ -144,6 +164,7 @@ final class PlaybackCoordinator {
         isShuffled: Bool = false
     ) async -> Bool {
         activateSystemMediaSession()
+        routeRecoveryShouldResume = false
         let queue = PlaybackQueueState(
             source: source,
             orderedTrackIDs: trackIDs,
@@ -166,6 +187,7 @@ final class PlaybackCoordinator {
             return
         }
         if retryableRouteFailureAuthority != nil {
+            routeRecoveryShouldResume = false
             let intent = advancePlaybackIntent(
                 currentItemID: state.currentTrack?.id,
                 transport: .playing
@@ -190,6 +212,7 @@ final class PlaybackCoordinator {
         guard state.currentTrack != nil else {
             return
         }
+        routeRecoveryShouldResume = false
         advancePlaybackIntent(
             currentItemID: state.currentTrack?.id,
             transport: .paused
@@ -237,7 +260,9 @@ final class PlaybackCoordinator {
     }
 
     func previous() async {
-        if presentationTime() > 3 {
+        if CadencePreferences.previousTrackBehavior(in: preferences)
+            == .restartCurrent,
+            presentationTime() > 3 {
             await seek(to: 0)
         } else {
             await move(by: -1, reason: .manual)
@@ -266,7 +291,16 @@ final class PlaybackCoordinator {
         }
     }
 
+    func setRepeatMode(_ mode: RepeatMode) {
+        guard repeatMode != mode else {
+            return
+        }
+        repeatMode = mode
+        persistPlaybackSession()
+    }
+
     func stop(resetQueue: Bool = true) {
+        routeRecoveryShouldResume = false
         advancePlaybackIntent(
             currentItemID: nil,
             transport: .idle
@@ -289,11 +323,16 @@ final class PlaybackCoordinator {
         if resetQueue {
             state.queue = nil
             canonicalOrder = []
+            if persistsPlaybackSession {
+                playbackSessionStore.clear()
+            }
         }
         systemMediaSession.clear()
     }
 
     func shutdown() {
+        state.currentTime = presentationTime()
+        persistPlaybackSession()
         audioRouteProvider.stopMonitoring()
         advancePlaybackIntent(
             currentItemID: nil,
@@ -313,7 +352,8 @@ final class PlaybackCoordinator {
     }
 
     var airPlayPlayer: AVPlayer? {
-        (backends[.native] as? NativePlaybackBackend)?.airPlayPlayer
+        (backends[.native] as? any PlaybackAirPlayPlayerProviding)?
+            .airPlayPlayer
     }
 
     func presentationTime(

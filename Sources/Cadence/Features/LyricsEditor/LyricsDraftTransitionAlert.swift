@@ -18,6 +18,7 @@ struct LyricsDraftTransitionAlert: ViewModifier {
                     )
                 }
             }
+            .cadenceActionTint(.confirmation)
             .disabled(!model.canSaveLyricDraft)
 
             Button("Discard", role: .destructive) {
@@ -27,6 +28,7 @@ struct LyricsDraftTransitionAlert: ViewModifier {
                     )
                 }
             }
+            .cadenceActionTint(.destructive)
 
             Button("Cancel", role: .cancel) {
                 Task {

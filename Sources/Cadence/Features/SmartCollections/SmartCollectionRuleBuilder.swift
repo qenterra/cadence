@@ -97,6 +97,7 @@ struct SmartCollectionRuleBuilder: View {
                     }
                 }
                 .buttonStyle(.borderedProminent)
+                .cadenceActionTint(.confirmation)
                 .controlSize(.small)
                 .disabled(!model.canSaveSmartCollectionDraft)
             }

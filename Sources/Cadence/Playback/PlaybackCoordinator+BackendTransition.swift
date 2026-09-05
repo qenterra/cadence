@@ -136,7 +136,18 @@ extension PlaybackCoordinator {
             next: repeatMode == .one ? nil : next,
             startTime: transition.currentTime,
             autoplay: false,
-            volume: volume
+            volume: volume,
+            normalizationGain: normalizationGain(
+                for: current.track
+            ),
+            nextNormalizationGain: next.map {
+                normalizationGain(for: $0.track)
+            } ?? 1,
+            crossfadeDuration: next == nil || repeatMode == .one
+                ? 0
+                : CadencePreferences.crossfadeDuration(
+                    in: preferences
+                ).seconds
         )
         return (request, next)
     }
@@ -171,6 +182,7 @@ extension PlaybackCoordinator {
         clearVisibleRouteFailureAuthority(
             currentItemID: transition.currentID
         )
+        finishRouteRecovery()
         state.currentTrack = transition.currentTrack
         state.currentTime = transition.currentTime
         state.duration = transition.currentTrack.duration
@@ -202,6 +214,8 @@ extension PlaybackCoordinator {
     ) {
         transition.requestedBackend.stop()
         transition.previousBackend.pause()
+        routeRecoveryShouldResume =
+            transition.expectedIntent.transport == .playing
         advancePlaybackIntent(
             currentItemID: transition.currentID,
             transport: .paused

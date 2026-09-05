@@ -211,7 +211,7 @@ class ReleaseScriptContractTests(unittest.TestCase):
 
         self.assertIn('CadenceVisualRegression/update', script)
         self.assertIn('candidate_dir="${TMPDIR:?}', script)
-        self.assertIn('expected_candidate_count="86"', script)
+        self.assertIn('expected_candidate_count="89"', script)
         self.assertIn('candidate_count', script)
         self.assertIn('cp -f "$candidate_dir"/*.png', script)
 

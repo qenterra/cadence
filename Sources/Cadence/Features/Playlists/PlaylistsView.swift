@@ -49,6 +49,7 @@ struct PlaylistsView: View {
                     }
                 }
             }
+            .cadenceActionTint(.confirmation)
             Button("Cancel", role: .cancel) {
                 playlistNameOperation = nil
                 playlistName = ""
@@ -63,6 +64,7 @@ struct PlaylistsView: View {
                     await store.deleteSelectedPlaylist()
                 }
             }
+            .cadenceActionTint(.destructive)
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("Tracks remain in your Cadence library.")
@@ -172,7 +174,7 @@ private extension PlaylistsView {
                     )
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else if let trackSource {
-                    ProductionTrackTable(
+                    ProductionTrackList(
                         model: model,
                         tracks: trackSource.tracks,
                         contentVersion: trackSource.contentVersion,

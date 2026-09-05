@@ -13,7 +13,7 @@ enum PlaybackTransportState: Equatable, Sendable {
     case failed
 }
 
-enum PlaybackQueueSource: Hashable, Sendable {
+enum PlaybackQueueSource: Codable, Hashable, Sendable {
     case album(UUID)
     case artist(UUID)
     case smartCollection(UUID)

@@ -53,8 +53,7 @@ struct ArtworkCropSheet: View {
                 }
                 .keyboardShortcut(.defaultAction)
                 .buttonStyle(.borderedProminent)
-                .tint(.white)
-                .foregroundStyle(.black)
+                .cadenceActionTint(.confirmation)
             }
         }
         .padding(24)

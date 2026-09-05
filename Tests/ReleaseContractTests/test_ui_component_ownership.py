@@ -1,0 +1,495 @@
+from __future__ import annotations
+
+import copy
+import importlib.util
+import sys
+import tempfile
+import unittest
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[2]
+VERIFIER_PATH = ROOT / "scripts" / "verify_ui_component_ownership.py"
+MANIFEST_PATH = ROOT / "scripts" / "ui-component-ownership.json"
+
+
+def load_verifier():
+    spec = importlib.util.spec_from_file_location("ui_component_ownership", VERIFIER_PATH)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"Cannot load ownership verifier from {VERIFIER_PATH}")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+class UIComponentOwnershipTests(unittest.TestCase):
+    def test_discovers_extension_conformances_and_qualifies_extension_nesting(self) -> None:
+        """Removing extension scope handling must fail this ownership contract."""
+        verifier = load_verifier()
+        fixture = '''
+        extension Feature: View {
+            var body: some View { EmptyView() }
+        }
+        struct Outer {}
+        extension Outer {
+            private struct Nested: View {
+                var body: some View { EmptyView() }
+            }
+        }
+        '''
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "ExtensionFixture.swift").write_text(fixture, encoding="utf-8")
+            declarations = verifier.discover_visual_declarations(root)
+
+        self.assertEqual(
+            [(item.symbol, item.kind) for item in declarations],
+            [("Feature", "View"), ("Outer.Nested", "View")],
+        )
+
+    def test_masks_escaped_and_raw_multiline_strings_without_losing_real_line_numbers(self) -> None:
+        """A string delimiter bug must not invent a component or hide a later declaration."""
+        verifier = load_verifier()
+        fixture = '''
+        import SwiftUI
+
+        let ordinary = "struct OrdinaryPhantom: View {}"
+        let raw = #"struct RawPhantom: View {}"#
+        let multiline = """
+        struct MultilinePhantom: View {}
+        \\"""
+        still string content
+        """
+        let rawMultiline = #"""
+        struct RawMultilinePhantom: View {}
+        """#
+
+        struct RealView: View {
+            var body: some View { EmptyView() }
+        }
+        '''
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "StringFixture.swift").write_text(fixture, encoding="utf-8")
+            declarations = verifier.discover_visual_declarations(root)
+
+        self.assertEqual(
+            [(item.symbol, item.kind, item.line) for item in declarations],
+            [("RealView", "View", 15)],
+        )
+
+    def test_reports_the_declaration_keyword_line_and_prefers_a_concrete_visual_base(self) -> None:
+        """A declaration after imports must retain its own line and concrete AppKit role."""
+        verifier = load_verifier()
+        fixture = '''
+        import AppKit
+
+        final class Hybrid: NSView, MTKViewDelegate {}
+        '''
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "LineFixture.swift").write_text(fixture, encoding="utf-8")
+            declarations = verifier.discover_visual_declarations(root)
+
+        self.assertEqual(
+            [(item.symbol, item.kind, item.line) for item in declarations],
+            [("Hybrid", "NSView", 4)],
+        )
+
+    def test_discovers_visual_declaration_kinds_while_ignoring_comments_and_strings(self) -> None:
+        """Removing a supported visual declaration kind must fail this contract."""
+        verifier = load_verifier()
+        fixture = '''
+        // struct CommentOnly: View {}
+        let sourceSnippet = "private struct StringOnly: View {}"
+        private struct Outer {
+            private struct NestedModifier:
+                ViewModifier
+            {
+                func body(content: Content) -> some View { content }
+            }
+        }
+        struct MultilineStyle:
+            ButtonStyle
+        {
+            func makeBody(configuration: Configuration) -> some View { EmptyView() }
+        }
+        struct FlowLayout:
+            Layout
+        {
+            func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize { .zero }
+            func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {}
+        }
+        private final class NativeView:
+            NSView
+        {}
+        final class TrackCell: NSTableCellView {}
+        struct HostView: NSViewRepresentable {
+            func makeNSView(context: Context) -> NSView { NSView() }
+            func updateNSView(_ nsView: NSView, context: Context) {}
+        }
+        final class MetalSurface: MTKView {}
+        private final class Renderer: NSObject,
+            MTKViewDelegate
+        {}
+        '''
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "Fixture.swift").write_text(fixture, encoding="utf-8")
+            declarations = verifier.discover_visual_declarations(root)
+
+        self.assertEqual(
+            [(item.symbol, item.kind, item.line) for item in declarations],
+            [
+                ("FlowLayout", "Layout", 16),
+                ("HostView", "NSViewRepresentable", 26),
+                ("MetalSurface", "MTKView", 30),
+                ("MultilineStyle", "ButtonStyle", 11),
+                ("NativeView", "NSView", 22),
+                ("Outer.NestedModifier", "ViewModifier", 5),
+                ("Renderer", "MTKViewDelegate", 31),
+                ("TrackCell", "NSTableCellView", 25),
+            ],
+        )
+
+    def test_every_visual_declaration_has_exactly_one_manifest_entry(self) -> None:
+        """Removing a manifest entry or leaving a stale one must fail this contract."""
+        verifier = load_verifier()
+        declarations = verifier.discover_visual_declarations(ROOT / "Sources" / "Cadence")
+        manifest = verifier.load_manifest(MANIFEST_PATH)
+        self.assertEqual(
+            {(item.path, item.symbol) for item in declarations},
+            {(item["path"], item["symbol"]) for item in manifest["components"]},
+        )
+
+    def test_manifest_entries_have_complete_concrete_ownership(self) -> None:
+        """Replacing an ownership decision with an empty or provisional value must fail."""
+        verifier = load_verifier()
+        manifest = verifier.load_manifest(MANIFEST_PATH)
+        self.assertEqual(verifier.validate_manifest(ROOT / "Sources" / "Cadence", manifest), [])
+        allowed = {
+            "core-component",
+            "media-component",
+            "cadence-adapter",
+            "product-shell",
+            "product-only-behaviour",
+        }
+        for item in manifest["components"]:
+            self.assertIn(item["classification"], allowed)
+            self.assertTrue(item["remainingCadenceSymbol"])
+            self.assertEqual(set(item["dependencies"]), {"data", "actions"})
+            self.assertTrue(all(isinstance(value, list) for value in item["dependencies"].values()))
+            for dependency_kind, dependencies in item["dependencies"].items():
+                for dependency in dependencies:
+                    self.assertEqual(set(dependency), {"symbol", "role"})
+                    self.assertEqual(dependency["role"], dependency_kind)
+                    self.assertIsInstance(dependency["symbol"], str)
+                    self.assertTrue(dependency["symbol"])
+            self.assertEqual(
+                set(item["states"]),
+                {"appearance", "motion", "accessibility", "interaction"},
+            )
+            self.assertTrue(all(item["states"].values()))
+            self.assertTrue(item["wave"])
+            self.assertIn(item["evidence"]["status"], {"verified", "missing"})
+            self.assertTrue(item["evidence"]["detail"])
+            self.assertIsInstance(item["evidence"]["references"], list)
+            if item["classification"] in {"core-component", "media-component"}:
+                self.assertIn(item["deliveryProduct"], {"QenTerraComponents", "QenTerraMediaComponents"})
+                self.assertTrue(item["sharedSymbol"])
+            else:
+                self.assertEqual(item["deliveryProduct"], "Cadence")
+                self.assertEqual(item["sharedSymbol"], "")
+
+    def test_manifest_requires_exact_schema_identity_and_component_shape(self) -> None:
+        """A different schema/root or unknown field must not validate against Cadence sources."""
+        verifier = load_verifier()
+        manifest = verifier.load_manifest(MANIFEST_PATH)
+        self.assertEqual(verifier.validate_manifest(ROOT / "Sources" / "Cadence", manifest), [])
+        mutations = {
+            "missing schemaVersion": lambda value: value.pop("schemaVersion"),
+            "wrong schemaVersion type": lambda value: value.__setitem__("schemaVersion", "2"),
+            "mismatched sourceRoot": lambda value: value.__setitem__("sourceRoot", "Elsewhere"),
+            "unknown top-level field": lambda value: value.__setitem__("unexpected", True),
+            "unknown component field": lambda value: value["components"][0].__setitem__("unexpected", True),
+            "wrong component field type": lambda value: value["components"][0].__setitem__("line", "1"),
+        }
+        for name, mutate in mutations.items():
+            with self.subTest(name=name):
+                candidate = copy.deepcopy(manifest)
+                mutate(candidate)
+                self.assertTrue(verifier.validate_manifest(ROOT / "Sources" / "Cadence", candidate))
+
+    def test_manifest_rejects_provisional_semantic_placeholders(self) -> None:
+        """A fake dependency, state, wave, or evidence reference must not make migration ready."""
+        verifier = load_verifier()
+        manifest = verifier.load_manifest(MANIFEST_PATH)
+        mutations = {
+            "string dependency": lambda value: value["components"][0]["dependencies"].__setitem__("data", ["bogus"]),
+            "generic dependency": lambda value: value["components"][0]["dependencies"]["data"][0].__setitem__(
+                "symbol", "CadenceModeHint Cadence feature presentation state"
+            ),
+            "unknown state": lambda value: value["components"][0]["states"].__setitem__("appearance", ["bogus"]),
+            "unknown wave": lambda value: value["components"][0].__setitem__("wave", "bogus"),
+            "missing evidence with reference": lambda value: value["components"][0]["evidence"].__setitem__("references", ["bogus"]),
+        }
+        for name, mutate in mutations.items():
+            with self.subTest(name=name):
+                candidate = copy.deepcopy(manifest)
+                mutate(candidate)
+                self.assertTrue(verifier.validate_manifest(ROOT / "Sources" / "Cadence", candidate))
+
+    def test_manifest_records_favorite_mutation_as_an_action(self) -> None:
+        """A favorite-changing closure must not be represented as an action-free component."""
+        verifier = load_verifier()
+        manifest = verifier.load_manifest(MANIFEST_PATH)
+        component = next(item for item in manifest["components"] if item["symbol"] == "PlayerBarFavoriteControl")
+
+        self.assertIn(
+            "model.setProductionPlaybackTrackFavorite",
+            [entry["symbol"] for entry in component["dependencies"]["actions"]],
+        )
+
+    def test_manifest_keeps_queue_play_and_select_in_action_dependencies(self) -> None:
+        """Queue interaction closures are commands, not presentation data."""
+        verifier = load_verifier()
+        manifest = verifier.load_manifest(MANIFEST_PATH)
+        component = next(
+            item for item in manifest["components"]
+            if item["symbol"] == "ProductionQueueRowInteractionModifier"
+        )
+
+        data_symbols = [entry["symbol"] for entry in component["dependencies"]["data"]]
+        action_symbols = [entry["symbol"] for entry in component["dependencies"]["actions"]]
+        self.assertNotIn("play", data_symbols)
+        self.assertNotIn("select", data_symbols)
+        self.assertIn("play", action_symbols)
+        self.assertIn("select", action_symbols)
+
+    def test_manifest_records_row_button_configuration_as_data(self) -> None:
+        """ButtonStyle configuration label and pressed state are source-backed visual inputs."""
+        verifier = load_verifier()
+        manifest = verifier.load_manifest(MANIFEST_PATH)
+        component = next(item for item in manifest["components"] if item["symbol"] == "CadenceRowButtonStyle")
+
+        self.assertCountEqual(
+            ["configuration.label", "configuration.isPressed"],
+            [entry["symbol"] for entry in component["dependencies"]["data"]],
+        )
+        self.assertEqual([], component["dependencies"]["actions"])
+
+    def test_dependency_roles_and_empty_lists_are_checked_within_each_declaration(self) -> None:
+        """A token elsewhere in a file cannot excuse false none or an action listed as data."""
+        verifier = load_verifier()
+        manifest = verifier.load_manifest(MANIFEST_PATH)
+        mutations = {
+            "whole-file token": lambda value: next(
+                item for item in value["components"] if item["symbol"] == "CadenceRowButtonStyle"
+            )["dependencies"].__setitem__(
+                "data", [{"symbol": "CadenceTheme", "role": "data"}]
+            ),
+            "favorite action none": lambda value: next(
+                item for item in value["components"] if item["symbol"] == "PlayerBarFavoriteControl"
+            )["dependencies"].__setitem__("actions", []),
+            "queue actions as data": lambda value: next(
+                item for item in value["components"]
+                if item["symbol"] == "ProductionQueueRowInteractionModifier"
+            )["dependencies"].update(
+                {"data": [{"symbol": "play", "role": "data"}], "actions": []}
+            ),
+            "button style data none": lambda value: next(
+                item for item in value["components"] if item["symbol"] == "CadenceRowButtonStyle"
+            )["dependencies"].__setitem__("data", []),
+        }
+        for name, mutate in mutations.items():
+            with self.subTest(name=name):
+                candidate = copy.deepcopy(manifest)
+                mutate(candidate)
+                self.assertTrue(verifier.validate_manifest(ROOT / "Sources" / "Cadence", candidate))
+
+    def test_dependency_source_excludes_nonvisual_nested_declarations(self) -> None:
+        """A nested helper's state must not be attributed to its enclosing visual declaration."""
+        verifier = load_verifier()
+        fixture = '''
+        struct Outer: View {
+            let outerValue: Int
+            final class Helper {
+                let hiddenValue: Int
+            }
+            var body: some View { EmptyView() }
+        }
+        '''
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "NestedDependencyFixture.swift").write_text(fixture, encoding="utf-8")
+            contexts = verifier.discover_declaration_contexts(root)
+            source = verifier.declaration_source(
+                contexts[("NestedDependencyFixture.swift", "Outer")], contexts
+            )
+
+        self.assertIn("outerValue", source)
+        self.assertNotIn("hiddenValue", source)
+
+    def test_dependency_lists_must_cover_every_declaration_bounded_reference(self) -> None:
+        """A nonempty list cannot conceal an omitted visual input or command."""
+        verifier = load_verifier()
+        manifest = verifier.load_manifest(MANIFEST_PATH)
+        mutations = {
+            "omitted queue select": lambda value: next(
+                item for item in value["components"]
+                if item["symbol"] == "ProductionQueueRowInteractionModifier"
+            )["dependencies"].__setitem__(
+                "actions", [{"symbol": "play", "role": "actions"}]
+            ),
+            "omitted button style pressed state": lambda value: next(
+                item for item in value["components"] if item["symbol"] == "CadenceRowButtonStyle"
+            )["dependencies"].__setitem__(
+                "data", [{"symbol": "configuration.label", "role": "data"}]
+            ),
+        }
+        for name, mutate in mutations.items():
+            with self.subTest(name=name):
+                candidate = copy.deepcopy(manifest)
+                mutate(candidate)
+                self.assertTrue(verifier.validate_manifest(ROOT / "Sources" / "Cadence", candidate))
+
+    def test_dependency_roles_follow_consumer_contracts_not_closure_or_lifecycle_names(self) -> None:
+        """Result/content closures are data; Void commands are actions; framework lifecycle values are local."""
+        verifier = load_verifier()
+        manifest = verifier.load_manifest(MANIFEST_PATH)
+
+        catalog = next(item for item in manifest["components"] if item["symbol"] == "CatalogSortMenu")
+        self.assertIn("fieldTitle", [entry["symbol"] for entry in catalog["dependencies"]["data"]])
+        self.assertNotIn("fieldTitle", [entry["symbol"] for entry in catalog["dependencies"]["actions"]])
+
+        keyboard = next(item for item in manifest["components"] if item["symbol"] == "RhythmKeyboardCapture")
+        keyboard_data = [entry["symbol"] for entry in keyboard["dependencies"]["data"]]
+        keyboard_actions = [entry["symbol"] for entry in keyboard["dependencies"]["actions"]]
+        self.assertIn("isCadenceModeActive", keyboard_data)
+        self.assertNotIn("isCadenceModeActive", keyboard_actions)
+        self.assertCountEqual(
+            ["onExitCadenceMode", "onKeyDown", "onKeyUp", "onReleaseAllKeys"],
+            keyboard_actions,
+        )
+        self.assertFalse({"_", "context", "coordinator", "nsView"} & set(keyboard_data))
+        self.assertNotIn("coordinator.removeMonitor", keyboard_actions)
+
+        track_table = next(item for item in manifest["components"] if item["symbol"] == "TrackTableCore")
+        track_actions = [entry["symbol"] for entry in track_table["dependencies"]["actions"]]
+        self.assertCountEqual(["onReachEnd", "reorderAction"], track_actions)
+        self.assertFalse(any(symbol.startswith("context.coordinator.") for symbol in track_actions))
+
+        pane_header = next(item for item in manifest["components"] if item["symbol"] == "WorkspacePaneHeader")
+        self.assertIn("trailing", [entry["symbol"] for entry in pane_header["dependencies"]["data"]])
+        self.assertEqual([], pane_header["dependencies"]["actions"])
+
+    def test_internal_compositor_storage_is_not_a_consumer_contract(self) -> None:
+        """An NSView's layer maps, pools, and caches must not become data or actions."""
+        verifier = load_verifier()
+        manifest = verifier.load_manifest(MANIFEST_PATH)
+        compositor = next(item for item in manifest["components"] if item["symbol"] == "RhythmPulseCompositorView")
+        data_symbols = {entry["symbol"] for entry in compositor["dependencies"]["data"]}
+        action_symbols = {entry["symbol"] for entry in compositor["dependencies"]["actions"]}
+        owned = {
+            "effectLayer", "state", "washLayers", "particleLayers", "washReplacementTimes",
+            "washLayerPool", "particleLayerPool", "washTextureCache",
+        }
+        self.assertFalse(owned & data_symbols)
+        self.assertFalse(any(symbol.startswith(("washLayers.", "particleLayers.", "washReplacementTimes.")) for symbol in action_symbols))
+
+        hosting_cell = next(item for item in manifest["components"] if item["symbol"] == "TrackTableHostingCell")
+        self.assertNotIn("hostState", [entry["symbol"] for entry in hosting_cell["dependencies"]["data"]])
+
+        renderer = next(item for item in manifest["components"] if item["symbol"] == "CadenceModeGradientRenderer")
+        renderer_data = {entry["symbol"] for entry in renderer["dependencies"]["data"]}
+        self.assertIn("device", renderer_data)
+        self.assertFalse({"commandQueue", "snapshotPipelineState"} & renderer_data)
+
+    def test_private_init_injected_closures_remain_consumer_dependencies(self) -> None:
+        """Private access does not erase a callback or formatter supplied by the initializer."""
+        verifier = load_verifier()
+        source = '''
+        final class PrivateInjectedSurface: NSView {
+            private let save: () -> Void
+            private let titleForValue: (Int) -> String
+
+            init(save: @escaping () -> Void, titleForValue: @escaping (Int) -> String) {
+                self.save = save
+                self.titleForValue = titleForValue
+                super.init(frame: .zero)
+            }
+        }
+        '''
+        data, actions = verifier.consumer_dependency_symbols(source)
+        self.assertEqual({"titleForValue"}, data)
+        self.assertEqual({"save"}, actions)
+
+    def test_external_wrappers_remain_inputs_while_owned_wrappers_do_not(self) -> None:
+        """Bindings, environment, and app storage are external; State-family storage is owned."""
+        verifier = load_verifier()
+        source = '''
+        struct WrapperSurface: View {
+            @Binding var selection: Bool
+            @Environment(\\.colorScheme) private var colorScheme
+            @AppStorage("surface.enabled") private var isEnabled = true
+            @State private var isHovered = false
+            @StateObject private var model = SurfaceModel()
+            @FocusState private var isFocused: Bool
+            @GestureState private var dragOffset = .zero
+        }
+        '''
+        data, actions = verifier.consumer_dependency_symbols(source)
+        self.assertEqual({"selection", "colorScheme", "isEnabled"}, data)
+        self.assertEqual(set(), actions)
+
+    def test_struct_defaults_and_init_assignment_are_configurable_but_class_defaults_are_owned(self) -> None:
+        """Configurable SwiftUI structs retain defaults; initialized class storage stays local."""
+        verifier = load_verifier()
+        struct_source = '''
+        struct ConfigurableSurface: View {
+            var showsArtwork = true
+            private let title: String
+
+            init(title: String) {
+                self.title = title
+            }
+        }
+        '''
+        class_source = '''
+        final class CachedSurface: NSView {
+            let cache = Cache()
+            var layers: [Int: CALayer] = [:]
+        }
+        '''
+        self.assertEqual({"showsArtwork", "title"}, verifier.data_symbols(struct_source))
+        self.assertEqual(set(), verifier.data_symbols(class_source))
+
+    def test_manifest_rejects_stale_and_provisional_entries(self) -> None:
+        """A stale path or an unclassified component must be rejected before migration starts."""
+        verifier = load_verifier()
+        manifest = {
+            "components": [
+                {
+                    "path": "Missing.swift",
+                    "symbol": "Unknown",
+                    "kind": "View",
+                    "line": 1,
+                    "classification": "unclassified",
+                    "deliveryProduct": "",
+                    "sharedSymbol": "",
+                    "remainingCadenceSymbol": "",
+                    "dependencies": [],
+                    "states": [],
+                    "wave": "",
+                    "evidence": "",
+                }
+            ]
+        }
+        errors = verifier.validate_manifest(ROOT / "Sources" / "Cadence", manifest)
+        self.assertTrue(any("Missing.swift" in error for error in errors))
+        self.assertTrue(any("unclassified" in error for error in errors))
+
+
+if __name__ == "__main__":
+    unittest.main()

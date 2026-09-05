@@ -20,9 +20,9 @@ struct NavigationRailTests {
         )
 
         #expect(visible == [
-            .home,
             .tags,
             .albums,
+            .home,
             favorites,
             .allTracks,
             .artists,
@@ -113,8 +113,8 @@ struct NavigationRailTests {
         ])
     }
 
-    @Test("Home stays first when an older saved rail order is restored")
-    func homeLeadsPersistedNavigationOrder() throws {
+    @Test("Home keeps its saved position when rail order is restored")
+    func homeKeepsPersistedNavigationOrder() throws {
         let favorites = try #require(
             NavigationDestination(rawValue: "favorites")
         )
@@ -123,9 +123,9 @@ struct NavigationRailTests {
         )
 
         #expect(restored == [
-            .home,
             .albums,
             .artists,
+            .home,
             .library,
             favorites,
             .allTracks,
@@ -177,7 +177,7 @@ struct NavigationRailTests {
         )
     }
 
-    @Test("Navigation rail destinations move freely while Home stays first")
+    @Test("Every navigation destination, including Home, moves freely")
     func navigationReordering() throws {
         let favorites = try #require(
             NavigationDestination(rawValue: "favorites")
@@ -201,14 +201,14 @@ struct NavigationRailTests {
                 .library,
                 to: .home,
                 in: destinations
-            ) == [.home, .library, favorites, .allTracks]
+            ) == [.library, .home, favorites, .allTracks]
         )
         #expect(
             NavigationRailConfiguration.moving(
                 .home,
                 to: .allTracks,
                 in: destinations
-            ) == destinations
+            ) == [favorites, .library, .allTracks, .home]
         )
         #expect(
             NavigationRailConfiguration.moving(
@@ -238,6 +238,17 @@ struct NavigationRailTests {
         #expect(artistsAfterImport.last == .artists)
         #expect(Set(artistsAfterImport).count == original.count)
         #expect(Set(artistsAfterImport) == Set(original))
+
+        let homeAfterArtists = NavigationRailConfiguration.moving(
+            .home,
+            to: .artists,
+            in: original
+        )
+        #expect(
+            NavigationRailConfiguration.orderedDestinations(
+                from: NavigationRailConfiguration.encode(homeAfterArtists)
+            ) == homeAfterArtists
+        )
     }
 
     @Test("Collapsed navigation selection is a symmetric square")

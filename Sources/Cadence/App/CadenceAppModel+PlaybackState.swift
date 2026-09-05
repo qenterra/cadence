@@ -41,7 +41,7 @@ extension CadenceAppModel {
                 previewRepeatMode = newValue
                 return
             }
-            playbackCoordinator.repeatMode = newValue
+            playbackCoordinator.setRepeatMode(newValue)
         }
     }
 
