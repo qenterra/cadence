@@ -215,6 +215,7 @@ final class DocumentationScreenshotFixture {
             appearance: capturedAppearance,
             contentView: hostingView
         )
+        defer { window.close() }
 
         // Mount the SwiftUI tree before waiting for view-owned async tasks.
         hostingView.layoutSubtreeIfNeeded()
@@ -237,7 +238,6 @@ final class DocumentationScreenshotFixture {
                 filename: filename
             )
         }
-        window.close()
     }
 
     private func captureWindow(

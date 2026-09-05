@@ -75,19 +75,21 @@ extension CadenceAppModel {
 
     func runConfiguredLibraryMaintenance(
         now: Date = .now,
-        calendar: Calendar = .current
+        calendar: Calendar = .current,
+        defaults: UserDefaults = .standard
     ) async {
-        guard librarySession.availability == .ready else {
+        guard runtimeMode == .production,
+              librarySession.availability == .ready else {
             return
         }
         do {
-            if let cutoff = CadencePreferences.listeningHistoryRetention()
+            if let cutoff = CadencePreferences.listeningHistoryRetention(in: defaults)
                 .cutoffDate(relativeTo: now, calendar: calendar) {
                 try await librarySession.store.pruneListeningHistory(
                     olderThan: cutoff
                 )
             }
-            if let cutoff = CadencePreferences.trashCleanupRetention()
+            if let cutoff = CadencePreferences.trashCleanupRetention(in: defaults)
                 .cutoffDate(relativeTo: now, calendar: calendar) {
                 try await librarySession.store.emptyExpiredTrash(
                     olderThan: cutoff,

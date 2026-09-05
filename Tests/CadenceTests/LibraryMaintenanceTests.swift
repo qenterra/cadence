@@ -4,6 +4,51 @@ import SwiftData
 import Testing
 
 struct LibraryMaintenanceTests {
+    @MainActor
+    @Test("Preview startup never applies destructive retention preferences to fixture data")
+    func previewMaintenancePreservesHistoryWithoutAlerts() async throws {
+        let suite = "CadenceMaintenanceTests-\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        defaults.set(30, forKey: CadencePreferences.Keys.listeningHistoryRetention)
+        defaults.set(30, forKey: CadencePreferences.Keys.trashCleanupRetention)
+        let fixture = try await DocumentationScreenshotFixture.make()
+        #expect(fixture.model.librarySession.availability == .ready)
+        #expect(fixture.model.librarySession.store.recentlyPlayedTracks.count == 7)
+
+        await fixture.model.runConfiguredLibraryMaintenance(
+            now: Date(timeIntervalSince1970: 2_000_000_000),
+            defaults: defaults
+        )
+
+        #expect(fixture.model.libraryOperationError == nil)
+        #expect(fixture.model.librarySession.store.recentlyPlayedTracks.count == 7)
+        try await fixture.cleanup()
+    }
+
+    @MainActor
+    @Test("Production maintenance still prunes listening history using the configured retention")
+    func productionMaintenancePrunesHistory() async throws {
+        let suite = "CadenceMaintenanceTests-\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        defaults.set(30, forKey: CadencePreferences.Keys.listeningHistoryRetention)
+        let fixture = try await DocumentationScreenshotFixture.make()
+        let model = CadenceAppModel.production(
+            librarySession: fixture.model.librarySession
+        )
+        #expect(model.librarySession.store.recentlyPlayedTracks.count == 7)
+
+        await model.runConfiguredLibraryMaintenance(
+            now: Date(timeIntervalSince1970: 2_000_000_000),
+            defaults: defaults
+        )
+
+        #expect(model.libraryOperationError == nil)
+        #expect(model.librarySession.store.recentlyPlayedTracks.isEmpty)
+        try await fixture.cleanup()
+    }
+
     @Test("Automatic cleanup removes only completed Trash operations older than the cutoff")
     func emptyExpiredTrash() async throws {
         let fixture = try TrashFixture()
