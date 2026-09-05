@@ -101,7 +101,7 @@ struct LibraryStoreEpochTests {
 
         let gate = LibraryEpochResultGate(libraryAResult)
         let stalePlayback = Task { @MainActor in
-            return await store.recordRecentlyPlayed(
+            await store.recordRecentlyPlayed(
                 trackID: libraryA.trackID,
                 at: libraryAPlaybackDate,
                 operation: { _, _, _ in
