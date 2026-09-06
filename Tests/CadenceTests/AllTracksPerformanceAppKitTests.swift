@@ -1651,7 +1651,7 @@ private final class NativeProductionTrackScrollFixture {
     let probe: TrackTableWorkProbe
     private let core: TrackTableCore
     private let coordinator: TrackTableCore.Coordinator
-    private let tableView = TrackTableView()
+    private let tableView = NativeMediaTableView()
     private let scrollView: NSScrollView
     private let window: NSWindow
     private var trackIDsByCell: [ObjectIdentifier: Set<UUID>] = [:]

@@ -46,8 +46,8 @@ struct CadenceModeLyricsTests {
 
         #expect(CadenceModeLyricInteraction.seekTime(for: timed) == 42.5)
         #expect(CadenceModeLyricInteraction.seekTime(for: untimed) == nil)
-        #expect(CadenceModeLyricsEdgeFade.topOpaqueLocation > 0)
-        #expect(CadenceModeLyricsEdgeFade.bottomFadeLocation < 1)
+        #expect(CadenceModeLyricsPresentation.topOpaqueLocation == 0.18)
+        #expect(CadenceModeLyricsPresentation.bottomOpaqueLocation == 0.88)
     }
 
     @Test("The active lyric stays in the center of five stable slots")

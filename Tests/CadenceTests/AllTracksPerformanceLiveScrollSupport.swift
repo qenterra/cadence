@@ -1,6 +1,7 @@
 import AppKit
 @testable import Cadence
 import Foundation
+import QenTerraMediaComponents
 import SwiftUI
 import Testing
 
@@ -83,7 +84,7 @@ final class BenchmarkTrackScrollFixture {
     private let artworkWorkProbe: ProductionArtworkWorkProbe?
     private let interactionState: TrackTableInteractionState
     private let rowSource: BenchmarkTrackRowSource
-    private let tableView = TrackTableView()
+    private let tableView = NativeMediaTableView()
     private let scrollView: NSScrollView
     private let window: NSWindow
 

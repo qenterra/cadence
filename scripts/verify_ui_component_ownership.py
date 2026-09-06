@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import sys
@@ -23,9 +24,13 @@ VISUAL_PROTOCOLS = {
 APPKIT_BASES = {"NSView", "NSTableView", "NSTableCellView", "MTKView"}
 VISUAL_KINDS = VISUAL_PROTOCOLS | APPKIT_BASES | {"MTKViewDelegate"}
 CONCRETE_BASE_PRECEDENCE = ("NSTableCellView", "NSTableView", "MTKView", "NSView")
-MANIFEST_SCHEMA_VERSION = 2
+MANIFEST_SCHEMA_VERSION = 3
 MANIFEST_SOURCE_ROOT = "Sources/Cadence"
-TOP_LEVEL_FIELDS = frozenset({"schemaVersion", "sourceRoot", "components"})
+TOP_LEVEL_FIELDS = frozenset(
+    {"schemaVersion", "sourceRoot", "designSystemRegistry", "components", "adoptions"}
+)
+REGISTRY_IDENTITY_FIELDS = frozenset({"version", "sha256"})
+SHARED_TARGET_FIELDS = frozenset({"componentID", "deliveryProduct", "publicSymbol"})
 COMPONENT_FIELDS = frozenset(
     {
         "path",
@@ -33,11 +38,27 @@ COMPONENT_FIELDS = frozenset(
         "kind",
         "line",
         "classification",
-        "deliveryProduct",
-        "sharedSymbol",
+        "resolution",
+        "ownershipReason",
+        "sharedTarget",
         "remainingCadenceSymbol",
+        "consumers",
         "dependencies",
         "states",
+        "wave",
+        "evidence",
+    }
+)
+ADOPTION_FIELDS = frozenset(
+    {
+        "path",
+        "symbol",
+        "classification",
+        "resolution",
+        "ownershipReason",
+        "sharedTarget",
+        "remainingCadenceSymbol",
+        "consumers",
         "wave",
         "evidence",
     }
@@ -57,6 +78,21 @@ MIGRATION_WAVES = {
 REQUIRED_SHARED_COMPOSITION = {
     ("Features/ImportMusic/ImportMusicReview.swift", "ImportMusicReview"): "BrowserRowSurface",
     ("Features/ImportMusic/ImportMusicReview.swift", "ImportMusicCandidateRow"): "BrowserRowSurface",
+}
+FORBIDDEN_WRAPPER_PATTERNS = {
+    "background": r"\.background\b",
+    "overlay": r"\.overlay\b",
+    "shape": r"\b(?:RoundedRectangle|Rectangle|Circle|Capsule|Ellipse)\b",
+    "fill": r"\.fill\b",
+    "stroke": r"\.stroke(?:Border)?\b",
+    "mask": r"\.mask\b",
+    "clip": r"\.clipShape\b",
+    "gradient": r"\b(?:LinearGradient|RadialGradient|AngularGradient)\b",
+    "canvas": r"\bCanvas\b",
+    "shader": r"\bShader\b",
+    "metal": r"\b(?:MTKView|MTLRenderPipelineState|MTLCommandQueue)\b",
+    "layer": r"\bCALayer\b|\baddSublayer\b",
+    "AppKit hierarchy": r"\b(?:addSubview|NSButton|NSTextField|NSStackView|NSImageView)\b",
 }
 STATE_VALUES = {
     "system", "light", "dark", "increased-contrast", "reduced-transparency", "not-applicable",
@@ -484,9 +520,151 @@ def validate_string_list(value: Any, label: str, errors: list[str]) -> list[str]
     return value
 
 
-def validate_manifest(source_root: Path, manifest: dict[str, Any]) -> list[str]:
+def default_repository_root(source_root: Path) -> Path:
+    if source_root.name == "Cadence" and source_root.parent.name == "Sources":
+        return source_root.parent.parent
+    return source_root
+
+
+def default_registry_path(repository_root: Path) -> Path:
+    return repository_root.parent / "design-system" / "registry" / "qenterra-components.json"
+
+
+def registry_targets(registry: dict[str, Any], errors: list[str]) -> set[tuple[str, str, str]]:
+    components = registry.get("components")
+    if not isinstance(components, list):
+        errors.append("Design System registry components must be an array")
+        return set()
+    targets: set[tuple[str, str, str]] = set()
+    for component in components:
+        if not isinstance(component, dict):
+            errors.append("Design System registry component must be an object")
+            continue
+        component_id = component.get("id")
+        product = component.get("deliveryProduct")
+        symbols = component.get("publicSymbols")
+        if not isinstance(component_id, str) or not isinstance(product, str) or not isinstance(symbols, list):
+            errors.append("Design System registry component has an invalid public identity")
+            continue
+        targets.update(
+            (component_id, product, symbol)
+            for symbol in symbols
+            if isinstance(symbol, str) and symbol.strip()
+        )
+    return targets
+
+
+def validate_shared_target(
+    value: Any,
+    label: str,
+    targets: set[tuple[str, str, str]],
+    errors: list[str],
+) -> dict[str, Any] | None:
+    target = validate_exact_object(value, SHARED_TARGET_FIELDS, label, errors)
+    if target is None:
+        return None
+    triple = (
+        target.get("componentID"),
+        target.get("deliveryProduct"),
+        target.get("publicSymbol"),
+    )
+    if not all(isinstance(item, str) and item.strip() for item in triple):
+        errors.append(f"{label} must contain non-empty strings")
+    elif triple not in targets:
+        errors.append(f"{label} does not resolve in the Design System registry: {triple!r}")
+    return target
+
+
+def validate_ownership_reason(value: Any, label: str, errors: list[str]) -> None:
+    symbol = label.rsplit("::", 1)[-1]
+    if (
+        not isinstance(value, str)
+        or len(value.strip()) < 24
+        or symbol not in value
+    ):
+        errors.append(f"concrete ownershipReason required for {label}")
+
+
+def validate_evidence(
+    value: Any,
+    label: str,
+    repository_root: Path,
+    errors: list[str],
+) -> None:
+    evidence = validate_exact_object(value, EVIDENCE_FIELDS, f"evidence for {label}", errors)
+    if evidence is None:
+        return
+    if evidence.get("status") != "verified":
+        errors.append(f"incomplete Task 19 evidence for {label}")
+    if not isinstance(evidence.get("detail"), str) or not evidence["detail"].strip():
+        errors.append(f"missing evidence detail for {label}")
+    references = validate_string_list(
+        evidence.get("references"), f"evidence.references for {label}", errors
+    )
+    if not references:
+        errors.append(f"verified evidence needs references for {label}")
+        return
+    for reference in references:
+        reference_path = Path(reference)
+        if reference_path.is_absolute() or ".." in reference_path.parts:
+            errors.append(f"evidence reference must be repository-relative for {label}: {reference}")
+            continue
+        if reference.startswith("Sources/"):
+            errors.append(f"evidence reference cannot be source-only for {label}: {reference}")
+            continue
+        if not (reference.startswith("Tests/") or "__Snapshots__" in reference):
+            errors.append(f"evidence reference must name a test or tracked screenshot for {label}: {reference}")
+        if not (repository_root / reference).is_file():
+            errors.append(f"evidence reference does not exist for {label}: {reference}")
+
+
+def validate_consumer(
+    repository_root: Path,
+    relative_path: str,
+    target: dict[str, Any],
+    label: str,
+    errors: list[str],
+) -> None:
+    path = Path(relative_path)
+    if path.is_absolute() or ".." in path.parts or not relative_path.startswith("Sources/Cadence/"):
+        errors.append(f"consumer must be a Cadence repository-relative source for {label}: {relative_path}")
+        return
+    absolute_path = repository_root / path
+    if not absolute_path.is_file():
+        errors.append(f"consumer does not exist for {label}: {relative_path}")
+        return
+    source = mask_comments_and_strings(absolute_path.read_text(encoding="utf-8"))
+    product = target.get("deliveryProduct", "")
+    symbol = target.get("publicSymbol", "")
+    if re.search(rf"(?m)^\s*import\s+{re.escape(product)}\s*$", source) is None:
+        errors.append(f"consumer does not import target product for {label}: {relative_path}")
+    if not has_source_reference(source, symbol):
+        errors.append(f"consumer does not use target symbol for {label}: {relative_path}")
+
+
+def validate_manifest(
+    source_root: Path,
+    manifest: dict[str, Any],
+    *,
+    repository_root: Path | None = None,
+    registry_path: Path | None = None,
+) -> list[str]:
     """Return deterministic validation errors for stale or incomplete inventory data."""
     errors: list[str] = []
+    repository_root = repository_root or default_repository_root(source_root)
+    registry_path = registry_path or default_registry_path(repository_root)
+    if not registry_path.is_file():
+        errors.append(f"Design System registry does not exist: {registry_path}")
+        registry: dict[str, Any] = {}
+        registry_digest = ""
+    else:
+        try:
+            registry = load_manifest(registry_path)
+        except ValueError as error:
+            errors.append(f"Design System registry is invalid: {error}")
+            registry = {}
+        registry_digest = hashlib.sha256(registry_path.read_bytes()).hexdigest()
+    targets = registry_targets(registry, errors)
     manifest = validate_exact_object(manifest, TOP_LEVEL_FIELDS, "manifest", errors) or {}
     if manifest.get("schemaVersion") != MANIFEST_SCHEMA_VERSION:
         errors.append(f"manifest schemaVersion must be {MANIFEST_SCHEMA_VERSION}")
@@ -494,6 +672,17 @@ def validate_manifest(source_root: Path, manifest: dict[str, Any]) -> list[str]:
         errors.append(f"manifest sourceRoot must be {MANIFEST_SOURCE_ROOT}")
     if source_root.as_posix().rstrip("/").endswith(MANIFEST_SOURCE_ROOT) is False:
         errors.append(f"verification root must end with {MANIFEST_SOURCE_ROOT}")
+    registry_identity = validate_exact_object(
+        manifest.get("designSystemRegistry"),
+        REGISTRY_IDENTITY_FIELDS,
+        "manifest designSystemRegistry",
+        errors,
+    )
+    if registry_identity is not None:
+        if registry_identity.get("version") != registry.get("version"):
+            errors.append("manifest Design System registry version is stale")
+        if registry_identity.get("sha256") != registry_digest:
+            errors.append("manifest Design System registry sha256 is stale")
     components = manifest.get("components")
     if not isinstance(components, list):
         return ["manifest components must be an array"]
@@ -543,9 +732,18 @@ def validate_manifest(source_root: Path, manifest: dict[str, Any]) -> list[str]:
         classification = item.get("classification")
         if classification not in classifications:
             errors.append(f"invalid classification for {key[0]}::{key[1]}: {classification!r}")
-        for field in ("remainingCadenceSymbol", "wave"):
-            if not isinstance(item.get(field), str) or not item[field].strip():
-                errors.append(f"missing {field} for {key[0]}::{key[1]}")
+        resolution = item.get("resolution")
+        if resolution not in {"compatibility-wrapper", "cadence-owned"}:
+            errors.append(f"invalid current resolution for {key[0]}::{key[1]}: {resolution!r}")
+        if classification in reusable and resolution != "compatibility-wrapper":
+            errors.append(f"reusable declaration must be a compatibility-wrapper for {key[0]}::{key[1]}")
+        if classification not in reusable and resolution != "cadence-owned":
+            errors.append(f"Cadence declaration must use cadence-owned resolution for {key[0]}::{key[1]}")
+        validate_ownership_reason(item.get("ownershipReason"), f"{key[0]}::{key[1]}", errors)
+        if not isinstance(item.get("remainingCadenceSymbol"), str) or not item["remainingCadenceSymbol"].strip():
+            errors.append(f"missing remainingCadenceSymbol for {key[0]}::{key[1]}")
+        if not isinstance(item.get("wave"), str) or not item["wave"].strip():
+            errors.append(f"missing wave for {key[0]}::{key[1]}")
         if item.get("wave") not in MIGRATION_WAVES:
             errors.append(f"invalid wave for {key[0]}::{key[1]}")
         source = declaration_sources.get(key, "")
@@ -620,32 +818,88 @@ def validate_manifest(source_root: Path, manifest: dict[str, Any]) -> list[str]:
                 state_values = validate_string_list(states.get(field), f"states.{field} for {key[0]}::{key[1]}", errors)
                 if state_values is not None and any(value not in STATE_VALUES for value in state_values):
                     errors.append(f"unknown states.{field} value for {key[0]}::{key[1]}")
-        evidence = validate_exact_object(item.get("evidence"), EVIDENCE_FIELDS, f"evidence for {key[0]}::{key[1]}", errors)
-        if evidence is not None:
-            if evidence.get("status") not in {"verified", "missing"}:
-                errors.append(f"invalid evidence status for {key[0]}::{key[1]}")
-            if not isinstance(evidence.get("detail"), str) or not evidence["detail"].strip():
-                errors.append(f"missing evidence detail for {key[0]}::{key[1]}")
-            references = validate_string_list(evidence.get("references"), f"evidence.references for {key[0]}::{key[1]}", errors)
-            if evidence.get("status") == "verified" and not references:
-                errors.append(f"verified evidence needs references for {key[0]}::{key[1]}")
-            if evidence.get("status") == "missing" and references:
-                errors.append(f"missing evidence cannot claim references for {key[0]}::{key[1]}")
+        validate_evidence(item.get("evidence"), f"{key[0]}::{key[1]}", repository_root, errors)
+        consumers = validate_string_list(item.get("consumers"), f"consumers for {key[0]}::{key[1]}", errors)
+        shared_target = item.get("sharedTarget")
         if classification in reusable:
-            if item.get("deliveryProduct") not in {"QenTerraComponents", "QenTerraMediaComponents"}:
-                errors.append(f"invalid deliveryProduct for {key[0]}::{key[1]}")
-            if not isinstance(item.get("sharedSymbol"), str) or not item["sharedSymbol"].strip():
-                errors.append(f"missing sharedSymbol for {key[0]}::{key[1]}")
-        elif classification == "cadence-adapter":
-            if item.get("deliveryProduct") != "Cadence":
-                errors.append(f"Cadence adapter must be delivered by Cadence: {key[0]}::{key[1]}")
-            if not isinstance(item.get("sharedSymbol"), str):
-                errors.append(f"Cadence adapter sharedSymbol must be a string: {key[0]}::{key[1]}")
-            elif item["sharedSymbol"].strip() and not has_source_reference(source, item["sharedSymbol"]):
-                errors.append(f"Cadence adapter does not reference sharedSymbol for {key[0]}::{key[1]}")
-        elif item.get("deliveryProduct") != "Cadence" or item.get("sharedSymbol") != "":
-            errors.append(f"non-reusable entry must remain in Cadence: {key[0]}::{key[1]}")
-    return errors
+            target = validate_shared_target(
+                shared_target, f"sharedTarget for {key[0]}::{key[1]}", targets, errors
+            )
+            if target is not None:
+                qualified_symbol = f"{target.get('deliveryProduct')}.{target.get('publicSymbol')}"
+                if re.search(rf"(?<![A-Za-z0-9_]){re.escape(qualified_symbol)}\s*\(", source) is None:
+                    errors.append(
+                        f"compatibility wrapper does not consume fully-qualified shared body for "
+                        f"{key[0]}::{key[1]}: {qualified_symbol}"
+                    )
+                for forbidden_label, pattern in FORBIDDEN_WRAPPER_PATTERNS.items():
+                    if re.search(pattern, source):
+                        errors.append(
+                            f"compatibility wrapper contains forbidden {forbidden_label} presentation for "
+                            f"{key[0]}::{key[1]}"
+                        )
+        elif shared_target is not None:
+            if classification != "cadence-adapter":
+                errors.append(f"only a Cadence adapter may declare sharedTarget for {key[0]}::{key[1]}")
+            else:
+                validate_shared_target(
+                    shared_target, f"sharedTarget for {key[0]}::{key[1]}", targets, errors
+                )
+        if consumers:
+            for consumer in consumers:
+                consumer_path = Path(consumer)
+                if consumer_path.is_absolute() or ".." in consumer_path.parts:
+                    errors.append(f"consumer must be repository-relative for {key[0]}::{key[1]}: {consumer}")
+                elif not (repository_root / consumer_path).is_file():
+                    errors.append(f"consumer does not exist for {key[0]}::{key[1]}: {consumer}")
+
+    adoptions = manifest.get("adoptions")
+    if not isinstance(adoptions, list):
+        errors.append("manifest adoptions must be an array")
+        adoptions = []
+    adoption_keys: set[tuple[Any, Any]] = set()
+    for item in adoptions:
+        item = validate_exact_object(item, ADOPTION_FIELDS, "manifest adoption", errors)
+        if item is None:
+            continue
+        key = (item.get("path"), item.get("symbol"))
+        label = f"{key[0]}::{key[1]}"
+        if not all(isinstance(value, str) and value.strip() and "*" not in value for value in key):
+            errors.append(f"invalid adoption key: {key!r}")
+            continue
+        if key in adoption_keys:
+            errors.append(f"duplicate adoption entry: {label}")
+        adoption_keys.add(key)
+        if any(context.declaration.symbol == item.get("symbol") for context in contexts.values()):
+            errors.append(f"direct adoption former symbol is still declared: {label}")
+        if item.get("classification") not in reusable:
+            errors.append(f"direct adoption must retain reusable classification for {label}")
+        if item.get("resolution") != "shared-direct":
+            errors.append(f"direct adoption resolution must be shared-direct for {label}")
+        validate_ownership_reason(item.get("ownershipReason"), label, errors)
+        if item.get("remainingCadenceSymbol") is not None:
+            errors.append(f"direct adoption remainingCadenceSymbol must be null for {label}")
+        if item.get("wave") not in MIGRATION_WAVES:
+            errors.append(f"invalid wave for {label}")
+        target = validate_shared_target(item.get("sharedTarget"), f"sharedTarget for {label}", targets, errors)
+        consumers = validate_string_list(item.get("consumers"), f"consumers for {label}", errors)
+        if not consumers:
+            errors.append(f"direct adoption needs at least one consumer for {label}")
+        elif target is not None:
+            for consumer in consumers:
+                validate_consumer(repository_root, consumer, target, label, errors)
+        validate_evidence(item.get("evidence"), label, repository_root, errors)
+        old_symbol = item.get("symbol")
+        new_symbol = target.get("publicSymbol") if target else None
+        if isinstance(old_symbol, str) and old_symbol != new_symbol:
+            for source_path in swift_source_files(source_root):
+                source = mask_comments_and_strings(source_path.read_text(encoding="utf-8"))
+                if has_source_reference(source, old_symbol):
+                    errors.append(
+                        f"direct adoption former symbol is still used: {label} in "
+                        f"{source_path.relative_to(repository_root).as_posix()}"
+                    )
+    return sorted(set(errors))
 
 
 def main() -> int:
@@ -663,8 +917,19 @@ def main() -> int:
         default=repository_root / "scripts" / "ui-component-ownership.json",
         help="Ownership manifest",
     )
+    parser.add_argument(
+        "--registry",
+        type=Path,
+        default=default_registry_path(repository_root),
+        help="Design System component registry",
+    )
     arguments = parser.parse_args()
-    errors = validate_manifest(arguments.root, load_manifest(arguments.manifest))
+    errors = validate_manifest(
+        arguments.root,
+        load_manifest(arguments.manifest),
+        repository_root=repository_root,
+        registry_path=arguments.registry,
+    )
     if errors:
         print("UI component ownership verification failed:", file=sys.stderr)
         print("\n".join(f"- {error}" for error in errors), file=sys.stderr)

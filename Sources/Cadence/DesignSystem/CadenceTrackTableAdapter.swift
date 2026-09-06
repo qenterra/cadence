@@ -3,6 +3,11 @@ import QenTerraDesignTokens
 import QenTerraMediaComponents
 
 enum CadenceTrackTableAdapter {
+    @MainActor
+    static func makePlaybackIndicator(frame: NSRect = .zero) -> NativePlaybackIndicatorView {
+        NativePlaybackIndicatorView(frame: frame)
+    }
+
     static func presentation(for row: TrackRowDisplayProjection) -> MediaTableRowPresentation<UUID> {
         MediaTableRowPresentation(
             id: row.id, title: row.title, creator: row.artist, collection: row.album,

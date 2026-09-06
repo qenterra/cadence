@@ -1,6 +1,7 @@
 import AppKit
 @testable import Cadence
 import Foundation
+import QenTerraMediaComponents
 import SwiftData
 import SwiftUI
 import Testing
@@ -87,7 +88,7 @@ extension AllTracksPerformanceTests {
         let focusProbe = TrackTableFocusProbeView(
             frame: NSRect(x: 20, y: 20, width: 180, height: 24)
         )
-        let tableView = TrackTableView(
+        let tableView = NativeMediaTableView(
             frame: NSRect(x: 20, y: 60, width: 600, height: 380)
         )
         contentView.addSubview(focusProbe)
@@ -145,7 +146,7 @@ extension AllTracksPerformanceTests {
             sourceIndex: 50007
         )
         let coordinator = TrackTableCore.Coordinator(parent: core)
-        let tableView = TrackTableView(
+        let tableView = NativeMediaTableView(
             frame: NSRect(x: 0, y: 0, width: 900, height: 24 * 58)
         )
         let column = NSTableColumn(identifier: .init("row"))

@@ -3,8 +3,6 @@ import Observation
 import QenTerraMediaComponents
 import SwiftUI
 
-typealias TrackTableView = NativeMediaTableView
-
 @MainActor
 @Observable
 final class TrackTableInteractionState {

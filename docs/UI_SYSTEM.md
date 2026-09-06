@@ -17,7 +17,15 @@ track-table coordination, and Cadence Mode input and effects. Reusable visuals
 flow in one direction: Design System source and registry, verified package,
 immutable release, then an explicit Cadence dependency update. A sibling path
 is permitted only while validating a coordinated candidate and is replaced by
-an exact release version before integration.
+an exact release version before integration. The current candidate is expected
+to move from the sibling path to exact Design System 2.0.0 during release
+integration; this document does not claim that release already exists.
+
+The ownership inventory is registry-backed: direct package adoptions remain
+recorded after their former Cadence declarations disappear, while local adapters
+must name their retained data, action, or lifecycle responsibility and verified
+evidence. A compatibility wrapper may translate an initializer, but cannot add
+local shapes, backgrounds, overlays, shaders, layer trees, or AppKit controls.
 
 ## Product shell
 

@@ -1,4 +1,5 @@
 import AppKit
+import QenTerraMediaComponents
 import SwiftUI
 
 struct TrackTableContentVersion: Hashable, Sendable {
@@ -830,7 +831,7 @@ struct TrackTableCore: NSViewRepresentable {
     }
 
     func makeNSView(context: Context) -> NSScrollView {
-        let tableView = TrackTableView()
+        let tableView = NativeMediaTableView()
         tableView.headerView = nil
         tableView.style = .plain
         tableView.backgroundColor = .clear

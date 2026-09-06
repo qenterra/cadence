@@ -1,3 +1,4 @@
+import QenTerraMediaComponents
 import SwiftUI
 
 extension EnvironmentValues {
@@ -463,7 +464,12 @@ private struct CadenceModeLyricStack: View {
                 }
             }
             .scrollIndicators(.hidden)
-            .mask(CadenceModeLyricsEdgeFade())
+            .mask {
+                LyricsEdgeFade(presentation: .viewportMask(.init(
+                    topOpaqueLocation: CadenceModeLyricsPresentation.topOpaqueLocation,
+                    bottomOpaqueLocation: CadenceModeLyricsPresentation.bottomOpaqueLocation
+                )))
+            }
             .onChange(of: activeLineID, initial: true) { _, lineID in
                 guard let lineID else {
                     return
@@ -504,20 +510,7 @@ enum CadenceModeLyricInteraction {
     }
 }
 
-struct CadenceModeLyricsEdgeFade: View {
+enum CadenceModeLyricsPresentation {
     static let topOpaqueLocation = 0.18
-    static let bottomFadeLocation = 0.88
-
-    var body: some View {
-        LinearGradient(
-            stops: [
-                .init(color: .clear, location: 0),
-                .init(color: .black, location: Self.topOpaqueLocation),
-                .init(color: .black, location: Self.bottomFadeLocation),
-                .init(color: .clear, location: 1),
-            ],
-            startPoint: .top,
-            endPoint: .bottom
-        )
-    }
+    static let bottomOpaqueLocation = 0.88
 }

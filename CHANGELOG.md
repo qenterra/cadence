@@ -12,6 +12,7 @@ uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- Added a registry-backed ownership contract for every Cadence visual declaration and retained direct Design System adoption.
 - Moved reusable Cadence interface presentation to the versioned QenTerra Design System while keeping product state and behavior in Cadence adapters.
 - Reused shared native table cells and artwork-gradient presentation while keeping Cadence's selection, artwork loading, keyboard effects, and playback policy local.
 - Adopted QenTerra repository standard 1.3.0 with maintained governance, collaboration, Wiki-source, and repository-health documentation.

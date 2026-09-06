@@ -1,4 +1,5 @@
 import AppKit
+import QenTerraMediaComponents
 import SwiftUI
 
 enum AppPlaybackKeyDecision {
@@ -38,7 +39,7 @@ enum AppPlaybackKeyDecision {
         guard let responder = window.firstResponder else {
             return .none
         }
-        if responder is TrackTableView {
+        if responder is NativeMediaTableView {
             return .trackTable
         }
         if let textView = responder as? NSTextView, textView.isEditable {

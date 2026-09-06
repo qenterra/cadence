@@ -218,10 +218,17 @@ lyrics documents and editing, table coordination, and Cadence Mode input and
 effects. Its compatibility types may translate those values, but do not carry
 an independent reusable visual implementation.
 
+`scripts/ui-component-ownership.json` records every Cadence visual declaration,
+the exact Design System registry target used by each adapter, and the tests that
+protect the retained product boundary. `python3 scripts/verify_ui_component_ownership.py`
+fails closed when a declaration, adoption, registry identity, or evidence path drifts.
+
 The update direction is one way: Design System source, registry, tests, package
 manifest, version, and changelog are released together; Cadence then adopts an
 explicit immutable version. A sibling package path is allowed only in an
-isolated coordinated-development worktree before that release is pinned.
+isolated coordinated-development worktree before that release is pinned. The
+current coordinated candidate remains on that path until Design System 2.0.0
+is released; production integration then pins exactly 2.0.0.
 
 Read the [architecture](docs/ARCHITECTURE.md),
 [build guide](docs/BUILDING.md), [dependency policy](docs/DEPENDENCIES.md), or
