@@ -1,6 +1,7 @@
 import AppKit
 @testable import Cadence
 import MetalKit
+import QenTerraMediaComponents
 import simd
 import Testing
 
@@ -31,16 +32,16 @@ struct CadenceModeBackgroundContrastTests {
         for (palette, expectedOpacity) in cases {
             #expect(
                 abs(
-                    CadenceModeBackgroundContrast.opacity(for: palette)
+                    AdoptedGradientContrast.opacity(for: palette)
                         - expectedOpacity
                 ) <= 0.000_001
             )
         }
 
         #expect(
-            CadenceModeBackgroundContrast.opacity(
+            AdoptedGradientContrast.opacity(
                 for: RhythmAccentPalette(colors: [])
-            ) == CadenceModeBackgroundContrast.opacity(
+            ) == AdoptedGradientContrast.opacity(
                 for: .cadenceFallback
             )
         )
@@ -61,10 +62,10 @@ struct CadenceModeBackgroundContrastTests {
         ]
 
         for palette in palettes {
-            let idleOpacity = CadenceModeBackgroundContrast.opacity(
+            let idleOpacity = AdoptedGradientContrast.opacity(
                 for: palette
             )
-            let tintOpacity = CadenceModeBackgroundContrast
+            let tintOpacity = AdoptedGradientContrast
                 .activeTintOpacity(for: palette)
             let combinedOpacity = 1
                 - (1 - idleOpacity) * (1 - tintOpacity)
@@ -75,7 +76,7 @@ struct CadenceModeBackgroundContrastTests {
 
     @Test("Active tint keeps the darkest artwork hue")
     func activeTintKeepsDarkestArtworkHue() {
-        let tint = CadenceModeBackgroundContrast.tint(
+        let tint = AdoptedGradientContrast.tint(
             for: RhythmAccentPalette(colors: [
                 RhythmPulseColor(red: 1, green: 1, blue: 1),
                 RhythmPulseColor(red: 0, green: 0, blue: 0.5),
@@ -86,9 +87,9 @@ struct CadenceModeBackgroundContrastTests {
         #expect(abs(tint.green) <= 0.000_001)
         #expect(abs(tint.blue - 0.14) <= 0.000_001)
         #expect(
-            CadenceModeBackgroundContrast.tint(
+            AdoptedGradientContrast.tint(
                 for: RhythmAccentPalette(colors: [])
-            ) == CadenceModeBackgroundContrast.tint(
+            ) == AdoptedGradientContrast.tint(
                 for: .cadenceFallback
             )
         )
@@ -97,19 +98,19 @@ struct CadenceModeBackgroundContrastTests {
     @Test("Tint darkening and brightening share one smooth duration")
     func tintTransitionsAreSymmetric() {
         #expect(
-            CadenceModeBackgroundContrast.transitionDuration(
+            AdoptedGradientContrast.transitionDuration(
                 hasLiveEffects: true,
                 reduceMotion: false
             ) == 1.4
         )
         #expect(
-            CadenceModeBackgroundContrast.transitionDuration(
+            AdoptedGradientContrast.transitionDuration(
                 hasLiveEffects: false,
                 reduceMotion: false
             ) == 1.4
         )
         #expect(
-            CadenceModeBackgroundContrast.transitionDuration(
+            AdoptedGradientContrast.transitionDuration(
                 hasLiveEffects: false,
                 reduceMotion: true
             ) == 0.1
@@ -120,7 +121,7 @@ struct CadenceModeBackgroundContrastTests {
 struct CadenceModeGradientTests {
     @Test("Cadence Mode gradient reproduces the reference plane topology")
     func reproducesReferencePlaneTopology() {
-        let mesh = CadenceModeGradientReference.makeMesh()
+        let mesh = ArtworkAccentGradientReference.makeMesh()
 
         #expect(mesh.vertices.count == 40401)
         #expect(mesh.indices.count == 240_000)
@@ -144,7 +145,7 @@ struct CadenceModeGradientTests {
             ]
         )
 
-        let colors = CadenceModeGradientReference.shaderColors(for: palette)
+        let colors = ArtworkAccentGradientReference.shaderColors(for: palette)
         let linearHalf: Float = 0.214_041_14
 
         #expect(colors.count == 5)
@@ -167,8 +168,8 @@ struct CadenceModeGradientTests {
 
     @Test("Reference camera centers the mesh and covers a widescreen frame")
     func referenceCameraCoversWidescreenFrame() {
-        let modelMatrix = CadenceModeGradientReference.modelMatrix
-        let viewProjection = CadenceModeGradientReference
+        let modelMatrix = ArtworkAccentGradientReference.modelMatrix
+        let viewProjection = ArtworkAccentGradientReference
             .viewProjectionMatrix(aspectRatio: 16 / 9)
         let center = viewProjection * modelMatrix * SIMD4<Float>(0, 0, 0, 1)
         let farCorner = viewProjection * modelMatrix
@@ -185,14 +186,14 @@ struct CadenceModeGradientTests {
     @Test("Reduced motion freezes the gradient shader clock")
     func reducedMotionFreezesGradientShaderClock() {
         #expect(
-            CadenceModeGradientTimeline.elapsedTime(
+            ArtworkAccentGradientTimeline.elapsedTime(
                 startedAt: 10,
                 currentTime: 14.5,
                 isAnimated: true
             ) == 4.5
         )
         #expect(
-            CadenceModeGradientTimeline.elapsedTime(
+            ArtworkAccentGradientTimeline.elapsedTime(
                 startedAt: 10,
                 currentTime: 14.5,
                 isAnimated: false
@@ -207,18 +208,18 @@ struct CadenceModeGradientTests {
     )
     func backgroundIsMetalAndHonorsMotion() {
         let view = makeView()
-        let animated = CadenceModeBackgroundAppearance.resolve(
+        let animated = ArtworkAccentGradientAppearance.resolve(
             reduceMotion: false,
             reduceTransparency: false,
             increasedContrast: false
         )
         view.update(palette: Self.referencePalette, appearance: animated)
 
-        #expect(view.device != nil)
+        #expect(view.subviews.compactMap { $0 as? MTKView }.first?.device != nil)
         #expect(view.delegate != nil)
         #expect(view.isPaused == false)
 
-        let reduced = CadenceModeBackgroundAppearance.resolve(
+        let reduced = ArtworkAccentGradientAppearance.resolve(
             reduceMotion: true,
             reduceTransparency: false,
             increasedContrast: false
@@ -297,8 +298,8 @@ private extension CadenceModeGradientTests {
     }
 
     @MainActor
-    func makeView() -> CadenceModeBackgroundView {
-        CadenceModeBackgroundView(
+    func makeView() -> ArtworkAccentGradientView {
+        ArtworkAccentGradientView(
             frame: CGRect(x: 0, y: 0, width: 640, height: 360),
             device: MTLCreateSystemDefaultDevice()
         )

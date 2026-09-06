@@ -3198,51 +3198,13 @@
       }
     },
     {
-      "path": "Features/Library/NativePlaybackIndicatorView.swift",
-      "symbol": "NativePlaybackIndicatorView",
-      "kind": "NSView",
-      "line": 5,
-      "classification": "media-component",
-      "deliveryProduct": "QenTerraMediaComponents",
-      "sharedSymbol": "NativePlaybackIndicatorView",
-      "remainingCadenceSymbol": "Cadence.NativePlaybackIndicatorView",
-      "dependencies": {
-        "data": [],
-        "actions": []
-      },
-      "states": {
-        "appearance": [
-          "system",
-          "light",
-          "dark"
-        ],
-        "motion": [
-          "static"
-        ],
-        "accessibility": [
-          "native-semantics",
-          "keyboard-focus"
-        ],
-        "interaction": [
-          "default",
-          "selected"
-        ]
-      },
-      "wave": "wave-4-media",
-      "evidence": {
-        "status": "missing",
-        "detail": "No focused test or checked-in screenshot was found for NativePlaybackIndicatorView; capture migration evidence before Wave 4.",
-        "references": []
-      }
-    },
-    {
       "path": "Features/Library/NativeTrackTableCell.swift",
       "symbol": "NativeTrackTableCell",
       "kind": "NSTableCellView",
-      "line": 89,
+      "line": 6,
       "classification": "cadence-adapter",
       "deliveryProduct": "Cadence",
-      "sharedSymbol": "",
+      "sharedSymbol": "NativeMediaTableCell",
       "remainingCadenceSymbol": "Cadence.NativeTrackTableCell",
       "dependencies": {
         "data": [
@@ -3291,9 +3253,10 @@
       "wave": "wave-6-adapters",
       "evidence": {
         "status": "verified",
-        "detail": "Native table-cell reuse, selection, playback, accessibility, and action routing are exercised by existing AppKit performance tests.",
+        "detail": "Thin shared AppKit cell adapter; existing runtime performance, reuse, crop, action, selection, and accessibility assertions observe the shared hierarchy.",
         "references": [
-          "Tests/CadenceTests/AllTracksPerformanceAppKitTests.swift"
+          "Tests/CadenceTests/AllTracksPerformanceAppKitTests.swift",
+          "Tests/CadenceTests/CadenceTrackTableAdapterTests.swift"
         ]
       }
     },
@@ -3881,7 +3844,7 @@
       "path": "Features/Library/TrackTableCoreViews.swift",
       "symbol": "TrackTableHostedRoot",
       "kind": "View",
-      "line": 118,
+      "line": 60,
       "classification": "core-component",
       "deliveryProduct": "QenTerraComponents",
       "sharedSymbol": "TrackTableHostedRoot",
@@ -3926,7 +3889,7 @@
       "path": "Features/Library/TrackTableCoreViews.swift",
       "symbol": "TrackTableHostingCell",
       "kind": "NSTableCellView",
-      "line": 150,
+      "line": 92,
       "classification": "cadence-adapter",
       "deliveryProduct": "Cadence",
       "sharedSymbol": "",
@@ -3969,7 +3932,7 @@
       "path": "Features/Library/TrackTableCoreViews.swift",
       "symbol": "TrackTablePlaceholderRow",
       "kind": "View",
-      "line": 198,
+      "line": 140,
       "classification": "core-component",
       "deliveryProduct": "QenTerraComponents",
       "sharedSymbol": "TrackTablePlaceholderRow",
@@ -4002,61 +3965,6 @@
       "evidence": {
         "status": "missing",
         "detail": "No focused test or checked-in screenshot was found for TrackTablePlaceholderRow; capture migration evidence before Wave 2.",
-        "references": []
-      }
-    },
-    {
-      "path": "Features/Library/TrackTableCoreViews.swift",
-      "symbol": "TrackTableView",
-      "kind": "NSTableView",
-      "line": 6,
-      "classification": "cadence-adapter",
-      "deliveryProduct": "Cadence",
-      "sharedSymbol": "",
-      "remainingCadenceSymbol": "Cadence.TrackTableView",
-      "dependencies": {
-        "data": [],
-        "actions": [
-          {
-            "symbol": "onDelete",
-            "role": "actions"
-          },
-          {
-            "symbol": "onFocusChange",
-            "role": "actions"
-          },
-          {
-            "symbol": "onReturn",
-            "role": "actions"
-          },
-          {
-            "symbol": "onSpace",
-            "role": "actions"
-          }
-        ]
-      },
-      "states": {
-        "appearance": [
-          "system",
-          "light",
-          "dark"
-        ],
-        "motion": [
-          "static"
-        ],
-        "accessibility": [
-          "native-semantics",
-          "keyboard-focus"
-        ],
-        "interaction": [
-          "default",
-          "read-only"
-        ]
-      },
-      "wave": "wave-6-adapters",
-      "evidence": {
-        "status": "missing",
-        "detail": "No focused test or checked-in screenshot was found for TrackTableView; capture migration evidence before its migration wave.",
         "references": []
       }
     },
@@ -5596,28 +5504,24 @@
     {
       "path": "Features/Rhythm/CadenceModeBackground.swift",
       "symbol": "CadenceModeBackground",
-      "kind": "NSViewRepresentable",
-      "line": 6,
+      "kind": "View",
+      "line": 4,
       "classification": "cadence-adapter",
       "deliveryProduct": "Cadence",
-      "sharedSymbol": "",
+      "sharedSymbol": "ArtworkAccentGradient",
       "remainingCadenceSymbol": "Cadence.CadenceModeBackground",
       "dependencies": {
         "data": [
-          {
-            "symbol": "colorSchemeContrast",
-            "role": "data"
-          },
           {
             "symbol": "palette",
             "role": "data"
           },
           {
-            "symbol": "reduceMotion",
+            "symbol": "hasLiveEffects",
             "role": "data"
           },
           {
-            "symbol": "reduceTransparency",
+            "symbol": "reduceMotion",
             "role": "data"
           },
           {
@@ -5650,96 +5554,10 @@
       "wave": "wave-6-adapters",
       "evidence": {
         "status": "verified",
-        "detail": "Cadence Mode background appearance, contrast, motion, and snapshots are covered by the existing gradient tests.",
+        "detail": "Shared gradient adoption preserves protected Metal geometry, palette mapping, timing, and Reduced Motion. Full-window screenshot acceptance remains separate from focused automated evidence.",
         "references": [
-          "Tests/CadenceTests/CadenceModeGradientTests.swift"
-        ]
-      }
-    },
-    {
-      "path": "Features/Rhythm/CadenceModeBackground.swift",
-      "symbol": "CadenceModeBackgroundView",
-      "kind": "MTKView",
-      "line": 39,
-      "classification": "cadence-adapter",
-      "deliveryProduct": "Cadence",
-      "sharedSymbol": "",
-      "remainingCadenceSymbol": "Cadence.CadenceModeBackgroundView",
-      "dependencies": {
-        "data": [],
-        "actions": []
-      },
-      "states": {
-        "appearance": [
-          "system",
-          "light",
-          "dark",
-          "increased-contrast",
-          "reduced-transparency"
-        ],
-        "motion": [
-          "animated",
-          "reduced-motion"
-        ],
-        "accessibility": [
-          "native-semantics",
-          "keyboard-focus"
-        ],
-        "interaction": [
-          "default"
-        ]
-      },
-      "wave": "wave-6-adapters",
-      "evidence": {
-        "status": "missing",
-        "detail": "No focused test or checked-in screenshot was found for CadenceModeBackgroundView; capture migration evidence before its migration wave.",
-        "references": []
-      }
-    },
-    {
-      "path": "Features/Rhythm/CadenceModeBackground.swift",
-      "symbol": "CadenceModeGradientRenderer",
-      "kind": "MTKViewDelegate",
-      "line": 114,
-      "classification": "media-component",
-      "deliveryProduct": "QenTerraMediaComponents",
-      "sharedSymbol": "ArtworkAccentGradientRenderer",
-      "remainingCadenceSymbol": "Cadence.CadenceModeBackground adapter",
-      "dependencies": {
-        "data": [
-          {
-            "symbol": "device",
-            "role": "data"
-          }
-        ],
-        "actions": []
-      },
-      "states": {
-        "appearance": [
-          "system",
-          "light",
-          "dark",
-          "increased-contrast",
-          "reduced-transparency"
-        ],
-        "motion": [
-          "animated",
-          "reduced-motion"
-        ],
-        "accessibility": [
-          "native-semantics",
-          "keyboard-focus"
-        ],
-        "interaction": [
-          "default"
-        ]
-      },
-      "wave": "wave-4-media",
-      "evidence": {
-        "status": "verified",
-        "detail": "Renderer palette transitions, reduced-motion behavior, and Metal snapshots are covered by the existing gradient tests.",
-        "references": [
-          "Tests/CadenceTests/CadenceModeGradientTests.swift"
+          "Tests/CadenceTests/CadenceModeGradientTests.swift",
+          "Tests/CadenceTests/CadenceAccentGradientAdapterTests.swift"
         ]
       }
     },
@@ -5789,7 +5607,7 @@
       "path": "Features/Rhythm/CadenceModeInputCapture.swift",
       "symbol": "CadenceModeInputCapture",
       "kind": "View",
-      "line": 3,
+      "line": 4,
       "classification": "product-shell",
       "deliveryProduct": "Cadence",
       "sharedSymbol": "",

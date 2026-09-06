@@ -103,8 +103,9 @@ extension AllTracksPerformanceTests {
         #expect(window.makeFirstResponder(focusProbe))
 
         var observedGain: Bool?
-        tableView.onFocusChange = {
-            observedGain = window.firstResponder === tableView
+        let focusDelivery = CadenceTrackTableFocusDelivery()
+        tableView.onFocusChange = { _ in
+            focusDelivery.schedule { observedGain = window.firstResponder === tableView }
         }
         #expect(window.makeFirstResponder(tableView))
         await drainMainQueue()
@@ -112,8 +113,8 @@ extension AllTracksPerformanceTests {
         #expect(observedGain == true)
 
         var observedLoss: Bool?
-        tableView.onFocusChange = {
-            observedLoss = window.firstResponder === tableView
+        tableView.onFocusChange = { _ in
+            focusDelivery.schedule { observedLoss = window.firstResponder === tableView }
         }
         #expect(window.makeFirstResponder(focusProbe))
         await drainMainQueue()
