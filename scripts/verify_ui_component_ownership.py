@@ -22,7 +22,6 @@ VISUAL_PROTOCOLS = {
 }
 APPKIT_BASES = {"NSView", "NSTableView", "NSTableCellView", "MTKView"}
 VISUAL_KINDS = VISUAL_PROTOCOLS | APPKIT_BASES | {"MTKViewDelegate"}
-UI_SOURCE_ROOTS = ("Components", "DesignSystem", "Features")
 CONCRETE_BASE_PRECEDENCE = ("NSTableCellView", "NSTableView", "MTKView", "NSView")
 MANIFEST_SCHEMA_VERSION = 2
 MANIFEST_SOURCE_ROOT = "Sources/Cadence"
@@ -223,14 +222,8 @@ def declarations_in_file(path: Path, relative_path: str) -> list[VisualDeclarati
 
 
 def swift_source_files(root: Path) -> list[Path]:
-    declared_roots = [root / name for name in UI_SOURCE_ROOTS if (root / name).is_dir()]
-    search_roots = declared_roots if declared_roots else [root]
-    return sorted(
-        source
-        for search_root in search_roots
-        for source in search_root.rglob("*.swift")
-        if source.is_file()
-    )
+    """Return every Swift source below the declared Cadence source root."""
+    return sorted(source for source in root.rglob("*.swift") if source.is_file())
 
 
 def discover_visual_declarations(root: Path) -> list[VisualDeclaration]:
@@ -450,8 +443,16 @@ def data_symbols(source: str) -> set[str]:
 
 
 def load_manifest(path: Path) -> dict[str, Any]:
+    def reject_duplicate_keys(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+        value: dict[str, Any] = {}
+        for key, item in pairs:
+            if key in value:
+                raise ValueError(f"Duplicate JSON key: {key}")
+            value[key] = item
+        return value
+
     with path.open(encoding="utf-8") as handle:
-        manifest = json.load(handle)
+        manifest = json.load(handle, object_pairs_hook=reject_duplicate_keys)
     if not isinstance(manifest, dict) or not isinstance(manifest.get("components"), list):
         raise ValueError("Ownership manifest must contain a components array")
     return manifest
@@ -649,8 +650,19 @@ def validate_manifest(source_root: Path, manifest: dict[str, Any]) -> list[str]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--root", type=Path, required=True, help="Cadence source root")
-    parser.add_argument("--manifest", type=Path, required=True, help="Ownership manifest")
+    repository_root = Path(__file__).resolve().parents[1]
+    parser.add_argument(
+        "--root",
+        type=Path,
+        default=repository_root / MANIFEST_SOURCE_ROOT,
+        help="Cadence source root",
+    )
+    parser.add_argument(
+        "--manifest",
+        type=Path,
+        default=repository_root / "scripts" / "ui-component-ownership.json",
+        help="Ownership manifest",
+    )
     arguments = parser.parse_args()
     errors = validate_manifest(arguments.root, load_manifest(arguments.manifest))
     if errors:
