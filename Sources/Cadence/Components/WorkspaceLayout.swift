@@ -1,3 +1,4 @@
+import QenTerraComponents
 import SwiftUI
 
 enum WorkspaceLayout {
@@ -23,19 +24,11 @@ struct WorkspacePaneHeader<Trailing: View>: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            HStack {
-                Text(title)
-                    .font(.title2.bold())
-                Spacer()
-                trailing()
-            }
-            .padding(.horizontal, WorkspaceLayout.paneHeaderInset)
-            .frame(height: WorkspaceLayout.paneHeaderHeight)
-
-            Rectangle()
-                .fill(CadenceTheme.separator)
-                .frame(height: 1)
+        QenTerraComponents.WorkspacePaneHeader(
+            title,
+            presentation: .cadence
+        ) {
+            trailing()
         }
     }
 }

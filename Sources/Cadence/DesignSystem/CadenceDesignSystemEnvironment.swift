@@ -14,4 +14,10 @@ enum CadenceDesignSystemEnvironment {
             density: .standard
         )
     }
+
+    static func settingsConfiguration(
+        for appearance: CadenceAppearance
+    ) -> DesignSystemConfiguration {
+        configuration(for: appearance)
+    }
 }

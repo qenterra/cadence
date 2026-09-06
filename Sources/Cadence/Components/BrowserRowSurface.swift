@@ -1,3 +1,4 @@
+import QenTerraComponents
 import SwiftUI
 
 enum BrowserRowSelectionAdornment: Equatable, Sendable {
@@ -42,64 +43,28 @@ struct BrowserRowVisualState: Equatable, Sendable {
 
 struct BrowserRowSurface: View {
     @Environment(\.colorSchemeContrast) private var contrast
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     let isSelected: Bool
     let isHovered: Bool
     let isFocused: Bool
 
     var body: some View {
-        let state = BrowserRowVisualState(
-            isSelected: isSelected,
-            isHovered: isHovered,
-            isFocused: isFocused,
-            isIncreasedContrast: contrast == .increased
-        )
-        Color.clear
-            .contentShape(Rectangle())
-            .background(fill(for: state))
-            .overlay {
-                if state.outlinePresentation == .focus {
-                    RoundedRectangle(
-                        cornerRadius: CadenceTheme.radiusControl,
-                        style: .continuous
-                    )
-                    .stroke(
-                        CadenceTheme.primaryAccent,
-                        lineWidth: state.borderWidth
-                    )
-                }
-            }
-            .clipShape(
-                RoundedRectangle(
-                    cornerRadius: CadenceTheme.radiusControl,
-                    style: .continuous
-                )
+        InteractiveRowSurface(
+            state: InteractiveRowState(
+                isHovered: isHovered,
+                isFocused: isFocused,
+                isSelected: isSelected,
+                isIncreasedContrast: contrast == .increased
             )
-            .animation(
-                reduceMotion
-                    ? nil
-                    : .easeOut(duration: CadenceTheme.motionPress),
-                value: state
-            )
-    }
-
-    private func fill(for state: BrowserRowVisualState) -> Color {
-        switch state.selectionAdornment {
-        case .fill: CadenceTheme.selectionFill
-        case .strongFill: CadenceTheme.selectionStrongFill
-        case .none: state.hasHoverFill ? CadenceTheme.hoverFill : .clear
+        ) {
+            Color.clear
         }
     }
 }
 
 struct CadenceRowButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .opacity(
-                CadenceRowButtonPressPresentation.opacity(
-                    isPressed: configuration.isPressed
-                )
-            )
+        RowActionButtonStyle(presentation: .contentOnly)
+            .makeBody(configuration: configuration)
     }
 }

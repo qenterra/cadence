@@ -1,3 +1,4 @@
+import QenTerraComponents
 import SwiftUI
 
 enum ImportMusicReviewLayout {
@@ -48,7 +49,7 @@ struct ImportMusicReview: View {
         VStack(spacing: 0) {
             reviewTabs
             tableHeader(layoutMode: layoutMode)
-            Divider()
+            DesignSeparator()
 
             ScrollView(.vertical) {
                 LazyVStack(spacing: CadenceLayout.textStack) {
@@ -66,7 +67,7 @@ struct ImportMusicReview: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-            Divider()
+            DesignSeparator()
             footer
         }
     }

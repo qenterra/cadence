@@ -288,6 +288,14 @@ struct NavigationRailTests {
         #expect(NavigationRailMetrics.rowSurfaceInset > 0)
     }
 
+    @Test("Navigation expansion keeps visible copy separate from assistive copy")
+    func navigationExpansionCopy() {
+        let configuration = NavigationRailConfiguration.expansion
+        #expect(configuration.expandedTitle == "Collapse")
+        #expect(configuration.expandedAccessibilityLabel == "Collapse Sidebar")
+        #expect(configuration.collapsedAccessibilityLabel == "Expand Sidebar")
+    }
+
     @Test("Navigation controls do not animate shared symbols when pressed")
     func navigationControlPressPresentation() {
         #expect(
@@ -295,56 +303,17 @@ struct NavigationRailTests {
         )
     }
 
-    @Test("Navigation rail icons are static and chrome stays inset")
-    func navigationRailSourceContract() throws {
-        let source = try navigationRailSource()
-        let railLabelStart = try #require(
-            source.range(of: "private func railLabel")
-        )
-        let railIconStart = try #require(
-            source.range(of: "private func railIcon")
-        )
-        let railLabelSource = String(
-            source[railLabelStart.lowerBound ..< railIconStart.lowerBound]
-        )
-        let railLabelFramePattern =
-            #"\.frame\(\s*width:\s*NavigationRailMetrics\.rowWidth\(isExpanded:\s*isExpanded\),"#
-                + #"\s*height:\s*NavigationRailMetrics\.rowHeight\s*\)"#
-        let surfaceInsetPattern =
-            #"\.background\s*\{\s*BrowserRowSurface\([\s\S]*?\)\s*"#
-                + #"\.padding\(\.horizontal,\s*NavigationRailMetrics\.rowSurfaceInset\)\s*\}"#
+    @Test("Navigation rail maps product selection, hover, and focus independently")
+    func navigationRailSharedSurfaceContract() {
+        let selected = BrowserRowVisualState(isSelected: true, isHovered: true)
+        let hovered = BrowserRowVisualState(isSelected: false, isHovered: true)
+        let focused = BrowserRowVisualState(isSelected: false, isFocused: true)
 
-        #expect(!source.contains("activationCounts"))
-        #expect(!source.contains(".symbolEffect("))
-        #expect(!source.contains(".contentTransition("))
-        #expect(!source.contains(".buttonStyle(CadenceRowButtonStyle())"))
-        #expect(
-            railLabelSource.range(
-                of: railLabelFramePattern,
-                options: .regularExpression
-            ) != nil
-        )
-        #expect(
-            source.components(
-                separatedBy: "NavigationRailMetrics.rowSurfaceInset"
-            ).count == 2
-        )
-        #expect(
-            source.range(
-                of: surfaceInsetPattern,
-                options: .regularExpression
-            ) != nil
-        )
-    }
-
-    private func navigationRailSource() throws -> String {
-        let sourceURL = URL(filePath: #filePath)
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-            .appending(
-                path: "Sources/Cadence/Components/NavigationRail.swift"
-            )
-        return try String(contentsOf: sourceURL, encoding: .utf8)
+        #expect(selected.selectionAdornment == .fill)
+        #expect(!selected.hasHoverFill)
+        #expect(hovered.selectionAdornment == .none)
+        #expect(hovered.hasHoverFill)
+        #expect(focused.outlinePresentation == .focus)
+        #expect(focused.borderWidth == 0.5)
     }
 }

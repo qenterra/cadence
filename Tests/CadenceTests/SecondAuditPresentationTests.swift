@@ -122,15 +122,24 @@ struct SecondAuditPresentationTests {
     }
 
     @Test("Sidebar settings expose one freely ordered destination list")
-    func sidebarSettingsAreFlat() throws {
-        let sidebarSource = try source(
-            at: "Sources/Cadence/Features/Settings/SettingsSidebarCard.swift"
+    func sidebarSettingsAreFlat() {
+        let reordered = NavigationRailConfiguration.moving(
+            .home,
+            to: .artists,
+            in: NavigationRailConfiguration.configurableDestinations
         )
 
-        #expect(sidebarSource.contains("ForEach(orderedDestinations)"))
-        #expect(!sidebarSource.contains("orderedSections"))
-        #expect(!sidebarSource.contains("section.group.title"))
-        #expect(!sidebarSource.contains("navigationGroup =="))
+        #expect(reordered.count == NavigationRailConfiguration.configurableDestinations.count)
+        #expect(
+            reordered.firstIndex(of: .home)
+                == reordered.firstIndex(of: .artists).map { $0 + 1 }
+        )
+        #expect(Set(reordered) == Set(NavigationRailConfiguration.configurableDestinations))
+        #expect(
+            NavigationRailConfiguration.orderedDestinations(
+                from: NavigationRailConfiguration.encode(reordered)
+            ) == reordered
+        )
     }
 
     @Test("Settings tabs keep one stable strip and deterministic glass policy")
@@ -170,56 +179,13 @@ struct SecondAuditPresentationTests {
         }
     }
 
-    @Test("Settings source keeps glass at the strip boundary")
-    func settingsTabSourceContract() throws {
-        let tabSource = try source(
-            at: "Sources/Cadence/Features/Settings/SettingsTabStrip.swift"
-        )
-        let appSource = try source(at: "Sources/Cadence/CadenceApp.swift")
-        let stripStart = try #require(
-            appSource.range(of: "SettingsTabStrip(selection: $selection)")
-        )
-        let separator = try #require(
-            appSource.range(
-                of: "CadenceSeparator()",
-                range: stripStart.lowerBound ..< appSource.endIndex
-            )
-        )
-        let stripSource = String(
-            appSource[
-                stripStart.lowerBound ..< separator.upperBound
-            ]
-        )
-
-        #expect(!tabSource.contains("GlassEffectContainer"))
-        #expect(!tabSource.contains(".buttonStyle(.glass"))
-        #expect(
-            tabSource.components(separatedBy: ".buttonStyle(.plain)").count
-                == 2
-        )
-        #expect(
-            stripSource.components(
-                separatedBy: ".cadenceGlassSurface("
-            ).count == 2
-        )
-
-        var cursor = stripSource.startIndex
-        for fragment in [
-            "SettingsTabStrip(selection: $selection)",
-            ".frame(maxWidth: .infinity)",
-            ".padding(.horizontal, CadenceLayout.contentGap)",
-            ".padding(.vertical, CadenceLayout.compactGap)",
-            ".cadenceGlassSurface(",
-            "CadenceSeparator()",
-        ] {
-            let match = try #require(
-                stripSource.range(
-                    of: fragment,
-                    range: cursor ..< stripSource.endIndex
-                )
-            )
-            cursor = match.upperBound
+    @Test("Settings tabs retain deterministic product selection and geometry")
+    func settingsTabBehaviorContract() {
+        for tab in CadenceSettingsTab.allCases {
+            #expect(SettingsTabStripMetrics.metrics(for: tab) == .standard)
         }
+        #expect(CadenceSettingsTab.allCases.map(\.title).allSatisfy { !$0.isEmpty })
+        #expect(CadenceSettingsTab.allCases.map(\.symbolName).allSatisfy { !$0.isEmpty })
     }
 
     @Test("Every settings card symbol resolves on the supported macOS baseline")

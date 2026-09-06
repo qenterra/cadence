@@ -1,3 +1,4 @@
+import QenTerraComponents
 import SwiftUI
 
 struct CadencePageHeader<Actions: View>: View {
@@ -16,21 +17,13 @@ struct CadencePageHeader<Actions: View>: View {
     }
 
     var body: some View {
-        HStack(alignment: .bottom, spacing: CadenceLayout.panelInset) {
-            VStack(alignment: .leading, spacing: CadenceLayout.textStack) {
-                Text(title)
-                    .font(.largeTitle.bold())
-                if let subtitle {
-                    Text(subtitle)
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
-                }
-            }
-
-            Spacer(minLength: CadenceLayout.pageInset)
+        PageHeader(
+            title,
+            subtitle: subtitle,
+            presentation: .cadence
+        ) {
             actions
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 

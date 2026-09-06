@@ -279,10 +279,10 @@
       "path": "Components/BrowserRowSurface.swift",
       "symbol": "BrowserRowSurface",
       "kind": "View",
-      "line": 43,
-      "classification": "core-component",
-      "deliveryProduct": "QenTerraComponents",
-      "sharedSymbol": "BrowserRowSurface",
+      "line": 44,
+      "classification": "cadence-adapter",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "InteractiveRowSurface",
       "remainingCadenceSymbol": "Cadence.BrowserRowSurface",
       "dependencies": {
         "data": [
@@ -301,10 +301,6 @@
           {
             "symbol": "isSelected",
             "role": "data"
-          },
-          {
-            "symbol": "reduceMotion",
-            "role": "data"
           }
         ],
         "actions": []
@@ -331,28 +327,26 @@
       },
       "wave": "wave-2-core",
       "evidence": {
-        "status": "missing",
-        "detail": "No focused test or checked-in screenshot was found for BrowserRowSurface; capture migration evidence before Wave 2.",
-        "references": []
+        "status": "verified",
+        "detail": "Cadence keeps product state and delegates reusable presentation to InteractiveRowSurface.",
+        "references": [
+          "Tests/CadenceTests/NavigationRailTests.swift"
+        ]
       }
     },
     {
       "path": "Components/BrowserRowSurface.swift",
       "symbol": "CadenceRowButtonStyle",
       "kind": "ButtonStyle",
-      "line": 96,
-      "classification": "core-component",
-      "deliveryProduct": "QenTerraComponents",
-      "sharedSymbol": "CadenceRowButtonStyle",
+      "line": 65,
+      "classification": "cadence-adapter",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "RowActionButtonStyle",
       "remainingCadenceSymbol": "Cadence.CadenceRowButtonStyle",
       "dependencies": {
         "data": [
           {
-            "symbol": "configuration.isPressed",
-            "role": "data"
-          },
-          {
-            "symbol": "configuration.label",
+            "symbol": "configuration",
             "role": "data"
           }
         ],
@@ -380,68 +374,21 @@
       },
       "wave": "wave-2-core",
       "evidence": {
-        "status": "missing",
-        "detail": "No focused test or checked-in screenshot was found for CadenceRowButtonStyle; capture migration evidence before Wave 2.",
-        "references": []
-      }
-    },
-    {
-      "path": "Components/CadenceFlowLayout.swift",
-      "symbol": "CadenceFlowLayout",
-      "kind": "Layout",
-      "line": 3,
-      "classification": "core-component",
-      "deliveryProduct": "QenTerraComponents",
-      "sharedSymbol": "CadenceFlowLayout",
-      "remainingCadenceSymbol": "Cadence.CadenceFlowLayout",
-      "dependencies": {
-        "data": [
-          {
-            "symbol": "horizontalSpacing",
-            "role": "data"
-          },
-          {
-            "symbol": "verticalSpacing",
-            "role": "data"
-          }
-        ],
-        "actions": []
-      },
-      "states": {
-        "appearance": [
-          "system",
-          "light",
-          "dark"
-        ],
-        "motion": [
-          "static"
-        ],
-        "accessibility": [
-          "native-semantics",
-          "keyboard-focus"
-        ],
-        "interaction": [
-          "default",
-          "hover",
-          "pressed",
-          "disabled"
+        "status": "verified",
+        "detail": "Cadence keeps product state and delegates reusable presentation to RowActionButtonStyle.",
+        "references": [
+          "Tests/CadenceTests/NavigationRailTests.swift"
         ]
-      },
-      "wave": "wave-2-core",
-      "evidence": {
-        "status": "missing",
-        "detail": "No focused test or checked-in screenshot was found for CadenceFlowLayout; capture migration evidence before Wave 2.",
-        "references": []
       }
     },
     {
       "path": "Components/CadencePageHeader.swift",
       "symbol": "CadencePageHeader",
       "kind": "View",
-      "line": 3,
-      "classification": "core-component",
-      "deliveryProduct": "QenTerraComponents",
-      "sharedSymbol": "CadencePageHeader",
+      "line": 4,
+      "classification": "cadence-adapter",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "PageHeader",
       "remainingCadenceSymbol": "Cadence.CadencePageHeader",
       "dependencies": {
         "data": [
@@ -482,19 +429,21 @@
       },
       "wave": "wave-2-core",
       "evidence": {
-        "status": "missing",
-        "detail": "No focused test or checked-in screenshot was found for CadencePageHeader; capture migration evidence before Wave 2.",
-        "references": []
+        "status": "verified",
+        "detail": "Cadence keeps product state and delegates reusable presentation to PageHeader.",
+        "references": [
+          "Tests/CadenceTests/DocumentationScreenshotContent.swift"
+        ]
       }
     },
     {
       "path": "Components/CadencePageScrollView.swift",
       "symbol": "CadencePageScrollView",
       "kind": "View",
-      "line": 6,
-      "classification": "core-component",
-      "deliveryProduct": "QenTerraComponents",
-      "sharedSymbol": "CadencePageScrollView",
+      "line": 7,
+      "classification": "cadence-adapter",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "PageScrollView",
       "remainingCadenceSymbol": "Cadence.CadencePageScrollView",
       "dependencies": {
         "data": [
@@ -539,19 +488,21 @@
       },
       "wave": "wave-2-core",
       "evidence": {
-        "status": "missing",
-        "detail": "No focused test or checked-in screenshot was found for CadencePageScrollView; capture migration evidence before Wave 2.",
-        "references": []
+        "status": "verified",
+        "detail": "Cadence keeps product state and delegates reusable presentation to PageScrollView.",
+        "references": [
+          "Tests/CadenceTests/DocumentationScreenshotContent.swift"
+        ]
       }
     },
     {
       "path": "Components/CadenceResizableSplitView.swift",
       "symbol": "CadenceResizableSplitView",
       "kind": "View",
-      "line": 37,
-      "classification": "core-component",
-      "deliveryProduct": "QenTerraComponents",
-      "sharedSymbol": "CadenceResizableSplitView",
+      "line": 78,
+      "classification": "cadence-adapter",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "CadenceSplitLayout",
       "remainingCadenceSymbol": "Cadence.CadenceResizableSplitView",
       "dependencies": {
         "data": [
@@ -608,19 +559,21 @@
       },
       "wave": "wave-2-core",
       "evidence": {
-        "status": "missing",
-        "detail": "No focused test or checked-in screenshot was found for CadenceResizableSplitView; capture migration evidence before Wave 2.",
-        "references": []
+        "status": "verified",
+        "detail": "Cadence keeps product state and delegates reusable presentation to CadenceSplitLayout.",
+        "references": [
+          "Tests/CadenceTests/SmartCollectionsLayoutTests.swift"
+        ]
       }
     },
     {
       "path": "Components/CadenceSeparator.swift",
       "symbol": "CadenceSeparator",
       "kind": "View",
-      "line": 3,
-      "classification": "core-component",
-      "deliveryProduct": "QenTerraComponents",
-      "sharedSymbol": "CadenceSeparator",
+      "line": 4,
+      "classification": "cadence-adapter",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "DesignSeparator",
       "remainingCadenceSymbol": "Cadence.CadenceSeparator",
       "dependencies": {
         "data": [
@@ -653,19 +606,21 @@
       },
       "wave": "wave-2-core",
       "evidence": {
-        "status": "missing",
-        "detail": "No focused test or checked-in screenshot was found for CadenceSeparator; capture migration evidence before Wave 2.",
-        "references": []
+        "status": "verified",
+        "detail": "Cadence keeps product state and delegates reusable presentation to DesignSeparator.",
+        "references": [
+          "Tests/CadenceTests/DocumentationScreenshotContent.swift"
+        ]
       }
     },
     {
       "path": "Components/CatalogSortMenu.swift",
       "symbol": "CatalogSortMenu",
       "kind": "View",
-      "line": 28,
-      "classification": "product-only-behaviour",
+      "line": 29,
+      "classification": "cadence-adapter",
       "deliveryProduct": "Cadence",
-      "sharedSymbol": "",
+      "sharedSymbol": "SortMenu",
       "remainingCadenceSymbol": "Cadence.CatalogSortMenu",
       "dependencies": {
         "data": [
@@ -707,19 +662,21 @@
       },
       "wave": "wave-7-product",
       "evidence": {
-        "status": "missing",
-        "detail": "No focused test or checked-in screenshot was found for CatalogSortMenu; capture migration evidence before its migration wave.",
-        "references": []
+        "status": "verified",
+        "detail": "Cadence keeps product state and delegates reusable presentation to SortMenu.",
+        "references": [
+          "Tests/CadenceTests/LibraryUXInfrastructureTests.swift"
+        ]
       }
     },
     {
       "path": "Components/EmptyLibraryView.swift",
       "symbol": "EmptyLibraryView",
       "kind": "View",
-      "line": 3,
-      "classification": "product-shell",
+      "line": 4,
+      "classification": "cadence-adapter",
       "deliveryProduct": "Cadence",
-      "sharedSymbol": "",
+      "sharedSymbol": "ContentStateView",
       "remainingCadenceSymbol": "Cadence.EmptyLibraryView",
       "dependencies": {
         "data": [
@@ -758,9 +715,11 @@
       },
       "wave": "wave-7-product",
       "evidence": {
-        "status": "missing",
-        "detail": "No focused test or checked-in screenshot was found for EmptyLibraryView; capture migration evidence before its migration wave.",
-        "references": []
+        "status": "verified",
+        "detail": "Cadence keeps product state and delegates reusable presentation to ContentStateView.",
+        "references": [
+          "Tests/CadenceTests/DocumentationScreenshotContent.swift"
+        ]
       }
     },
     {
@@ -828,10 +787,10 @@
       "path": "Components/LibraryUnavailableView.swift",
       "symbol": "LibraryUnavailableView",
       "kind": "View",
-      "line": 4,
-      "classification": "product-shell",
+      "line": 5,
+      "classification": "cadence-adapter",
       "deliveryProduct": "Cadence",
-      "sharedSymbol": "",
+      "sharedSymbol": "ContentStateView",
       "remainingCadenceSymbol": "Cadence.LibraryUnavailableView",
       "dependencies": {
         "data": [
@@ -870,9 +829,11 @@
       },
       "wave": "wave-7-product",
       "evidence": {
-        "status": "missing",
-        "detail": "No focused test or checked-in screenshot was found for LibraryUnavailableView; capture migration evidence before its migration wave.",
-        "references": []
+        "status": "verified",
+        "detail": "Cadence keeps product state and delegates reusable presentation to ContentStateView.",
+        "references": [
+          "Tests/CadenceTests/DocumentationScreenshotContent.swift"
+        ]
       }
     },
     {
@@ -941,10 +902,10 @@
       "path": "Components/NavigationRail.swift",
       "symbol": "NavigationRail",
       "kind": "View",
-      "line": 44,
-      "classification": "product-only-behaviour",
+      "line": 45,
+      "classification": "cadence-adapter",
       "deliveryProduct": "Cadence",
-      "sharedSymbol": "",
+      "sharedSymbol": "QenTerraComponents.NavigationRail",
       "remainingCadenceSymbol": "Cadence.NavigationRail",
       "dependencies": {
         "data": [
@@ -962,10 +923,6 @@
           },
           {
             "symbol": "orderRawValue",
-            "role": "data"
-          },
-          {
-            "symbol": "reduceMotion",
             "role": "data"
           },
           {
@@ -998,9 +955,11 @@
       },
       "wave": "wave-7-product",
       "evidence": {
-        "status": "missing",
-        "detail": "No focused test or checked-in screenshot was found for NavigationRail; capture migration evidence before its migration wave.",
-        "references": []
+        "status": "verified",
+        "detail": "Cadence keeps product state and delegates reusable presentation to QenTerraComponents.NavigationRail.",
+        "references": [
+          "Tests/CadenceTests/NavigationRailTests.swift"
+        ]
       }
     },
     {
@@ -1244,9 +1203,9 @@
       "path": "Components/WorkspaceLayout.swift",
       "symbol": "WorkspacePaneHeader",
       "kind": "View",
-      "line": 13,
-      "classification": "core-component",
-      "deliveryProduct": "QenTerraComponents",
+      "line": 14,
+      "classification": "cadence-adapter",
+      "deliveryProduct": "Cadence",
       "sharedSymbol": "WorkspacePaneHeader",
       "remainingCadenceSymbol": "Cadence.WorkspacePaneHeader",
       "dependencies": {
@@ -1284,9 +1243,11 @@
       },
       "wave": "wave-2-core",
       "evidence": {
-        "status": "missing",
-        "detail": "No focused test or checked-in screenshot was found for WorkspacePaneHeader; capture migration evidence before Wave 2.",
-        "references": []
+        "status": "verified",
+        "detail": "Cadence keeps product state and delegates reusable presentation to WorkspacePaneHeader.",
+        "references": [
+          "Tests/CadenceTests/DocumentationScreenshotContent.swift"
+        ]
       }
     },
     {
@@ -2389,10 +2350,10 @@
       "path": "Features/ImportMusic/ImportMusicCompleteState.swift",
       "symbol": "ImportMusicCompleteState",
       "kind": "View",
-      "line": 3,
-      "classification": "product-shell",
+      "line": 4,
+      "classification": "cadence-adapter",
       "deliveryProduct": "Cadence",
-      "sharedSymbol": "",
+      "sharedSymbol": "OperationStateView",
       "remainingCadenceSymbol": "Cadence.ImportMusicCompleteState",
       "dependencies": {
         "data": [
@@ -2443,19 +2404,21 @@
       },
       "wave": "wave-7-product",
       "evidence": {
-        "status": "missing",
-        "detail": "No focused test or checked-in screenshot was found for ImportMusicCompleteState; capture migration evidence before its migration wave.",
-        "references": []
+        "status": "verified",
+        "detail": "Cadence keeps product state and delegates reusable presentation to OperationStateView.",
+        "references": [
+          "Tests/CadenceTests/DocumentationScreenshotContent.swift"
+        ]
       }
     },
     {
       "path": "Features/ImportMusic/ImportMusicDropOverlay.swift",
       "symbol": "ImportMusicDropOverlay",
       "kind": "View",
-      "line": 3,
-      "classification": "product-shell",
+      "line": 4,
+      "classification": "cadence-adapter",
       "deliveryProduct": "Cadence",
-      "sharedSymbol": "",
+      "sharedSymbol": "DropZone",
       "remainingCadenceSymbol": "Cadence.ImportMusicDropOverlay",
       "dependencies": {
         "data": [],
@@ -2480,19 +2443,21 @@
       },
       "wave": "wave-7-product",
       "evidence": {
-        "status": "missing",
-        "detail": "No focused test or checked-in screenshot was found for ImportMusicDropOverlay; capture migration evidence before its migration wave.",
-        "references": []
+        "status": "verified",
+        "detail": "Cadence keeps product state and delegates reusable presentation to DropZone.",
+        "references": [
+          "Tests/CadenceTests/DocumentationScreenshotContent.swift"
+        ]
       }
     },
     {
       "path": "Features/ImportMusic/ImportMusicEmptyState.swift",
       "symbol": "ImportMusicEmptyState",
       "kind": "View",
-      "line": 3,
-      "classification": "product-shell",
+      "line": 4,
+      "classification": "cadence-adapter",
       "deliveryProduct": "Cadence",
-      "sharedSymbol": "",
+      "sharedSymbol": "DropZone",
       "remainingCadenceSymbol": "Cadence.ImportMusicEmptyState",
       "dependencies": {
         "data": [
@@ -2531,9 +2496,11 @@
       },
       "wave": "wave-7-product",
       "evidence": {
-        "status": "missing",
-        "detail": "No focused test or checked-in screenshot was found for ImportMusicEmptyState; capture migration evidence before its migration wave.",
-        "references": []
+        "status": "verified",
+        "detail": "Cadence keeps product state and delegates reusable presentation to DropZone.",
+        "references": [
+          "Tests/CadenceTests/DocumentationScreenshotContent.swift"
+        ]
       }
     },
     {
@@ -2629,7 +2596,7 @@
       "path": "Features/ImportMusic/ImportMusicReview.swift",
       "symbol": "ImportMusicCandidateRow",
       "kind": "View",
-      "line": 230,
+      "line": 231,
       "classification": "product-shell",
       "deliveryProduct": "Cadence",
       "sharedSymbol": "",
@@ -2683,16 +2650,18 @@
       },
       "wave": "wave-7-product",
       "evidence": {
-        "status": "missing",
-        "detail": "No focused test or checked-in screenshot was found for ImportMusicCandidateRow; capture migration evidence before its migration wave.",
-        "references": []
+        "status": "verified",
+        "detail": "Cadence retains candidate selection semantics while BrowserRowSurface and RowActionButtonStyle own reusable presentation.",
+        "references": [
+          "Tests/CadenceTests/ImportMusicReviewLayoutTests.swift"
+        ]
       }
     },
     {
       "path": "Features/ImportMusic/ImportMusicReview.swift",
       "symbol": "ImportMusicReview",
       "kind": "View",
-      "line": 26,
+      "line": 27,
       "classification": "product-shell",
       "deliveryProduct": "Cadence",
       "sharedSymbol": "",
@@ -2758,19 +2727,21 @@
       },
       "wave": "wave-7-product",
       "evidence": {
-        "status": "missing",
-        "detail": "No focused test or checked-in screenshot was found for ImportMusicReview; capture migration evidence before its migration wave.",
-        "references": []
+        "status": "verified",
+        "detail": "Cadence retains import workflow state and actions; reusable review row surfaces and separators delegate through shared adapters.",
+        "references": [
+          "Tests/CadenceTests/ImportMusicReviewLayoutTests.swift"
+        ]
       }
     },
     {
       "path": "Features/ImportMusic/ImportMusicScanningState.swift",
       "symbol": "ImportMusicScanningState",
       "kind": "View",
-      "line": 3,
-      "classification": "product-shell",
+      "line": 4,
+      "classification": "cadence-adapter",
       "deliveryProduct": "Cadence",
-      "sharedSymbol": "",
+      "sharedSymbol": "OperationStateView",
       "remainingCadenceSymbol": "Cadence.ImportMusicScanningState",
       "dependencies": {
         "data": [
@@ -2821,16 +2792,18 @@
       },
       "wave": "wave-7-product",
       "evidence": {
-        "status": "missing",
-        "detail": "No focused test or checked-in screenshot was found for ImportMusicScanningState; capture migration evidence before its migration wave.",
-        "references": []
+        "status": "verified",
+        "detail": "Cadence keeps product state and delegates reusable presentation to OperationStateView.",
+        "references": [
+          "Tests/CadenceTests/DocumentationScreenshotContent.swift"
+        ]
       }
     },
     {
       "path": "Features/ImportMusic/ImportMusicView.swift",
       "symbol": "ImportMusicView",
       "kind": "View",
-      "line": 3,
+      "line": 4,
       "classification": "product-shell",
       "deliveryProduct": "Cadence",
       "sharedSymbol": "",
@@ -2880,9 +2853,11 @@
       },
       "wave": "wave-7-product",
       "evidence": {
-        "status": "missing",
-        "detail": "No focused test or checked-in screenshot was found for ImportMusicView; capture migration evidence before its migration wave.",
-        "references": []
+        "status": "verified",
+        "detail": "Cadence owns import workflow transitions and errors while state presentation delegates to shared feedback components.",
+        "references": [
+          "Tests/CadenceTests/DocumentationScreenshotContent.swift"
+        ]
       }
     },
     {
@@ -6461,7 +6436,7 @@
       "path": "Features/Settings/ProductionSettingsView.swift",
       "symbol": "ProductionSettingsView",
       "kind": "View",
-      "line": 51,
+      "line": 52,
       "classification": "product-shell",
       "deliveryProduct": "Cadence",
       "sharedSymbol": "",
@@ -6564,10 +6539,10 @@
       "path": "Features/Settings/ProductionSettingsView.swift",
       "symbol": "SettingsCard",
       "kind": "View",
-      "line": 354,
-      "classification": "core-component",
-      "deliveryProduct": "QenTerraComponents",
-      "sharedSymbol": "SettingsCard",
+      "line": 355,
+      "classification": "cadence-adapter",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "SettingsSection",
       "remainingCadenceSymbol": "Cadence.SettingsCard",
       "dependencies": {
         "data": [
@@ -6608,9 +6583,11 @@
       },
       "wave": "wave-2-core",
       "evidence": {
-        "status": "missing",
-        "detail": "No focused test or checked-in screenshot was found for SettingsCard; capture migration evidence before Wave 2.",
-        "references": []
+        "status": "verified",
+        "detail": "Cadence keeps product state and delegates reusable presentation to SettingsSection.",
+        "references": [
+          "Tests/CadenceTests/SettingsPresentationTests.swift"
+        ]
       }
     },
     {
@@ -6708,56 +6685,12 @@
     },
     {
       "path": "Features/Settings/SettingsAboutSection.swift",
-      "symbol": "SettingsAboutResourceRow",
-      "kind": "View",
-      "line": 164,
-      "classification": "product-shell",
-      "deliveryProduct": "Cadence",
-      "sharedSymbol": "",
-      "remainingCadenceSymbol": "Cadence.SettingsAboutResourceRow",
-      "dependencies": {
-        "data": [
-          {
-            "symbol": "resource",
-            "role": "data"
-          }
-        ],
-        "actions": []
-      },
-      "states": {
-        "appearance": [
-          "system",
-          "light",
-          "dark"
-        ],
-        "motion": [
-          "static"
-        ],
-        "accessibility": [
-          "native-semantics",
-          "keyboard-focus"
-        ],
-        "interaction": [
-          "default",
-          "hover",
-          "keyboard-focus"
-        ]
-      },
-      "wave": "wave-7-product",
-      "evidence": {
-        "status": "missing",
-        "detail": "No focused test or checked-in screenshot was found for SettingsAboutResourceRow; capture migration evidence before its migration wave.",
-        "references": []
-      }
-    },
-    {
-      "path": "Features/Settings/SettingsAboutSection.swift",
       "symbol": "SettingsAboutSection",
       "kind": "View",
-      "line": 55,
-      "classification": "product-shell",
+      "line": 5,
+      "classification": "cadence-adapter",
       "deliveryProduct": "Cadence",
-      "sharedSymbol": "",
+      "sharedSymbol": "AboutPage",
       "remainingCadenceSymbol": "Cadence.SettingsAboutSection",
       "dependencies": {
         "data": [],
@@ -6782,9 +6715,11 @@
       },
       "wave": "wave-7-product",
       "evidence": {
-        "status": "missing",
-        "detail": "No focused SettingsAboutSection test or checked-in screenshot was found; capture product metadata, resource-link, hover, and VoiceOver evidence before Wave 3.",
-        "references": []
+        "status": "verified",
+        "detail": "Cadence keeps product state and delegates reusable presentation to AboutPage.",
+        "references": [
+          "Tests/CadenceTests/CadenceAboutConfigurationTests.swift"
+        ]
       }
     },
     {
@@ -6833,7 +6768,7 @@
       "path": "Features/Settings/SettingsHomeSectionsCard.swift",
       "symbol": "SettingsHomeSectionsCard",
       "kind": "View",
-      "line": 3,
+      "line": 4,
       "classification": "product-shell",
       "deliveryProduct": "Cadence",
       "sharedSymbol": "",
@@ -6879,10 +6814,10 @@
       "path": "Features/Settings/SettingsHomeSectionsCard.swift",
       "symbol": "SettingsRowSeparator",
       "kind": "View",
-      "line": 166,
-      "classification": "core-component",
-      "deliveryProduct": "QenTerraComponents",
-      "sharedSymbol": "SettingsRowSeparator",
+      "line": 167,
+      "classification": "cadence-adapter",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "DesignSeparator",
       "remainingCadenceSymbol": "Cadence.SettingsRowSeparator",
       "dependencies": {
         "data": [],
@@ -6910,9 +6845,11 @@
       },
       "wave": "wave-2-core",
       "evidence": {
-        "status": "missing",
-        "detail": "No focused test or checked-in screenshot was found for SettingsRowSeparator; capture migration evidence before Wave 2.",
-        "references": []
+        "status": "verified",
+        "detail": "Cadence keeps product state and delegates reusable presentation to DesignSeparator.",
+        "references": [
+          "Tests/CadenceTests/SettingsPresentationTests.swift"
+        ]
       }
     },
     {
@@ -7075,7 +7012,7 @@
       "path": "Features/Settings/SettingsSidebarCard.swift",
       "symbol": "SettingsSidebarCard",
       "kind": "View",
-      "line": 3,
+      "line": 4,
       "classification": "product-shell",
       "deliveryProduct": "Cadence",
       "sharedSymbol": "",
@@ -7125,10 +7062,10 @@
       "path": "Features/Settings/SettingsSidebarCard.swift",
       "symbol": "SettingsSidebarDragPreview",
       "kind": "View",
-      "line": 249,
-      "classification": "core-component",
-      "deliveryProduct": "QenTerraComponents",
-      "sharedSymbol": "SettingsSidebarDragPreview",
+      "line": 250,
+      "classification": "cadence-adapter",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "InteractiveRowSurface",
       "remainingCadenceSymbol": "Cadence.SettingsSidebarDragPreview",
       "dependencies": {
         "data": [
@@ -7161,19 +7098,21 @@
       },
       "wave": "wave-2-core",
       "evidence": {
-        "status": "missing",
-        "detail": "No focused test or checked-in screenshot was found for SettingsSidebarDragPreview; capture migration evidence before Wave 2.",
-        "references": []
+        "status": "verified",
+        "detail": "Cadence keeps product state and delegates reusable presentation to InteractiveRowSurface.",
+        "references": [
+          "Tests/CadenceTests/SecondAuditPresentationTests.swift"
+        ]
       }
     },
     {
       "path": "Features/Settings/SettingsSidebarCard.swift",
       "symbol": "SettingsSidebarRow",
       "kind": "View",
-      "line": 196,
-      "classification": "core-component",
-      "deliveryProduct": "QenTerraComponents",
-      "sharedSymbol": "SettingsSidebarRow",
+      "line": 195,
+      "classification": "cadence-adapter",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "BrowserRowSurface",
       "remainingCadenceSymbol": "Cadence.SettingsSidebarRow",
       "dependencies": {
         "data": [
@@ -7235,19 +7174,21 @@
       },
       "wave": "wave-2-core",
       "evidence": {
-        "status": "missing",
-        "detail": "No focused test or checked-in screenshot was found for SettingsSidebarRow; capture migration evidence before Wave 2.",
-        "references": []
+        "status": "verified",
+        "detail": "Cadence keeps product state and delegates reusable presentation to BrowserRowSurface.",
+        "references": [
+          "Tests/CadenceTests/SecondAuditPresentationTests.swift"
+        ]
       }
     },
     {
       "path": "Features/Settings/SettingsTabStrip.swift",
       "symbol": "SettingsTabStrip",
       "kind": "View",
-      "line": 31,
-      "classification": "core-component",
-      "deliveryProduct": "QenTerraComponents",
-      "sharedSymbol": "SettingsTabStrip",
+      "line": 32,
+      "classification": "cadence-adapter",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "TabStrip",
       "remainingCadenceSymbol": "Cadence.SettingsTabStrip",
       "dependencies": {
         "data": [
@@ -7280,18 +7221,20 @@
       },
       "wave": "wave-2-core",
       "evidence": {
-        "status": "missing",
-        "detail": "No focused test or checked-in screenshot was found for SettingsTabStrip; capture migration evidence before Wave 2.",
-        "references": []
+        "status": "verified",
+        "detail": "Cadence keeps product state and delegates reusable presentation to TabStrip.",
+        "references": [
+          "Tests/CadenceTests/SecondAuditPresentationTests.swift"
+        ]
       }
     },
     {
       "path": "Features/Settings/SettingsToggleRow.swift",
       "symbol": "SettingsToggleRow",
       "kind": "View",
-      "line": 21,
-      "classification": "core-component",
-      "deliveryProduct": "QenTerraComponents",
+      "line": 22,
+      "classification": "cadence-adapter",
+      "deliveryProduct": "Cadence",
       "sharedSymbol": "SettingsToggleRow",
       "remainingCadenceSymbol": "Cadence.SettingsToggleRow",
       "dependencies": {
@@ -7329,9 +7272,11 @@
       },
       "wave": "wave-2-core",
       "evidence": {
-        "status": "missing",
-        "detail": "No focused test or checked-in screenshot was found for SettingsToggleRow; capture migration evidence before Wave 2.",
-        "references": []
+        "status": "verified",
+        "detail": "Cadence keeps product state and delegates reusable presentation to SettingsToggleRow.",
+        "references": [
+          "Tests/CadenceTests/SettingsPresentationTests.swift"
+        ]
       }
     },
     {
@@ -7384,10 +7329,10 @@
       "path": "Features/Settings/ShortcutsSettingsView.swift",
       "symbol": "ShortcutKeyGlyphs",
       "kind": "View",
-      "line": 148,
-      "classification": "core-component",
-      "deliveryProduct": "QenTerraComponents",
-      "sharedSymbol": "ShortcutKeyGlyphs",
+      "line": 149,
+      "classification": "cadence-adapter",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "Keycap",
       "remainingCadenceSymbol": "Cadence.ShortcutKeyGlyphs",
       "dependencies": {
         "data": [
@@ -7420,16 +7365,18 @@
       },
       "wave": "wave-2-core",
       "evidence": {
-        "status": "missing",
-        "detail": "No focused test or checked-in screenshot was found for ShortcutKeyGlyphs; capture migration evidence before Wave 2.",
-        "references": []
+        "status": "verified",
+        "detail": "Cadence keeps product state and delegates reusable presentation to Keycap.",
+        "references": [
+          "Tests/CadenceTests/SettingsPresentationTests.swift"
+        ]
       }
     },
     {
       "path": "Features/Settings/ShortcutsSettingsView.swift",
       "symbol": "ShortcutsSettingsView",
       "kind": "View",
-      "line": 117,
+      "line": 118,
       "classification": "product-shell",
       "deliveryProduct": "Cadence",
       "sharedSymbol": "",

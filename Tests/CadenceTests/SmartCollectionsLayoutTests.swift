@@ -50,5 +50,16 @@ struct SmartCollectionsLayoutTests {
                 + undersized.dividerWidth
                 + undersized.flexibleWidth == 200
         )
+
+        let trailing = CadenceSplitLayout.resolve(
+            totalWidth: 1_100,
+            proposedFixedWidth: 600,
+            fixedPane: .trailing,
+            fixedMinimum: 280,
+            fixedMaximum: 460,
+            flexibleMinimum: 480
+        )
+        #expect(trailing.fixedWidth == 460)
+        #expect(trailing.flexibleWidth == 633)
     }
 }

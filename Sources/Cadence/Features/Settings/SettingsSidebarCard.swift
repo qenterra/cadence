@@ -1,3 +1,4 @@
+import QenTerraComponents
 import SwiftUI
 
 struct SettingsSidebarCard: View {
@@ -26,9 +27,7 @@ struct SettingsSidebarCard: View {
                     sidebarRow(destination)
 
                     if destination != orderedDestinations.last {
-                        Rectangle()
-                            .fill(CadenceTheme.separator)
-                            .frame(height: 0.5)
+                        DesignSeparator()
                     }
                 }
             }
@@ -225,9 +224,11 @@ private struct SettingsSidebarRow: View {
         .frame(minHeight: CadenceLayout.rowHeight)
         .contentShape(Rectangle())
         .background {
-            if isDropTarget {
-                CadenceTheme.selectionFill
-            }
+            BrowserRowSurface(
+                isSelected: isDropTarget,
+                isHovered: false,
+                isFocused: false
+            )
         }
         .opacity(isDragging ? 0.48 : 1)
         .accessibilityActions {
@@ -250,18 +251,18 @@ private struct SettingsSidebarDragPreview: View {
     let destination: NavigationDestination
 
     var body: some View {
-        Label(
-            destination.title,
-            systemImage: destination.symbolName
-        )
-        .font(.body.weight(.medium))
-        .padding(.horizontal, CadenceLayout.contentGap)
-        .padding(.vertical, CadenceLayout.compactGap)
-        .background(CadenceTheme.opaqueSurface)
-        .clipShape(RoundedRectangle(cornerRadius: CadenceTheme.radiusGroup))
-        .overlay {
-            RoundedRectangle(cornerRadius: CadenceTheme.radiusGroup)
-                .strokeBorder(CadenceTheme.strongSeparator, lineWidth: 0.5)
+        InteractiveRowSurface(
+            state: InteractiveRowState(isFocused: true),
+            cornerRadius: .group
+        ) {
+            Label(
+                destination.title,
+                systemImage: destination.symbolName
+            )
+            .font(.body.weight(.medium))
+            .padding(.horizontal, CadenceLayout.contentGap)
+            .padding(.vertical, CadenceLayout.compactGap)
+            .background(CadenceTheme.opaqueSurface)
         }
     }
 }

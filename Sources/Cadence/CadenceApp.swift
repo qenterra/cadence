@@ -91,6 +91,11 @@ struct CadenceApp: App {
                 updateController: updateController,
                 notificationController: notificationController
             )
+            .designSystem(
+                CadenceDesignSystemEnvironment.settingsConfiguration(
+                    for: appearance
+                )
+            )
             .tint(CadenceTheme.primaryAccent)
             .dynamicTypeSize(interfaceTextSize.dynamicTypeSize)
         }

@@ -1,4 +1,5 @@
 import AppKit
+import QenTerraComponents
 import SwiftUI
 
 enum CadenceFixedSplitPane {
@@ -21,16 +22,56 @@ struct CadenceSplitLayout: Equatable, Sendable {
         flexibleMinimum: CGFloat,
         dividerWidth: CGFloat = standardDividerWidth
     ) {
-        self.dividerWidth = dividerWidth
-        let availableWidth = max(totalWidth - dividerWidth, 0)
-        let minimum = min(fixedMinimum, availableWidth)
-        let maximum = min(
-            fixedMaximum,
-            max(availableWidth - flexibleMinimum, minimum),
-            availableWidth
+        let resolution = ResizableSplitLayout.resolve(
+            availableWidth: Double(totalWidth),
+            proposedFixedWidth: Double(proposedFixedWidth),
+            fixedPane: .leading,
+            minimumFixedWidth: Double(fixedMinimum),
+            maximumFixedWidth: Double(fixedMaximum),
+            minimumFlexibleWidth: Double(flexibleMinimum),
+            separatorWidth: Double(dividerWidth)
         )
-        fixedWidth = min(max(proposedFixedWidth, minimum), maximum)
-        flexibleWidth = max(availableWidth - fixedWidth, 0)
+        self.dividerWidth = resolution.separatorWidth
+        fixedWidth = resolution.leadingWidth
+        flexibleWidth = resolution.trailingWidth
+    }
+
+    private init(
+        dividerWidth: CGFloat,
+        fixedWidth: CGFloat,
+        flexibleWidth: CGFloat
+    ) {
+        self.dividerWidth = dividerWidth
+        self.fixedWidth = fixedWidth
+        self.flexibleWidth = flexibleWidth
+    }
+
+    static func resolve(
+        totalWidth: CGFloat,
+        proposedFixedWidth: CGFloat,
+        fixedPane: CadenceFixedSplitPane,
+        fixedMinimum: CGFloat,
+        fixedMaximum: CGFloat,
+        flexibleMinimum: CGFloat
+    ) -> Self {
+        let resolution = ResizableSplitLayout.resolve(
+            availableWidth: Double(totalWidth),
+            proposedFixedWidth: Double(proposedFixedWidth),
+            fixedPane: fixedPane == .leading ? .leading : .trailing,
+            minimumFixedWidth: Double(fixedMinimum),
+            maximumFixedWidth: Double(fixedMaximum),
+            minimumFlexibleWidth: Double(flexibleMinimum),
+            separatorWidth: Double(standardDividerWidth)
+        )
+        return Self(
+            dividerWidth: resolution.separatorWidth,
+            fixedWidth: fixedPane == .leading
+                ? resolution.leadingWidth
+                : resolution.trailingWidth,
+            flexibleWidth: fixedPane == .leading
+                ? resolution.trailingWidth
+                : resolution.leadingWidth
+        )
     }
 }
 
@@ -49,9 +90,10 @@ struct CadenceResizableSplitView<Leading: View, Trailing: View>: View {
 
     var body: some View {
         GeometryReader { geometry in
-            let layout = CadenceSplitLayout(
+            let layout = CadenceSplitLayout.resolve(
                 totalWidth: geometry.size.width,
                 proposedFixedWidth: CGFloat(liveWidth ?? fixedWidth),
+                fixedPane: fixedPane,
                 fixedMinimum: fixedMinimum,
                 fixedMaximum: fixedMaximum,
                 flexibleMinimum: flexibleMinimum
@@ -140,9 +182,10 @@ struct CadenceResizableSplitView<Leading: View, Trailing: View>: View {
                 ? start + delta
                 : start - delta
             liveWidth = Double(
-                CadenceSplitLayout(
+                CadenceSplitLayout.resolve(
                     totalWidth: totalWidth,
                     proposedFixedWidth: CGFloat(proposed),
+                    fixedPane: fixedPane,
                     fixedMinimum: fixedMinimum,
                     fixedMaximum: fixedMaximum,
                     flexibleMinimum: flexibleMinimum
@@ -161,9 +204,10 @@ struct CadenceResizableSplitView<Leading: View, Trailing: View>: View {
     private func resolvedFixedWidth(
         totalWidth: CGFloat
     ) -> CGFloat {
-        CadenceSplitLayout(
+        CadenceSplitLayout.resolve(
             totalWidth: totalWidth,
             proposedFixedWidth: CGFloat(liveWidth ?? fixedWidth),
+            fixedPane: fixedPane,
             fixedMinimum: fixedMinimum,
             fixedMaximum: fixedMaximum,
             flexibleMinimum: flexibleMinimum

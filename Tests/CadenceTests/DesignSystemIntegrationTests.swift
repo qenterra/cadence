@@ -35,4 +35,17 @@ struct DesignSystemIntegrationTests {
                 == .dark
         )
     }
+
+    @Test("Settings resolves the same shared environment as the main window")
+    func settingsUseTheSharedProductProfile() {
+        for appearance in CadenceAppearance.allCases {
+            #expect(
+                CadenceDesignSystemEnvironment.settingsConfiguration(
+                    for: appearance
+                ) == CadenceDesignSystemEnvironment.configuration(
+                    for: appearance
+                )
+            )
+        }
+    }
 }

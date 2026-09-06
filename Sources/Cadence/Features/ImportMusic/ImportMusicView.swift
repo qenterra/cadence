@@ -1,3 +1,4 @@
+import QenTerraComponents
 import SwiftUI
 
 struct ImportMusicView: View {
@@ -11,7 +12,7 @@ struct ImportMusicView: View {
     var body: some View {
         VStack(spacing: 0) {
             header
-            Divider()
+            DesignSeparator()
 
             stateContent
                 .id(model.importPreviewStage)
@@ -126,14 +127,14 @@ struct ImportMusicView: View {
     @ViewBuilder
     private var stateContent: some View {
         if case let .unavailable(message) = model.importRuntimeAvailability {
-            ContentUnavailableView {
-                Label(
-                    "Import Unavailable",
-                    systemImage: "exclamationmark.triangle"
-                )
-            } description: {
-                Text(message)
-            }
+            ContentStateView(
+                state: .unavailable(
+                    title: "Import Unavailable",
+                    message: message
+                ),
+                symbolName: "exclamationmark.triangle",
+                presentation: .nativeUnavailable
+            )
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else if model.runtimeEnvironment.previewFixture != nil {
             ImportMusicPreviewStageContent(model: model)
@@ -154,7 +155,7 @@ struct ImportMusicView: View {
         case .scanning:
             ImportMusicScanningState(
                 sampleCandidates: nil,
-                title: LocalizedStringKey(model.importScanProgress.phase.title),
+                title: model.importScanProgress.phase.title,
                 progress: model.importScanProgress,
                 displayedProgress: model.importScanProgress.fractionCompleted,
                 progressLabel: model.importScanProgress.primaryLabel,

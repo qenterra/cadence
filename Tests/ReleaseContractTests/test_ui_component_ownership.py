@@ -198,9 +198,33 @@ class UIComponentOwnershipTests(unittest.TestCase):
             if item["classification"] in {"core-component", "media-component"}:
                 self.assertIn(item["deliveryProduct"], {"QenTerraComponents", "QenTerraMediaComponents"})
                 self.assertTrue(item["sharedSymbol"])
+            elif item["classification"] == "cadence-adapter":
+                self.assertEqual(item["deliveryProduct"], "Cadence")
+                self.assertIsInstance(item["sharedSymbol"], str)
             else:
                 self.assertEqual(item["deliveryProduct"], "Cadence")
                 self.assertEqual(item["sharedSymbol"], "")
+
+    def test_cadence_adapter_names_the_shared_surface_it_adapts(self) -> None:
+        """An adapter without a concrete shared target cannot prove delegated ownership."""
+        verifier = load_verifier()
+        manifest = verifier.load_manifest(MANIFEST_PATH)
+        component = next(
+            item for item in manifest["components"]
+            if item["symbol"] == "SettingsAboutSection"
+        )
+        self.assertEqual(component["classification"], "cadence-adapter")
+        self.assertEqual(component["sharedSymbol"], "AboutPage")
+
+        candidate = copy.deepcopy(manifest)
+        next(
+            item for item in candidate["components"]
+            if item["symbol"] == "SettingsAboutSection"
+        )["sharedSymbol"] = None
+        rejected = verifier.validate_manifest(ROOT / "Sources" / "Cadence", candidate)
+        self.assertTrue(
+            any("adapter sharedSymbol must be a string" in error for error in rejected)
+        )
 
     def test_manifest_requires_exact_schema_identity_and_component_shape(self) -> None:
         """A different schema/root or unknown field must not validate against Cadence sources."""
@@ -273,8 +297,8 @@ class UIComponentOwnershipTests(unittest.TestCase):
         manifest = verifier.load_manifest(MANIFEST_PATH)
         component = next(item for item in manifest["components"] if item["symbol"] == "CadenceRowButtonStyle")
 
-        self.assertCountEqual(
-            ["configuration.label", "configuration.isPressed"],
+        self.assertEqual(
+            ["configuration"],
             [entry["symbol"] for entry in component["dependencies"]["data"]],
         )
         self.assertEqual([], component["dependencies"]["actions"])

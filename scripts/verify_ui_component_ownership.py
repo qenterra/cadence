@@ -55,6 +55,10 @@ MIGRATION_WAVES = {
     "wave-6-adapters",
     "wave-7-product",
 }
+REQUIRED_SHARED_COMPOSITION = {
+    ("Features/ImportMusic/ImportMusicReview.swift", "ImportMusicReview"): "BrowserRowSurface",
+    ("Features/ImportMusic/ImportMusicReview.swift", "ImportMusicCandidateRow"): "BrowserRowSurface",
+}
 STATE_VALUES = {
     "system", "light", "dark", "increased-contrast", "reduced-transparency", "not-applicable",
     "static", "animated", "reduced-motion",
@@ -269,7 +273,7 @@ def declaration_source(context: DeclarationContext, all_contexts: dict[tuple[str
 
 
 def has_source_reference(source: str, symbol: str) -> bool:
-    return re.search(rf"(?<![A-Za-z0-9_.]){re.escape(symbol)}(?![A-Za-z0-9_.])", source) is not None
+    return re.search(rf"(?<![A-Za-z0-9_]){re.escape(symbol)}(?![A-Za-z0-9_])", source) is not None
 
 
 def source_depths(source: str) -> list[int]:
@@ -417,7 +421,10 @@ def consumer_dependency_symbols(source: str) -> tuple[set[str], set[str]]:
         data.add("content")
     if re.search(r"\bfunc\s+makeBody\s*\(\s*configuration\s*:\s*Configuration\s*\)", source):
         members = sorted(set(re.findall(r"\bconfiguration\.([A-Za-z_]\w*)\b", source)))
-        data.update(f"configuration.{member}" for member in members)
+        if members:
+            data.update(f"configuration.{member}" for member in members)
+        else:
+            data.add("configuration")
 
     actions.update(
         match.group(1)
@@ -540,6 +547,13 @@ def validate_manifest(source_root: Path, manifest: dict[str, Any]) -> list[str]:
                 errors.append(f"missing {field} for {key[0]}::{key[1]}")
         if item.get("wave") not in MIGRATION_WAVES:
             errors.append(f"invalid wave for {key[0]}::{key[1]}")
+        source = declaration_sources.get(key, "")
+        required_shared_symbol = REQUIRED_SHARED_COMPOSITION.get(key)
+        if required_shared_symbol and not has_source_reference(source, required_shared_symbol):
+            errors.append(
+                f"required shared composition missing for {key[0]}::{key[1]}: "
+                f"{required_shared_symbol}"
+            )
         dependencies = validate_exact_object(
             item.get("dependencies"), DEPENDENCY_FIELDS, f"dependencies for {key[0]}::{key[1]}", errors
         )
@@ -621,6 +635,13 @@ def validate_manifest(source_root: Path, manifest: dict[str, Any]) -> list[str]:
                 errors.append(f"invalid deliveryProduct for {key[0]}::{key[1]}")
             if not isinstance(item.get("sharedSymbol"), str) or not item["sharedSymbol"].strip():
                 errors.append(f"missing sharedSymbol for {key[0]}::{key[1]}")
+        elif classification == "cadence-adapter":
+            if item.get("deliveryProduct") != "Cadence":
+                errors.append(f"Cadence adapter must be delivered by Cadence: {key[0]}::{key[1]}")
+            if not isinstance(item.get("sharedSymbol"), str):
+                errors.append(f"Cadence adapter sharedSymbol must be a string: {key[0]}::{key[1]}")
+            elif item["sharedSymbol"].strip() and not has_source_reference(source, item["sharedSymbol"]):
+                errors.append(f"Cadence adapter does not reference sharedSymbol for {key[0]}::{key[1]}")
         elif item.get("deliveryProduct") != "Cadence" or item.get("sharedSymbol") != "":
             errors.append(f"non-reusable entry must remain in Cadence: {key[0]}::{key[1]}")
     return errors

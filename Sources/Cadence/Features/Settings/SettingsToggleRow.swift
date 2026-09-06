@@ -1,3 +1,4 @@
+import QenTerraComponents
 import SwiftUI
 
 enum SettingsBooleanControlStyle: Equatable, Sendable {
@@ -31,17 +32,10 @@ struct SettingsToggleRow: View {
     }
 
     var body: some View {
-        HStack(spacing: CadenceLayout.controlGap) {
-            Text(title)
-                .accessibilityHidden(true)
-
-            Spacer(minLength: CadenceLayout.contentGap)
-
-            Toggle(title, isOn: $isOn)
-                .labelsHidden()
-                .toggleStyle(.switch)
-                .controlSize(.small)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        QenTerraComponents.SettingsToggleRow(
+            title,
+            isOn: $isOn,
+            presentation: .cadence
+        )
     }
 }

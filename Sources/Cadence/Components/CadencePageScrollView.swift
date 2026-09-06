@@ -1,3 +1,4 @@
+import QenTerraComponents
 import SwiftUI
 
 typealias CadenceRefreshAction = @MainActor @Sendable () async -> Void
@@ -22,24 +23,13 @@ struct CadencePageScrollView<Content: View>: View {
     }
 
     var body: some View {
-        if let refreshAction {
-            scrollContent.refreshable {
-                await refreshAction()
-            }
-        } else {
-            scrollContent
-        }
-    }
-
-    private var scrollContent: some View {
-        ScrollView(.vertical) {
-            LazyVStack(alignment: .leading, spacing: sectionSpacing) {
-                content
-            }
-            .frame(maxWidth: maxContentWidth ?? .infinity, alignment: .leading)
-            .padding(.horizontal, CadenceLayout.pageInset)
-            .padding(.vertical, CadenceLayout.pageInset)
-            .frame(maxWidth: .infinity, alignment: .top)
+        PageScrollView(
+            sectionSpacing: sectionSpacing,
+            maxContentWidth: maxContentWidth,
+            usesLazyStack: true,
+            refreshAction: refreshAction
+        ) {
+            content
         }
         .background(CadenceTheme.contentBackground)
     }
