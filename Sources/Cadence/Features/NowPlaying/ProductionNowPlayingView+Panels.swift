@@ -1,3 +1,4 @@
+import QenTerraMediaComponents
 import SwiftUI
 
 enum NowPlayingPanelPresentation {
@@ -48,15 +49,10 @@ extension ProductionNowPlayingView {
                     Button {
                         isAudioDetailsPresented.toggle()
                     } label: {
-                        Label(presentation.badge, systemImage: "waveform")
-                            .font(.caption.weight(.medium))
-                            .foregroundStyle(.secondary)
-                            .padding(.horizontal, 10)
-                            .frame(height: 28)
-                            .background(
-                                CadenceTheme.subduedFill,
-                                in: Capsule()
-                            )
+                        MediaMetadataBadge(
+                            label: presentation.badge,
+                            symbolName: "waveform"
+                        )
                     }
                     .buttonStyle(.plain)
                     .help("Show Audio Details")
@@ -72,16 +68,11 @@ extension ProductionNowPlayingView {
                 }
 
                 if badges.showsSynchronizedLyrics {
-                    Text("LRC")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(.secondary)
-                        .padding(.horizontal, 10)
-                        .frame(height: 28)
-                        .background(CadenceTheme.subduedFill, in: Capsule())
+                    MediaMetadataBadge(
+                        label: "LRC",
+                        accessibilityLabel: "Synchronized lyrics"
+                    )
                         .help("Synchronized lyrics available")
-                        .accessibilityLabel(
-                            "Synchronized lyrics"
-                        )
                 }
             }
         }

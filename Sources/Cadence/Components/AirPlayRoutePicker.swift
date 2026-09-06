@@ -1,30 +1,11 @@
 import AVFoundation
-import AVKit
+import QenTerraMediaComponents
 import SwiftUI
 
-struct AirPlayRoutePicker: NSViewRepresentable {
+struct AirPlayRoutePicker: View {
     let player: AVPlayer?
 
-    func makeNSView(context _: Context) -> AVRoutePickerView {
-        let picker = AVRoutePickerView()
-        picker.isRoutePickerButtonBordered = false
-        picker.player = Self.routingPlayer(player)
-        return picker
-    }
-
-    func updateNSView(
-        _ picker: AVRoutePickerView,
-        context _: Context
-    ) {
-        picker.player = Self.routingPlayer(player)
-    }
-
-    static func routingPlayer(
-        _ player: AVPlayer?
-    ) -> AVPlayer? {
-        guard player?.currentItem != nil else {
-            return nil
-        }
-        return player
+    var body: some View {
+        QenTerraMediaComponents.AirPlayRoutePicker(player: player)
     }
 }
