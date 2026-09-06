@@ -1,4 +1,5 @@
 @testable import Cadence
+import QenTerraMediaComponents
 import simd
 import Testing
 
@@ -11,7 +12,7 @@ struct CadenceModePaletteTransitionTests {
         let white = RhythmAccentPalette(colors: [
             RhythmPulseColor(red: 1, green: 1, blue: 1),
         ])
-        var transition = CadenceModeGradientPaletteTransition(
+        var transition = ArtworkAccentGradientTransition(
             palette: black
         )
 
@@ -21,13 +22,13 @@ struct CadenceModePaletteTransitionTests {
             reduceMotion: false
         )
 
-        let target = CadenceModeGradientReference.shaderColors(for: white)
+        let target = ArtworkAccentGradientReference.shaderColors(for: white)
         let start = transition.colors(at: 10)
         let midpoint = transition.colors(
-            at: 10 + CadenceModeGradientPaletteTransition.duration / 2
+            at: 10 + ArtworkAccentGradientTransition.duration / 2
         )
         let end = transition.colors(
-            at: 10 + CadenceModeGradientPaletteTransition.duration
+            at: 10 + ArtworkAccentGradientTransition.duration
         )
 
         #expect(start.allSatisfy { $0 == .zero })
@@ -50,12 +51,12 @@ struct CadenceModePaletteTransitionTests {
         let red = RhythmAccentPalette(colors: [
             RhythmPulseColor(red: 1, green: 0, blue: 0),
         ])
-        var transition = CadenceModeGradientPaletteTransition(
+        var transition = ArtworkAccentGradientTransition(
             palette: black
         )
         transition.retarget(to: white, at: 2, reduceMotion: false)
         let interruptionTime = 2
-            + CadenceModeGradientPaletteTransition.duration / 2
+            + ArtworkAccentGradientTransition.duration / 2
         let visibleColors = transition.colors(at: interruptionTime)
 
         transition.retarget(
@@ -80,7 +81,7 @@ struct CadenceModePaletteTransitionTests {
         let blue = RhythmAccentPalette(colors: [
             RhythmPulseColor(red: 0, green: 0, blue: 1),
         ])
-        var transition = CadenceModeGradientPaletteTransition(
+        var transition = ArtworkAccentGradientTransition(
             palette: black
         )
 
@@ -89,7 +90,7 @@ struct CadenceModePaletteTransitionTests {
         #expect(
             zip(
                 transition.colors(at: 4),
-                CadenceModeGradientReference.shaderColors(for: blue)
+                ArtworkAccentGradientReference.shaderColors(for: blue)
             ).allSatisfy { color, targetColor in
                 paletteColorsApproximatelyEqual(color, targetColor)
             }

@@ -1,5 +1,6 @@
 @testable import Cadence
 import CoreGraphics
+import QenTerraMediaComponents
 import QuartzCore
 import Testing
 
@@ -320,14 +321,14 @@ struct RhythmPulseCompositorTests {
 
     @Test("Cadence Mode background uses display-paced Metal motion")
     func cadenceModeBackgroundUsesDisplayPacedMetalMotion() {
-        let appearance = CadenceModeBackgroundAppearance.resolve(
+        let appearance = ArtworkAccentGradientAppearance.resolve(
             reduceMotion: false,
             reduceTransparency: false,
             increasedContrast: false
         )
 
         #expect(appearance.isAnimated)
-        #expect(appearance.maximumAnimationFramesPerSecond == 60)
+        #expect(appearance.maximumFramesPerSecond == 60)
     }
 
     @Test("A flat artwork accent expands into five shader colors")
@@ -338,7 +339,7 @@ struct RhythmPulseCompositorTests {
             ]
         )
 
-        let shaderColors = CadenceModeGradientReference.shaderColors(
+        let shaderColors = ArtworkAccentGradientReference.shaderColors(
             for: palette
         )
 
@@ -348,12 +349,12 @@ struct RhythmPulseCompositorTests {
 
     @Test("Cadence Mode background honors accessibility display settings")
     func cadenceModeBackgroundHonorsAccessibility() {
-        let normal = CadenceModeBackgroundAppearance.resolve(
+        let normal = ArtworkAccentGradientAppearance.resolve(
             reduceMotion: false,
             reduceTransparency: false,
             increasedContrast: false
         )
-        let accessible = CadenceModeBackgroundAppearance.resolve(
+        let accessible = ArtworkAccentGradientAppearance.resolve(
             reduceMotion: true,
             reduceTransparency: true,
             increasedContrast: true

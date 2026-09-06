@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		00170CC88154D6B3B223B299 /* NowPlayingPanelPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = B41B6B8C247BA23DA134FD86 /* NowPlayingPanelPicker.swift */; };
 		0088FBF15C3CF03509379BA0 /* SmartCollectionRuleValueEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4FA282303FDD887E57156BF /* SmartCollectionRuleValueEditor.swift */; };
-		0095915C8E27E5D4E18643D0 /* CadenceModeGradientResources.swift in Sources */ = {isa = PBXBuildFile; fileRef = 159F5CEA64F0E1DB848418B6 /* CadenceModeGradientResources.swift */; };
 		00B59CE3229D1E4321B10069 /* AudioRouteProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 579BC077DE607E056E90DCAC /* AudioRouteProvider.swift */; };
 		00BB8F0F57B36FC11A137F6F /* ProductionArtistsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B89CB0AE301576C0B23A3E9 /* ProductionArtistsView.swift */; };
 		0152C45A79D5BD21CB5912D5 /* SmartCollectionListeningAppModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EE7AD050308F644272ED041 /* SmartCollectionListeningAppModelTests.swift */; };
@@ -35,7 +34,6 @@
 		0AC0D33D971E13903C106AB1 /* LibraryTrashSharedArtistFixture.swift in Sources */ = {isa = PBXBuildFile; fileRef = F534A8239B458F349ABB569D /* LibraryTrashSharedArtistFixture.swift */; };
 		0B5495F81DD5F34372BC61BC /* ManagedImportRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84B21C0621644DFD827C34C5 /* ManagedImportRepositoryTests.swift */; };
 		0B7C02C4290B4D7FFC12739D /* NavigationRailConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2796C69514D69DE4CA5E217 /* NavigationRailConfiguration.swift */; };
-		0C33641509B8FB931E7D3EEE /* CadenceModeGradientShader.metal.txt in Resources */ = {isa = PBXBuildFile; fileRef = 59DAD7D37C8F70A41E43340B /* CadenceModeGradientShader.metal.txt */; };
 		0C393C67D37602CA9A6E7D71 /* ArtistCreditParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F721C7795A8F6DF9928FDE0D /* ArtistCreditParserTests.swift */; };
 		0C3FE9EC7B5852E8C6F1547F /* CadenceSettingsProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = C324EE77AFCB33DA58729D10 /* CadenceSettingsProfile.swift */; };
 		0D2B593ADB1E7D22B2F2DA36 /* PlaylistsView+Presentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3931DF72891BB9391C2D4FB4 /* PlaylistsView+Presentation.swift */; };
@@ -91,6 +89,7 @@
 		1D5C420BD2FD06057BB5E515 /* LibraryStoreArtworkLookupTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 107BD5C99D830696060C49DA /* LibraryStoreArtworkLookupTests.swift */; };
 		1DBC651C6F08C9A3AE3AB708 /* TagEditingSafetyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73509A9ED1F4FB0F72B4A6A8 /* TagEditingSafetyTests.swift */; };
 		1DC2037D8E0D975825A11913 /* LibraryStoreRecoveryFailurePublicationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B90BC3E54D3120C11CA0764 /* LibraryStoreRecoveryFailurePublicationTests.swift */; };
+		1E0E2E28F9DA2C5FFDC0D56D /* CadenceGradientTestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 963D73280D51AE6F7AE7B41D /* CadenceGradientTestSupport.swift */; };
 		1E316DD7FFE0688D154D25D0 /* ImportMusicEmptyState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E9378F09190F46BBB920A42 /* ImportMusicEmptyState.swift */; };
 		1E7B6516B6319DBC96F88008 /* DocumentationScreenshotPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65D1923A1BB49B4B0F5A4031 /* DocumentationScreenshotPreferences.swift */; };
 		1FADC90EE02F2892804DA995 /* RemoteLibrarySettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9202F6B1DF2F18568F919A4 /* RemoteLibrarySettingsView.swift */; };
@@ -111,7 +110,6 @@
 		25086BA9A23BD6FDA09AA6A5 /* LibraryRepository+TrashRestore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 639070A2ECE8CC6368E3420E /* LibraryRepository+TrashRestore.swift */; };
 		254146F978CFB6ECCCB3872E /* ImportMusicReviewLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76F55CC9B6A4F77D2BBDCC1C /* ImportMusicReviewLayoutTests.swift */; };
 		25BFC73DD307CB6AACA0FAFE /* LibraryStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C6C541CF4ECEF148AFE1316 /* LibraryStoreTests.swift */; };
-		25D5F6C994DB7DD28D8E1D44 /* CadenceModeBackgroundModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A2A7AA1306258883D516DA /* CadenceModeBackgroundModels.swift */; };
 		26CAA39EE5A0FCF3593068BA /* WebDAVAuthentication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D3C0981F93A4419AEF2DB46 /* WebDAVAuthentication.swift */; };
 		270DB4BFC98669B75D4E8D5C /* LibraryRepository+Tags.swift in Sources */ = {isa = PBXBuildFile; fileRef = 488D79C8CCEF84D038DC8872 /* LibraryRepository+Tags.swift */; };
 		27197813B24978E807A81119 /* AllTracksFavoriteReuseSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = F17E7E67724AA71C3E91046A /* AllTracksFavoriteReuseSupport.swift */; };
@@ -132,6 +130,7 @@
 		2D86A3407CB6E27FF81C390B /* LibraryOperationFailureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38C4D35767E66578A3EECA1D /* LibraryOperationFailureTests.swift */; };
 		2E294188D6EEB0C5385C4A03 /* MockLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F99AF5714050ACB2374C866 /* MockLibrary.swift */; };
 		2E46A16215EE9273B4D9E5D0 /* LibraryStore+Lifecycle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E5DAF341698F1491F4729CC /* LibraryStore+Lifecycle.swift */; };
+		2E4C24D9895C7F11BB8E8F02 /* NativeTrackTableReferenceGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 235C2C04F14920CF45C90115 /* NativeTrackTableReferenceGeometry.swift */; };
 		2E6E44367F44E77DC97A4FE1 /* RhythmKeyboardCaptureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E37D8A279314C8772809448F /* RhythmKeyboardCaptureTests.swift */; };
 		2EE377C5F66CADA79EE4FB81 /* LibraryRepository+TrashRestoreDetails.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C43A76901DCBF9A6553F2FE /* LibraryRepository+TrashRestoreDetails.swift */; };
 		2F2A0E5736A15D5F062EC790 /* CadenceAppModel+SmartCollectionPlayback.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AA8935EBB94665878E44662 /* CadenceAppModel+SmartCollectionPlayback.swift */; };
@@ -197,7 +196,6 @@
 		45AF6DAF269CCCFBC2F415F6 /* LibraryTrashTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED0395D75A289722D22B6FC7 /* LibraryTrashTests.swift */; };
 		4606D4194EBB0CD6FBD157C9 /* ManagedImportManifestStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECD173BE8A7AD498ED1209FF /* ManagedImportManifestStore.swift */; };
 		477257A43416589A3CAEAF49 /* ManagedLibraryResetter.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB320F35085E104B36885780 /* ManagedLibraryResetter.swift */; };
-		4800F088DCE7CB2B7A4F8A90 /* CadenceModeGradientSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFC0F04B50CF08C20AAB573D /* CadenceModeGradientSnapshot.swift */; };
 		48767EED958931ABF5EADA41 /* PlaylistsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996FE1B8EB51A59BD6777505 /* PlaylistsView.swift */; };
 		489ACD6E46A7B586194D0836 /* CadenceAppModel+SmartCollections.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9630F218866B3DC748DB6F68 /* CadenceAppModel+SmartCollections.swift */; };
 		48B65FECBEE32F8228D63279 /* CadenceModeLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2435F9E2F275ECA80197A746 /* CadenceModeLayout.swift */; };
@@ -225,7 +223,6 @@
 		519529C009314376E1AE408A /* SettingsDataCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3581A7E93C4CB13ECB3456E /* SettingsDataCard.swift */; };
 		5219422770D4970E0ADA5B3D /* PlaybackCoordinator+AudioPath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83743E31E0F9AF3E368EC210 /* PlaybackCoordinator+AudioPath.swift */; };
 		52942B18156372F2A5E880F0 /* CrossfadePlaybackBackend+Support.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80FA5C5A064AAA5B9543BCB6 /* CrossfadePlaybackBackend+Support.swift */; };
-		52D565502249226C63951D1F /* NativePlaybackIndicatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B938A1CF06017821473EA93C /* NativePlaybackIndicatorView.swift */; };
 		52DE40815249EFF292F6538A /* ManagedServiceRecoveryOutcomes.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0C157E1D612BD7D93666B08 /* ManagedServiceRecoveryOutcomes.swift */; };
 		5348F4CD7C7EF21B3CD26087 /* TagSuggestion.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0CA1AA4F9E59614EBB8C20E /* TagSuggestion.swift */; };
 		534A236AF772F4435FAE8EC8 /* CadenceAboutConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8F8CA6F41A436E31DFAF83C /* CadenceAboutConfiguration.swift */; };
@@ -283,6 +280,7 @@
 		6872584BC0857AC568FB8E1B /* ManagedLibraryImporter+Completion.swift in Sources */ = {isa = PBXBuildFile; fileRef = F95C961623BEA7EE44EAEA24 /* ManagedLibraryImporter+Completion.swift */; };
 		68D18FB94DDD41DC14B3304D /* LibraryRepository+TrackOrdering.swift in Sources */ = {isa = PBXBuildFile; fileRef = 635C51C5B57BB2B8DECDF3A5 /* LibraryRepository+TrackOrdering.swift */; };
 		6964AF2313B7799E1158556A /* CadenceInstanceCoordinatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2C2B1D47396A73329146F93 /* CadenceInstanceCoordinatorTests.swift */; };
+		6A13B72DD8E2EDEE14F64D24 /* CadenceTrackTableAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8BA8F07187294E05583D45D /* CadenceTrackTableAdapter.swift */; };
 		6AA37950D807ECD32E13E83A /* ImportInspectionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8B0C843D0EDE42EACEB9C54 /* ImportInspectionService.swift */; };
 		6AD2C4C2A2D1A2CB3660E523 /* LibraryStoreLifecycleEpochTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 895188B5CCCDF7B5F358B38D /* LibraryStoreLifecycleEpochTests.swift */; };
 		6BA3F2002249B1B8DF73A35C /* RhythmPulseStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB8C360774706F3EC255A85E /* RhythmPulseStore.swift */; };
@@ -306,6 +304,7 @@
 		72000EDCA4E576ECB3A6B53A /* ProductionHomeView+Sections.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C8A6D9F5ACDB655F00E53DA /* ProductionHomeView+Sections.swift */; };
 		7216D17AC22B777792C538DA /* ProductionPlaybackQueueRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56F1C8C5080F9E90F0020C03 /* ProductionPlaybackQueueRow.swift */; };
 		7301C5440E1951A4978B4163 /* CadenceSeparator.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB739AB0D973E1C97B848F6A /* CadenceSeparator.swift */; };
+		730F1FF6A26B85480221215D /* CadenceTrackTableAdapterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DE21485FBFDDAC9AA3E2FDB /* CadenceTrackTableAdapterTests.swift */; };
 		73ED7B1FFF8F847BC71B1715 /* CadenceInstanceMessageAuthenticator.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAE157B0C8C22C2480183EC9 /* CadenceInstanceMessageAuthenticator.swift */; };
 		73F60DF31F955C89C907E5B2 /* BrowserRowSurface.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85CB99CDF9830D943E2FA53D /* BrowserRowSurface.swift */; };
 		740188C02F94B0AA1B2FB046 /* CadenceRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B76CE96E3D8EEB8EA4410FFF /* CadenceRootView.swift */; };
@@ -473,6 +472,7 @@
 		B658CCA69A43AB30E0D06153 /* ManagedImportManifestTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDE3FFB55139B8C91FE0158F /* ManagedImportManifestTests.swift */; };
 		B672F7A794D109308AF6508F /* AppPlaybackKeyboardCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 869D0FFED3D529BBB0B4E178 /* AppPlaybackKeyboardCapture.swift */; };
 		B6A3055E683B53B30345E701 /* LibraryRecoveryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D8860536F1C4E221E59556B /* LibraryRecoveryTests.swift */; };
+		B6B9F51827AA3CD0FB06B1A9 /* CadenceAccentGradientAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B08961F521641C2800CD472E /* CadenceAccentGradientAdapter.swift */; };
 		B6E9ABC547D61239F6757505 /* TagPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB9D1E1FFB200F53741D8EA6 /* TagPreview.swift */; };
 		B7286FB118E9758E07A7674D /* ManagedLibraryImporter+Copy.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA14EF9B925EBBF6FD6A66F1 /* ManagedLibraryImporter+Copy.swift */; };
 		B72DCD3024262F76CDEF88E1 /* SettingsTabStrip.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E5701822A5B3A99426BB72E /* SettingsTabStrip.swift */; };
@@ -492,6 +492,7 @@
 		BAE652298FCA1E688159983B /* LibraryRepository+Favorites.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98581977F9C1C61F847B5BE3 /* LibraryRepository+Favorites.swift */; };
 		BB0171A59B97B960C3779D92 /* TrackTableColumnTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAC70458C11CC68903CD45D6 /* TrackTableColumnTests.swift */; };
 		BB0CD7B72D83046F8EB4636D /* MetadataRepairIsolationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D31A6DC87E90907F6DE451E /* MetadataRepairIsolationTests.swift */; };
+		BBD97A60DCAE57AE08712F26 /* CadenceAccentGradientAdapterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79B9666C8D2C023EBA17BC28 /* CadenceAccentGradientAdapterTests.swift */; };
 		BC2563143D4D930160827030 /* SmartCollectionListeningLifecycleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E19B1B77C472ED7BEB2DE7A5 /* SmartCollectionListeningLifecycleTests.swift */; };
 		BC795DD4AC1A7115286AB79C /* CadenceModeRegressionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C76EF664213100E884721E1 /* CadenceModeRegressionTests.swift */; };
 		BCB428F0E5857DEEDFC168C4 /* ImportMusicView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23BC253105BC785D4CE86DD6 /* ImportMusicView.swift */; };
@@ -537,9 +538,7 @@
 		D38315F426D7BA36C2F58308 /* SettingsTrackListsCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32984988B50446C04B58EEB8 /* SettingsTrackListsCard.swift */; };
 		D3E02D74FCC9741E0EE0E356 /* LocalLibraryCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D6AE4BC1C2603A54987D1F7 /* LocalLibraryCatalog.swift */; };
 		D3F9E885037A93BAE6AB9E1C /* SmartCollectionArtworkMosaic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 978A0A11AAED21FB79BE73E7 /* SmartCollectionArtworkMosaic.swift */; };
-		D4213EF66FEB1DF9DA3EA9D2 /* CadenceModeGradientShader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 759B2584AB7AA8F2F3DB0840 /* CadenceModeGradientShader.swift */; };
 		D48C185FB0D4A4A95BA5CDB2 /* CadenceModeLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66FC2C1F3CA4870EC6247974 /* CadenceModeLayoutTests.swift */; };
-		D4BB641DFA3B0084A436F66F /* CadenceModeBackgroundAnimations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72C047A98DB26F061221ABAF /* CadenceModeBackgroundAnimations.swift */; };
 		D58EEE312B5A72683C79279F /* LibraryRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A69880F120FC256C5725312 /* LibraryRepository.swift */; };
 		D600513B4586272B0F10122A /* SystemMediaArtworkProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 097053C2ECC287FCA98D3813 /* SystemMediaArtworkProvider.swift */; };
 		D67AB5DD4FC0AC230A14CD0F /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A586FA53B5532FA89492A804 /* LibraryView.swift */; };
@@ -653,7 +652,6 @@
 
 /* Begin PBXFileReference section */
 		00AF276DE85A55468D7D6844 /* NavigationModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationModels.swift; sourceTree = "<group>"; };
-		01A2A7AA1306258883D516DA /* CadenceModeBackgroundModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CadenceModeBackgroundModels.swift; sourceTree = "<group>"; };
 		01AFC742ED2745F39B26D9EE /* CadenceAppModel+Albums.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CadenceAppModel+Albums.swift"; sourceTree = "<group>"; };
 		023C55BD806C7B6566798270 /* ShortcutsSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutsSettingsView.swift; sourceTree = "<group>"; };
 		0279484FC19B19DDEBE6CAC2 /* LibraryStore+Maintenance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LibraryStore+Maintenance.swift"; sourceTree = "<group>"; };
@@ -691,7 +689,6 @@
 		13622D08D6EE56B07AFC3F2C /* SystemMediaSessionProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemMediaSessionProtocol.swift; sourceTree = "<group>"; };
 		13855D5DB8C939C7D89B92A1 /* LibraryMaintenanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryMaintenanceTests.swift; sourceTree = "<group>"; };
 		145683512B7D5849B3623535 /* UpdatesSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdatesSettingsView.swift; sourceTree = "<group>"; };
-		159F5CEA64F0E1DB848418B6 /* CadenceModeGradientResources.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CadenceModeGradientResources.swift; sourceTree = "<group>"; };
 		166F37E684EA080AB36831A3 /* ArtistsListening.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistsListening.swift; sourceTree = "<group>"; };
 		1686AC01B3F8CA41BBB986F0 /* PlaybackCoordinator+Bass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PlaybackCoordinator+Bass.swift"; sourceTree = "<group>"; };
 		1711160737EA97CAA6DE7884 /* SettingsHomeSectionsCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsHomeSectionsCard.swift; sourceTree = "<group>"; };
@@ -729,6 +726,7 @@
 		2307BB1B961B87CDB730E829 /* MockSmartCollections.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockSmartCollections.swift; sourceTree = "<group>"; };
 		230ADFF8351D9DE3896062E7 /* ExternalAudioAppModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExternalAudioAppModelTests.swift; sourceTree = "<group>"; };
 		231128F161FBF92AC8D3EAD5 /* AppConfigurationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfigurationTests.swift; sourceTree = "<group>"; };
+		235C2C04F14920CF45C90115 /* NativeTrackTableReferenceGeometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeTrackTableReferenceGeometry.swift; sourceTree = "<group>"; };
 		237B0495B4E9EDDBA3E6CF5D /* CadenceAppModel+ImportState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CadenceAppModel+ImportState.swift"; sourceTree = "<group>"; };
 		23A6D7D538A5F4A2E5CB267D /* LibraryStore+Playlists.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LibraryStore+Playlists.swift"; sourceTree = "<group>"; };
 		23BC253105BC785D4CE86DD6 /* ImportMusicView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportMusicView.swift; sourceTree = "<group>"; };
@@ -871,7 +869,6 @@
 		57C3905C97DE716F95B01C0F /* ManagedImportManifest+Validation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ManagedImportManifest+Validation.swift"; sourceTree = "<group>"; };
 		595F8CA2FD358E241833C34C /* ArtistCreditParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistCreditParser.swift; sourceTree = "<group>"; };
 		599B08829C9539285ED5CB80 /* CadenceAppModel+LyricsEditing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CadenceAppModel+LyricsEditing.swift"; sourceTree = "<group>"; };
-		59DAD7D37C8F70A41E43340B /* CadenceModeGradientShader.metal.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = CadenceModeGradientShader.metal.txt; sourceTree = "<group>"; };
 		5A087FE8766BA3CC1C780A25 /* ManagedLyricsServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManagedLyricsServiceTests.swift; sourceTree = "<group>"; };
 		5A6F1844BAA3BF69A830F810 /* CadencePreferenceDescriptors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CadencePreferenceDescriptors.swift; sourceTree = "<group>"; };
 		5B52A2C76B73EA53586C0822 /* ProductionSearchResultsView+Components.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ProductionSearchResultsView+Components.swift"; sourceTree = "<group>"; };
@@ -939,7 +936,6 @@
 		717BF4C300297BED448095A5 /* DisplaySleepController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisplaySleepController.swift; sourceTree = "<group>"; };
 		725EF5006B6C12CF80883FC3 /* LocalLibraryCatalogMigrationRecoveryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalLibraryCatalogMigrationRecoveryTests.swift; sourceTree = "<group>"; };
 		72AB8BC8BC3871BA85788F53 /* PlaybackNormalization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackNormalization.swift; sourceTree = "<group>"; };
-		72C047A98DB26F061221ABAF /* CadenceModeBackgroundAnimations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CadenceModeBackgroundAnimations.swift; sourceTree = "<group>"; };
 		72FF55E16B03D2449DCAD218 /* CadenceApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CadenceApp.swift; sourceTree = "<group>"; };
 		734B10E1689744454CF913A9 /* ProductionPlaybackQueuePanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductionPlaybackQueuePanel.swift; sourceTree = "<group>"; };
 		73509A9ED1F4FB0F72B4A6A8 /* TagEditingSafetyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TagEditingSafetyTests.swift; sourceTree = "<group>"; };
@@ -949,13 +945,13 @@
 		73D090665582E07F32E8FF18 /* MockArtistFavorites.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockArtistFavorites.swift; sourceTree = "<group>"; };
 		740BB35E723234886CAAE9DC /* AdvancedCadencePreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdvancedCadencePreferences.swift; sourceTree = "<group>"; };
 		741D9F4355A59D68FECC3A09 /* AllTracksPerformanceTestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllTracksPerformanceTestSupport.swift; sourceTree = "<group>"; };
-		759B2584AB7AA8F2F3DB0840 /* CadenceModeGradientShader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CadenceModeGradientShader.swift; sourceTree = "<group>"; };
 		75D60B7EB9BC4CFB38F90AFA /* CadenceAppModel+ImportPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CadenceAppModel+ImportPreview.swift"; sourceTree = "<group>"; };
 		7617F38DD76DD3AF1AFDCE30 /* TagEditingNavigationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TagEditingNavigationTests.swift; sourceTree = "<group>"; };
 		76F55CC9B6A4F77D2BBDCC1C /* ImportMusicReviewLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportMusicReviewLayoutTests.swift; sourceTree = "<group>"; };
 		77667B56E602847F504E8B12 /* LyricsMatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsMatcher.swift; sourceTree = "<group>"; };
 		78F3080D1BE767ADE2F148F6 /* PlayerBar+Status.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PlayerBar+Status.swift"; sourceTree = "<group>"; };
 		79160EDCE3FD6A00ED9EDE15 /* MetadataReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetadataReader.swift; sourceTree = "<group>"; };
+		79B9666C8D2C023EBA17BC28 /* CadenceAccentGradientAdapterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CadenceAccentGradientAdapterTests.swift; sourceTree = "<group>"; };
 		7A3AF16B8809C0830BE0045B /* GoogleDriveProviderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleDriveProviderTests.swift; sourceTree = "<group>"; };
 		7AAC7124A9CD6511F2B85E6C /* SmartCollectionRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartCollectionRecord.swift; sourceTree = "<group>"; };
 		7B90BC3E54D3120C11CA0764 /* LibraryStoreRecoveryFailurePublicationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryStoreRecoveryFailurePublicationTests.swift; sourceTree = "<group>"; };
@@ -1006,6 +1002,7 @@
 		8CE55249AC6E4CFAC07A56E0 /* PlaybackCoordinator+QueueEditing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PlaybackCoordinator+QueueEditing.swift"; sourceTree = "<group>"; };
 		8CF3D34C773BB789BE46AA59 /* PlaybackCoordinator+AudioRouteMonitoring.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PlaybackCoordinator+AudioRouteMonitoring.swift"; sourceTree = "<group>"; };
 		8D7EAA190490057BC5809295 /* ManagedLibrarySettingsCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManagedLibrarySettingsCard.swift; sourceTree = "<group>"; };
+		8DE21485FBFDDAC9AA3E2FDB /* CadenceTrackTableAdapterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CadenceTrackTableAdapterTests.swift; sourceTree = "<group>"; };
 		8DFFCD6DD51731C4A3B77857 /* LibraryRepository+ManagedImportMatching.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LibraryRepository+ManagedImportMatching.swift"; sourceTree = "<group>"; };
 		8E4EF9A0B1E296C9C683E664 /* PlaylistEntryRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaylistEntryRecord.swift; sourceTree = "<group>"; };
 		8ED5F188ED9C80B4582EB800 /* LibraryColumnWidthsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryColumnWidthsTests.swift; sourceTree = "<group>"; };
@@ -1025,6 +1022,7 @@
 		95C274E0C0A9F5F20C770FD8 /* CadenceAppModel+ArtistPlayback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CadenceAppModel+ArtistPlayback.swift"; sourceTree = "<group>"; };
 		960A68F29D83D281AA269C64 /* WebDAVProviderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebDAVProviderTests.swift; sourceTree = "<group>"; };
 		9630F218866B3DC748DB6F68 /* CadenceAppModel+SmartCollections.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CadenceAppModel+SmartCollections.swift"; sourceTree = "<group>"; };
+		963D73280D51AE6F7AE7B41D /* CadenceGradientTestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CadenceGradientTestSupport.swift; sourceTree = "<group>"; };
 		965384E17994EFBFBD7FB5D5 /* RemotePlaybackSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemotePlaybackSource.swift; sourceTree = "<group>"; };
 		965C71C5E6D28A7F429C6463 /* AllTracksPerformanceSelectionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllTracksPerformanceSelectionTests.swift; sourceTree = "<group>"; };
 		96CF44BDF94FD7D7EA5AACB2 /* PlaybackQueue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackQueue.swift; sourceTree = "<group>"; };
@@ -1081,6 +1079,7 @@
 		AFC34A2E52077291F71ED330 /* LibraryLocationControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryLocationControllerTests.swift; sourceTree = "<group>"; };
 		AFCF3AE56B2C3C0BDABF28C2 /* ImportInspection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportInspection.swift; sourceTree = "<group>"; };
 		B05FF6EF57E0AB324ED4A523 /* SmartCollectionResultsColumn.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartCollectionResultsColumn.swift; sourceTree = "<group>"; };
+		B08961F521641C2800CD472E /* CadenceAccentGradientAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CadenceAccentGradientAdapter.swift; sourceTree = "<group>"; };
 		B0C157E1D612BD7D93666B08 /* ManagedServiceRecoveryOutcomes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManagedServiceRecoveryOutcomes.swift; sourceTree = "<group>"; };
 		B0CA1AA4F9E59614EBB8C20E /* TagSuggestion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TagSuggestion.swift; sourceTree = "<group>"; };
 		B17B2BDB4D75A5F7FCC7CC97 /* ManagedLyricsTestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManagedLyricsTestSupport.swift; sourceTree = "<group>"; };
@@ -1101,7 +1100,6 @@
 		B851D33FA45439EDB93AC980 /* InterfaceScrollPolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InterfaceScrollPolicyTests.swift; sourceTree = "<group>"; };
 		B8A8CF3A7FF20FBFAEBE0806 /* TrackRowDisplayProjection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackRowDisplayProjection.swift; sourceTree = "<group>"; };
 		B8F8CA6F41A436E31DFAF83C /* CadenceAboutConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CadenceAboutConfiguration.swift; sourceTree = "<group>"; };
-		B938A1CF06017821473EA93C /* NativePlaybackIndicatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativePlaybackIndicatorView.swift; sourceTree = "<group>"; };
 		BA449FD30100AC2633056E3F /* HomePinStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomePinStore.swift; sourceTree = "<group>"; };
 		BA8536085C0EADB1F6496AA2 /* SmartCollectionListeningPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartCollectionListeningPage.swift; sourceTree = "<group>"; };
 		BB065466BEB45C244E093613 /* WindowContentLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowContentLayout.swift; sourceTree = "<group>"; };
@@ -1213,6 +1211,7 @@
 		E8713105D9A4923E63A771C7 /* ProductionHomeSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductionHomeSupport.swift; sourceTree = "<group>"; };
 		E891B72EE930FF8AAE2DC9CC /* ProductionArtistDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductionArtistDetailView.swift; sourceTree = "<group>"; };
 		E8A65B14A963B8D139172113 /* RemoteCacheIndex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteCacheIndex.swift; sourceTree = "<group>"; };
+		E8BA8F07187294E05583D45D /* CadenceTrackTableAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CadenceTrackTableAdapter.swift; sourceTree = "<group>"; };
 		E8D64D969C4AC58E2B2E1A57 /* SmartCollectionListeningHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartCollectionListeningHeader.swift; sourceTree = "<group>"; };
 		E8E635C95EA759D02184FAF3 /* LibraryStore+Fixtures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LibraryStore+Fixtures.swift"; sourceTree = "<group>"; };
 		E8FB690AF294C6A6570674D0 /* LibraryResetLifecycleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryResetLifecycleTests.swift; sourceTree = "<group>"; };
@@ -1279,7 +1278,6 @@
 		FB8C360774706F3EC255A85E /* RhythmPulseStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RhythmPulseStore.swift; sourceTree = "<group>"; };
 		FCBA057915B002540EEDC3EF /* PlaybackCoordinator+Preferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PlaybackCoordinator+Preferences.swift"; sourceTree = "<group>"; };
 		FDE3FFB55139B8C91FE0158F /* ManagedImportManifestTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManagedImportManifestTests.swift; sourceTree = "<group>"; };
-		FFC0F04B50CF08C20AAB573D /* CadenceModeGradientSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CadenceModeGradientSnapshot.swift; sourceTree = "<group>"; };
 		FFEF90BEEC4C0577241623DC /* LyricsSearchPresentationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsSearchPresentationTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -1578,9 +1576,11 @@
 				C58540975E72BC7B635C2ECE /* ArtworkEditingSessionTests.swift */,
 				84AAFA33A06C37D6CAAE7BED /* AudioRouteMonitoringTests.swift */,
 				8964DF7CF626DB0BAE4E09A9 /* CadenceAboutConfigurationTests.swift */,
+				79B9666C8D2C023EBA17BC28 /* CadenceAccentGradientAdapterTests.swift */,
 				3F36AEFF5EFBEE0D7B60AE95 /* CadenceApplicationDelegateTests.swift */,
 				E40D3BF7A8D8BBFAE9ADB975 /* CadenceAppModelFactoryTests.swift */,
 				E0930A86A0AF7E46943945C6 /* CadenceAppModelTests.swift */,
+				963D73280D51AE6F7AE7B41D /* CadenceGradientTestSupport.swift */,
 				E2C2B1D47396A73329146F93 /* CadenceInstanceCoordinatorTests.swift */,
 				27080BA73AF1AFBA765E3877 /* CadenceModeFramePacingTests.swift */,
 				8088C1C2E7C479DE47A4EDE6 /* CadenceModeGradientTests.swift */,
@@ -1593,6 +1593,7 @@
 				85E68869BB25376A8D3EFE4F /* CadencePreferencesTests.swift */,
 				6F0D4036993A120D291FF577 /* CadenceStartupTests.swift */,
 				4ED38C298578ABF6664914D6 /* CadenceThemeTests.swift */,
+				8DE21485FBFDDAC9AA3E2FDB /* CadenceTrackTableAdapterTests.swift */,
 				7E72095FB1AA56EAEB5B815A /* CatalogPagingTests.swift */,
 				C3B138F986C5B48F2563B851 /* CompositePlaybackTrackResolverTests.swift */,
 				D7F207887A78B2D22895FF7B /* ContentHasherTests.swift */,
@@ -1679,6 +1680,7 @@
 				9D31A6DC87E90907F6DE451E /* MetadataRepairIsolationTests.swift */,
 				871C857E551172D8D61C52E5 /* MetadataRepairTests.swift */,
 				735724D965993DAF38D96C0D /* NativePlaybackBackendTests.swift */,
+				235C2C04F14920CF45C90115 /* NativeTrackTableReferenceGeometry.swift */,
 				8A2687359F95B20BAB97940D /* NavigationRailTests.swift */,
 				C242AA8975128797A1B1E6B5 /* NowPlayingLayoutTests.swift */,
 				321D160AD0715E1A950EAA30 /* NowPlayingLifecycleTests.swift */,
@@ -1789,7 +1791,6 @@
 				40CE48F16C9F22991E43E6BA /* LibraryFavoritesView.swift */,
 				A586FA53B5532FA89492A804 /* LibraryView.swift */,
 				C9765C42A8102A79F8DB2DEA /* NativeAllTracksTable.swift */,
-				B938A1CF06017821473EA93C /* NativePlaybackIndicatorView.swift */,
 				0F462A0F6BE605E786BB9224 /* NativeTrackTableCell.swift */,
 				355EAA3D9F0053E93E7CCAE6 /* NativeTrackTableCellPresentation.swift */,
 				0C46B7622B1AA9EA2A73809B /* NativeTrackTablePresentation.swift */,
@@ -2047,12 +2048,6 @@
 			isa = PBXGroup;
 			children = (
 				1F3B206C42DF6E3A1DE8E0BA /* CadenceModeBackground.swift */,
-				72C047A98DB26F061221ABAF /* CadenceModeBackgroundAnimations.swift */,
-				01A2A7AA1306258883D516DA /* CadenceModeBackgroundModels.swift */,
-				159F5CEA64F0E1DB848418B6 /* CadenceModeGradientResources.swift */,
-				59DAD7D37C8F70A41E43340B /* CadenceModeGradientShader.metal.txt */,
-				759B2584AB7AA8F2F3DB0840 /* CadenceModeGradientShader.swift */,
-				FFC0F04B50CF08C20AAB573D /* CadenceModeGradientSnapshot.swift */,
 				398C249E69B16B81B02D087F /* CadenceModeHint.swift */,
 				4EE50AE82D96ACFEE2D55E81 /* CadenceModeInputCapture.swift */,
 				2435F9E2F275ECA80197A746 /* CadenceModeLayout.swift */,
@@ -2131,9 +2126,11 @@
 			children = (
 				3016B36F47E13A9265DC2F0B /* AdaptiveLayoutPolicy.swift */,
 				B8F8CA6F41A436E31DFAF83C /* CadenceAboutConfiguration.swift */,
+				B08961F521641C2800CD472E /* CadenceAccentGradientAdapter.swift */,
 				0DCD917928142D5FF1F6FBEA /* CadenceDesignSystemEnvironment.swift */,
 				2089E9F1639E5CB487F18146 /* CadenceLayout.swift */,
 				64A43A855223F2074D51821D /* CadenceTheme.swift */,
+				E8BA8F07187294E05583D45D /* CadenceTrackTableAdapter.swift */,
 				695CAFA2A675C645E939462C /* GlassCompatibility.swift */,
 			);
 			path = DesignSystem;
@@ -2364,7 +2361,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				33D47D02472A1A51145FC511 /* Cadence.icon in Resources */,
-				0C33641509B8FB931E7D3EEE /* CadenceModeGradientShader.metal.txt in Resources */,
 				3862066A8CA690CE191F4DDD /* Localizable.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2406,6 +2402,7 @@
 				00B59CE3229D1E4321B10069 /* AudioRouteProvider.swift in Sources */,
 				73F60DF31F955C89C907E5B2 /* BrowserRowSurface.swift in Sources */,
 				534A236AF772F4435FAE8EC8 /* CadenceAboutConfiguration.swift in Sources */,
+				B6B9F51827AA3CD0FB06B1A9 /* CadenceAccentGradientAdapter.swift in Sources */,
 				F361147639679D8B17064F4F /* CadenceApp.swift in Sources */,
 				DD6ECAFF1B1CC6540B3CDDAC /* CadenceAppModel+Albums.swift in Sources */,
 				341C494471941EB0F8767F83 /* CadenceAppModel+ArtistPlayback.swift in Sources */,
@@ -2447,11 +2444,6 @@
 				73ED7B1FFF8F847BC71B1715 /* CadenceInstanceMessageAuthenticator.swift in Sources */,
 				032302D8DE07BD51E9A50D85 /* CadenceLayout.swift in Sources */,
 				5A3716A645E50BC6A6EC91AE /* CadenceModeBackground.swift in Sources */,
-				D4BB641DFA3B0084A436F66F /* CadenceModeBackgroundAnimations.swift in Sources */,
-				25D5F6C994DB7DD28D8E1D44 /* CadenceModeBackgroundModels.swift in Sources */,
-				0095915C8E27E5D4E18643D0 /* CadenceModeGradientResources.swift in Sources */,
-				D4213EF66FEB1DF9DA3EA9D2 /* CadenceModeGradientShader.swift in Sources */,
-				4800F088DCE7CB2B7A4F8A90 /* CadenceModeGradientSnapshot.swift in Sources */,
 				39A0CFDF0162C3DC0C992CC3 /* CadenceModeHint.swift in Sources */,
 				9AD721C5ED0ED9231B8ACDB3 /* CadenceModeInputCapture.swift in Sources */,
 				48B65FECBEE32F8228D63279 /* CadenceModeLayout.swift in Sources */,
@@ -2474,6 +2466,7 @@
 				7301C5440E1951A4978B4163 /* CadenceSeparator.swift in Sources */,
 				0C3FE9EC7B5852E8C6F1547F /* CadenceSettingsProfile.swift in Sources */,
 				4F664B21F66D2B4453DBFAAD /* CadenceTheme.swift in Sources */,
+				6A13B72DD8E2EDEE14F64D24 /* CadenceTrackTableAdapter.swift in Sources */,
 				8431E59887A0D8D9B8296032 /* CadenceUpdateController.swift in Sources */,
 				E893DD69B53A86458B85F3C3 /* CatalogRenameAlert.swift in Sources */,
 				49274F053519130AEC63062D /* CatalogSelection.swift in Sources */,
@@ -2631,7 +2624,6 @@
 				58D6EAE6262AD5E719CC4BA9 /* MetadataValueResolver.swift in Sources */,
 				3DC310F03944DEED53325893 /* NativeAllTracksTable.swift in Sources */,
 				FB70DFCCE2E53A4593DFB653 /* NativePlaybackBackend.swift in Sources */,
-				52D565502249226C63951D1F /* NativePlaybackIndicatorView.swift in Sources */,
 				A7C9669A1B564F0E98CDF495 /* NativeTrackTableCell.swift in Sources */,
 				DE48562F9E659751459C3067 /* NativeTrackTableCellPresentation.swift in Sources */,
 				E9CD383314E7A96E00F92A47 /* NativeTrackTablePresentation.swift in Sources */,
@@ -2835,10 +2827,12 @@
 				768502D3916E0E56F203F982 /* ArtworkEditingSessionTests.swift in Sources */,
 				4B2490545AEE9CB41229F8E5 /* AudioRouteMonitoringTests.swift in Sources */,
 				8F1F4325901D58080AC2C626 /* CadenceAboutConfigurationTests.swift in Sources */,
+				BBD97A60DCAE57AE08712F26 /* CadenceAccentGradientAdapterTests.swift in Sources */,
 				8A5F8A931E5B52EB748AE264 /* CadenceAppModel+TestFixture.swift in Sources */,
 				E1A0B0E0008A21F0353A0995 /* CadenceAppModelFactoryTests.swift in Sources */,
 				E3751761871E2214364D1513 /* CadenceAppModelTests.swift in Sources */,
 				BDD1C5E2C02162E58973190A /* CadenceApplicationDelegateTests.swift in Sources */,
+				1E0E2E28F9DA2C5FFDC0D56D /* CadenceGradientTestSupport.swift in Sources */,
 				6964AF2313B7799E1158556A /* CadenceInstanceCoordinatorTests.swift in Sources */,
 				DA6B765C51F216EF912C728F /* CadenceModeFramePacingTests.swift in Sources */,
 				08A7F1C47D57707A494B70A1 /* CadenceModeGradientTests.swift in Sources */,
@@ -2851,6 +2845,7 @@
 				274D2CD52C47B83D2F766FB9 /* CadencePreferencesTests.swift in Sources */,
 				7C4565A3BDC6B08FF73B3789 /* CadenceStartupTests.swift in Sources */,
 				AEFEA94134899B9CAFED44BB /* CadenceThemeTests.swift in Sources */,
+				730F1FF6A26B85480221215D /* CadenceTrackTableAdapterTests.swift in Sources */,
 				D0441297A1540D4CF2FA6FE3 /* CatalogPagingTests.swift in Sources */,
 				FF405B6ADB1C613AD32F7612 /* CompositePlaybackTrackResolverTests.swift in Sources */,
 				AADFE97946A8E85D50224FAF /* ContentHasherTests.swift in Sources */,
@@ -2944,6 +2939,7 @@
 				C09BA13C80D6CE9835015996 /* MockSmartCollections.swift in Sources */,
 				225AAC7B280EF9F1EA761936 /* MockTags.swift in Sources */,
 				969D189C7560E610430F229B /* NativePlaybackBackendTests.swift in Sources */,
+				2E4C24D9895C7F11BB8E8F02 /* NativeTrackTableReferenceGeometry.swift in Sources */,
 				EA96A0DF09FA341325FD40DC /* NavigationRailTests.swift in Sources */,
 				B4258BB6CEBB31FD5CD1BF13 /* NowPlayingLayoutTests.swift in Sources */,
 				6C5E0F4296BA65DE8B0CD526 /* NowPlayingLifecycleTests.swift in Sources */,

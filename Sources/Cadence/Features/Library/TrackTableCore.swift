@@ -844,17 +844,14 @@ struct TrackTableCore: NSViewRepresentable {
         tableView.delegate = context.coordinator
         tableView.target = context.coordinator
         tableView.doubleAction = #selector(Coordinator.playClickedRow)
-        tableView.onReturn = { [weak coordinator = context.coordinator] in
-            coordinator?.playSelectedRow()
-        }
-        tableView.onSpace = { [weak coordinator = context.coordinator] in
-            coordinator?.togglePlayback()
-        }
-        tableView.onDelete = { [weak coordinator = context.coordinator] in
-            coordinator?.deleteSelection()
-        }
-        tableView.onFocusChange = { [weak coordinator = context.coordinator] in
-            coordinator?.tableFocusDidChange()
+        tableView.configureKeyboardActions(
+            onReturn: { [weak coordinator = context.coordinator] in coordinator?.playSelectedRow() },
+            onSpace: { [weak coordinator = context.coordinator] in coordinator?.togglePlayback() },
+            onDelete: { [weak coordinator = context.coordinator] in coordinator?.deleteSelection() }
+        )
+        let focusDelivery = CadenceTrackTableFocusDelivery()
+        tableView.onFocusChange = { [weak coordinator = context.coordinator] _ in
+            focusDelivery.schedule { [weak coordinator] in coordinator?.tableFocusDidChange() }
         }
         tableView.registerForDraggedTypes([.string])
         tableView.setDraggingSourceOperationMask(.move, forLocal: true)

@@ -425,10 +425,12 @@ class UIComponentOwnershipTests(unittest.TestCase):
         hosting_cell = next(item for item in manifest["components"] if item["symbol"] == "TrackTableHostingCell")
         self.assertNotIn("hostState", [entry["symbol"] for entry in hosting_cell["dependencies"]["data"]])
 
-        renderer = next(item for item in manifest["components"] if item["symbol"] == "CadenceModeGradientRenderer")
-        renderer_data = {entry["symbol"] for entry in renderer["dependencies"]["data"]}
-        self.assertIn("device", renderer_data)
-        self.assertFalse({"commandQueue", "snapshotPipelineState"} & renderer_data)
+        self.assertFalse(any(item["symbol"] == "CadenceModeGradientRenderer" for item in manifest["components"]))
+        background = next(item for item in manifest["components"] if item["symbol"] == "CadenceModeBackground")
+        self.assertEqual("ArtworkAccentGradient", background["sharedSymbol"])
+        background_data = {entry["symbol"] for entry in background["dependencies"]["data"]}
+        self.assertEqual({"palette", "hasLiveEffects", "reduceMotion", "visualQAReduceMotionOverride"}, background_data)
+        self.assertFalse({"device", "commandQueue", "snapshotPipelineState"} & background_data)
 
     def test_private_init_injected_closures_remain_consumer_dependencies(self) -> None:
         """Private access does not erase a callback or formatter supplied by the initializer."""

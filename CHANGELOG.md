@@ -12,6 +12,7 @@ uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- Reused shared native table cells and artwork-gradient presentation while keeping Cadence's selection, artwork loading, keyboard effects, and playback policy local.
 - Adopted QenTerra repository standard 1.3.0 with maintained governance, collaboration, Wiki-source, and repository-health documentation.
 - Standardised the README Contact block across the QenTerra repository family.
 - Updated GRDB to 7.11.1 and AppAuth to 3.0.0, with canonical XcodeGen dependency pins.
