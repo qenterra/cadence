@@ -1,4 +1,5 @@
 import AppKit
+import QenTerraDesignTokens
 import SwiftUI
 
 @main
@@ -14,6 +15,10 @@ struct CadenceApp: App {
     private var appearanceRawValue = CadenceAppearance.system.rawValue
     @AppStorage(CadencePreferences.Keys.interfaceTextSize)
     private var interfaceTextSizeRawValue = InterfaceTextSize.standard.rawValue
+
+    private var designSystemConfiguration: DesignSystemConfiguration {
+        CadenceDesignSystemEnvironment.configuration(for: appearance)
+    }
 
     init() {
         CadencePreferences.registerDefaults()
@@ -47,6 +52,7 @@ struct CadenceApp: App {
                 minWidth: AdaptiveLayoutPolicy.minimumWindowSize.width,
                 minHeight: AdaptiveLayoutPolicy.minimumWindowSize.height
             )
+            .designSystem(designSystemConfiguration)
             .tint(CadenceTheme.primaryAccent)
             .dynamicTypeSize(interfaceTextSize.dynamicTypeSize)
             .onChange(

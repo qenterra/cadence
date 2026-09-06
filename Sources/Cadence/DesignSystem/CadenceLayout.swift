@@ -1,3 +1,4 @@
+import QenTerraDesignTokens
 import SwiftUI
 
 /// Product-level layout roles built from a four-point spacing scale.
@@ -5,16 +6,18 @@ import SwiftUI
 /// Features consume semantic roles instead of choosing raw values. Geometry
 /// that belongs to one feature stays in that feature's named metrics type.
 enum CadenceLayout {
-    static let textStack: CGFloat = 4
-    static let compactGap: CGFloat = 8
-    static let controlGap: CGFloat = 12
-    static let contentGap: CGFloat = 16
-    static let panelInset: CGFloat = 20
-    static let pageInset: CGFloat = 24
-    static let sectionGap: CGFloat = 32
+    private static let metrics = DesignProductMetrics.cadence
 
-    static let rowHeight: CGFloat = 48
-    static let readableContentWidth: CGFloat = 760
+    static let textStack = CGFloat(metrics.textStack)
+    static let compactGap = CGFloat(metrics.compactGap)
+    static let controlGap = CGFloat(metrics.controlGap)
+    static let contentGap = CGFloat(metrics.contentGap)
+    static let panelInset = CGFloat(metrics.panelInset)
+    static let pageInset = CGFloat(metrics.pageInset)
+    static let sectionGap = CGFloat(metrics.sectionGap)
+
+    static let rowHeight = CGFloat(metrics.rowHeight)
+    static let readableContentWidth = CGFloat(metrics.readableContentWidth)
 }
 
 enum CatalogCardLayoutMetrics {

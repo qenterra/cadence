@@ -18,6 +18,8 @@ settings:
     CADENCE_FULL_GATE_ATTESTATION_SHA256: UNATTESTED
 
 packages:
+  QenTerraDesignSystem:
+    path: ../design-system
   GRDB:
     url: https://github.com/groue/GRDB.swift.git
     exactVersion: 7.11.1
@@ -41,6 +43,12 @@ targets:
         buildPhase: resources
       - path: icon/Cadence.icon
     dependencies:
+      - package: QenTerraDesignSystem
+        product: QenTerraDesignTokens
+      - package: QenTerraDesignSystem
+        product: QenTerraComponents
+      - package: QenTerraDesignSystem
+        product: QenTerraMediaComponents
       - package: GRDB
       - package: AppAuth
       - package: Sparkle
@@ -108,6 +116,12 @@ targets:
       - path: Tests/CadenceTests
     dependencies:
       - target: Cadence
+      - package: QenTerraDesignSystem
+        product: QenTerraDesignTokens
+      - package: QenTerraDesignSystem
+        product: QenTerraComponents
+      - package: QenTerraDesignSystem
+        product: QenTerraMediaComponents
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES
