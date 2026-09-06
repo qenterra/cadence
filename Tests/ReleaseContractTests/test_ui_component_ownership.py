@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import copy
 import importlib.util
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -24,6 +25,56 @@ def load_verifier():
 
 
 class UIComponentOwnershipTests(unittest.TestCase):
+    def test_scans_the_complete_cadence_source_root(self) -> None:
+        """App-level visual declarations must not disappear when conventional UI folders exist."""
+        verifier = load_verifier()
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "Components").mkdir()
+            (root / "App").mkdir()
+            (root / "Components" / "Component.swift").write_text(
+                "struct ComponentSurface: View { var body: some View { EmptyView() } }",
+                encoding="utf-8",
+            )
+            (root / "App" / "AppSurface.swift").write_text(
+                "struct AppSurface: View { var body: some View { EmptyView() } }",
+                encoding="utf-8",
+            )
+
+            declarations = verifier.discover_visual_declarations(root)
+
+        self.assertEqual(
+            [(item.path, item.symbol) for item in declarations],
+            [
+                ("App/AppSurface.swift", "AppSurface"),
+                ("Components/Component.swift", "ComponentSurface"),
+            ],
+        )
+
+    def test_manifest_loader_rejects_duplicate_json_keys(self) -> None:
+        """Duplicate ownership keys must not silently replace reviewed values."""
+        verifier = load_verifier()
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "manifest.json"
+            path.write_text(
+                '{"schemaVersion": 2, "schemaVersion": 3, "components": []}',
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(ValueError, "Duplicate JSON key: schemaVersion"):
+                verifier.load_manifest(path)
+
+    def test_repository_cli_uses_fail_closed_defaults(self) -> None:
+        """The documented no-argument command must validate the maintained inventory."""
+        result = subprocess.run(
+            [sys.executable, str(VERIFIER_PATH)],
+            cwd=ROOT,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("Verified 157 UI component declarations.", result.stdout)
+
     def test_discovers_extension_conformances_and_qualifies_extension_nesting(self) -> None:
         """Removing extension scope handling must fail this ownership contract."""
         verifier = load_verifier()

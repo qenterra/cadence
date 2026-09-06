@@ -196,8 +196,8 @@ right to copy and play.
 ```text
 Sources/Cadence/
   App/             Application state and feature coordination
-  Components/      Shared SwiftUI components
-  DesignSystem/    Theme, surfaces, typography, and motion
+  Components/      Cadence composition and compatibility adapters
+  DesignSystem/    Product-to-Design-System adapters and environment
   Features/        Library, playback, tags, playlists, import, and settings
   Foundation/      App configuration and shared infrastructure
   Import/          Scan, review, copy, manifest, and recovery pipeline
@@ -207,6 +207,21 @@ Sources/Cadence/
   Playback/        Coordinator, audio backends, routing, and media controls
 Tests/CadenceTests/ Unit and integration tests
 ```
+
+### Design System dependency
+
+Reusable interface presentation comes from the versioned QenTerra Design
+System products `QenTerraDesignTokens`, `QenTerraComponents`, and
+`QenTerraMediaComponents`. Cadence owns music-domain state, persistence,
+asynchronous artwork loading, playback clocks and actions, queue mutation,
+lyrics documents and editing, table coordination, and Cadence Mode input and
+effects. Its compatibility types may translate those values, but do not carry
+an independent reusable visual implementation.
+
+The update direction is one way: Design System source, registry, tests, package
+manifest, version, and changelog are released together; Cadence then adopts an
+explicit immutable version. A sibling package path is allowed only in an
+isolated coordinated-development worktree before that release is pinned.
 
 Read the [architecture](docs/ARCHITECTURE.md),
 [build guide](docs/BUILDING.md), [dependency policy](docs/DEPENDENCIES.md), or

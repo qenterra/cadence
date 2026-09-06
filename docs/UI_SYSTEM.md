@@ -5,10 +5,19 @@ organization, playback, and settings. The visual goal is calm, compact, and
 predictable: Soft Graphite content surfaces, monochrome controls, original
 artwork, system typography, and native interaction behavior.
 
-Shared semantic colors, radii, and feedback motion are owned by Cadence in
-`CadenceTheme`. The local facade maps explicit semantic values into adaptive
-AppKit/SwiftUI colors while Cadence keeps ownership of music-specific geometry,
-artwork, playback, and lyrics. No private design-system checkout is required.
+Reusable semantic tokens and interface presentation are owned by the versioned
+QenTerra Design System packages: `QenTerraDesignTokens`,
+`QenTerraComponents`, and `QenTerraMediaComponents`. `CadenceTheme` and the
+types under `Sources/Cadence/DesignSystem` are product adapters over those
+public packages; they are not a second component library.
+
+Cadence retains music-domain state, persistence, asynchronous artwork loading,
+playback clocks and actions, queue mutation, lyrics documents and editing,
+track-table coordination, and Cadence Mode input and effects. Reusable visuals
+flow in one direction: Design System source and registry, verified package,
+immutable release, then an explicit Cadence dependency update. A sibling path
+is permitted only while validating a coordinated candidate and is replaced by
+an exact release version before integration.
 
 ## Product shell
 

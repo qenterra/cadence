@@ -79,6 +79,7 @@ python3 -I -B -m unittest discover \
     -s Tests/ReleaseContractTests \
     -p test_ui_component_ownership.py \
     -v
+python3 -I -B scripts/verify_ui_component_ownership.py
 image_python="${CADENCE_IMAGE_PYTHON:-$project_root/.build/python-tools/bin/python}"
 if [[ ! -x "$image_python" ]]; then
     echo "Release image tools are unavailable. Run 'bash scripts/prepare_python_tools.sh' or set CADENCE_IMAGE_PYTHON." >&2

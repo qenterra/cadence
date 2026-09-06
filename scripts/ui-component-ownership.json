@@ -3,6 +3,110 @@
   "sourceRoot": "Sources/Cadence",
   "components": [
     {
+      "path": "App/AppPlaybackKeyboardCapture.swift",
+      "symbol": "AppPlaybackKeyboardCapture",
+      "kind": "NSViewRepresentable",
+      "line": 54,
+      "classification": "product-only-behaviour",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.AppPlaybackKeyboardCapture",
+      "dependencies": {
+        "data": [
+          {
+            "symbol": "isLocallyOwned",
+            "role": "data"
+          }
+        ],
+        "actions": [
+          {
+            "symbol": "onToggle",
+            "role": "actions"
+          }
+        ]
+      },
+      "states": {
+        "appearance": [
+          "not-applicable"
+        ],
+        "motion": [
+          "static"
+        ],
+        "accessibility": [
+          "keyboard-focus",
+          "native-semantics"
+        ],
+        "interaction": [
+          "default"
+        ]
+      },
+      "wave": "wave-7-product",
+      "evidence": {
+        "status": "missing",
+        "detail": "Product-owned keyboard command focus and local event-monitor lifecycle require final Task 19 evidence.",
+        "references": []
+      }
+    },
+    {
+      "path": "CadenceApp.swift",
+      "symbol": "CadenceSettingsWindow",
+      "kind": "View",
+      "line": 273,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
+      "remainingCadenceSymbol": "Cadence.CadenceSettingsWindow",
+      "dependencies": {
+        "data": [
+          {
+            "symbol": "defaultAudioApplication",
+            "role": "data"
+          },
+          {
+            "symbol": "dismiss",
+            "role": "data"
+          },
+          {
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "notificationController",
+            "role": "data"
+          },
+          {
+            "symbol": "updateController",
+            "role": "data"
+          }
+        ],
+        "actions": []
+      },
+      "states": {
+        "appearance": [
+          "system",
+          "light",
+          "dark"
+        ],
+        "motion": [
+          "static",
+          "reduced-motion"
+        ],
+        "accessibility": [
+          "keyboard-focus",
+          "native-semantics"
+        ],
+        "interaction": [
+          "default"
+        ]
+      },
+      "wave": "wave-7-product",
+      "evidence": {
+        "status": "missing",
+        "detail": "Cadence owns Settings scene composition and injected product controllers; shared components own its reusable visual surfaces.",
+        "references": []
+      }
+    },
+    {
       "path": "Components/AirPlayRoutePicker.swift",
       "symbol": "AirPlayRoutePicker",
       "kind": "NSViewRepresentable",
