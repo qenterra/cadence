@@ -65,6 +65,10 @@ class UIComponentOwnershipTests(unittest.TestCase):
 
     def test_repository_cli_uses_fail_closed_defaults(self) -> None:
         """The documented no-argument command must validate the maintained inventory."""
+        verifier = load_verifier()
+        declaration_count = len(
+            verifier.discover_visual_declarations(ROOT / "Sources" / "Cadence")
+        )
         result = subprocess.run(
             [sys.executable, str(VERIFIER_PATH)],
             cwd=ROOT,
@@ -73,7 +77,10 @@ class UIComponentOwnershipTests(unittest.TestCase):
             text=True,
         )
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("Verified 157 UI component declarations.", result.stdout)
+        self.assertIn(
+            f"Verified {declaration_count} UI component declarations.",
+            result.stdout,
+        )
 
     def test_discovers_extension_conformances_and_qualifies_extension_nesting(self) -> None:
         """Removing extension scope handling must fail this ownership contract."""
