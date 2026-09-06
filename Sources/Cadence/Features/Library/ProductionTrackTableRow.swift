@@ -1,3 +1,4 @@
+import QenTerraMediaComponents
 import SwiftUI
 
 struct TrackTableResolvedWidths: Equatable, Sendable {
@@ -285,7 +286,12 @@ struct ProductionTrackTableRow: View {
             itemID: track.id,
             isFavorite: track.isFavorite,
             itemName: track.title,
-            controlSize: TrackTableColumnPolicy.favoriteControlWidth
+            controlSize: TrackTableColumnPolicy.favoriteControlWidth,
+            isRevealed: isHovered || isFavoriteFocused,
+            interactionContext: MediaAccessoryInteractionContext(
+                isContainerHovered: isHovered,
+                isContainerFocused: isFavoriteFocused
+            )
         ) { requestedValue in
             await model.setProductionTrackFavorite(
                 track,
@@ -293,15 +299,6 @@ struct ProductionTrackTableRow: View {
             ) != nil
         }
         .focused($isFavoriteFocused)
-        .opacity(favoritePresentation.visualOpacity)
-        .allowsHitTesting(favoritePresentation.acceptsPointerInteraction)
-        .accessibilityHidden(!favoritePresentation.isAccessibilityVisible)
-        .animation(
-            reduceMotion
-                ? nil
-                : .easeOut(duration: CadenceTheme.motionHover),
-            value: favoritePresentation.visualOpacity
-        )
     }
 
     private var artworkControl: some View {
@@ -317,13 +314,6 @@ struct ProductionTrackTableRow: View {
         .focused($isContentControlFocused)
         .help("Play \(track.title)")
         .disabled(!ownsPlaylistContext)
-    }
-
-    private var favoritePresentation: FavoriteControlPresentation {
-        FavoriteControlPresentation.resolve(
-            isHovered: isHovered,
-            isFocused: isFavoriteFocused
-        )
     }
 
     private var isLiveScrolling: Bool {
@@ -361,23 +351,22 @@ struct ProductionTrackTableRow: View {
         )
         .frame(width: 40, height: 40)
         .overlay {
-            if (showsHoverOverlay && isHovered)
-                || model.isCurrentProductionTrack(track.id) {
-                let isPlayingCurrentTrack = model.isCurrentProductionTrack(
-                    track.id
-                ) && model.isCurrentProductionTrackPlaying
+            if (showsHoverOverlay && isHovered) || sharedItem.isCurrent {
                 RoundedRectangle(
                     cornerRadius: CadenceTheme.radiusControl,
                     style: .continuous
                 )
                 .fill(.black.opacity(0.34))
-                if reduceMotion || !animatesCurrentTrack {
+                if sharedItem.isPlaying {
+                    PlaybackIndicator(
+                        isPlaying: true,
+                        animates: animatesCurrentTrack && !reduceMotion
+                    )
+                } else if reduceMotion || !animatesCurrentTrack {
                     Image(
                         systemName: Self.artworkOverlaySymbolName(
-                            isCurrentTrack: model.isCurrentProductionTrack(
-                                track.id
-                            ),
-                            isPlaying: model.isCurrentProductionTrackPlaying
+                            isCurrentTrack: sharedItem.isCurrent,
+                            isPlaying: false
                         )
                     )
                     .font(.caption.weight(.semibold))
@@ -385,10 +374,8 @@ struct ProductionTrackTableRow: View {
                 } else {
                     Image(
                         systemName: Self.artworkOverlaySymbolName(
-                            isCurrentTrack: model.isCurrentProductionTrack(
-                                track.id
-                            ),
-                            isPlaying: model.isCurrentProductionTrackPlaying
+                            isCurrentTrack: sharedItem.isCurrent,
+                            isPlaying: false
                         )
                     )
                     .contentTransition(.symbolEffect(.replace))
@@ -397,11 +384,22 @@ struct ProductionTrackTableRow: View {
                     .symbolEffect(
                         .variableColor.iterative,
                         options: .repeating,
-                        isActive: isPlayingCurrentTrack
+                        isActive: false
                     )
                 }
             }
         }
+    }
+
+    private var sharedItem: MediaItemPresentation<UUID> {
+        CadenceMediaAdapters.mediaItem(
+            TrackRowDisplayProjection(
+                track: track,
+                isCurrentTrack: model.isCurrentProductionTrack(track.id),
+                isPlaying: model.isCurrentProductionTrackPlaying
+            ),
+            isSelected: isSelected
+        )
     }
 }
 

@@ -1,26 +1,9 @@
+import QenTerraMediaComponents
 import SwiftUI
 
 enum CatalogTileFavoriteLayout {
     static let controlSize: CGFloat = 22
     static let titleHorizontalInset = controlSize + 4
-}
-
-struct FavoriteControlPresentation: Equatable, Sendable {
-    let visualOpacity: Double
-    let acceptsPointerInteraction: Bool
-    let isAccessibilityVisible: Bool
-
-    static func resolve(
-        isHovered: Bool,
-        isFocused: Bool
-    ) -> FavoriteControlPresentation {
-        let isRevealed = isHovered || isFocused
-        return FavoriteControlPresentation(
-            visualOpacity: isRevealed ? 1 : 0,
-            acceptsPointerInteraction: isRevealed,
-            isAccessibilityVisible: true
-        )
-    }
 }
 
 enum FavoriteButtonAccessibilityContract {
@@ -92,6 +75,8 @@ struct FavoriteButton: View {
     let isFavorite: Bool
     let itemName: String
     let controlSize: CGFloat
+    let isRevealed: Bool
+    let interactionContext: MediaAccessoryInteractionContext
     let action: (Bool) async -> Bool
 
     @State private var transientState: FavoriteButtonTransientState
@@ -101,12 +86,16 @@ struct FavoriteButton: View {
         isFavorite: Bool,
         itemName: String,
         controlSize: CGFloat = 30,
+        isRevealed: Bool = true,
+        interactionContext: MediaAccessoryInteractionContext = .init(),
         action: @escaping (Bool) async -> Bool
     ) {
         self.itemID = itemID
         self.isFavorite = isFavorite
         self.itemName = itemName
         self.controlSize = controlSize
+        self.isRevealed = isRevealed
+        self.interactionContext = interactionContext
         self.action = action
         _transientState = State(
             initialValue: FavoriteButtonTransientState(itemID: itemID)
@@ -114,28 +103,24 @@ struct FavoriteButton: View {
     }
 
     var body: some View {
-        Button(action: updateFavorite) {
-            Image(systemName: displayedValue ? "heart.fill" : "heart")
-                .foregroundStyle(
-                    displayedValue ? CadenceTheme.primaryAccent : .secondary
-                )
-                .frame(width: controlSize, height: controlSize)
-                .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .disabled(currentPendingValue != nil)
-        .help(displayedValue ? "Remove from Favorites" : "Add to Favorites")
-        .accessibilityLabel(
-            FavoriteButtonAccessibilityContract.label(
+        FavoriteControl(
+            presentation: FavoritePresentation(
                 isFavorite: displayedValue,
-                itemName: itemName
-            )
-        )
-        .accessibilityValue(
-            FavoriteButtonAccessibilityContract.value(
-                isFavorite: displayedValue
-            )
-        )
+                isPending: currentPendingValue != nil,
+                isRevealed: isRevealed,
+                accessibilityLabel: FavoriteButtonAccessibilityContract.label(
+                    isFavorite: displayedValue,
+                    itemName: itemName
+                ),
+                accessibilityValue: FavoriteButtonAccessibilityContract.value(
+                    isFavorite: displayedValue
+                )
+            ),
+            interactionContext: interactionContext,
+            controlSize: controlSize
+        ) { _ in
+            updateFavorite()
+        }
         .onChange(of: itemID) {
             transientState.reconcile(itemID: itemID)
         }

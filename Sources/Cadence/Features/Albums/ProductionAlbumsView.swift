@@ -1,4 +1,5 @@
 import AppKit
+import QenTerraMediaComponents
 import SwiftUI
 
 struct ProductionAlbumsView: View {
@@ -23,16 +24,18 @@ struct ProductionAlbumsView: View {
                     LazyVStack(alignment: .leading, spacing: 22) {
                         header
 
-                        LazyVGrid(
-                            columns: CatalogCardLayoutMetrics.layoutColumns(
-                                spacing: 18,
-                                size: catalogCardSize
-                            ),
-                            alignment: .leading,
-                            spacing: 24
+                        let range = CatalogCardLayoutMetrics.widthRange(
+                            for: catalogCardSize
+                        )
+                        MediaGrid(
+                            minimumWidth: range.lowerBound,
+                            maximumWidth: range.upperBound,
+                            spacing: 18,
+                            honorsExplicitSizing: true
                         ) {
                             ForEach(sortedAlbums) { album in
                                 albumTile(album)
+                                    .padding(.bottom, 6)
                             }
                         }
 
@@ -148,90 +151,47 @@ struct ProductionAlbumTile: View {
     @Bindable var store: LibraryStore
     let album: LibraryAlbumProjection
     let orderedTargets: [CatalogActivationTarget]
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @FocusState private var isFavoriteFocused: Bool
-    @State private var isHovered = false
     @State private var isRenamePresented = false
     @State private var renameDraft = ""
 
     var body: some View {
-        VStack(alignment: .center, spacing: 9) {
-            Button(action: openAlbum) {
-                ProductionArtworkView(
-                    model: model,
-                    artworkID: album.customArtworkID,
-                    title: album.title,
-                    placeholder: .album,
-                    cornerRadius: CadenceTheme.radiusGroup
-                )
-                .aspectRatio(1, contentMode: .fit)
-            }
-            .buttonStyle(.plain)
-
-            ZStack {
-                Button(action: openAlbum) {
-                    Text(album.title)
-                        .font(.headline)
-                        .foregroundStyle(.primary)
-                        .lineLimit(1)
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.plain)
-            }
-            .padding(
-                .horizontal,
-                CatalogTileFavoriteLayout.titleHorizontalInset
-            )
-            .frame(maxWidth: .infinity)
-            .overlay(alignment: .leading) {
-                FavoriteButton(
-                    itemID: album.id,
-                    isFavorite: album.isFavorite,
-                    itemName: album.title,
-                    controlSize: CatalogTileFavoriteLayout.controlSize
-                ) { requestedValue in
-                    await model.setProductionAlbumFavorite(
-                        album,
-                        isFavorite: requestedValue
-                    ) != nil
-                }
-                .focused($isFavoriteFocused)
-                .opacity(favoritePresentation.visualOpacity)
-                .allowsHitTesting(favoritePresentation.acceptsPointerInteraction)
-                .accessibilityHidden(!favoritePresentation.isAccessibilityVisible)
-                .animation(
-                    reduceMotion
-                        ? nil
-                        : .easeOut(duration: CadenceTheme.motionHover),
-                    value: favoritePresentation.visualOpacity
-                )
-            }
-
-            Text(album.artist)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
-                .frame(maxWidth: .infinity)
-
-            Text(albumDetail(album))
-                .font(.caption)
-                .foregroundStyle(.tertiary)
-                .lineLimit(1)
-                .frame(maxWidth: .infinity)
-        }
-        .padding(10)
-        .frame(maxWidth: .infinity)
-        .background {
-            BrowserRowSurface(
+        MediaTile(
+            item: CadenceMediaAdapters.mediaItem(
+                id: album.id,
+                title: album.title,
+                subtitle: album.artist,
+                metadata: albumDetail(album),
                 isSelected: model.catalogActivationSelection.contains(
                     CatalogActivationTarget(kind: .album, id: album.id)
-                ),
-                isHovered: isHovered,
-                isFocused: false
+                )
+            ),
+            accessibilityLabel: "Open \(album.title), \(album.artist)",
+            presentation: .cadenceCatalog(contentSpacing: 9)
+        ) {
+            ProductionArtworkView(
+                model: model,
+                artworkID: album.customArtworkID,
+                title: album.title,
+                placeholder: .album,
+                cornerRadius: CadenceTheme.radiusGroup
             )
+        } trailingAccessory: { context in
+            FavoriteButton(
+                itemID: album.id,
+                isFavorite: album.isFavorite,
+                itemName: album.title,
+                controlSize: CatalogTileFavoriteLayout.controlSize,
+                isRevealed: false,
+                interactionContext: context
+            ) { requestedValue in
+                await model.setProductionAlbumFavorite(
+                    album,
+                    isFavorite: requestedValue
+                ) != nil
+            }
+        } action: {
+            openAlbum()
         }
-        .contentShape(Rectangle())
-        .onHover { isHovered = $0 }
         .contextMenu {
             albumActions
         }
@@ -248,13 +208,6 @@ struct ProductionAlbumTile: View {
                 )
             }
         }
-    }
-
-    private var favoritePresentation: FavoriteControlPresentation {
-        FavoriteControlPresentation.resolve(
-            isHovered: isHovered,
-            isFocused: isFavoriteFocused
-        )
     }
 
     @ViewBuilder

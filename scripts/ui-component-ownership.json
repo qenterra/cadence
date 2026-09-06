@@ -47,63 +47,12 @@
     },
     {
       "path": "Components/ArtworkView.swift",
-      "symbol": "ArtworkPlaceholderView",
-      "kind": "View",
-      "line": 188,
-      "classification": "media-component",
-      "deliveryProduct": "QenTerraMediaComponents",
-      "sharedSymbol": "ArtworkPlaceholderView",
-      "remainingCadenceSymbol": "Cadence.ArtworkPlaceholderView",
-      "dependencies": {
-        "data": [
-          {
-            "symbol": "cornerRadius",
-            "role": "data"
-          },
-          {
-            "symbol": "kind",
-            "role": "data"
-          },
-          {
-            "symbol": "showsBorder",
-            "role": "data"
-          }
-        ],
-        "actions": []
-      },
-      "states": {
-        "appearance": [
-          "system",
-          "light",
-          "dark"
-        ],
-        "motion": [
-          "static"
-        ],
-        "accessibility": [
-          "native-semantics",
-          "keyboard-focus"
-        ],
-        "interaction": [
-          "default",
-          "selected"
-        ]
-      },
-      "wave": "wave-4-media",
-      "evidence": {
-        "status": "missing",
-        "detail": "No focused test or checked-in screenshot was found for ArtworkPlaceholderView; capture migration evidence before Wave 4.",
-        "references": []
-      }
-    },
-    {
-      "path": "Components/ArtworkView.swift",
       "symbol": "ArtworkView",
       "kind": "View",
-      "line": 5,
-      "classification": "media-component",
-      "deliveryProduct": "QenTerraMediaComponents",
-      "sharedSymbol": "ArtworkView",
+      "line": 6,
+      "classification": "cadence-adapter",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "ArtworkSurface",
       "remainingCadenceSymbol": "Cadence.ArtworkView",
       "dependencies": {
         "data": [
@@ -151,8 +100,9 @@
       "wave": "wave-4-media",
       "evidence": {
         "status": "verified",
-        "detail": "Artwork presentation behavior is covered by the existing media-artwork tests.",
+        "detail": "The compatibility wrapper delegates framing to ArtworkSurface while Cadence adapter tests verify palette and state mappings.",
         "references": [
+          "Tests/CadenceTests/CadenceMediaAdapterTests.swift",
           "Tests/CadenceTests/MediaArtworkTests.swift"
         ]
       }
@@ -161,10 +111,10 @@
       "path": "Components/ArtworkView.swift",
       "symbol": "CustomArtworkContent",
       "kind": "View",
-      "line": 109,
-      "classification": "media-component",
-      "deliveryProduct": "QenTerraMediaComponents",
-      "sharedSymbol": "CustomArtworkContent",
+      "line": 63,
+      "classification": "product-only-behaviour",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
       "remainingCadenceSymbol": "Cadence.CustomArtworkContent",
       "dependencies": {
         "data": [
@@ -173,15 +123,7 @@
             "role": "data"
           },
           {
-            "symbol": "cornerRadius",
-            "role": "data"
-          },
-          {
             "symbol": "placeholder",
-            "role": "data"
-          },
-          {
-            "symbol": "showsBorder",
             "role": "data"
           }
         ],
@@ -207,19 +149,21 @@
       },
       "wave": "wave-4-media",
       "evidence": {
-        "status": "missing",
-        "detail": "No focused test or checked-in screenshot was found for CustomArtworkContent; capture migration evidence before Wave 4.",
-        "references": []
+        "status": "verified",
+        "detail": "Cadence retains asynchronous decode, crop, cancellation, and cache identity behavior behind the shared artwork surface.",
+        "references": [
+          "Tests/CadenceTests/MediaArtworkTests.swift"
+        ]
       }
     },
     {
       "path": "Components/ArtworkView.swift",
       "symbol": "MediaArtworkView",
       "kind": "View",
-      "line": 70,
-      "classification": "media-component",
-      "deliveryProduct": "QenTerraMediaComponents",
-      "sharedSymbol": "MediaArtworkView",
+      "line": 28,
+      "classification": "cadence-adapter",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "ArtworkSurface",
       "remainingCadenceSymbol": "Cadence.MediaArtworkView",
       "dependencies": {
         "data": [
@@ -270,9 +214,12 @@
       },
       "wave": "wave-4-media",
       "evidence": {
-        "status": "missing",
-        "detail": "No focused test or checked-in screenshot was found for MediaArtworkView; capture migration evidence before Wave 4.",
-        "references": []
+        "status": "verified",
+        "detail": "Resolved Cadence artwork sources are exhaustively mapped into ArtworkSurface presentation states.",
+        "references": [
+          "Tests/CadenceTests/CadenceMediaAdapterTests.swift",
+          "Tests/CadenceTests/MediaArtworkTests.swift"
+        ]
       }
     },
     {
@@ -726,10 +673,10 @@
       "path": "Components/FavoriteButton.swift",
       "symbol": "FavoriteButton",
       "kind": "View",
-      "line": 90,
-      "classification": "core-component",
-      "deliveryProduct": "QenTerraComponents",
-      "sharedSymbol": "FavoriteButton",
+      "line": 73,
+      "classification": "cadence-adapter",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "FavoriteControl",
       "remainingCadenceSymbol": "Cadence.FavoriteButton",
       "dependencies": {
         "data": [
@@ -743,6 +690,14 @@
           },
           {
             "symbol": "isFavorite",
+            "role": "data"
+          },
+          {
+            "symbol": "interactionContext",
+            "role": "data"
+          },
+          {
+            "symbol": "isRevealed",
             "role": "data"
           },
           {
@@ -776,11 +731,14 @@
           "disabled"
         ]
       },
-      "wave": "wave-2-core",
+      "wave": "wave-4-media",
       "evidence": {
-        "status": "missing",
-        "detail": "No focused test or checked-in screenshot was found for FavoriteButton; capture migration evidence before Wave 2.",
-        "references": []
+        "status": "verified",
+        "detail": "Cadence keeps request tokens and persistence while FavoriteControl owns reveal, pointer, pending, and accessibility presentation.",
+        "references": [
+          "Tests/CadenceTests/AccessibilityContractTests.swift",
+          "Tests/CadenceTests/AllTracksPerformanceTests.swift"
+        ]
       }
     },
     {
@@ -1120,9 +1078,9 @@
       "symbol": "ProductionArtworkView",
       "kind": "View",
       "line": 75,
-      "classification": "media-component",
-      "deliveryProduct": "QenTerraMediaComponents",
-      "sharedSymbol": "ProductionArtworkView",
+      "classification": "product-only-behaviour",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
       "remainingCadenceSymbol": "Cadence.ProductionArtworkView",
       "dependencies": {
         "data": [
@@ -1194,9 +1152,12 @@
       },
       "wave": "wave-4-media",
       "evidence": {
-        "status": "missing",
-        "detail": "No focused test or checked-in screenshot was found for ProductionArtworkView; capture migration evidence before Wave 4.",
-        "references": []
+        "status": "verified",
+        "detail": "Cadence owns request generation, cancellation, stale-publication rejection, and image loading before the artwork adapter renders shared presentation.",
+        "references": [
+          "Tests/CadenceTests/MediaArtworkTests.swift",
+          "Tests/CadenceTests/AllTracksPerformanceTests.swift"
+        ]
       }
     },
     {
@@ -1414,10 +1375,10 @@
       "path": "Features/Albums/ProductionAlbumsView.swift",
       "symbol": "ProductionAlbumTile",
       "kind": "View",
-      "line": 146,
-      "classification": "product-shell",
+      "line": 149,
+      "classification": "cadence-adapter",
       "deliveryProduct": "Cadence",
-      "sharedSymbol": "",
+      "sharedSymbol": "MediaTile",
       "remainingCadenceSymbol": "Cadence.ProductionAlbumTile",
       "dependencies": {
         "data": [
@@ -1431,10 +1392,6 @@
           },
           {
             "symbol": "orderedTargets",
-            "role": "data"
-          },
-          {
-            "symbol": "reduceMotion",
             "role": "data"
           },
           {
@@ -1470,18 +1427,21 @@
           "default"
         ]
       },
-      "wave": "wave-7-product",
+      "wave": "wave-4-media",
       "evidence": {
-        "status": "missing",
-        "detail": "No focused test or checked-in screenshot was found for ProductionAlbumTile; capture migration evidence before its migration wave.",
-        "references": []
+        "status": "verified",
+        "detail": "MediaTile owns album tile presentation while Cadence retains selection, context menus, rename, artwork editing, and persistence.",
+        "references": [
+          "Tests/CadenceTests/CadenceMediaAdapterTests.swift",
+          "Tests/CadenceTests/DocumentationScreenshotTests.swift"
+        ]
       }
     },
     {
       "path": "Features/Albums/ProductionAlbumsView.swift",
       "symbol": "ProductionAlbumsView",
       "kind": "View",
-      "line": 4,
+      "line": 5,
       "classification": "product-shell",
       "deliveryProduct": "Cadence",
       "sharedSymbol": "",
@@ -1635,10 +1595,10 @@
       "path": "Features/Artists/ProductionArtistsView.swift",
       "symbol": "ProductionArtistTile",
       "kind": "View",
-      "line": 152,
-      "classification": "product-shell",
+      "line": 155,
+      "classification": "cadence-adapter",
       "deliveryProduct": "Cadence",
-      "sharedSymbol": "",
+      "sharedSymbol": "MediaTile",
       "remainingCadenceSymbol": "Cadence.ProductionArtistTile",
       "dependencies": {
         "data": [
@@ -1652,10 +1612,6 @@
           },
           {
             "symbol": "orderedTargets",
-            "role": "data"
-          },
-          {
-            "symbol": "reduceMotion",
             "role": "data"
           },
           {
@@ -1691,18 +1647,20 @@
           "default"
         ]
       },
-      "wave": "wave-7-product",
+      "wave": "wave-4-media",
       "evidence": {
-        "status": "missing",
-        "detail": "No focused test or checked-in screenshot was found for ProductionArtistTile; capture migration evidence before its migration wave.",
-        "references": []
+        "status": "verified",
+        "detail": "MediaTile owns artist tile presentation while Cadence retains circular artwork, selection, menus, artwork editing, and persistence.",
+        "references": [
+          "Tests/CadenceTests/CadenceMediaAdapterTests.swift"
+        ]
       }
     },
     {
       "path": "Features/Artists/ProductionArtistsView.swift",
       "symbol": "ProductionArtistsView",
       "kind": "View",
-      "line": 4,
+      "line": 5,
       "classification": "product-shell",
       "deliveryProduct": "Cadence",
       "sharedSymbol": "",
@@ -1917,10 +1875,10 @@
       "path": "Features/Home/ProductionHomeSupport.swift",
       "symbol": "HomeCompactGrid",
       "kind": "View",
-      "line": 320,
-      "classification": "core-component",
-      "deliveryProduct": "QenTerraComponents",
-      "sharedSymbol": "HomeCompactGrid",
+      "line": 274,
+      "classification": "cadence-adapter",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "MediaGrid",
       "remainingCadenceSymbol": "Cadence.HomeCompactGrid",
       "dependencies": {
         "data": [
@@ -1955,21 +1913,24 @@
           "disabled"
         ]
       },
-      "wave": "wave-2-core",
+      "wave": "wave-4-media",
       "evidence": {
-        "status": "missing",
-        "detail": "No focused test or checked-in screenshot was found for HomeCompactGrid; capture migration evidence before Wave 2.",
-        "references": []
+        "status": "verified",
+        "detail": "The compact grid delegates adaptive layout to MediaGrid with the literal Cadence card-size range.",
+        "references": [
+          "Tests/CadenceTests/CadenceMediaAdapterTests.swift",
+          "Tests/CadenceTests/SemanticLayoutTests.swift"
+        ]
       }
     },
     {
       "path": "Features/Home/ProductionHomeSupport.swift",
       "symbol": "HomeDestinationTile",
       "kind": "View",
-      "line": 212,
-      "classification": "core-component",
-      "deliveryProduct": "QenTerraComponents",
-      "sharedSymbol": "HomeDestinationTile",
+      "line": 193,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
       "remainingCadenceSymbol": "Cadence.HomeDestinationTile",
       "dependencies": {
         "data": [
@@ -2025,21 +1986,23 @@
           "disabled"
         ]
       },
-      "wave": "wave-2-core",
+      "wave": "wave-4-media",
       "evidence": {
-        "status": "missing",
-        "detail": "No focused test or checked-in screenshot was found for HomeDestinationTile; capture migration evidence before Wave 2.",
-        "references": []
+        "status": "verified",
+        "detail": "The destination shell keeps product activation targets and routes reusable tile presentation through HomeMediaTile.",
+        "references": [
+          "Tests/CadenceTests/SecondAuditPresentationTests.swift"
+        ]
       }
     },
     {
       "path": "Features/Home/ProductionHomeSupport.swift",
       "symbol": "HomeMediaTile",
       "kind": "View",
-      "line": 238,
-      "classification": "product-shell",
+      "line": 219,
+      "classification": "cadence-adapter",
       "deliveryProduct": "Cadence",
-      "sharedSymbol": "",
+      "sharedSymbol": "MediaTile",
       "remainingCadenceSymbol": "Cadence.HomeMediaTile",
       "dependencies": {
         "data": [
@@ -2100,21 +2063,24 @@
           "default"
         ]
       },
-      "wave": "wave-7-product",
+      "wave": "wave-4-media",
       "evidence": {
-        "status": "missing",
-        "detail": "No focused test or checked-in screenshot was found for HomeMediaTile; capture migration evidence before its migration wave.",
-        "references": []
+        "status": "verified",
+        "detail": "MediaTile owns the visual shell while Cadence keeps activation throttling and contextual playback or navigation.",
+        "references": [
+          "Tests/CadenceTests/CadenceMediaAdapterTests.swift",
+          "Tests/CadenceTests/DocumentationScreenshotTests.swift"
+        ]
       }
     },
     {
       "path": "Features/Home/ProductionHomeSupport.swift",
       "symbol": "HomeShelf",
       "kind": "View",
-      "line": 105,
-      "classification": "core-component",
-      "deliveryProduct": "QenTerraComponents",
-      "sharedSymbol": "HomeShelf",
+      "line": 106,
+      "classification": "cadence-adapter",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "MediaShelf",
       "remainingCadenceSymbol": "Cadence.HomeShelf",
       "dependencies": {
         "data": [
@@ -2162,21 +2128,23 @@
           "disabled"
         ]
       },
-      "wave": "wave-2-core",
+      "wave": "wave-4-media",
       "evidence": {
-        "status": "missing",
-        "detail": "No focused test or checked-in screenshot was found for HomeShelf; capture migration evidence before Wave 2.",
-        "references": []
+        "status": "verified",
+        "detail": "HomeShelf forwards title, subtitle, optional action, and content to the shared MediaShelf.",
+        "references": [
+          "Tests/CadenceTests/SecondAuditPresentationTests.swift"
+        ]
       }
     },
     {
       "path": "Features/Home/ProductionHomeSupport.swift",
       "symbol": "HomeTrackGrid",
       "kind": "View",
-      "line": 157,
-      "classification": "core-component",
-      "deliveryProduct": "QenTerraComponents",
-      "sharedSymbol": "HomeTrackGrid",
+      "line": 139,
+      "classification": "cadence-adapter",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "MediaGrid",
       "remainingCadenceSymbol": "Cadence.HomeTrackGrid",
       "dependencies": {
         "data": [
@@ -2219,21 +2187,24 @@
           "disabled"
         ]
       },
-      "wave": "wave-2-core",
+      "wave": "wave-4-media",
       "evidence": {
-        "status": "missing",
-        "detail": "No focused test or checked-in screenshot was found for HomeTrackGrid; capture migration evidence before Wave 2.",
-        "references": []
+        "status": "verified",
+        "detail": "Home track layout delegates to MediaGrid while Cadence supplies queue-backed tile actions.",
+        "references": [
+          "Tests/CadenceTests/CadenceMediaAdapterTests.swift",
+          "Tests/CadenceTests/SemanticLayoutTests.swift"
+        ]
       }
     },
     {
       "path": "Features/Home/ProductionHomeSupport.swift",
       "symbol": "HomeTrackTile",
       "kind": "View",
-      "line": 184,
-      "classification": "core-component",
-      "deliveryProduct": "QenTerraComponents",
-      "sharedSymbol": "HomeTrackTile",
+      "line": 165,
+      "classification": "product-shell",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "",
       "remainingCadenceSymbol": "Cadence.HomeTrackTile",
       "dependencies": {
         "data": [
@@ -2281,11 +2252,13 @@
           "disabled"
         ]
       },
-      "wave": "wave-2-core",
+      "wave": "wave-4-media",
       "evidence": {
-        "status": "missing",
-        "detail": "No focused test or checked-in screenshot was found for HomeTrackTile; capture migration evidence before Wave 2.",
-        "references": []
+        "status": "verified",
+        "detail": "The track shell preserves queue construction and playback dispatch while routing visuals through HomeMediaTile.",
+        "references": [
+          "Tests/CadenceTests/SecondAuditPresentationTests.swift"
+        ]
       }
     },
     {
@@ -3512,7 +3485,7 @@
       "path": "Features/Library/ProductionTrackTableRow.swift",
       "symbol": "ProductionTrackTableRow",
       "kind": "View",
-      "line": 67,
+      "line": 68,
       "classification": "product-shell",
       "deliveryProduct": "Cadence",
       "sharedSymbol": "",
@@ -3630,9 +3603,12 @@
       },
       "wave": "wave-7-product",
       "evidence": {
-        "status": "missing",
-        "detail": "No focused test or checked-in screenshot was found for ProductionTrackTableRow; capture migration evidence before its migration wave.",
-        "references": []
+        "status": "verified",
+        "detail": "Cadence retains the virtualized multi-column product row while shared FavoriteControl and PlaybackIndicator own reusable chrome through adapters.",
+        "references": [
+          "Tests/CadenceTests/AllTracksPerformanceTests.swift",
+          "Tests/CadenceTests/AllTracksVisualAcceptanceTests.swift"
+        ]
       }
     },
     {
@@ -7761,10 +7737,10 @@
       "path": "Features/SmartCollections/SmartCollectionArtworkMosaic.swift",
       "symbol": "SmartCollectionArtworkMosaic",
       "kind": "View",
-      "line": 3,
-      "classification": "media-component",
-      "deliveryProduct": "QenTerraMediaComponents",
-      "sharedSymbol": "SmartCollectionArtworkMosaic",
+      "line": 4,
+      "classification": "cadence-adapter",
+      "deliveryProduct": "Cadence",
+      "sharedSymbol": "ArtworkMosaic",
       "remainingCadenceSymbol": "Cadence.SmartCollectionArtworkMosaic",
       "dependencies": {
         "data": [
@@ -7807,9 +7783,12 @@
       },
       "wave": "wave-4-media",
       "evidence": {
-        "status": "missing",
-        "detail": "No focused test or checked-in screenshot was found for SmartCollectionArtworkMosaic; capture migration evidence before Wave 4.",
-        "references": []
+        "status": "verified",
+        "detail": "ArtworkMosaic owns slot layout and gutters while Cadence resolves custom artwork and album identities.",
+        "references": [
+          "Tests/CadenceTests/CadenceMediaAdapterTests.swift",
+          "Tests/CadenceTests/DocumentationScreenshotTests.swift"
+        ]
       }
     },
     {

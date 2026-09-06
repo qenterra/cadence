@@ -1,3 +1,4 @@
+import QenTerraMediaComponents
 import SwiftUI
 
 enum HomeTilePresentation: Equatable, Sendable {
@@ -124,33 +125,14 @@ struct HomeShelf<Content: View>: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: CadenceLayout.contentGap) {
-            HStack(alignment: .bottom, spacing: CadenceLayout.contentGap) {
-                VStack(alignment: .leading, spacing: CadenceLayout.textStack) {
-                    Text(title)
-                        .font(.title2.bold())
-                    if let subtitle {
-                        Text(subtitle)
-                            .font(.callout)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-
-                Spacer()
-
-                if let actionTitle, let action {
-                    Button(action: action) {
-                        HStack(spacing: CadenceLayout.textStack) {
-                            Text(actionTitle)
-                            Image(systemName: "chevron.right")
-                                .font(.caption.weight(.semibold))
-                        }
-                    }
-                }
-            }
+        MediaShelf(
+            title: title,
+            subtitle: subtitle,
+            actionTitle: actionTitle,
+            action: action
+        ) {
             content
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
@@ -161,13 +143,12 @@ struct HomeTrackGrid: View {
     @Environment(\.catalogCardSize) private var catalogCardSize
 
     var body: some View {
-        LazyVGrid(
-            columns: CatalogCardLayoutMetrics.layoutColumns(
-                spacing: CadenceLayout.contentGap,
-                size: catalogCardSize
-            ),
-            alignment: .leading,
-            spacing: CadenceLayout.contentGap
+        let range = CatalogCardLayoutMetrics.widthRange(for: catalogCardSize)
+        MediaGrid(
+            minimumWidth: range.lowerBound,
+            maximumWidth: range.upperBound,
+            spacing: CadenceLayout.contentGap,
+            honorsExplicitSizing: true
         ) {
             ForEach(tracks) { track in
                 HomeTrackTile(
@@ -243,30 +224,27 @@ private struct HomeMediaTile: View {
     let placeholder: ArtworkPlaceholder
     let accessorySymbol: String?
     let activationTarget: CatalogActivationTarget
-    let accessibilityLabel: LocalizedStringKey
+    let accessibilityLabel: String
     let action: () -> Void
     @State private var isHovered = false
 
     var body: some View {
-        Button {
-            guard model.requestCatalogActivation(activationTarget) else {
-                return
-            }
-            action()
-        } label: {
-            artworkCard
-        }
-        .buttonStyle(CadenceRowButtonStyle())
-        .onHover { isHovered = $0 }
-        .animation(
-            .easeOut(duration: CadenceTheme.motionHover),
-            value: isHovered
-        )
-        .accessibilityLabel(accessibilityLabel)
-    }
-
-    private var artworkCard: some View {
-        VStack(alignment: .leading, spacing: CadenceLayout.compactGap) {
+        MediaTile(
+            item: CadenceMediaAdapters.mediaItem(
+                id: activationTarget.id,
+                title: title,
+                subtitle: subtitle,
+                isSelected: model.catalogActivationSelection.contains(
+                    activationTarget
+                ),
+                isCurrent: activationTarget.kind == .track
+                    && model.isCurrentProductionTrack(activationTarget.id),
+                isPlaying: activationTarget.kind == .track
+                    && model.isCurrentProductionTrackPlaying
+            ),
+            accessibilityLabel: accessibilityLabel,
+            presentation: .cadenceHome
+        ) {
             ProductionArtworkView(
                 model: model,
                 artworkID: artworkID,
@@ -274,46 +252,22 @@ private struct HomeMediaTile: View {
                 placeholder: placeholder,
                 cornerRadius: CadenceTheme.radiusGroup
             )
-            .aspectRatio(1, contentMode: .fit)
-            .frame(maxWidth: .infinity)
-
-            labels
-        }
-        .padding(CadenceLayout.compactGap)
-        .frame(maxWidth: .infinity)
-        .background(
-            model.catalogActivationSelection.selected == activationTarget
-                ? CadenceTheme.selectionFill
-                : (isHovered ? CadenceTheme.hoverFill : .clear),
-            in: RoundedRectangle(
-                cornerRadius: CadenceTheme.radiusGroup,
-                style: .continuous
-            )
-        )
-    }
-
-    private var labels: some View {
-        HStack(alignment: .top, spacing: CadenceLayout.compactGap) {
-            VStack(alignment: .leading, spacing: CadenceLayout.textStack) {
-                Text(title)
-                    .font(.headline)
-                    .foregroundStyle(.primary)
-                    .lineLimit(HomeLayoutMetrics.titleLineLimit)
-                Text(subtitle)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(HomeLayoutMetrics.subtitleLineLimit)
-            }
-
-            Spacer(minLength: CadenceLayout.textStack)
-
+        } trailingAccessory: { _ in
             if let accessorySymbol {
                 Image(systemName: accessorySymbol)
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(isHovered ? .primary : .tertiary)
                     .frame(width: 24, height: 24)
             }
+        } action: {
+            guard model.requestCatalogActivation(activationTarget) else { return }
+            action()
         }
+        .onHover { isHovered = $0 }
+        .animation(
+            .easeOut(duration: CadenceTheme.motionHover),
+            value: isHovered
+        )
     }
 }
 
@@ -322,13 +276,12 @@ struct HomeCompactGrid<Content: View>: View {
     @Environment(\.catalogCardSize) private var catalogCardSize
 
     var body: some View {
-        LazyVGrid(
-            columns: CatalogCardLayoutMetrics.layoutColumns(
-                spacing: CadenceLayout.contentGap,
-                size: catalogCardSize
-            ),
-            alignment: .leading,
-            spacing: CadenceLayout.contentGap
+        let range = CatalogCardLayoutMetrics.widthRange(for: catalogCardSize)
+        MediaGrid(
+            minimumWidth: range.lowerBound,
+            maximumWidth: range.upperBound,
+            spacing: CadenceLayout.contentGap,
+            honorsExplicitSizing: true
         ) {
             content
         }
