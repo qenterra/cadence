@@ -1,16 +1,15 @@
+import QenTerraMediaComponents
 import SwiftUI
 
 struct ProductionLyricsPanel: View {
     @Bindable var model: CadenceAppModel
     let track: PlaybackTrack
 
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @AppStorage(CadencePreferences.Keys.lyricsTextSize)
     private var lyricsTextSizeRaw = LyricsTextSize.standard.rawValue
     @State private var presentation = LyricDocumentPresentationState()
     @State private var editingLineID: LyricLine.ID?
     @State private var editingText = ""
-    @State private var scrollPresentation = LyricsScrollPresentation()
     @FocusState private var focusedEditingLineID: LyricLine.ID?
 
     var body: some View {
@@ -131,74 +130,18 @@ struct ProductionLyricsPanel: View {
         _ document: LyricDocument,
         activeLineID: LyricLine.ID?
     ) -> some View {
-        let motion = LyricMotionBehavior.resolve(
-            reduceMotion: reduceMotion
+        let lines = CadencePlayerAdapters.lyricLines(
+            document.lines,
+            activeLineID: activeLineID
         )
-        return ScrollViewReader { proxy in
-            ScrollView(.vertical) {
-                LazyVStack(alignment: .leading, spacing: 18) {
-                    Color.clear
-                        .frame(height: 1)
-                        .id(LyricsScrollTarget.top)
-
-                    ForEach(document.lines) { line in
-                        if line.isBlank {
-                            Color.clear.frame(height: 10)
-                        } else {
-                            lyricLine(
-                                line,
-                                isActive: activeLineID == line.id,
-                                motion: motion
-                            )
-                            .id(line.id)
-                        }
-                    }
-                }
-                .padding(.horizontal, 34)
-                .padding(.vertical, 34)
-                .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            .scrollIndicators(.hidden)
-            .onChange(
-                of: LyricsScrollObservation(
-                    trackID: track.id,
-                    activeLineID: activeLineID,
-                    reduceMotion: reduceMotion
-                ),
-                initial: true
-            ) { _, observation in
-                applyScrollAction(
-                    scrollPresentation.resolve(
-                        trackID: observation.trackID,
-                        activeLineID: observation.activeLineID,
-                        reduceMotion: observation.reduceMotion
-                    ),
-                    proxy: proxy
-                )
-            }
-        }
-    }
-
-    private func applyScrollAction(
-        _ action: LyricsScrollAction,
-        proxy: ScrollViewProxy
-    ) {
-        switch action {
-        case .none:
-            break
-        case .top:
-            var transaction = Transaction()
-            transaction.disablesAnimations = true
-            withTransaction(transaction) {
-                proxy.scrollTo(LyricsScrollTarget.top, anchor: .top)
-            }
-        case let .activeLine(id, duration):
-            if duration > 0 {
-                withAnimation(.smooth(duration: duration)) {
-                    proxy.scrollTo(id, anchor: .center)
-                }
-            } else {
-                proxy.scrollTo(id, anchor: .center)
+        return LyricsViewport(
+            lines: lines,
+            currentIdentity: activeLineID,
+            resetIdentity: track.id,
+            alignment: .leading
+        ) { linePresentation in
+            if let line = document.lines.first(where: { $0.id == linePresentation.id }) {
+                lyricLine(line, presentation: linePresentation)
             }
         }
     }
@@ -206,8 +149,7 @@ struct ProductionLyricsPanel: View {
     @ViewBuilder
     private func lyricLine(
         _ line: LyricLine,
-        isActive: Bool,
-        motion: LyricMotionBehavior
+        presentation: LyricLinePresentation<LyricLine.ID>
     ) -> some View {
         if editingLineID == line.id {
             TextField("Lyric Line", text: $editingText, axis: .vertical)
@@ -220,36 +162,19 @@ struct ProductionLyricsPanel: View {
                 }
                 .onExitCommand(perform: cancelLineEdit)
         } else {
-            Button {
-                if let startTime = line.startTime {
-                    model.seekProductionPlayback(to: startTime)
-                }
-            } label: {
-                HStack(alignment: .top, spacing: 0) {
-                    ProductionLyricLineLabel(
-                        text: line.text,
-                        isActive: isActive,
-                        isSynchronized: line.startTime != nil
-                    )
-                    Spacer(minLength: 0)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .animation(
-                motion.animatesEmphasis
-                    ? .smooth(
-                        duration: LyricsScrollPresentation.followDuration
-                    )
-                    : nil,
-                value: isActive
-            )
-            .contextMenu {
-                Button("Edit Lyric Line", systemImage: "pencil") {
+            QenTerraMediaComponents.LyricLine(
+                presentation: presentation,
+                textSize: lyricsTextSize.pointSize,
+                alignment: .leading,
+                select: {
+                    if let startTime = line.startTime {
+                        model.seekProductionPlayback(to: startTime)
+                    }
+                },
+                edit: {
                     beginLineEdit(line)
                 }
-            }
+            )
         }
     }
 
@@ -405,9 +330,15 @@ enum ProductionLyricLineAppearance {
         isActive: Bool,
         isSynchronized: Bool
     ) -> Style {
-        Style(
-            tone: isActive || !isSynchronized ? .primary : .secondary,
-            opacity: !isSynchronized || isActive ? 1 : 0.58,
+        let shared = LyricLinePresentation(
+            id: false,
+            text: "",
+            isActive: isActive,
+            isSynchronized: isSynchronized
+        )
+        return Style(
+            tone: shared.tone == .primary ? .primary : .secondary,
+            opacity: shared.opacity,
             usesShimmer: false
         )
     }
@@ -437,22 +368,17 @@ struct ProductionLyricLineLabel: View {
     }
 
     var body: some View {
-        let appearance = ProductionLyricLineAppearance.resolve(
-            isActive: isActive,
-            isSynchronized: isSynchronized
+        QenTerraMediaComponents.LyricLineLabel(
+            presentation: LyricLinePresentation(
+                id: false,
+                text: text,
+                isActive: isActive,
+                isSynchronized: isSynchronized
+            ),
+            textSize: lyricsTextSize.pointSize,
+            alignment: alignment,
+            lineLimit: lineLimit
         )
-        Text(text)
-            .font(.system(size: lyricsTextSize.pointSize, weight: .semibold))
-            .multilineTextAlignment(alignment)
-            .lineSpacing(3)
-            .lineLimit(lineLimit)
-            .fixedSize(horizontal: false, vertical: true)
-            .foregroundStyle(
-                appearance.tone == .primary
-                    ? Color.primary
-                    : Color.secondary
-            )
-            .opacity(appearance.opacity)
     }
 
     private var lyricsTextSize: LyricsTextSize {

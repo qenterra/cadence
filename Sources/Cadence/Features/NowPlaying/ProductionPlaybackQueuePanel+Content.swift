@@ -1,3 +1,4 @@
+import QenTerraMediaComponents
 import SwiftUI
 
 extension ProductionPlaybackQueuePanel {
@@ -70,28 +71,20 @@ extension ProductionPlaybackQueuePanel {
             item: item,
             isCurrent: kind == .current,
             isSelected: isSelected,
-            isDraggable: isUpNext,
+            dragPayload: isUpNext ? dragPayload(for: item.id) : nil,
+            select: isUpNext ? {
+                updateSelection(
+                    item.id,
+                    canonicalOrder: canonicalOrder
+                )
+            } : nil,
             play: { play(item) },
             remove: isUpNext ? { removeFromQueue(item.id) } : nil
-        )
-        .modifier(
-            ProductionQueueRowInteractionModifier(
-                isUpNext: isUpNext,
-                isSelected: isSelected,
-                play: { play(item) },
-                select: {
-                    updateSelection(
-                        item.id,
-                        canonicalOrder: canonicalOrder
-                    )
-                }
-            )
         )
         .modifier(
             ProductionQueueRowDropModifier(
                 item: item,
                 isUpNext: isUpNext,
-                payload: dragPayload(for: item.id),
                 activeDropTarget: $activeDropTarget,
                 reorder: { payloads in
                     reorder(payloads: payloads, before: item.id)
@@ -130,7 +123,7 @@ private extension ProductionPlaybackQueuePanel {
             .frame(height: 16)
             .overlay(alignment: .top) {
                 if activeDropTarget == .end {
-                    ProductionQueueInsertionIndicator()
+                    QueueInsertionIndicator()
                 }
             }
             .dropDestination(for: String.self) { payloads, _ in
