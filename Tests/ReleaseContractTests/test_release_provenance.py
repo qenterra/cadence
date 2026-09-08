@@ -819,6 +819,11 @@ os._exit(0)
                     os.killpg(owner.pid, 0)
                 except ProcessLookupError:
                     break
+                except PermissionError:
+                    # A hosted macOS runner can briefly deny a zero-signal
+                    # probe while the killed process group is being reaped.
+                    # Keep waiting; only ESRCH proves that the group is gone.
+                    pass
                 time.sleep(0.01)
             else:
                 self.fail("The abandoned operation process group did not exit.")
