@@ -206,6 +206,7 @@ final class DocumentationScreenshotFixture {
         let rootView = preparedRootView(
             rootView,
             contentSize: contentSize,
+            appearance: appearance.cadenceAppearance,
             rhythmPulseVisualQAState: rhythmPulseVisualQAState
         )
 
@@ -229,7 +230,14 @@ final class DocumentationScreenshotFixture {
         hostingView.layoutSubtreeIfNeeded()
         hostingView.displayIfNeeded()
         await Task.yield()
-        let data = try pngData(for: window)
+        let data = if rhythmPulseVisualQAState == nil {
+            try pngData(for: window)
+        } else {
+            try await settledPNGData(
+                for: window,
+                hostingView: hostingView
+            )
+        }
         if recordsOnly {
             Attachment.record([UInt8](data), named: filename)
         } else {
@@ -268,10 +276,14 @@ final class DocumentationScreenshotFixture {
     private func preparedRootView(
         _ rootView: some View,
         contentSize: NSSize,
+        appearance: CadenceAppearance,
         rhythmPulseVisualQAState: RhythmPulseVisualQAState?
     ) -> some View {
         rootView
             .frame(width: contentSize.width, height: contentSize.height)
+            .designSystem(
+                CadenceDesignSystemEnvironment.configuration(for: appearance)
+            )
             .transaction { transaction in
                 transaction.animation = nil
                 transaction.disablesAnimations = true
@@ -279,6 +291,10 @@ final class DocumentationScreenshotFixture {
             .environment(
                 \.rhythmPulseVisualQAState,
                 rhythmPulseVisualQAState
+            )
+            .environment(
+                \.cadenceModeVisualQABackgroundReduceMotionOverride,
+                rhythmPulseVisualQAState == nil ? nil : true
             )
             .environment(
                 \.albumDetailReadinessObserver,
@@ -327,6 +343,24 @@ final class DocumentationScreenshotFixture {
             throw DocumentationScreenshotError.encodingFailed
         }
         return data
+    }
+
+    private func settledPNGData(
+        for window: NSWindow,
+        hostingView: NSView
+    ) async throws -> Data {
+        var previous = try pngData(for: window)
+        for _ in 0 ..< 20 {
+            try await Task.sleep(for: .milliseconds(50))
+            hostingView.layoutSubtreeIfNeeded()
+            hostingView.displayIfNeeded()
+            let current = try pngData(for: window)
+            if current == previous {
+                return current
+            }
+            previous = current
+        }
+        return previous
     }
 }
 

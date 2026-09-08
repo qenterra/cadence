@@ -1,3 +1,4 @@
+import QenTerraMediaComponents
 import SwiftUI
 
 final class NowPlayingReadinessObserver: Equatable, @unchecked Sendable {
@@ -64,13 +65,58 @@ struct ProductionNowPlayingView: View {
             let cadenceModeHasLiveEffects = rhythmPulseVisualQAState.map {
                 !$0.lanes.isEmpty
             } ?? cadenceModeSession.pulseStore.hasLiveEffects
+            let cadenceModeAccentPalette = CadenceAccentGradientAdapter.palette(
+                from: cadenceModePalette
+            )
+            let cadenceModeAppearance = CadenceAccentGradientAdapter.appearance(
+                palette: cadenceModePalette,
+                hasLiveEffects: cadenceModeHasLiveEffects,
+                reduceMotion: reduceMotion
+            )
+            let cadenceModePaletteAnimation: Animation? = reduceMotion
+                ? nil
+                : .easeInOut(duration: ArtworkAccentGradientTransition.duration)
 
             ZStack {
                 if isCadenceModeActive {
                     ZStack {
                         CadenceModeBackground(
-                            palette: cadenceModePalette,
-                            hasLiveEffects: cadenceModeHasLiveEffects
+                            palette: cadenceModePalette
+                        )
+                        .allowsHitTesting(false)
+                        .accessibilityHidden(true)
+
+                        Color.black.opacity(
+                            ArtworkAccentGradientTint.baseOpacity(
+                                for: cadenceModeAccentPalette
+                            )
+                        )
+                        .animation(
+                            cadenceModePaletteAnimation,
+                            value: cadenceModePalette
+                        )
+                        .allowsHitTesting(false)
+                        .accessibilityHidden(true)
+
+                        Color(
+                            red: cadenceModeAppearance.tint.color.red,
+                            green: cadenceModeAppearance.tint.color.green,
+                            blue: cadenceModeAppearance.tint.color.blue
+                        )
+                        .blendMode(.multiply)
+                        .opacity(cadenceModeAppearance.tint.amount)
+                        .animation(
+                            reduceMotion
+                                ? nil
+                                : .easeInOut(
+                                    duration: cadenceModeAppearance.tint
+                                        .transitionDuration
+                                ),
+                            value: cadenceModeHasLiveEffects
+                        )
+                        .animation(
+                            cadenceModePaletteAnimation,
+                            value: cadenceModePalette
                         )
                         .allowsHitTesting(false)
                         .accessibilityHidden(true)

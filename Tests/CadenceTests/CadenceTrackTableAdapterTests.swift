@@ -32,6 +32,7 @@ struct CadenceTrackTableAdapterTests {
         let typography = CadenceTrackTableAdapter.typography(.large)
         #expect(typography.primaryPointSize == 15 && typography.secondaryPointSize == 14)
         #expect(typography.badgeRole.size == 9 && typography.badgeRole.weight == 700)
+        #expect(typography.durationRole.weight == 400)
         #expect(CadenceTrackTableAdapter.columns([.album, .time]) == [.collection, .duration])
     }
 }

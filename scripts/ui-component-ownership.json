@@ -231,7 +231,7 @@
       "sharedTarget": {
         "componentID": "artwork-accent-gradient",
         "deliveryProduct": "QenTerraMediaComponents",
-        "publicSymbol": "ArtworkAccentGradient"
+        "publicSymbol": "ArtworkAccentGradientView"
       },
       "remainingCadenceSymbol": null,
       "consumers": [
@@ -255,7 +255,7 @@
       "sharedTarget": {
         "componentID": "artwork-accent-gradient",
         "deliveryProduct": "QenTerraMediaComponents",
-        "publicSymbol": "ArtworkAccentGradient"
+        "publicSymbol": "ArtworkAccentGradientView"
       },
       "remainingCadenceSymbol": null,
       "consumers": [
@@ -1403,7 +1403,7 @@
       "path": "Components/PlayerBar.swift",
       "symbol": "PlayerBar",
       "kind": "View",
-      "line": 4,
+      "line": 5,
       "classification": "cadence-adapter",
       "resolution": "cadence-owned",
       "ownershipReason": "PlayerBar maps Cadence-owned model, suspendsProgressAnimation, timeDisplayRaw, usesStableSystemControls into PlayerBar; the package retains reusable presentation.",
@@ -1417,7 +1417,23 @@
       "dependencies": {
         "data": [
           {
+            "symbol": "colorScheme",
+            "role": "data"
+          },
+          {
+            "symbol": "colorSchemeContrast",
+            "role": "data"
+          },
+          {
             "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "reduceMotion",
+            "role": "data"
+          },
+          {
+            "symbol": "reduceTransparency",
             "role": "data"
           },
           {
@@ -5407,7 +5423,7 @@
       "path": "Features/NowPlaying/ProductionNowPlayingView.swift",
       "symbol": "ProductionNowPlayingView",
       "kind": "View",
-      "line": 27,
+      "line": 28,
       "classification": "product-shell",
       "resolution": "cadence-owned",
       "ownershipReason": "ProductionNowPlayingView composes Cadence-owned cadenceModeOptions, cadenceModeSession, cadenceModeSession.updateLayout, model, readinessObserver, reduceMotion, rhythmPulseVisualQAState, showsTechnicalInformation, track into a product route or feature surface; shared primitives remain package-owned.",
@@ -5890,14 +5906,14 @@
       "path": "Features/Rhythm/CadenceModeBackground.swift",
       "symbol": "CadenceModeBackground",
       "kind": "View",
-      "line": 4,
+      "line": 6,
       "classification": "cadence-adapter",
       "resolution": "cadence-owned",
-      "ownershipReason": "CadenceModeBackground maps Cadence-owned hasLiveEffects, palette, reduceMotion, visualQAReduceMotionOverride into ArtworkAccentGradient; the package retains reusable presentation.",
+      "ownershipReason": "CadenceModeBackground maps Cadence-owned hasLiveEffects, palette, reduceMotion, visualQAReduceMotionOverride into ArtworkAccentGradientView; the package retains reusable presentation.",
       "sharedTarget": {
         "componentID": "artwork-accent-gradient",
         "deliveryProduct": "QenTerraMediaComponents",
-        "publicSymbol": "ArtworkAccentGradient"
+        "publicSymbol": "ArtworkAccentGradientView"
       },
       "remainingCadenceSymbol": "Cadence.CadenceModeBackground",
       "consumers": [],
@@ -5947,6 +5963,61 @@
         "status": "verified",
         "detail": "CadenceModeBackground is exercised by the focused family contract in CadenceModeRegressionTests.swift.",
         "references": [
+          "Tests/CadenceTests/CadenceModeRegressionTests.swift"
+        ]
+      }
+    },
+    {
+      "path": "Features/Rhythm/CadenceModeBackground.swift",
+      "symbol": "CadenceModeBackground.TerrainSurface",
+      "kind": "NSViewRepresentable",
+      "line": 59,
+      "classification": "cadence-adapter",
+      "resolution": "cadence-owned",
+      "ownershipReason": "CadenceModeBackground.TerrainSurface maps Cadence-owned palette and reduced-motion state into ArtworkAccentGradientView while the package retains the reusable presentation.",
+      "sharedTarget": {
+        "componentID": "artwork-accent-gradient",
+        "deliveryProduct": "QenTerraMediaComponents",
+        "publicSymbol": "ArtworkAccentGradientView"
+      },
+      "remainingCadenceSymbol": "Cadence.CadenceModeBackground.TerrainSurface",
+      "consumers": [],
+      "dependencies": {
+        "data": [
+          {
+            "symbol": "palette",
+            "role": "data"
+          },
+          {
+            "symbol": "reduceMotion",
+            "role": "data"
+          }
+        ],
+        "actions": []
+      },
+      "states": {
+        "appearance": [
+          "system",
+          "light",
+          "dark"
+        ],
+        "motion": [
+          "animated",
+          "reduced-motion"
+        ],
+        "accessibility": [
+          "native-semantics"
+        ],
+        "interaction": [
+          "read-only"
+        ]
+      },
+      "wave": "wave-6-adapters",
+      "evidence": {
+        "status": "verified",
+        "detail": "TerrainSurface is covered by the Cadence Mode gradient and regression suites.",
+        "references": [
+          "Tests/CadenceTests/CadenceModeGradientTests.swift",
           "Tests/CadenceTests/CadenceModeRegressionTests.swift"
         ]
       }

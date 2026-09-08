@@ -742,7 +742,7 @@ class UIComponentOwnershipTests(unittest.TestCase):
 
         self.assertFalse(any(item["symbol"] == "CadenceModeGradientRenderer" for item in manifest["components"]))
         background = next(item for item in manifest["components"] if item["symbol"] == "CadenceModeBackground")
-        self.assertEqual("ArtworkAccentGradient", background["sharedTarget"]["publicSymbol"])
+        self.assertEqual("ArtworkAccentGradientView", background["sharedTarget"]["publicSymbol"])
         background_data = {entry["symbol"] for entry in background["dependencies"]["data"]}
         self.assertEqual({"palette", "hasLiveEffects", "reduceMotion", "visualQAReduceMotionOverride"}, background_data)
         self.assertFalse({"device", "commandQueue", "snapshotPipelineState"} & background_data)

@@ -121,6 +121,7 @@ struct FavoriteButton: View {
         ) { _ in
             updateFavorite()
         }
+        .tint(CadenceTheme.primaryAccent)
         .onChange(of: itemID) {
             transientState.reconcile(itemID: itemID)
         }

@@ -6,9 +6,9 @@ import QenTerraMediaComponents
 import SwiftUI
 import Testing
 
+@MainActor
 struct DesignSystemCompatibilityTests {
     @Test("Cadence constructs the shared value contracts used by its adapters")
-    @MainActor
     func cadenceBuildsAgainstSharedValueContracts() {
         let configuration = DesignSystemConfiguration(
             appearance: .system,

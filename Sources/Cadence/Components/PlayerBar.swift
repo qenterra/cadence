@@ -1,9 +1,14 @@
+import QenTerraDesignTokens
 import QenTerraMediaComponents
 import SwiftUI
 
 struct PlayerBar: View {
     @Environment(\.visualRegressionUsesStableSystemControls)
     var usesStableSystemControls
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.colorSchemeContrast) private var colorSchemeContrast
     @Bindable var model: CadenceAppModel
     let suspendsProgressAnimation: Bool
     @AppStorage(CadencePreferences.Keys.playbackTimeDisplay)
@@ -20,6 +25,18 @@ struct PlayerBar: View {
                 }
             }
         }
+        .environment(
+            \.designNativeEnvironment,
+            DesignNativeEnvironment(
+                appearance: colorScheme == .dark ? .dark : .light,
+                productProfile: .cadence,
+                density: .standard,
+                isIncreasedContrast: colorSchemeContrast == .increased,
+                reducesMotion: reduceMotion,
+                reducesTransparency: reduceTransparency
+                    || usesStableSystemControls
+            )
+        )
         .onChange(of: model.currentPlaybackTrack?.id, initial: true) { _, itemID in
             pendingSeek.updateCurrentItem(itemID)
         }

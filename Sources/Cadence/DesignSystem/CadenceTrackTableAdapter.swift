@@ -38,7 +38,8 @@ enum CadenceTrackTableAdapter {
         MediaTableTypography(
             primaryPointSize: size.nativePrimaryPointSize,
             secondaryPointSize: size.nativeSecondaryPointSize,
-            badgeRole: DesignTokens.Typography.mediaExplicitBadge
+            badgeRole: DesignTokens.Typography.mediaExplicitBadge,
+            durationRole: DesignTokens.Typography.row
         )
     }
 

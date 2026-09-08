@@ -1604,6 +1604,11 @@ class ReleasePreparationOrderingTests(unittest.TestCase):
             ROOT / "scripts" / "swiftlint-warning-baseline.json",
             self.scripts,
         )
+        (self.scripts / "verify_ui_component_ownership.py").write_text(
+            "#!/usr/bin/env python3\n",
+            encoding="utf-8",
+        )
+        (self.scripts / "verify_ui_component_ownership.py").chmod(0o755)
         release_directory = self.root / "release"
         release_directory.mkdir()
         self.notes = release_directory / "release-notes-9.8.7-test.1.md"
