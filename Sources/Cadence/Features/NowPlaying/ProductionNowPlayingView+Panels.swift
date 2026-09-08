@@ -72,7 +72,7 @@ extension ProductionNowPlayingView {
                         label: "LRC",
                         accessibilityLabel: "Synchronized lyrics"
                     )
-                        .help("Synchronized lyrics available")
+                    .help("Synchronized lyrics available")
                 }
             }
         }

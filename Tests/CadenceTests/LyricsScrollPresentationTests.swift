@@ -12,9 +12,9 @@ struct LyricsScrollPresentationTests {
 
         #expect(
             LyricsScrollDecision<UUID>.resolve(
-                previousResetIdentity: Optional<UUID>.none,
+                previousResetIdentity: UUID?.none,
                 currentResetIdentity: trackA,
-                previousIdentity: Optional<UUID>.none,
+                previousIdentity: UUID?.none,
                 currentIdentity: firstLine,
                 reducesMotion: false
             ) == .top

@@ -52,7 +52,7 @@ struct SmartCollectionsLayoutTests {
         )
 
         let trailing = CadenceSplitLayout.resolve(
-            totalWidth: 1_100,
+            totalWidth: 1100,
             proposedFixedWidth: 600,
             fixedPane: .trailing,
             fixedMinimum: 280,

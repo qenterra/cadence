@@ -15,7 +15,7 @@ struct EmptyLibraryView: View {
                     title: "Import Music",
                     style: .primary,
                     handler: importAction
-                )
+                ),
             ],
             presentation: .nativeUnavailable
         )

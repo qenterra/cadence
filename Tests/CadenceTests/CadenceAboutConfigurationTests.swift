@@ -1,6 +1,6 @@
+@testable import Cadence
 import Foundation
 import QenTerraComponents
-@testable import Cadence
 import Testing
 
 struct CadenceAboutConfigurationTests {
