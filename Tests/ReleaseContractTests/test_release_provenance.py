@@ -1833,7 +1833,11 @@ class ReleasePreparationOrderingTests(unittest.TestCase):
         old_group: int | None = None
         supervisor_communicated = False
         try:
-            deadline = time.monotonic() + 10
+            # Hosted macOS runners can spend more than ten seconds reaching the
+            # create-dmg fixture while the release preflight is under load.
+            # Wait for the explicit readiness files instead of treating runner
+            # scheduling latency as a product failure.
+            deadline = time.monotonic() + 30
             while time.monotonic() < deadline and not (
                 owner_pid_path.is_file()
                 and resistant_pid_path.is_file()
