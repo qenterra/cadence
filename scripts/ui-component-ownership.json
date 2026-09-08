@@ -904,7 +904,7 @@
       "path": "Components/CadenceResizableSplitView.swift",
       "symbol": "CadenceResizableSplitView",
       "kind": "View",
-      "line": 78,
+      "line": 77,
       "classification": "product-shell",
       "resolution": "cadence-owned",
       "ownershipReason": "CadenceResizableSplitView composes Cadence-owned fixedMaximum, fixedMinimum, fixedPane, fixedWidth, flexibleMinimum, leading, trailing into a product route or feature surface; shared primitives remain package-owned.",
