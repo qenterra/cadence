@@ -1,6 +1,7 @@
 import AppKit
 @testable import Cadence
 import Foundation
+import QenTerraMediaComponents
 import SwiftUI
 import Testing
 
@@ -217,7 +218,7 @@ extension AllTracksPerformanceTests {
             sourceIndex: 590_100
         )
         let coordinator = TrackTableCore.Coordinator(parent: core)
-        let tableView = TrackTableView()
+        let tableView = NativeMediaTableView()
         let scrollView = NSScrollView()
         scrollView.documentView = tableView
         coordinator.attach(tableView: tableView, scrollView: scrollView)
@@ -254,7 +255,7 @@ extension AllTracksPerformanceTests {
         )
         #expect(coordinator.interactionState.isLiveScrolling)
 
-        let replacementTableView = TrackTableView()
+        let replacementTableView = NativeMediaTableView()
         let replacementScrollView = NSScrollView()
         replacementScrollView.documentView = replacementTableView
         coordinator.attach(
@@ -469,7 +470,7 @@ private final class RealWindowTrackScrollFixture {
     private let probe: TrackTableWorkProbe
     private let core: TrackTableCore
     private let coordinator: TrackTableCore.Coordinator
-    private let tableView: TrackTableView
+    private let tableView: NativeMediaTableView
     private let scrollView: NSScrollView
     private let window: NSWindow
 
@@ -487,7 +488,7 @@ private final class RealWindowTrackScrollFixture {
             sourceIndex: 590_000
         )
         let coordinator = TrackTableCore.Coordinator(parent: core)
-        let tableView = TrackTableView()
+        let tableView = NativeMediaTableView()
         let viewport = NSRect(x: 0, y: 0, width: 900, height: 18 * 58)
         let scrollView = NSScrollView(frame: viewport)
         let window = NSWindow(
@@ -652,7 +653,7 @@ private final class RealWindowTrackScrollFixture {
     }
 
     private func configureTable(
-        _ tableView: TrackTableView,
+        _ tableView: NativeMediaTableView,
         coordinator: TrackTableCore.Coordinator
     ) {
         tableView.headerView = nil
@@ -675,7 +676,7 @@ private final class RealWindowTrackScrollFixture {
 
     private func configureScrollView(
         _ scrollView: NSScrollView,
-        tableView: TrackTableView
+        tableView: NativeMediaTableView
     ) {
         scrollView.drawsBackground = false
         scrollView.hasVerticalScroller = true

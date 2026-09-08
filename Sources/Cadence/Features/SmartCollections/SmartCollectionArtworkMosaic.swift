@@ -1,3 +1,4 @@
+import QenTerraMediaComponents
 import SwiftUI
 
 struct SmartCollectionArtworkMosaic: View {
@@ -19,48 +20,16 @@ struct SmartCollectionArtworkMosaic: View {
                     cornerRadius: CadenceTheme.radiusGroup
                 )
             } else {
-                switch layout.kind {
-                case .empty:
-                    emptyArtwork
-                case .single:
-                    tile(at: 0)
-                case .split:
-                    HStack(spacing: 1) {
-                        tile(at: 0)
-                        tile(at: 1)
-                    }
-                case .trio:
-                    HStack(spacing: 1) {
-                        tile(at: 0)
-
-                        VStack(spacing: 1) {
-                            tile(at: 1)
-                            tile(at: 2)
-                        }
-                    }
-                case .grid:
-                    VStack(spacing: 1) {
-                        HStack(spacing: 1) {
-                            tile(at: 0)
-                            tile(at: 1)
-                        }
-
-                        HStack(spacing: 1) {
-                            tile(at: 2)
-                            tile(at: 3)
-                        }
-                    }
+                ArtworkMosaic(
+                    slotCount: layout.slots.count,
+                    title: title,
+                    cornerRadius: CadenceTheme.radiusGroup
+                ) { index in
+                    tile(at: index)
                 }
             }
         }
         .aspectRatio(1, contentMode: .fit)
-        .clipShape(RoundedRectangle(cornerRadius: CadenceTheme.radiusGroup, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: CadenceTheme.radiusGroup, style: .continuous)
-                .strokeBorder(.white.opacity(0.14), lineWidth: 0.5)
-        }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Artwork mosaic for \(title)")
     }
 
     @ViewBuilder
@@ -80,16 +49,6 @@ struct SmartCollectionArtworkMosaic: View {
                 showsBorder: false,
                 fillsAvailableSpace: true
             )
-        }
-    }
-
-    private var emptyArtwork: some View {
-        ZStack {
-            CadenceTheme.secondarySurface
-
-            Image(systemName: "sparkles.rectangle.stack")
-                .font(.system(size: 42, weight: .ultraLight))
-                .foregroundStyle(.tertiary)
         }
     }
 }

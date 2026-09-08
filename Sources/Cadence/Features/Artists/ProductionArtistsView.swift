@@ -1,4 +1,5 @@
 import AppKit
+import QenTerraMediaComponents
 import SwiftUI
 
 struct ProductionArtistsView: View {
@@ -23,16 +24,18 @@ struct ProductionArtistsView: View {
                     LazyVStack(alignment: .leading, spacing: 22) {
                         header
 
-                        LazyVGrid(
-                            columns: CatalogCardLayoutMetrics.layoutColumns(
-                                spacing: 18,
-                                size: catalogCardSize
-                            ),
-                            alignment: .leading,
-                            spacing: 24
+                        let range = CatalogCardLayoutMetrics.widthRange(
+                            for: catalogCardSize
+                        )
+                        MediaGrid(
+                            minimumWidth: range.lowerBound,
+                            maximumWidth: range.upperBound,
+                            spacing: 18,
+                            honorsExplicitSizing: true
                         ) {
                             ForEach(sortedArtists) { artist in
                                 artistTile(artist)
+                                    .padding(.bottom, 6)
                             }
                         }
 
@@ -154,95 +157,53 @@ struct ProductionArtistTile: View {
     @Bindable var store: LibraryStore
     let artist: LibraryArtistProjection
     let orderedTargets: [CatalogActivationTarget]
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @FocusState private var isFavoriteFocused: Bool
-    @State private var isHovered = false
     @State private var isRenamePresented = false
     @State private var renameDraft = ""
 
     var body: some View {
-        VStack(alignment: .center, spacing: 10) {
-            Button(action: openArtist) {
-                ProductionArtworkView(
-                    model: model,
-                    artworkID: artist.customArtworkID,
-                    title: artist.name,
-                    placeholder: .artist,
-                    cornerRadius: CadenceTheme.radiusNone,
-                    showsBorder: false
-                )
-                .aspectRatio(1, contentMode: .fit)
-                .clipShape(Circle())
-                .overlay {
-                    Circle()
-                        .strokeBorder(
-                            CadenceTheme.separator,
-                            lineWidth: 0.5
-                        )
-                }
-            }
-            .buttonStyle(.plain)
-
-            ZStack {
-                Button(action: openArtist) {
-                    Text(artist.name)
-                        .font(.headline)
-                        .foregroundStyle(.primary)
-                        .lineLimit(1)
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.plain)
-            }
-            .padding(
-                .horizontal,
-                CatalogTileFavoriteLayout.titleHorizontalInset
-            )
-            .frame(maxWidth: .infinity)
-            .overlay(alignment: .leading) {
-                FavoriteButton(
-                    itemID: artist.id,
-                    isFavorite: artist.isFavorite,
-                    itemName: artist.name,
-                    controlSize: CatalogTileFavoriteLayout.controlSize
-                ) { requestedValue in
-                    await model.setProductionArtistFavorite(
-                        artist,
-                        isFavorite: requestedValue
-                    ) != nil
-                }
-                .focused($isFavoriteFocused)
-                .opacity(favoritePresentation.visualOpacity)
-                .allowsHitTesting(favoritePresentation.acceptsPointerInteraction)
-                .accessibilityHidden(!favoritePresentation.isAccessibilityVisible)
-                .animation(
-                    reduceMotion
-                        ? nil
-                        : .easeOut(duration: CadenceTheme.motionHover),
-                    value: favoritePresentation.visualOpacity
-                )
-            }
-
-            Text(
-                "\(artist.albumCount) albums · "
-                    + "\(artist.trackCount) tracks"
-            )
-            .font(.caption)
-            .foregroundStyle(.secondary)
-            .lineLimit(1)
-        }
-        .padding(10)
-        .frame(maxWidth: .infinity)
-        .background {
-            BrowserRowSurface(
+        MediaTile(
+            item: CadenceMediaAdapters.mediaItem(
+                id: artist.id,
+                title: artist.name,
+                subtitle: "",
+                metadata: "\(artist.albumCount) albums · \(artist.trackCount) tracks",
                 isSelected: model.catalogActivationSelection.contains(
                     CatalogActivationTarget(kind: .artist, id: artist.id)
-                ),
-                isHovered: isHovered,
-                isFocused: false
+                )
+            ),
+            accessibilityLabel: "Open \(artist.name)",
+            presentation: .cadenceCatalog(metadataStyle: .secondary)
+        ) {
+            ProductionArtworkView(
+                model: model,
+                artworkID: artist.customArtworkID,
+                title: artist.name,
+                placeholder: .artist,
+                cornerRadius: CadenceTheme.radiusNone,
+                showsBorder: false
             )
+            .clipShape(Circle())
+            .overlay {
+                Circle()
+                    .strokeBorder(CadenceTheme.separator, lineWidth: 0.5)
+            }
+        } trailingAccessory: { context in
+            FavoriteButton(
+                itemID: artist.id,
+                isFavorite: artist.isFavorite,
+                itemName: artist.name,
+                controlSize: CatalogTileFavoriteLayout.controlSize,
+                isRevealed: false,
+                interactionContext: context
+            ) { requestedValue in
+                await model.setProductionArtistFavorite(
+                    artist,
+                    isFavorite: requestedValue
+                ) != nil
+            }
+        } action: {
+            openArtist()
         }
-        .contentShape(Rectangle())
-        .onHover { isHovered = $0 }
         .contextMenu {
             artistActions
         }
@@ -259,13 +220,6 @@ struct ProductionArtistTile: View {
                 )
             }
         }
-    }
-
-    private var favoritePresentation: FavoriteControlPresentation {
-        FavoriteControlPresentation.resolve(
-            isHovered: isHovered,
-            isFocused: isFavoriteFocused
-        )
     }
 
     @ViewBuilder

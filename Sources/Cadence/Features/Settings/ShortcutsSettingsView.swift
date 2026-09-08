@@ -1,3 +1,4 @@
+import QenTerraComponents
 import SwiftUI
 
 struct ShortcutReference: Identifiable, Equatable, Sendable {
@@ -130,7 +131,7 @@ struct ShortcutsSettingsView: View {
                     .padding(.vertical, 9)
 
                     if shortcut.id != ShortcutCatalog.entries.last?.id {
-                        Divider()
+                        DesignSeparator()
                     }
                 }
             }
@@ -151,22 +152,11 @@ private struct ShortcutKeyGlyphs: View {
     var body: some View {
         HStack(spacing: 4) {
             ForEach(keys) { key in
-                Group {
-                    if let symbolName = key.symbolName {
-                        Image(systemName: symbolName)
-                    } else {
-                        Text(key.glyph)
-                    }
-                }
-                .font(.callout.weight(.medium))
-                .foregroundStyle(.secondary)
-                .frame(minWidth: 18, minHeight: 18)
-                .padding(.horizontal, 5)
-                .background(CadenceTheme.subduedFill)
-                .clipShape(
-                    RoundedRectangle(cornerRadius: CadenceTheme.radiusControl)
+                Keycap(
+                    key.glyph,
+                    symbolName: key.symbolName,
+                    presentation: .cadence
                 )
-                .accessibilityLabel(key.glyph)
             }
         }
     }

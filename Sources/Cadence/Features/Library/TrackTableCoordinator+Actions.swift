@@ -2,6 +2,7 @@
 // swiftlint:disable file_length
 
 import AppKit
+import QenTerraMediaComponents
 
 @MainActor
 final class TrackTableMenuActionTarget: NSObject {
@@ -386,7 +387,7 @@ extension TrackTableCore.Coordinator {
     }
 
     func tableHasFocus(_ tableView: NSTableView) -> Bool {
-        if let tableView = tableView as? TrackTableView {
+        if let tableView = tableView as? NativeMediaTableView {
             return tableView.hasTableFocus
         }
         return tableView.window?.firstResponder === tableView

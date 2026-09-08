@@ -4,6 +4,7 @@
 import AppKit
 @testable import Cadence
 import Foundation
+import QenTerraMediaComponents
 import SwiftData
 import SwiftUI
 import Testing
@@ -169,7 +170,7 @@ extension AllTracksPerformanceTests {
         )
         cell.layout()
 
-        let strings = cell.subviews.flatMap { view -> [String] in
+        let strings = cell.presentationView.subviews.flatMap { view -> [String] in
             if let field = view as? NSTextField {
                 return [field.stringValue]
             }
@@ -322,7 +323,7 @@ extension AllTracksPerformanceTests {
         in cell: NativeTrackTableCell
     ) throws -> NSButton {
         try #require(
-            cell.subviews
+            cell.presentationView.subviews
                 .compactMap { $0 as? NSButton }
                 .first {
                     $0.accessibilityLabel() == "Add to Favorites"
@@ -335,7 +336,7 @@ extension AllTracksPerformanceTests {
         value: String
     ) throws -> NSTextField {
         try #require(
-            cell.subviews
+            cell.presentationView.subviews
                 .compactMap { $0 as? NSTextField }
                 .first { $0.stringValue == value }
         )
@@ -416,7 +417,7 @@ extension AllTracksPerformanceTests {
         cell.layoutSubtreeIfNeeded()
 
         #expect(cell.wantsLayer)
-        #expect(cell.layer != nil)
+        #expect(cell.presentationView.layer != nil)
         #expect(cell.renderHierarchyIdentity == firstHierarchy)
         #expect(cell.representedTrackID == tracks[1].id)
         #expect(probe.nativeCellCreations == 1)
@@ -439,7 +440,7 @@ extension AllTracksPerformanceTests {
         #expect(indicator.isAnimating)
         let animationDurations = indicator.layer?.sublayers?.compactMap {
             $0.animation(
-                forKey: "cadence.playback.level"
+                forKey: "qenterra.playback.level"
             ) as? CAKeyframeAnimation
         }.map(\.duration) ?? []
         #expect(animationDurations.count == 3)
@@ -476,7 +477,7 @@ extension AllTracksPerformanceTests {
         cell.layoutSubtreeIfNeeded()
 
         let indicator = try #require(
-            cell.subviews
+            cell.presentationView.subviews
                 .compactMap { $0 as? NativePlaybackIndicatorView }
                 .first
         )
@@ -485,7 +486,7 @@ extension AllTracksPerformanceTests {
         #expect(indicator.frame == NSRect(x: 58, y: 9, width: 40, height: 40))
 
         let artworkButton = try #require(
-            cell.subviews
+            cell.presentationView.subviews
                 .compactMap { $0 as? NSButton }
                 .first { $0.toolTip == "Play \(track.title)" }
         )
@@ -518,12 +519,12 @@ extension AllTracksPerformanceTests {
         cell.layoutSubtreeIfNeeded()
 
         let indicator = try #require(
-            cell.subviews
+            cell.presentationView.subviews
                 .compactMap { $0 as? NativePlaybackIndicatorView }
                 .first
         )
         let artworkButton = try #require(
-            cell.subviews
+            cell.presentationView.subviews
                 .compactMap { $0 as? NSButton }
                 .first { $0.toolTip == "Play \(playing.title)" }
         )
@@ -1650,7 +1651,7 @@ private final class NativeProductionTrackScrollFixture {
     let probe: TrackTableWorkProbe
     private let core: TrackTableCore
     private let coordinator: TrackTableCore.Coordinator
-    private let tableView = TrackTableView()
+    private let tableView = NativeMediaTableView()
     private let scrollView: NSScrollView
     private let window: NSWindow
     private var trackIDsByCell: [ObjectIdentifier: Set<UUID>] = [:]

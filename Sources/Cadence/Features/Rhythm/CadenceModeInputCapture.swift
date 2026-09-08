@@ -1,3 +1,4 @@
+import QenTerraMediaComponents
 import SwiftUI
 
 struct CadenceModeInputCapture: View {
@@ -24,7 +25,7 @@ struct CadenceModeInputCapture: View {
             }
         )
         .task {
-            CadenceModeGradientPrewarmer.prepare()
+            ArtworkAccentGradientPrewarmer.prepare()
             session.setEnabled(isEnabled)
         }
         .onChange(of: isEnabled) { _, enabled in

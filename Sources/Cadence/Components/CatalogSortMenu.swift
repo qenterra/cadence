@@ -1,3 +1,4 @@
+import QenTerraComponents
 import SwiftUI
 
 enum CatalogSortDirection: String, CaseIterable, Hashable, Sendable {
@@ -26,64 +27,53 @@ struct CatalogSortSelection<Field: Hashable & Sendable>: Equatable, Sendable {
 }
 
 struct CatalogSortMenu<Field: Identifiable & Hashable & Sendable>: View {
-    let label: LocalizedStringKey
+    let label: String
     let fields: [Field]
     @Binding var selection: CatalogSortSelection<Field>
     let fieldTitle: (Field) -> String
 
     var body: some View {
-        Menu {
-            ForEach(fields) { field in
-                Button {
-                    var next = selection
-                    next.select(field: field)
-                    selection = next
-                } label: {
-                    choiceLabel(
-                        fieldTitle(field),
-                        isSelected: selection.field == field
-                    )
-                }
-            }
-
-            Divider()
-
-            ForEach(CatalogSortDirection.allCases, id: \.self) { direction in
-                Button {
-                    var next = selection
-                    next.select(direction: direction)
-                    selection = next
-                } label: {
-                    choiceLabel(
-                        direction.title,
-                        isSelected: selection.direction == direction
-                    )
-                }
-            }
-        } label: {
-            Label {
-                HStack(spacing: 0) {
-                    Text(label)
-                    Text(
-                        verbatim: ": \(fieldTitle(selection.field))"
-                    )
-                }
-            } icon: {
-                Image(systemName: "arrow.up.arrow.down.circle")
-            }
-        }
-        .menuStyle(.borderlessButton)
+        SortMenu(
+            fields: fields.map {
+                SortMenuField(id: $0, title: fieldTitle($0))
+            },
+            selection: fieldBinding,
+            order: orderBinding,
+            labels: SortMenuLabels(
+                trigger: label,
+                field: String(localized: "Field"),
+                order: String(localized: "Direction"),
+                ascending: CatalogSortDirection.ascending.title,
+                descending: CatalogSortDirection.descending.title,
+                unavailable: String(localized: "Sorting is unavailable")
+            ),
+            visualStyle: .cadence
+        )
     }
 
-    private func choiceLabel(
-        _ title: String,
-        isSelected: Bool
-    ) -> some View {
-        HStack {
-            Text(title)
-            if isSelected {
-                Image(systemName: "checkmark")
+    private var fieldBinding: Binding<Field> {
+        Binding(
+            get: { selection.field },
+            set: { field in
+                var next = selection
+                next.select(field: field)
+                selection = next
             }
-        }
+        )
+    }
+
+    private var orderBinding: Binding<SortMenuOrder> {
+        Binding(
+            get: {
+                selection.direction == .ascending ? .ascending : .descending
+            },
+            set: { order in
+                var next = selection
+                next.select(
+                    direction: order == .ascending ? .ascending : .descending
+                )
+                selection = next
+            }
+        )
     }
 }

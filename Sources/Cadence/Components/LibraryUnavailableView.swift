@@ -1,4 +1,5 @@
 import AppKit
+import QenTerraComponents
 import SwiftUI
 
 struct LibraryUnavailableView: View {
@@ -7,47 +8,21 @@ struct LibraryUnavailableView: View {
     let locate: (() -> Void)?
 
     var body: some View {
-        ContentUnavailableView {
-            Label(
-                "Cadence Library Unavailable",
-                systemImage: "exclamationmark.triangle"
-            )
-        } description: {
-            VStack(spacing: 12) {
-                Text(summary)
-                DisclosureGroup("Technical Details") {
-                    Text(failure.message)
-                        .font(.caption)
-                        .textSelection(.enabled)
-                }
-                .frame(maxWidth: 420)
+        ContentStateView(
+            state: .unavailable(
+                title: "Cadence Library Unavailable",
+                message: summary
+            ),
+            symbolName: "exclamationmark.triangle",
+            actions: actions,
+            presentation: .nativeUnavailable
+        ) {
+            DisclosureGroup("Technical Details") {
+                Text(failure.message)
+                    .font(.caption)
+                    .textSelection(.enabled)
             }
-        } actions: {
-            HStack(spacing: 12) {
-                if canRetry {
-                    Button(
-                        failure.kind == .recoveryFailed ? "Repair" : "Retry",
-                        action: retry
-                    )
-                    .buttonStyle(.borderedProminent)
-                }
-                if let locate {
-                    if canRetry {
-                        Button("Locate Library…", action: locate)
-                            .buttonStyle(.bordered)
-                    } else {
-                        Button("Locate Library…", action: locate)
-                            .buttonStyle(.borderedProminent)
-                    }
-                }
-                if let revealURL = failure.revealURL {
-                    Button("Reveal in Finder") {
-                        NSWorkspace.shared.activateFileViewerSelecting(
-                            [revealURL]
-                        )
-                    }
-                }
-            }
+            .frame(maxWidth: 420)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(CadenceTheme.contentBackground)
@@ -85,5 +60,38 @@ struct LibraryUnavailableView: View {
              .openFailed, .recoveryFailed:
             true
         }
+    }
+
+    private var actions: [PresentationAction] {
+        var result: [PresentationAction] = []
+        if canRetry {
+            result.append(
+                PresentationAction(
+                    title: failure.kind == .recoveryFailed ? "Repair" : "Retry",
+                    style: .primary,
+                    handler: retry
+                )
+            )
+        }
+        if let locate {
+            result.append(
+                PresentationAction(
+                    title: "Locate Library…",
+                    style: canRetry ? .secondary : .primary,
+                    handler: locate
+                )
+            )
+        }
+        if let revealURL = failure.revealURL {
+            result.append(
+                PresentationAction(
+                    title: "Reveal in Finder",
+                    style: .plain
+                ) {
+                    NSWorkspace.shared.activateFileViewerSelecting([revealURL])
+                }
+            )
+        }
+        return result
     }
 }

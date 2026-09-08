@@ -1,3 +1,4 @@
+import QenTerraComponents
 import SwiftUI
 
 struct NavigationRailAccessibilityItem: Equatable, Sendable {
@@ -46,11 +47,8 @@ struct NavigationRail: View {
 
     var suppressesSelection = false
 
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.visualRegressionFreezesHighlights)
     private var freezesVisualRegressionHighlights
-    @FocusState private var focusedDestination: NavigationDestination?
-    @State private var hoveredDestination: NavigationDestination?
     @AppStorage("navigationRail.expanded")
     private var isExpanded = NavigationRailConfiguration.defaultIsExpanded
     @AppStorage("navigationRail.order")
@@ -59,48 +57,15 @@ struct NavigationRail: View {
     private var hiddenRawValue = ""
 
     var body: some View {
-        VStack(spacing: NavigationRailMetrics.rowSpacing) {
-            primaryNavigation
-
-            Spacer(minLength: CadenceLayout.controlGap)
-
-            ForEach(bottomDestinations) { destination in
-                railButton(destination)
-            }
-        }
-        .frame(
-            width: NavigationRailMetrics.contentWidth(
-                isExpanded: isExpanded
-            ),
-            alignment: .leading
-        )
-        .padding(.horizontal, NavigationRailMetrics.horizontalInset)
-        .padding(.vertical, NavigationRailMetrics.verticalInset)
-        .frame(
-            width: NavigationRailMetrics.totalWidth(
-                isExpanded: isExpanded
-            ),
-            alignment: .leading
-        )
-        .clipped()
-        .background(.thinMaterial)
-    }
-
-    private var primaryNavigation: some View {
-        VStack(spacing: NavigationRailMetrics.rowSpacing) {
-            expansionButton
-                .padding(.bottom, CadenceLayout.controlGap)
-
-            ForEach(primaryDestinations) { destination in
-                railButton(destination)
-            }
-        }
-    }
-
-    private var primarySections: [NavigationRailSection] {
-        NavigationRailConfiguration.visibleSections(
-            orderRawValue: orderRawValue,
-            hiddenRawValue: hiddenRawValue
+        QenTerraComponents.NavigationRail(
+            items: primaryDestinations.map(sharedItem),
+            selection: $selection,
+            footerItems: [sharedItem(.trash)],
+            expansion: $isExpanded,
+            expansionConfiguration: NavigationRailConfiguration.expansion,
+            suppressesSelection: suppressesSelection,
+            freezesInteractionHighlights: freezesVisualRegressionHighlights,
+            presentation: .cadence
         )
     }
 
@@ -111,153 +76,62 @@ struct NavigationRail: View {
         )
     }
 
-    private var bottomDestinations: [NavigationDestination] {
-        [.trash]
-    }
-
-    private var expansionButton: some View {
-        let accessibility = NavigationRailAccessibilityContract.items(
-            sections: primarySections,
-            isExpanded: isExpanded,
-            selected: selection
-        )[0]
-
-        return Button {
-            if reduceMotion {
-                isExpanded.toggle()
-            } else {
-                withAnimation(.smooth(duration: CadenceTheme.motionReplace)) {
-                    isExpanded.toggle()
-                }
-            }
-        } label: {
-            railLabel(
-                systemName: isExpanded ? "sidebar.left" : "sidebar.right",
-                title: "Collapse"
-            )
-            .foregroundStyle(.secondary)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .help(isExpanded ? "Collapse Sidebar" : "Expand Sidebar")
-        .accessibilityLabel(accessibility.label)
-        .accessibilityHint(accessibility.hint)
-    }
-
-    private func railButton(_ destination: NavigationDestination) -> some View {
-        let isSelected = !suppressesSelection && selection == destination
+    private func sharedItem(
+        _ destination: NavigationDestination
+    ) -> NavigationRailItem<NavigationDestination> {
         let accessibility = NavigationRailAccessibilityContract.item(
             for: destination,
-            selected: isSelected ? destination : nil
+            selected: selection
         )
-
-        return Button {
-            selection = destination
-        } label: {
-            railLabel(
-                systemName: destination.symbolName,
-                title: destination.title
-            )
-            .foregroundStyle(isSelected ? .primary : .secondary)
-            .background {
-                BrowserRowSurface(
-                    isSelected: isSelected,
-                    isHovered: !freezesVisualRegressionHighlights
-                        && hoveredDestination == destination,
-                    isFocused: !freezesVisualRegressionHighlights
-                        && focusedDestination == destination
-                )
-                .padding(.horizontal, NavigationRailMetrics.rowSurfaceInset)
-            }
-        }
-        .buttonStyle(.plain)
-        .focused($focusedDestination, equals: destination)
-        .onHover { isInside in
-            hoveredDestination = isInside ? destination : nil
-        }
-        .help(destination.title)
-        .accessibilityLabel(accessibility.label)
-        .accessibilityHint(accessibility.hint)
-        .accessibilityValue(accessibility.value)
-        .frame(
-            width: NavigationRailMetrics.contentWidth(
-                isExpanded: isExpanded
-            ),
-            alignment: .center
+        return NavigationRailItem(
+            id: destination,
+            title: accessibility.label,
+            symbol: destination.symbolName,
+            accessibilityHint: accessibility.hint
         )
     }
+}
 
-    private func railLabel(
-        systemName: String,
-        title: String
-    ) -> some View {
-        Group {
-            if isExpanded {
-                HStack(spacing: CadenceLayout.controlGap) {
-                    railIcon(systemName)
-                    Text(title)
-                        .font(.callout.weight(.medium))
-                        .lineLimit(1)
-                    Spacer(minLength: 0)
-                }
-                .padding(.horizontal, NavigationRailMetrics.rowInset)
-                .frame(maxWidth: .infinity, alignment: .leading)
-            } else {
-                railIcon(systemName)
-                    .frame(maxWidth: .infinity)
-            }
-        }
-        .frame(
-            width: NavigationRailMetrics.rowWidth(isExpanded: isExpanded),
-            height: NavigationRailMetrics.rowHeight
+extension NavigationRailConfiguration {
+    static var expansion: NavigationRailExpansionConfiguration {
+        NavigationRailExpansionConfiguration(
+            expandedTitle: String(localized: "Collapse"),
+            collapsedTitle: String(localized: "Expand"),
+            expandedSymbol: "sidebar.left",
+            collapsedSymbol: "sidebar.right",
+            expandedHint: String(localized: "Shows navigation as icons only"),
+            collapsedHint: String(localized: "Shows navigation icons and labels"),
+            expandedAccessibilityLabel: String(localized: "Collapse Sidebar"),
+            collapsedAccessibilityLabel: String(localized: "Expand Sidebar")
         )
-        .clipped()
-    }
-
-    private func railIcon(_ systemName: String) -> some View {
-        Image(systemName: systemName)
-            .transaction { transaction in
-                transaction.animation = nil
-            }
-            .font(.system(size: 15, weight: .medium))
-            .symbolRenderingMode(.hierarchical)
-            .frame(
-                width: NavigationRailMetrics.iconSlotWidth,
-                height: NavigationRailMetrics.rowHeight
-            )
     }
 }
 
 enum NavigationRailMetrics {
-    static let collapsedWidth: CGFloat = 64
-    static let expandedWidth: CGFloat = 216
-    static let horizontalInset = CadenceLayout.compactGap
-    static let verticalInset = CadenceLayout.controlGap
-    static let rowInset = CadenceLayout.compactGap
-    static let rowSpacing: CGFloat = 2
-    static let rowSurfaceInset: CGFloat = 2
-    static let rowHeight = CadenceLayout.rowHeight
-    static let iconSlotWidth: CGFloat = 32
+    private static let shared = NavigationRailPresentation.cadence
+    static let collapsedWidth = CGFloat(shared.compactWidth)
+    static let expandedWidth = CGFloat(shared.expandedWidth)
+    static let horizontalInset = CGFloat(shared.horizontalInset)
+    static let verticalInset = CGFloat(shared.verticalInset)
+    static let rowInset = CGFloat(shared.rowInset)
+    static let rowSpacing = CGFloat(shared.rowSpacing)
+    static let rowSurfaceInset = CGFloat(shared.rowSurfaceInset)
+    static let rowHeight = CGFloat(shared.rowHeight)
+    static let iconSlotWidth = CGFloat(shared.iconSlotWidth)
 
     static func totalWidth(isExpanded: Bool) -> CGFloat {
-        isExpanded ? expandedWidth : collapsedWidth
+        CGFloat(shared.totalWidth(isExpanded: isExpanded))
     }
 
     static func contentWidth(isExpanded: Bool) -> CGFloat {
-        totalWidth(isExpanded: isExpanded) - horizontalInset * 2
+        CGFloat(shared.contentWidth(isExpanded: isExpanded))
     }
 
     static func rowWidth(isExpanded: Bool) -> CGFloat {
-        isExpanded ? contentWidth(isExpanded: true) : rowHeight
+        CGFloat(shared.rowWidth(isExpanded: isExpanded))
     }
 
     static func iconCenterX(isExpanded: Bool) -> CGFloat {
-        if isExpanded {
-            return horizontalInset + rowInset + iconSlotWidth / 2
-        }
-        let centeredRowInset = (
-            contentWidth(isExpanded: false) - rowWidth(isExpanded: false)
-        ) / 2
-        return horizontalInset + centeredRowInset + rowHeight / 2
+        CGFloat(shared.iconCenterX(isExpanded: isExpanded))
     }
 }

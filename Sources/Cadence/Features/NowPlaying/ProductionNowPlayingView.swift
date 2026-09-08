@@ -1,3 +1,4 @@
+import QenTerraMediaComponents
 import SwiftUI
 
 final class NowPlayingReadinessObserver: Equatable, @unchecked Sendable {
@@ -64,24 +65,17 @@ struct ProductionNowPlayingView: View {
             let cadenceModeHasLiveEffects = rhythmPulseVisualQAState.map {
                 !$0.lanes.isEmpty
             } ?? cadenceModeSession.pulseStore.hasLiveEffects
-            let cadenceModeTint = CadenceModeBackgroundContrast.tint(
-                for: cadenceModePalette
+            let cadenceModeAccentPalette = CadenceAccentGradientAdapter.palette(
+                from: cadenceModePalette
             )
-            let cadenceModeTintOpacity = cadenceModeHasLiveEffects
-                ? CadenceModeBackgroundContrast.activeTintOpacity(
-                    for: cadenceModePalette
-                )
-                : 0
-            let cadenceModeTintDuration = CadenceModeBackgroundContrast
-                .transitionDuration(
-                    hasLiveEffects: cadenceModeHasLiveEffects,
-                    reduceMotion: reduceMotion
-                )
+            let cadenceModeAppearance = CadenceAccentGradientAdapter.appearance(
+                palette: cadenceModePalette,
+                hasLiveEffects: cadenceModeHasLiveEffects,
+                reduceMotion: reduceMotion
+            )
             let cadenceModePaletteAnimation: Animation? = reduceMotion
                 ? nil
-                : .easeInOut(
-                    duration: CadenceModeGradientPaletteTransition.duration
-                )
+                : .easeInOut(duration: ArtworkAccentGradientTransition.duration)
 
             ZStack {
                 if isCadenceModeActive {
@@ -93,8 +87,8 @@ struct ProductionNowPlayingView: View {
                         .accessibilityHidden(true)
 
                         Color.black.opacity(
-                            CadenceModeBackgroundContrast.opacity(
-                                for: cadenceModePalette
+                            ArtworkAccentGradientTint.baseOpacity(
+                                for: cadenceModeAccentPalette
                             )
                         )
                         .animation(
@@ -105,17 +99,18 @@ struct ProductionNowPlayingView: View {
                         .accessibilityHidden(true)
 
                         Color(
-                            red: cadenceModeTint.red,
-                            green: cadenceModeTint.green,
-                            blue: cadenceModeTint.blue
+                            red: cadenceModeAppearance.tint.color.red,
+                            green: cadenceModeAppearance.tint.color.green,
+                            blue: cadenceModeAppearance.tint.color.blue
                         )
                         .blendMode(.multiply)
-                        .opacity(cadenceModeTintOpacity)
+                        .opacity(cadenceModeAppearance.tint.amount)
                         .animation(
                             reduceMotion
                                 ? nil
                                 : .easeInOut(
-                                    duration: cadenceModeTintDuration
+                                    duration: cadenceModeAppearance.tint
+                                        .transitionDuration
                                 ),
                             value: cadenceModeHasLiveEffects
                         )

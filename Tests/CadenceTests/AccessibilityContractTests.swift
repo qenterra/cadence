@@ -1,4 +1,5 @@
 @testable import Cadence
+import QenTerraMediaComponents
 import Testing
 
 struct AccessibilityContractTests {
@@ -121,38 +122,50 @@ struct AccessibilityContractTests {
 
     @Test("Hidden favorite presentation blocks pointer interaction but stays accessible")
     func hiddenFavoriteControlPresentation() {
-        let hidden = FavoriteControlPresentation.resolve(
+        let hidden = FavoritePresentation.resolve(
+            isFavorite: false,
+            isPending: false,
             isHovered: false,
-            isFocused: false
+            isFocused: false,
+            accessibilityLabel: "Add Track to Favorites",
+            accessibilityValue: "Not Favorite"
         )
 
         #expect(hidden.visualOpacity == 0)
         #expect(!hidden.acceptsPointerInteraction)
-        #expect(hidden.isAccessibilityVisible)
+        #expect(hidden.accessibilityLabel == "Add Track to Favorites")
     }
 
     @Test("Focused favorite presentation reveals the control")
     func focusedFavoriteControlPresentation() {
-        let focused = FavoriteControlPresentation.resolve(
+        let focused = FavoritePresentation.resolve(
+            isFavorite: false,
+            isPending: false,
             isHovered: false,
-            isFocused: true
+            isFocused: true,
+            accessibilityLabel: "Add Track to Favorites",
+            accessibilityValue: "Not Favorite"
         )
 
         #expect(focused.visualOpacity == 1)
         #expect(focused.acceptsPointerInteraction)
-        #expect(focused.isAccessibilityVisible)
+        #expect(focused.accessibilityValue == "Not Favorite")
     }
 
     @Test("Hovered favorite presentation reveals the control")
     func hoveredFavoriteControlPresentation() {
-        let hovered = FavoriteControlPresentation.resolve(
+        let hovered = FavoritePresentation.resolve(
+            isFavorite: false,
+            isPending: false,
             isHovered: true,
-            isFocused: false
+            isFocused: false,
+            accessibilityLabel: "Add Track to Favorites",
+            accessibilityValue: "Not Favorite"
         )
 
         #expect(hovered.visualOpacity == 1)
         #expect(hovered.acceptsPointerInteraction)
-        #expect(hovered.isAccessibilityVisible)
+        #expect(hovered.accessibilityLabel == "Add Track to Favorites")
     }
 
     @Test("Keyboard-focused track actions materialize their full menu")

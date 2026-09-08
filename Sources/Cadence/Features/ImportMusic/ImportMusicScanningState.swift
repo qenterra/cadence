@@ -1,8 +1,9 @@
+import QenTerraComponents
 import SwiftUI
 
 struct ImportMusicScanningState: View {
     let sampleCandidates: [ImportCandidatePreview]?
-    let title: LocalizedStringKey
+    let title: String
     let progress: ImportInspectionProgress
     let displayedProgress: Double
     let progressLabel: String
@@ -12,23 +13,16 @@ struct ImportMusicScanningState: View {
         VStack(spacing: CadenceLayout.panelInset) {
             Spacer(minLength: CadenceLayout.pageInset)
 
-            VStack(spacing: CadenceLayout.controlGap) {
-                if progress.totalCount == 0, sampleCandidates == nil {
-                    ProgressView()
-                        .controlSize(.large)
-                } else {
-                    Image(systemName: "waveform.badge.magnifyingglass")
-                        .font(.system(size: 32, weight: .medium))
-                        .foregroundStyle(CadenceTheme.primaryAccent)
-                }
-
-                Text(title)
-                    .font(.title3.weight(.semibold))
-
-                Text("Reading metadata, checking duplicates, and matching LRC files…")
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-            }
+            OperationStateView(
+                state: .preparing(
+                    title: title,
+                    message: "Reading metadata, checking duplicates, and matching LRC files…"
+                ),
+                symbolName: progress.totalCount == 0 && sampleCandidates == nil
+                    ? nil
+                    : "waveform.badge.magnifyingglass",
+                visualStyle: .cadenceScanning
+            )
 
             VStack(spacing: CadenceLayout.compactGap) {
                 ProgressView(value: displayedProgress)
@@ -74,7 +68,7 @@ struct ImportMusicScanningState: View {
                         .padding(.vertical, CadenceLayout.compactGap)
 
                         if candidate.id != sampleCandidates.prefix(4).last?.id {
-                            Divider()
+                            DesignSeparator()
                                 .padding(.leading, 44)
                         }
                     }

@@ -1,3 +1,4 @@
+import QenTerraComponents
 import SwiftUI
 
 extension ProductionNowPlayingView {
@@ -9,7 +10,7 @@ extension ProductionNowPlayingView {
                         .foregroundStyle(.secondary)
                         .frame(height: 24)
 
-                    CadenceFlowLayout(horizontalSpacing: 6, verticalSpacing: 6) {
+                    DesignFlowLayout(horizontalSpacing: 6, verticalSpacing: 6) {
                         ForEach(tagStates.prefix(3)) { state in
                             Button {
                                 model.requestOpenProductionTagContextually(

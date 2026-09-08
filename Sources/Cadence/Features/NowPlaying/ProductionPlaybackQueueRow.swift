@@ -1,3 +1,4 @@
+import QenTerraMediaComponents
 import SwiftUI
 
 struct ProductionPlaybackQueueRow: View {
@@ -6,29 +7,50 @@ struct ProductionPlaybackQueueRow: View {
     let item: PlaybackQueueTrackProjection
     let isCurrent: Bool
     let isSelected: Bool
-    let isDraggable: Bool
+    let dragPayload: String?
+    let select: (() -> Void)?
     let play: () -> Void
     let remove: (() -> Void)?
 
     var body: some View {
-        HStack(spacing: 12) {
-            artwork
-            trackDetails
-            Spacer(minLength: 12)
-            trailingState
+        QenTerraMediaComponents.PlaybackQueueRow(
+            presentation: presentation,
+            dragPayload: dragPayload,
+            select: select,
+            play: play,
+            remove: remove,
+            artwork: { artwork },
+            metadata: { metadata },
+            contextMenu: { contextMenu },
+            dragPreview: { dragPreview }
+        )
+        .overlay(alignment: .bottom) {
+            Rectangle()
+                .fill(CadenceTheme.separator)
+                .frame(height: 1)
         }
-        .frame(minHeight: 52)
-        .contentShape(Rectangle())
-        .accessibilityElement(children: .contain)
-        .accessibilityValue(isCurrent ? "Current track" : "")
-        .accessibilityAddTraits(isSelected ? .isSelected : [])
-        .contextMenu {
-            contextMenu
-        }
+    }
+}
+
+private extension ProductionPlaybackQueueRow {
+    var presentation: PlaybackQueueRowPresentation<UUID> {
+        CadencePlayerAdapters.queueRow(
+            CadenceQueueRowSnapshot(
+                id: item.id,
+                title: item.track?.title ?? stateTitle,
+                subtitle: item.track.map { "\($0.artist) · \($0.album)" } ?? stateDetail,
+                durationText: item.track.map { TrackPreview.timeText($0.duration) },
+                isAvailable: item.track != nil
+            ),
+            isCurrent: isCurrent,
+            isSelected: isSelected,
+            isDraggable: dragPayload != nil,
+            isPlaying: isCurrent && model.isPlaying
+        )
     }
 
     @ViewBuilder
-    private var artwork: some View {
+    var artwork: some View {
         if let track = item.track {
             ProductionArtworkView(
                 model: model,
@@ -37,97 +59,48 @@ struct ProductionPlaybackQueueRow: View {
                 placeholder: .track,
                 cornerRadius: CadenceTheme.radiusControl
             )
-            .frame(width: 42, height: 42)
         } else {
             RoundedRectangle(cornerRadius: CadenceTheme.radiusControl)
                 .fill(CadenceTheme.secondarySurface)
-                .frame(width: 42, height: 42)
                 .overlay {
-                    stateIcon
-                        .foregroundStyle(.secondary)
+                    stateIcon.foregroundStyle(.secondary)
                 }
         }
     }
 
     @ViewBuilder
-    private var trackDetails: some View {
+    var metadata: some View {
         if let track = item.track {
-            VStack(alignment: .leading, spacing: 3) {
-                Text(track.title)
-                    .font(.callout.weight(isCurrent ? .semibold : .medium))
-                    .lineLimit(1)
-
-                HStack(spacing: 0) {
-                    if model.isCurrentPlaybackExternal {
-                        Text(track.artist)
-                        Text(" · ")
-                        Text(track.album)
-                    } else {
-                        MediaMetadataLink(
-                            track.artist,
-                            accessibilityLabel: "Open artist \(track.artist)"
-                        ) {
-                            guard let artistID = track.artistID else {
-                                return
-                            }
-                            model.requestOpenProductionArtistContextually(
-                                id: artistID
-                            )
-                        }
-                        Text(" · ")
-                        MediaMetadataLink(
-                            track.album,
-                            accessibilityLabel: "Open album \(track.album)"
-                        ) {
-                            guard let albumID = track.albumID else {
-                                return
-                            }
-                            model.requestOpenProductionAlbumContextually(
-                                id: albumID
-                            )
-                        }
+            HStack(spacing: 0) {
+                if model.isCurrentPlaybackExternal {
+                    Text(track.artist)
+                    Text(" · ")
+                    Text(track.album)
+                } else {
+                    MediaMetadataLink(
+                        track.artist,
+                        accessibilityLabel: "Open artist \(track.artist)"
+                    ) {
+                        guard let artistID = track.artistID else { return }
+                        model.requestOpenProductionArtistContextually(id: artistID)
+                    }
+                    Text(" · ")
+                    MediaMetadataLink(
+                        track.album,
+                        accessibilityLabel: "Open album \(track.album)"
+                    ) {
+                        guard let albumID = track.albumID else { return }
+                        model.requestOpenProductionAlbumContextually(id: albumID)
                     }
                 }
-                .font(.caption)
-                .foregroundStyle(.secondary)
             }
         } else {
-            VStack(alignment: .leading, spacing: 3) {
-                Text(stateTitle)
-                    .font(.callout.weight(.medium))
-                Text(stateDetail)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-            }
+            Text(stateDetail)
         }
     }
 
     @ViewBuilder
-    private var trailingState: some View {
-        if isCurrent {
-            Image(systemName: model.isPlaying ? "waveform" : "speaker.fill")
-                .font(.caption)
-                .accessibilityLabel(model.isPlaying ? "Playing" : "Paused")
-        } else if isDraggable {
-            Image(systemName: "line.3.horizontal")
-                .font(.caption)
-                .foregroundStyle(.tertiary)
-                .frame(width: 28, height: 42)
-                .help("Drag to reorder")
-        }
-
-        if let track = item.track {
-            Text(TrackPreview.timeText(track.duration))
-                .font(.caption)
-                .foregroundStyle(.tertiary)
-                .monospacedDigit()
-                .frame(width: 40, alignment: .trailing)
-        }
-    }
-
-    @ViewBuilder
-    private var contextMenu: some View {
+    var contextMenu: some View {
         if let track = item.track {
             Button("Play Now", systemImage: "play.fill", action: play)
             if !model.isCurrentPlaybackExternal {
@@ -149,21 +122,26 @@ struct ProductionPlaybackQueueRow: View {
         if let remove {
             Divider()
             Button(
-                item.track == nil
-                    ? "Remove Unavailable Item"
-                    : "Remove from Queue",
+                item.track == nil ? "Remove Unavailable Item" : "Remove from Queue",
                 systemImage: "minus.circle",
                 action: remove
             )
         }
     }
 
+    var dragPreview: some View {
+        QueueDragPreview(
+            title: item.track?.title ?? "Unavailable Track",
+            subtitle: item.track.map { "\($0.artist) · \($0.album)" } ?? item.id.uuidString,
+            artwork: { artwork }
+        )
+    }
+
     @ViewBuilder
-    private var stateIcon: some View {
+    var stateIcon: some View {
         switch item.state {
         case .loading:
-            ProgressView()
-                .controlSize(.small)
+            ProgressView().controlSize(.small)
         case .available:
             Image(systemName: "music.note")
         case .unavailable:
@@ -173,29 +151,21 @@ struct ProductionPlaybackQueueRow: View {
         }
     }
 
-    private var stateTitle: String {
+    var stateTitle: String {
         switch item.state {
-        case .loading:
-            "Loading Track…"
-        case .available:
-            "Track"
-        case .unavailable:
-            "Track Unavailable"
-        case .failed:
-            "Couldn’t Load Track"
+        case .loading: "Loading Track…"
+        case .available: "Track"
+        case .unavailable: "Track Unavailable"
+        case .failed: "Couldn’t Load Track"
         }
     }
 
-    private var stateDetail: String {
+    var stateDetail: String {
         switch item.state {
-        case .loading:
-            item.id.uuidString
-        case .available:
-            ""
-        case .unavailable:
-            "The library no longer contains this queue item."
-        case let .failed(message):
-            message
+        case .loading: item.id.uuidString
+        case .available: ""
+        case .unavailable: "The library no longer contains this queue item."
+        case let .failed(message): message
         }
     }
 }

@@ -1,158 +1,82 @@
+import QenTerraDesignTokens
+import QenTerraMediaComponents
 import SwiftUI
 
 struct PlayerBar: View {
     @Environment(\.visualRegressionUsesStableSystemControls)
     var usesStableSystemControls
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.colorSchemeContrast) private var colorSchemeContrast
     @Bindable var model: CadenceAppModel
-    let suspendsProgressAnimation: Bool
-    @State private var pendingSeekProgress: Double?
-    @State private var isArtworkHovered = false
-
-    var body: some View {
-        GeometryReader { geometry in
-            let contentFrame = PlayerBarLayoutMetrics.contentFrame(
-                availableWidth: geometry.size.width
-            )
-            HStack(spacing: PlayerBarLayoutMetrics.regionSpacing) {
-                nowPlaying
-                    .frame(
-                        width: PlayerBarLayoutMetrics.metadataWidth(
-                            availableWidth: geometry.size.width
-                        ),
-                        alignment: .leading
-                    )
-                    .layoutPriority(2)
-
-                transport
-                    .frame(maxWidth: .infinity)
-                    .layoutPriority(1)
-
-                outputControls
-                    .frame(
-                        width: PlayerBarLayoutMetrics.outputWidth,
-                        alignment: .trailing
-                    )
-            }
-            .frame(
-                width: contentFrame.width,
-                height: contentFrame.height
-            )
-            .position(
-                x: contentFrame.midX,
-                y: contentFrame.midY
-            )
-        }
-        .padding(.horizontal, PlayerBarLayoutMetrics.horizontalInset)
-        .frame(height: PlayerBarLayoutMetrics.height)
-        .cadenceGlassSurface(cornerRadius: CadenceTheme.radiusNone)
-    }
-}
-
-private struct PlaybackProgressControl: View {
-    @Bindable var model: CadenceAppModel
-    @Binding var pendingSeekProgress: Double?
     let suspendsProgressAnimation: Bool
     @AppStorage(CadencePreferences.Keys.playbackTimeDisplay)
     private var timeDisplayRaw = PlaybackTimeDisplayMode.elapsed.rawValue
+    @State private var pendingSeek = CadencePendingSeekState()
 
     var body: some View {
-        HStack(spacing: CadenceLayout.compactGap) {
+        Group {
             if suspendsProgressAnimation {
-                Text(elapsedText)
+                sharedPlayerBar
             } else {
                 TimelineView(.periodic(from: .now, by: 0.5)) { _ in
-                    Text(elapsedText)
+                    sharedPlayerBar
                 }
             }
-            Slider(
-                value: progressBinding,
-                in: 0 ... 1
-            ) { isEditing in
-                commitSeekWhenNeeded(isEditing: isEditing)
-            }
-            .tint(.primary)
-            .accessibilityLabel(accessibility.label)
-            .disabled(!accessibility.isEnabled)
-            Text(durationText)
         }
-        .frame(minWidth: 220, idealWidth: 300, maxWidth: 360)
-        .font(.caption2)
-        .foregroundStyle(CadenceTheme.playerMetadata)
-        .monospacedDigit()
-    }
-
-    private var elapsedText: String {
-        guard model.hasCurrentPlaybackItem else {
-            return "0:00"
-        }
-        let time = pendingSeekProgress.map {
-            model.playbackDuration * $0
-        } ?? model.playbackPresentationTime()
-        return PlaybackTimePresentation.leadingText(
-            mode: PlaybackTimeDisplayMode(rawValue: timeDisplayRaw) ?? .elapsed,
-            currentTime: time,
-            duration: model.playbackDuration
+        .environment(
+            \.designNativeEnvironment,
+            DesignNativeEnvironment(
+                appearance: colorScheme == .dark ? .dark : .light,
+                productProfile: .cadence,
+                density: .standard,
+                isIncreasedContrast: colorSchemeContrast == .increased,
+                reducesMotion: reduceMotion,
+                reducesTransparency: reduceTransparency
+                    || usesStableSystemControls
+            )
         )
-    }
-
-    private var durationText: String {
-        guard model.hasCurrentPlaybackItem else {
-            return "0:00"
-        }
-        return TrackPreview.timeText(model.playbackDuration)
-    }
-
-    private var accessibility: PlayerBarAccessibilityControl {
-        PlayerBarAccessibilityContract.control(
-            .progress,
-            hasPlaybackItem: model.hasCurrentPlaybackItem,
-            isPlaying: model.isPlaying,
-            repeatMode: model.repeatMode
-        )
-    }
-
-    private var progressBinding: Binding<Double> {
-        Binding(
-            get: {
-                if let pendingSeekProgress {
-                    return pendingSeekProgress
-                }
-                let duration = model.playbackDuration
-                guard duration > 0 else {
-                    return 0
-                }
-                return min(
-                    max(model.playbackPresentationTime() / duration, 0),
-                    1
-                )
-            },
-            set: { pendingSeekProgress = $0 }
-        )
-    }
-
-    private func commitSeekWhenNeeded(
-        isEditing: Bool
-    ) {
-        guard !isEditing, let pendingSeekProgress else {
-            return
-        }
-        Task { @MainActor in
-            await model.seekPlayback(toProgress: pendingSeekProgress)
-            if self.pendingSeekProgress == pendingSeekProgress {
-                self.pendingSeekProgress = nil
-            }
+        .onChange(of: model.currentPlaybackTrack?.id, initial: true) { _, itemID in
+            pendingSeek.updateCurrentItem(itemID)
         }
     }
 }
 
 private extension PlayerBar {
-    @ViewBuilder
-    private var nowPlaying: some View {
-        if let track = model.currentPlaybackTrack {
-            HStack(spacing: CadenceLayout.controlGap) {
-                Button {
-                    model.presentNowPlaying(panel: .lyrics)
-                } label: {
+    var adapterPresentation: CadencePlayerBarAdapterPresentation {
+        CadencePlayerAdapters.playerBar(
+            from: CadencePlayerBarSnapshot(
+                item: model.currentPlaybackTrack.map {
+                    CadencePlayerItemSnapshot(
+                        id: $0.id,
+                        title: $0.title,
+                        artist: $0.artist,
+                        isExternal: model.isCurrentPlaybackExternal
+                    )
+                },
+                isPlaying: model.isPlaying,
+                isShuffleEnabled: model.isShuffleEnabled,
+                repeatMode: model.repeatMode,
+                presentationTime: model.playbackPresentationTime(),
+                duration: model.playbackDuration,
+                volume: model.volume,
+                isMuted: model.volume <= 0,
+                isQueuePresented: isQueuePresented,
+                timeDisplayMode: PlaybackTimeDisplayMode(rawValue: timeDisplayRaw) ?? .elapsed,
+                libraryTrackCount: model.librarySession.store.catalogCounts.liveTrackCount
+            ),
+            pendingSeekProgress: pendingSeek.progress
+        )
+    }
+
+    var sharedPlayerBar: some View {
+        let adapter = adapterPresentation
+        return QenTerraMediaComponents.PlayerBar(
+            presentation: adapter.presentation,
+            actions: playerActions,
+            artwork: {
+                if let track = model.currentPlaybackTrack {
                     ProductionArtworkView(
                         model: model,
                         artworkID: track.artworkID,
@@ -160,37 +84,17 @@ private extension PlayerBar {
                         placeholder: .track,
                         cornerRadius: CadenceTheme.radiusControl
                     )
-                    .frame(width: 56, height: 56)
-                    .overlay {
-                        if isArtworkHovered {
-                            RoundedRectangle(
-                                cornerRadius: CadenceTheme.radiusControl,
-                                style: .continuous
-                            )
-                            .fill(.black.opacity(0.36))
-
-                            Image(systemName: "arrow.up.left.and.arrow.down.right")
-                                .font(.body.weight(.semibold))
-                                .foregroundStyle(.white)
-                        }
-                    }
+                } else {
+                    Color.clear
                 }
-                .buttonStyle(.plain)
-                .onHover { isArtworkHovered = $0 }
-                .help("Show Now Playing")
-                .accessibilityLabel(
-                    "Show Now Playing for \(track.title) by \(track.artist)"
-                )
-
-                playbackLabels(
-                    title: track.title,
-                    artist: track.artist
-                )
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .layoutPriority(1)
-
-                if model.isCurrentPlaybackExternal {
-                    Button("Add to Library…", systemImage: "plus.rectangle.on.folder") {
+            },
+            metadataAccessory: {
+                if adapter.showsExternalImportAction,
+                   let track = model.currentPlaybackTrack {
+                    Button(
+                        "Add to Library…",
+                        systemImage: "plus.rectangle.on.folder"
+                    ) {
                         model.addCurrentExternalAudioToLibrary()
                     }
                     .labelStyle(.iconOnly)
@@ -198,202 +102,67 @@ private extension PlayerBar {
                     .help("Add to Library…")
                     .accessibilityLabel("Add \(track.title) to Library")
                 }
-
-                Spacer(minLength: 0)
+            },
+            favoriteAccessory: {
+                if adapter.showsFavoriteAccessory {
+                    PlayerBarFavoriteControl(model: model)
+                }
+            },
+            statusAccessory: {
+                playbackFailureMenu
+            },
+            routeAccessory: {
+                audioOutputMenu
             }
-        } else {
-            emptyPlaybackGuidance
-        }
-    }
-
-    private var transport: some View {
-        HStack(spacing: PlayerBarLayoutMetrics.controlSpacing) {
-            HStack(spacing: PlayerBarLayoutMetrics.transportSpacing) {
-                controlButton(
-                    symbol: "shuffle",
-                    label: accessibility(for: .shuffle).label,
-                    isActive: model.isShuffleEnabled,
-                    isEnabled: accessibility(for: .shuffle).isEnabled
-                ) {
-                    model.isShuffleEnabled.toggle()
-                }
-
-                controlButton(
-                    symbol: "backward.fill",
-                    label: accessibility(for: .previous).label,
-                    isEnabled: accessibility(for: .previous).isEnabled
-                ) {
-                    model.selectPreviousTrack()
-                }
-
-                Button {
-                    model.togglePlayback()
-                } label: {
-                    Image(systemName: model.isPlaying ? "pause.fill" : "play.fill")
-                        .contentTransition(.symbolEffect(.replace))
-                        .font(.system(size: 14, weight: .bold))
-                        .frame(width: 34, height: 34)
-                        .foregroundStyle(CadenceTheme.contentBackground)
-                        .background(primaryControlFill, in: Circle())
-                }
-                .buttonStyle(CadenceRowButtonStyle())
-                .help(accessibility(for: .playPause).label)
-                .accessibilityLabel(accessibility(for: .playPause).label)
-                .disabled(!accessibility(for: .playPause).isEnabled)
-
-                controlButton(
-                    symbol: "forward.fill",
-                    label: accessibility(for: .next).label,
-                    isEnabled: accessibility(for: .next).isEnabled
-                ) {
-                    model.selectNextTrack()
-                }
-
-                controlButton(
-                    symbol: model.repeatMode.symbolName,
-                    label: accessibility(for: .repeatMode).label,
-                    isActive: model.repeatMode != .off,
-                    isEnabled: accessibility(for: .repeatMode).isEnabled
-                ) {
-                    model.cycleRepeatMode()
-                }
-
-                PlayerBarFavoriteControl(model: model)
-            }
-
-            PlaybackProgressControl(
-                model: model,
-                pendingSeekProgress: $pendingSeekProgress,
-                suspendsProgressAnimation: suspendsProgressAnimation
-            )
-        }
-    }
-
-    private var outputControls: some View {
-        HStack(spacing: CadenceLayout.controlGap) {
-            playbackFailureMenu
-
-            Button {
-                model.toggleMute()
-            } label: {
-                Image(systemName: volumeSymbol)
-                    .contentTransition(.symbolEffect(.replace))
-                    .foregroundStyle(
-                        CadenceTheme.playerControl(.normal)
-                    )
-                    .frame(width: 28, height: 28)
-            }
-            .buttonStyle(CadenceRowButtonStyle())
-            .help(model.volume > 0 ? "Mute" : "Unmute")
-            .accessibilityLabel(model.volume > 0 ? "Mute" : "Unmute")
-
-            Slider(value: volumeBinding, in: 0 ... 1)
-                .frame(width: 86)
-                .accessibilityLabel("Volume")
-
-            audioOutputMenu
-            controlButton(
-                symbol: "list.bullet",
-                label: accessibility(for: .queue).label,
-                isActive: isQueuePresented,
-                isEnabled: accessibility(for: .queue).isEnabled
-            ) {
-                model.presentPlaybackQueue()
-            }
-        }
-    }
-
-    private var hasPlaybackItem: Bool {
-        model.hasCurrentPlaybackItem
-    }
-
-    private var primaryControlFill: Color {
-        CadenceTheme.playerControl(
-            hasPlaybackItem ? .active : .disabled
         )
     }
 
-    private var volumeSymbol: String {
-        switch model.volume {
-        case ...0:
-            "speaker.slash.fill"
-        case ..<0.34:
-            "speaker.wave.1.fill"
-        case ..<0.67:
-            "speaker.wave.2.fill"
-        default:
-            "speaker.wave.3.fill"
-        }
+    var playerActions: PlayerBarActions {
+        PlayerBarActions(
+            showNowPlaying: {
+                model.presentNowPlaying(panel: .lyrics)
+            },
+            togglePlayback: {
+                model.togglePlayback()
+            },
+            previous: {
+                model.selectPreviousTrack()
+            },
+            next: {
+                model.selectNextTrack()
+            },
+            seek: { progress in
+                beginSeek(to: progress)
+            },
+            setVolume: { volume in
+                model.volume = volume
+            },
+            toggleMute: {
+                model.toggleMute()
+            },
+            showQueue: {
+                model.presentPlaybackQueue()
+            },
+            toggleShuffle: {
+                model.isShuffleEnabled.toggle()
+            },
+            cycleRepeatMode: {
+                model.cycleRepeatMode()
+            }
+        )
     }
 
-    private var isQueuePresented: Bool {
+    var isQueuePresented: Bool {
         model.playbackWorkspace == .nowPlaying
             && model.selectedNowPlayingPanel == .queue
     }
 
-    private var volumeBinding: Binding<Double> {
-        Binding(
-            get: { model.volume },
-            set: { model.volume = $0 }
-        )
-    }
-
-    private func accessibility(
-        for control: PlayerTransportControl
-    ) -> PlayerBarAccessibilityControl {
-        PlayerBarAccessibilityContract.control(
-            control,
-            hasPlaybackItem: hasPlaybackItem,
-            isPlaying: model.isPlaying,
-            repeatMode: model.repeatMode
-        )
-    }
-
-    private func controlButton(
-        symbol: String,
-        label: String,
-        isActive: Bool = false,
-        isEnabled: Bool = true,
-        action: @escaping () -> Void
-    ) -> some View {
-        Button(action: action) {
-            Image(systemName: symbol)
-                .symbolVariant(isActive ? .fill : .none)
-                .foregroundStyle(
-                    CadenceTheme.playerControl(
-                        isEnabled ? (isActive ? .active : .normal) : .disabled
-                    )
-                )
-                .frame(width: 34, height: 34)
-                .background {
-                    if isActive {
-                        RoundedRectangle(
-                            cornerRadius: CadenceTheme.radiusControl,
-                            style: .continuous
-                        )
-                        .fill(CadenceTheme.selectionFill)
-                    }
-                }
-        }
-        .buttonStyle(CadenceRowButtonStyle())
-        .help(label)
-        .accessibilityLabel(label)
-        .disabled(!isEnabled)
-    }
-
-    private func playbackLabels(
-        title: String,
-        artist: String
-    ) -> some View {
-        VStack(alignment: .leading, spacing: PlayerBarLayoutMetrics.metadataSpacing) {
-            Text(title)
-                .font(.subheadline.weight(.medium))
-                .foregroundStyle(CadenceTheme.playerControl(.normal))
-                .lineLimit(1)
-            Text(artist)
-                .font(.caption)
-                .foregroundStyle(CadenceTheme.playerMetadata)
-                .lineLimit(1)
+    func beginSeek(to progress: Double) {
+        guard let itemID = model.currentPlaybackTrack?.id else { return }
+        let token = pendingSeek.begin(progress: progress, itemID: itemID)
+        Task { @MainActor in
+            await model.seekPlayback(toProgress: progress)
+            pendingSeek.complete(token)
         }
     }
 }

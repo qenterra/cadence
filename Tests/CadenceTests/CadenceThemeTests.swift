@@ -1,13 +1,18 @@
 @testable import Cadence
 import Foundation
+import QenTerraDesignTokens
 import Testing
 
 struct CadenceThemeTests {
-    @Test("Cadence owns the semantic tokens required to build standalone")
-    func localTokenContract() {
-        #expect(CadenceTheme.radiusControl == 6)
-        #expect(CadenceTheme.motionPress == 0.08)
-        #expect(CadenceTheme.surfaceContent.light == "#F4F4F6")
+    @Test("Cadence compatibility aliases resolve shared semantic tokens")
+    func sharedTokenContract() {
+        #expect(CadenceTheme.radiusControl == GeneratedTokens.Radius.control)
+        #expect(
+            CadenceTheme.motionPress
+                == GeneratedTokens.Motion.feedbackPress.seconds
+        )
+        #expect(CadenceTheme.surfaceContent == GeneratedTokens.Color.surfaceContent)
+        #expect(CadenceTheme.fillSelected == GeneratedTokens.Color.fillSelected)
     }
 
     @Test("Player controls keep accessible contrast in both appearances")

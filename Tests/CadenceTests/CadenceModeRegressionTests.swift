@@ -2,6 +2,7 @@ import AppKit
 import AVFAudio
 @testable import Cadence
 import Metal
+import class QenTerraMediaComponents.ArtworkAccentGradientView
 import QuartzCore
 import Synchronization
 import Testing
@@ -554,7 +555,7 @@ struct CadenceModeRegressionTests {
             Issue.record("Metal is unavailable on the test host")
             return
         }
-        let view = CadenceModeBackgroundView(
+        let view = ArtworkAccentGradientView(
             frame: CGRect(origin: .zero, size: size),
             device: device
         )

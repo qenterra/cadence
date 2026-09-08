@@ -1,3 +1,4 @@
+import QenTerraComponents
 import SwiftUI
 
 enum SettingsLayoutMetrics {
@@ -357,21 +358,12 @@ struct SettingsCard<Content: View>: View {
     @ViewBuilder let content: Content
 
     var body: some View {
-        VStack(
-            alignment: .leading,
-            spacing: SettingsLayoutMetrics.cardContentSpacing
+        SettingsSection(
+            LocalizedStringKey(title),
+            symbol: symbol,
+            presentation: .cadence
         ) {
-            Label(title, systemImage: symbol)
-                .font(.headline)
             content
-        }
-        .padding(SettingsLayoutMetrics.cardInset)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(CadenceTheme.secondarySurface)
-        .clipShape(RoundedRectangle(cornerRadius: CadenceTheme.radiusGroup))
-        .overlay {
-            RoundedRectangle(cornerRadius: CadenceTheme.radiusGroup)
-                .strokeBorder(CadenceTheme.separator, lineWidth: 0.5)
         }
     }
 }

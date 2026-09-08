@@ -1,3 +1,4 @@
+import QenTerraComponents
 import SwiftUI
 
 struct ProductionAlbumDetailView: View {
@@ -202,7 +203,7 @@ struct ProductionAlbumDetailView: View {
     @ViewBuilder
     private var albumTagChips: some View {
         if !albumTags.isEmpty {
-            CadenceFlowLayout(horizontalSpacing: 7, verticalSpacing: 7) {
+            DesignFlowLayout(horizontalSpacing: 7, verticalSpacing: 7) {
                 ForEach(albumTags) { tag in
                     Button {
                         model.requestOpenProductionTagContextually(

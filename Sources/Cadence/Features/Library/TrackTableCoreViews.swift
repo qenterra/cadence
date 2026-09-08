@@ -1,67 +1,7 @@
 import AppKit
 import Observation
+import QenTerraMediaComponents
 import SwiftUI
-
-@MainActor
-final class TrackTableView: NSTableView {
-    var onReturn: (() -> Void)?
-    var onSpace: (() -> Void)?
-    var onDelete: (() -> Void)?
-    var onFocusChange: (() -> Void)?
-    private(set) var hasTableFocus = false
-    private var focusNotificationGeneration: UInt64 = 0
-
-    override var acceptsFirstResponder: Bool {
-        true
-    }
-
-    override func becomeFirstResponder() -> Bool {
-        let becameFirstResponder = super.becomeFirstResponder()
-        if becameFirstResponder {
-            updateTableFocus(true)
-        }
-        return becameFirstResponder
-    }
-
-    override func resignFirstResponder() -> Bool {
-        let resignedFirstResponder = super.resignFirstResponder()
-        if resignedFirstResponder {
-            updateTableFocus(false)
-        }
-        return resignedFirstResponder
-    }
-
-    private func updateTableFocus(_ hasFocus: Bool) {
-        guard hasTableFocus != hasFocus else {
-            return
-        }
-        hasTableFocus = hasFocus
-        focusNotificationGeneration &+= 1
-        let generation = focusNotificationGeneration
-        DispatchQueue.main.async { [weak self] in
-            guard
-                let self,
-                focusNotificationGeneration == generation
-            else {
-                return
-            }
-            onFocusChange?()
-        }
-    }
-
-    override func keyDown(with event: NSEvent) {
-        switch event.keyCode {
-        case 36:
-            onReturn?()
-        case 49:
-            onSpace?()
-        case 51, 117:
-            onDelete?()
-        default:
-            super.keyDown(with: event)
-        }
-    }
-}
 
 @MainActor
 @Observable

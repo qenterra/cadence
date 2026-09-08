@@ -417,34 +417,35 @@ extension LibraryUXInfrastructureTests {
         )
     }
 
-    @Test("Navigation Settings uses checkboxes and lets Home move")
-    func settingsNavigationControls() throws {
-        let projectRoot = URL(filePath: #filePath)
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-        let source = try String(
-            contentsOf: projectRoot.appending(
-                path: "Sources/Cadence/Features/Settings/SettingsSidebarCard.swift"
-            ),
-            encoding: .utf8
+    @Test("Navigation Settings lets Home move and preserves every destination")
+    func settingsNavigationControls() {
+        let original = NavigationRailConfiguration.configurableDestinations
+        let moved = NavigationRailConfiguration.moving(
+            .home,
+            to: .library,
+            in: original
         )
 
-        #expect(source.contains(".toggleStyle(.checkbox)"))
-        #expect(!source.contains("source != .home"))
-        #expect(!source.contains("destination != .home"))
+        #expect(moved != original)
+        #expect(
+            moved.firstIndex(of: .home)
+                == moved.firstIndex(of: .library).map { $0 + 1 }
+        )
+        #expect(Set(moved) == Set(original))
     }
 
     @Test("About presents a compact product hero and one resource list")
     func settingsAboutContent() {
-        #expect(SettingsAboutContent.resourceTitles == [
+        let configuration = CadenceAboutConfiguration.make(bundle: .main)
+
+        #expect(configuration.resources.map(\.title) == [
             "GitHub Profile",
             "Source Code",
             "Wiki",
             "MIT License",
             "Third-Party Notices",
         ])
-        #expect(SettingsAboutContent.usesProductHero)
+        #expect(configuration.tagline == "Native music, kept focused.")
     }
 
     @Test("Action semantics map confirmation to blue and deletion to red")

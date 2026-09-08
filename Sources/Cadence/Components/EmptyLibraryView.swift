@@ -1,3 +1,4 @@
+import QenTerraComponents
 import SwiftUI
 
 struct EmptyLibraryView: View {
@@ -6,14 +7,18 @@ struct EmptyLibraryView: View {
     let importAction: () -> Void
 
     var body: some View {
-        ContentUnavailableView {
-            Label(title, systemImage: "music.note")
-        } description: {
-            Text(description)
-        } actions: {
-            Button("Import Music", action: importAction)
-                .buttonStyle(.borderedProminent)
-        }
+        ContentStateView(
+            state: .empty(title: title, message: description),
+            symbolName: "music.note",
+            actions: [
+                PresentationAction(
+                    title: "Import Music",
+                    style: .primary,
+                    handler: importAction
+                ),
+            ],
+            presentation: .nativeUnavailable
+        )
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }

@@ -1,3 +1,4 @@
+import QenTerraComponents
 import SwiftUI
 
 struct SettingsHomeSectionsCard: View {
@@ -165,8 +166,6 @@ struct SettingsHomeSectionsCard: View {
 
 private struct SettingsRowSeparator: View {
     var body: some View {
-        Rectangle()
-            .fill(CadenceTheme.separator)
-            .frame(height: 0.5)
+        DesignSeparator()
     }
 }

@@ -1,5 +1,6 @@
 import AppKit
 @testable import Cadence
+import QenTerraDesignTokens
 import SwiftUI
 import Testing
 
@@ -19,6 +20,19 @@ struct SemanticLayoutTests {
         #expect(values.allSatisfy { $0 > 0 && $0.truncatingRemainder(dividingBy: 4) == 0 })
         #expect(CadenceLayout.pageInset == 24)
         #expect(CadenceLayout.sectionGap == 32)
+        let shared = DesignProductMetrics.cadence
+        #expect(CadenceLayout.textStack == CGFloat(shared.textStack))
+        #expect(CadenceLayout.compactGap == CGFloat(shared.compactGap))
+        #expect(CadenceLayout.controlGap == CGFloat(shared.controlGap))
+        #expect(CadenceLayout.contentGap == CGFloat(shared.contentGap))
+        #expect(CadenceLayout.panelInset == CGFloat(shared.panelInset))
+        #expect(CadenceLayout.pageInset == CGFloat(shared.pageInset))
+        #expect(CadenceLayout.sectionGap == CGFloat(shared.sectionGap))
+        #expect(CadenceLayout.rowHeight == CGFloat(shared.rowHeight))
+        #expect(
+            CadenceLayout.readableContentWidth
+                == CGFloat(shared.readableContentWidth)
+        )
     }
 
     @Test("Shared workspace metrics use semantic product roles")

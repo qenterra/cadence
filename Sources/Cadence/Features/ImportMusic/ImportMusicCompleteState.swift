@@ -1,10 +1,11 @@
+import QenTerraComponents
 import SwiftUI
 
 struct ImportMusicCompleteState: View {
     let summary: ImportPreviewSummary
-    let title: LocalizedStringKey
-    let message: LocalizedStringKey
-    let sizeSummary: LocalizedStringKey
+    let title: String
+    let message: String
+    let sizeSummary: String
     let importMore: () -> Void
     let viewImportedTracks: () -> Void
 
@@ -12,36 +13,27 @@ struct ImportMusicCompleteState: View {
         VStack(spacing: CadenceLayout.pageInset) {
             Spacer(minLength: CadenceLayout.pageInset)
 
-            Image(systemName: "checkmark.circle")
-                .font(.system(size: 46, weight: .light))
-                .foregroundStyle(.primary)
-                .accessibilityHidden(true)
-
-            VStack(spacing: CadenceLayout.compactGap) {
-                Text(title)
-                    .font(.title2.weight(.semibold))
-
-                Text(message)
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-            }
+            OperationStateView(
+                state: .completed(title: title, message: message),
+                visualStyle: .cadenceCompletion
+            )
 
             HStack(spacing: 0) {
                 summaryMetric(
                     value: summary.importedTrackCount.formatted(),
                     label: "Tracks"
                 )
-                Divider().frame(height: 44)
+                DesignSeparator(orientation: .vertical).frame(height: 44)
                 summaryMetric(
                     value: summary.linkedLyricsCount.formatted(),
                     label: "Lyrics linked"
                 )
-                Divider().frame(height: 44)
+                DesignSeparator(orientation: .vertical).frame(height: 44)
                 summaryMetric(
                     value: summary.exactDuplicateCount.formatted(),
                     label: "Duplicates skipped"
                 )
-                Divider().frame(height: 44)
+                DesignSeparator(orientation: .vertical).frame(height: 44)
                 summaryMetric(
                     value: summary.issueCount.formatted(),
                     label: "Issues reviewed"

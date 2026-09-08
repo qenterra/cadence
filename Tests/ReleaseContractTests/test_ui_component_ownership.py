@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 import copy
+import hashlib
 import importlib.util
+import json
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -24,6 +27,301 @@ def load_verifier():
 
 
 class UIComponentOwnershipTests(unittest.TestCase):
+    def test_scans_the_complete_cadence_source_root(self) -> None:
+        """App-level visual declarations must not disappear when conventional UI folders exist."""
+        verifier = load_verifier()
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "Components").mkdir()
+            (root / "App").mkdir()
+            (root / "Components" / "Component.swift").write_text(
+                "struct ComponentSurface: View { var body: some View { EmptyView() } }",
+                encoding="utf-8",
+            )
+            (root / "App" / "AppSurface.swift").write_text(
+                "struct AppSurface: View { var body: some View { EmptyView() } }",
+                encoding="utf-8",
+            )
+
+            declarations = verifier.discover_visual_declarations(root)
+
+        self.assertEqual(
+            [(item.path, item.symbol) for item in declarations],
+            [
+                ("App/AppSurface.swift", "AppSurface"),
+                ("Components/Component.swift", "ComponentSurface"),
+            ],
+        )
+
+    def test_manifest_loader_rejects_duplicate_json_keys(self) -> None:
+        """Duplicate ownership keys must not silently replace reviewed values."""
+        verifier = load_verifier()
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "manifest.json"
+            path.write_text(
+                '{"schemaVersion": 3, "schemaVersion": 4, "components": []}',
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(ValueError, "Duplicate JSON key: schemaVersion"):
+                verifier.load_manifest(path)
+
+    def test_schema_v3_rejects_registry_wrapper_evidence_and_adoption_mutations(self) -> None:
+        """The final ownership gate proves targets, thin bodies, evidence, and direct adoption."""
+        verifier = load_verifier()
+        with tempfile.TemporaryDirectory() as directory:
+            repository = Path(directory)
+            source_root = repository / "Sources" / "Cadence"
+            tests_root = repository / "Tests" / "CadenceTests"
+            source_root.mkdir(parents=True)
+            tests_root.mkdir(parents=True)
+            (source_root / "Wrapper.swift").write_text(
+                """
+                import QenTerraComponents
+                struct LegacyRow: View {
+                    var body: some View { QenTerraComponents.BrowserRowSurface() }
+                }
+                struct ProductScreen: View {
+                    var body: some View { LegacyRow() }
+                }
+                """,
+                encoding="utf-8",
+            )
+            (source_root / "Consumer.swift").write_text(
+                "import QenTerraComponents\nlet surface = BrowserRowSurface.self\n",
+                encoding="utf-8",
+            )
+            (tests_root / "OwnershipEvidenceTests.swift").write_text(
+                "import Testing\n@Test func evidence() {}\n",
+                encoding="utf-8",
+            )
+            registry_path = repository / "registry.json"
+            registry = {
+                "version": "1.0.1",
+                "components": [
+                    {
+                        "id": "browser-row-surface",
+                        "deliveryProduct": "QenTerraComponents",
+                        "publicSymbols": ["BrowserRowSurface"],
+                    }
+                ],
+            }
+            registry_path.write_text(json.dumps(registry), encoding="utf-8")
+            registry_digest = hashlib.sha256(registry_path.read_bytes()).hexdigest()
+            evidence = {
+                "status": "verified",
+                "detail": "The focused ownership test constructs this exact boundary.",
+                "references": ["Tests/CadenceTests/OwnershipEvidenceTests.swift"],
+            }
+            target = {
+                "componentID": "browser-row-surface",
+                "deliveryProduct": "QenTerraComponents",
+                "publicSymbol": "BrowserRowSurface",
+            }
+            manifest = {
+                "schemaVersion": 3,
+                "sourceRoot": "Sources/Cadence",
+                "designSystemRegistry": {"version": "1.0.1", "sha256": registry_digest},
+                "adoptions": [
+                    {
+                        "path": "Components/RemovedRow.swift",
+                        "symbol": "RemovedRow",
+                        "classification": "core-component",
+                        "resolution": "shared-direct",
+                        "ownershipReason": "RemovedRow was replaced by the canonical browser row surface.",
+                        "sharedTarget": target,
+                        "remainingCadenceSymbol": None,
+                        "consumers": ["Sources/Cadence/Consumer.swift"],
+                        "wave": "wave-2-core",
+                        "evidence": evidence,
+                    }
+                ],
+                "components": [
+                    {
+                        "path": "Wrapper.swift",
+                        "symbol": "LegacyRow",
+                        "kind": "View",
+                        "line": 3,
+                        "classification": "core-component",
+                        "resolution": "compatibility-wrapper",
+                        "ownershipReason": "LegacyRow preserves the existing initializer while delegating drawing.",
+                        "sharedTarget": target,
+                        "remainingCadenceSymbol": "Cadence.LegacyRow",
+                        "consumers": ["Sources/Cadence/Wrapper.swift"],
+                        "dependencies": {"data": [], "actions": []},
+                        "states": {
+                            "appearance": ["system"],
+                            "motion": ["static"],
+                            "accessibility": ["native-semantics"],
+                            "interaction": ["default"],
+                        },
+                        "wave": "wave-2-core",
+                        "evidence": evidence,
+                    },
+                    {
+                        "path": "Wrapper.swift",
+                        "symbol": "ProductScreen",
+                        "kind": "View",
+                        "line": 6,
+                        "classification": "product-shell",
+                        "resolution": "cadence-owned",
+                        "ownershipReason": "ProductScreen composes the Cadence navigation destination and route state.",
+                        "sharedTarget": None,
+                        "remainingCadenceSymbol": "Cadence.ProductScreen",
+                        "consumers": [],
+                        "dependencies": {"data": [], "actions": []},
+                        "states": {
+                            "appearance": ["system"],
+                            "motion": ["static"],
+                            "accessibility": ["native-semantics"],
+                            "interaction": ["default"],
+                        },
+                        "wave": "wave-7-product",
+                        "evidence": evidence,
+                    },
+                ],
+            }
+
+            def errors(candidate):
+                return verifier.validate_manifest(
+                    source_root,
+                    candidate,
+                    repository_root=repository,
+                    registry_path=registry_path,
+                )
+
+            self.assertEqual(errors(manifest), [])
+            mutations = {
+                "component id": lambda value: value["components"][0]["sharedTarget"].__setitem__("componentID", "invented"),
+                "delivery product": lambda value: value["components"][0]["sharedTarget"].__setitem__("deliveryProduct", "QenTerraMediaComponents"),
+                "public symbol": lambda value: value["components"][0]["sharedTarget"].__setitem__("publicSymbol", "Invented"),
+                "missing ownership reason": lambda value: value["components"][1].__setitem__("ownershipReason", ""),
+                "generic ownership reason": lambda value: value["components"][1].__setitem__("ownershipReason", "This is product-specific Cadence behavior."),
+                "missing evidence": lambda value: value["components"][1]["evidence"].__setitem__("status", "missing"),
+                "source evidence": lambda value: value["components"][1]["evidence"].__setitem__("references", ["Sources/Cadence/Wrapper.swift"]),
+                "no adoption consumer": lambda value: value["adoptions"][0].__setitem__("consumers", []),
+            }
+            for name, mutate in mutations.items():
+                with self.subTest(name=name):
+                    candidate = copy.deepcopy(manifest)
+                    mutate(candidate)
+                    self.assertTrue(errors(candidate))
+
+            original = (source_root / "Wrapper.swift").read_text(encoding="utf-8")
+            wrapper_mutations = {
+                "unqualified same-name target": original.replace(
+                    "QenTerraComponents.BrowserRowSurface()", "BrowserRowSurface()"
+                ),
+                "background": original.replace(
+                    "QenTerraComponents.BrowserRowSurface()",
+                    "QenTerraComponents.BrowserRowSurface().background(.red)",
+                ),
+                "overlay": original.replace(
+                    "QenTerraComponents.BrowserRowSurface()",
+                    "QenTerraComponents.BrowserRowSurface().overlay(Rectangle())",
+                ),
+                "appkit hierarchy": original.replace(
+                    "QenTerraComponents.BrowserRowSurface()",
+                    "QenTerraComponents.BrowserRowSurface().onAppear { addSubview(NSView()) }",
+                ),
+                "rounded rectangle": original.replace(
+                    "QenTerraComponents.BrowserRowSurface()", "RoundedRectangle(cornerRadius: 8)"
+                ),
+                "canvas": original.replace(
+                    "QenTerraComponents.BrowserRowSurface()", "Canvas { _, _ in }"
+                ),
+                "shader": original.replace(
+                    "QenTerraComponents.BrowserRowSurface()", "Shader(function: .init(library: .default, name: \"x\"), arguments: [])"
+                ),
+                "metal": original.replace(
+                    "QenTerraComponents.BrowserRowSurface()", "RepresentedMetalView(MTKView())"
+                ),
+                "layer": original.replace(
+                    "QenTerraComponents.BrowserRowSurface()", "RepresentedLayer(CALayer())"
+                ),
+                "add sublayer": original.replace(
+                    "QenTerraComponents.BrowserRowSurface()", "EmptyView().onAppear { addSublayer(layer) }"
+                ),
+            }
+            for name, source in wrapper_mutations.items():
+                with self.subTest(name=name):
+                    (source_root / "Wrapper.swift").write_text(source, encoding="utf-8")
+                    mutation_errors = errors(manifest)
+                    if name == "unqualified same-name target":
+                        self.assertTrue(
+                            any("does not consume fully-qualified shared body" in error for error in mutation_errors)
+                        )
+                    else:
+                        self.assertTrue(
+                            any("forbidden" in error for error in mutation_errors)
+                        )
+            (source_root / "Wrapper.swift").write_text(
+                original.replace(
+                    "var body: some View { QenTerraComponents.BrowserRowSurface() }",
+                    'var body: some View { QenTerraComponents.BrowserRowSurface() } // .overlay Canvas Shader CALayer',
+                ),
+                encoding="utf-8",
+            )
+            self.assertEqual(errors(manifest), [])
+
+            (source_root / "Wrapper.swift").write_text(
+                original.replace(
+                    "var body: some View { QenTerraComponents.BrowserRowSurface() }",
+                    "let target: QenTerraComponents.BrowserRowSurface\n"
+                    "var body: some View { EmptyView() }",
+                ),
+                encoding="utf-8",
+            )
+            self.assertTrue(
+                any("does not consume fully-qualified shared body" in error for error in errors(manifest))
+            )
+            (source_root / "Wrapper.swift").write_text(
+                original.replace(
+                    "var body: some View { QenTerraComponents.BrowserRowSurface() }",
+                    "var body: some View { Helper() }\n"
+                    "struct Helper: View { var body: some View { "
+                    "QenTerraComponents.BrowserRowSurface() } }",
+                ),
+                encoding="utf-8",
+            )
+            self.assertTrue(
+                any("does not consume fully-qualified shared body" in error for error in errors(manifest))
+            )
+            (source_root / "Wrapper.swift").write_text(original, encoding="utf-8")
+
+            consumer = (source_root / "Consumer.swift").read_text(encoding="utf-8")
+            (source_root / "Consumer.swift").write_text(
+                consumer.replace("import QenTerraComponents\n", ""), encoding="utf-8"
+            )
+            self.assertTrue(errors(manifest))
+            (source_root / "Consumer.swift").write_text(consumer, encoding="utf-8")
+
+            (source_root / "Removed.swift").write_text(
+                "struct RemovedRow: View { var body: some View { EmptyView() } }",
+                encoding="utf-8",
+            )
+            adoption_errors = errors(manifest)
+            self.assertTrue(any("former symbol is still declared" in error for error in adoption_errors))
+            self.assertEqual(adoption_errors, sorted(set(adoption_errors)))
+
+    def test_repository_cli_uses_fail_closed_defaults(self) -> None:
+        """The documented no-argument command must validate the maintained inventory."""
+        verifier = load_verifier()
+        declaration_count = len(
+            verifier.discover_visual_declarations(ROOT / "Sources" / "Cadence")
+        )
+        result = subprocess.run(
+            [sys.executable, str(VERIFIER_PATH)],
+            cwd=ROOT,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn(
+            f"Verified {declaration_count} UI component declarations.",
+            result.stdout,
+        )
+
     def test_discovers_extension_conformances_and_qualifies_extension_nesting(self) -> None:
         """Removing extension scope handling must fail this ownership contract."""
         verifier = load_verifier()
@@ -177,6 +475,8 @@ class UIComponentOwnershipTests(unittest.TestCase):
         }
         for item in manifest["components"]:
             self.assertIn(item["classification"], allowed)
+            self.assertEqual(item["resolution"], "cadence-owned")
+            self.assertTrue(item["ownershipReason"])
             self.assertTrue(item["remainingCadenceSymbol"])
             self.assertEqual(set(item["dependencies"]), {"data", "actions"})
             self.assertTrue(all(isinstance(value, list) for value in item["dependencies"].values()))
@@ -192,15 +492,54 @@ class UIComponentOwnershipTests(unittest.TestCase):
             )
             self.assertTrue(all(item["states"].values()))
             self.assertTrue(item["wave"])
-            self.assertIn(item["evidence"]["status"], {"verified", "missing"})
+            self.assertEqual(item["evidence"]["status"], "verified")
             self.assertTrue(item["evidence"]["detail"])
-            self.assertIsInstance(item["evidence"]["references"], list)
-            if item["classification"] in {"core-component", "media-component"}:
-                self.assertIn(item["deliveryProduct"], {"QenTerraComponents", "QenTerraMediaComponents"})
-                self.assertTrue(item["sharedSymbol"])
-            else:
-                self.assertEqual(item["deliveryProduct"], "Cadence")
-                self.assertEqual(item["sharedSymbol"], "")
+            self.assertTrue(item["evidence"]["references"])
+            if item["sharedTarget"] is not None:
+                self.assertEqual(
+                    set(item["sharedTarget"]),
+                    {"componentID", "deliveryProduct", "publicSymbol"},
+                )
+
+        self.assertEqual(
+            {item["symbol"] for item in manifest["adoptions"]},
+            {
+                "ArtworkPlaceholderView",
+                "CadenceFlowLayout",
+                "NativePlaybackIndicatorView",
+                "TrackTableView",
+                "CadenceModeBackgroundView",
+                "CadenceModeGradientRenderer",
+                "SettingsAboutResourceRow",
+                "PlaybackProgressControl",
+                "ProductionQueueDragModifier",
+                "ProductionQueueDragPreview",
+                "ProductionQueueInsertionIndicator",
+                "ProductionQueueRowInteractionModifier",
+                "CadenceModeLyricsEdgeFade",
+            },
+        )
+
+    def test_cadence_adapter_target_is_registry_backed(self) -> None:
+        """An adapter cannot name an invented shared target as delegated ownership."""
+        verifier = load_verifier()
+        manifest = verifier.load_manifest(MANIFEST_PATH)
+        component = next(
+            item for item in manifest["components"]
+            if item["symbol"] == "SettingsAboutSection"
+        )
+        self.assertEqual(component["classification"], "cadence-adapter")
+        self.assertEqual(component["sharedTarget"]["publicSymbol"], "AboutPage")
+
+        candidate = copy.deepcopy(manifest)
+        next(
+            item for item in candidate["components"]
+            if item["symbol"] == "SettingsAboutSection"
+        )["sharedTarget"]["publicSymbol"] = "DefinitelyNotPublic"
+        rejected = verifier.validate_manifest(ROOT / "Sources" / "Cadence", candidate)
+        self.assertTrue(
+            any("does not resolve" in error for error in rejected)
+        )
 
     def test_manifest_requires_exact_schema_identity_and_component_shape(self) -> None:
         """A different schema/root or unknown field must not validate against Cadence sources."""
@@ -209,7 +548,7 @@ class UIComponentOwnershipTests(unittest.TestCase):
         self.assertEqual(verifier.validate_manifest(ROOT / "Sources" / "Cadence", manifest), [])
         mutations = {
             "missing schemaVersion": lambda value: value.pop("schemaVersion"),
-            "wrong schemaVersion type": lambda value: value.__setitem__("schemaVersion", "2"),
+            "wrong schemaVersion type": lambda value: value.__setitem__("schemaVersion", "3"),
             "mismatched sourceRoot": lambda value: value.__setitem__("sourceRoot", "Elsewhere"),
             "unknown top-level field": lambda value: value.__setitem__("unexpected", True),
             "unknown component field": lambda value: value["components"][0].__setitem__("unexpected", True),
@@ -257,7 +596,7 @@ class UIComponentOwnershipTests(unittest.TestCase):
         manifest = verifier.load_manifest(MANIFEST_PATH)
         component = next(
             item for item in manifest["components"]
-            if item["symbol"] == "ProductionQueueRowInteractionModifier"
+            if item["symbol"] == "ProductionPlaybackQueueRow"
         )
 
         data_symbols = [entry["symbol"] for entry in component["dependencies"]["data"]]
@@ -273,8 +612,8 @@ class UIComponentOwnershipTests(unittest.TestCase):
         manifest = verifier.load_manifest(MANIFEST_PATH)
         component = next(item for item in manifest["components"] if item["symbol"] == "CadenceRowButtonStyle")
 
-        self.assertCountEqual(
-            ["configuration.label", "configuration.isPressed"],
+        self.assertEqual(
+            ["configuration"],
             [entry["symbol"] for entry in component["dependencies"]["data"]],
         )
         self.assertEqual([], component["dependencies"]["actions"])
@@ -294,7 +633,7 @@ class UIComponentOwnershipTests(unittest.TestCase):
             )["dependencies"].__setitem__("actions", []),
             "queue actions as data": lambda value: next(
                 item for item in value["components"]
-                if item["symbol"] == "ProductionQueueRowInteractionModifier"
+                if item["symbol"] == "ProductionPlaybackQueueRow"
             )["dependencies"].update(
                 {"data": [{"symbol": "play", "role": "data"}], "actions": []}
             ),
@@ -338,7 +677,7 @@ class UIComponentOwnershipTests(unittest.TestCase):
         mutations = {
             "omitted queue select": lambda value: next(
                 item for item in value["components"]
-                if item["symbol"] == "ProductionQueueRowInteractionModifier"
+                if item["symbol"] == "ProductionPlaybackQueueRow"
             )["dependencies"].__setitem__(
                 "actions", [{"symbol": "play", "role": "actions"}]
             ),
@@ -401,10 +740,12 @@ class UIComponentOwnershipTests(unittest.TestCase):
         hosting_cell = next(item for item in manifest["components"] if item["symbol"] == "TrackTableHostingCell")
         self.assertNotIn("hostState", [entry["symbol"] for entry in hosting_cell["dependencies"]["data"]])
 
-        renderer = next(item for item in manifest["components"] if item["symbol"] == "CadenceModeGradientRenderer")
-        renderer_data = {entry["symbol"] for entry in renderer["dependencies"]["data"]}
-        self.assertIn("device", renderer_data)
-        self.assertFalse({"commandQueue", "snapshotPipelineState"} & renderer_data)
+        self.assertFalse(any(item["symbol"] == "CadenceModeGradientRenderer" for item in manifest["components"]))
+        background = next(item for item in manifest["components"] if item["symbol"] == "CadenceModeBackground")
+        self.assertEqual("ArtworkAccentGradientView", background["sharedTarget"]["publicSymbol"])
+        background_data = {entry["symbol"] for entry in background["dependencies"]["data"]}
+        self.assertEqual({"palette", "hasLiveEffects", "reduceMotion", "visualQAReduceMotionOverride"}, background_data)
+        self.assertFalse({"device", "commandQueue", "snapshotPipelineState"} & background_data)
 
     def test_private_init_injected_closures_remain_consumer_dependencies(self) -> None:
         """Private access does not erase a callback or formatter supplied by the initializer."""

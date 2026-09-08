@@ -1,6 +1,7 @@
 import AppKit
 @testable import Cadence
 import Foundation
+import QenTerraMediaComponents
 import SwiftData
 import SwiftUI
 import Testing
@@ -87,7 +88,7 @@ extension AllTracksPerformanceTests {
         let focusProbe = TrackTableFocusProbeView(
             frame: NSRect(x: 20, y: 20, width: 180, height: 24)
         )
-        let tableView = TrackTableView(
+        let tableView = NativeMediaTableView(
             frame: NSRect(x: 20, y: 60, width: 600, height: 380)
         )
         contentView.addSubview(focusProbe)
@@ -103,8 +104,9 @@ extension AllTracksPerformanceTests {
         #expect(window.makeFirstResponder(focusProbe))
 
         var observedGain: Bool?
-        tableView.onFocusChange = {
-            observedGain = window.firstResponder === tableView
+        let focusDelivery = CadenceTrackTableFocusDelivery()
+        tableView.onFocusChange = { _ in
+            focusDelivery.schedule { observedGain = window.firstResponder === tableView }
         }
         #expect(window.makeFirstResponder(tableView))
         await drainMainQueue()
@@ -112,8 +114,8 @@ extension AllTracksPerformanceTests {
         #expect(observedGain == true)
 
         var observedLoss: Bool?
-        tableView.onFocusChange = {
-            observedLoss = window.firstResponder === tableView
+        tableView.onFocusChange = { _ in
+            focusDelivery.schedule { observedLoss = window.firstResponder === tableView }
         }
         #expect(window.makeFirstResponder(focusProbe))
         await drainMainQueue()
@@ -144,7 +146,7 @@ extension AllTracksPerformanceTests {
             sourceIndex: 50007
         )
         let coordinator = TrackTableCore.Coordinator(parent: core)
-        let tableView = TrackTableView(
+        let tableView = NativeMediaTableView(
             frame: NSRect(x: 0, y: 0, width: 900, height: 24 * 58)
         )
         let column = NSTableColumn(identifier: .init("row"))

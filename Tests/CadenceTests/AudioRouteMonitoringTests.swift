@@ -1,6 +1,7 @@
 import AVFoundation
 @testable import Cadence
 import Foundation
+import QenTerraMediaComponents
 import Testing
 
 @MainActor
@@ -22,7 +23,7 @@ struct AudioRouteMonitoringTests {
     func emptyNativePlayerUsesSystemRouting() {
         let player = AVPlayer()
 
-        #expect(AirPlayRoutePicker.routingPlayer(player) == nil)
+        #expect(QenTerraMediaComponents.AirPlayRoutePicker.routingPlayer(player) == nil)
     }
 
     @Test("AirPlay routing follows Native once it has playable content")
@@ -33,7 +34,7 @@ struct AudioRouteMonitoringTests {
             )
         )
 
-        #expect(AirPlayRoutePicker.routingPlayer(player) === player)
+        #expect(QenTerraMediaComponents.AirPlayRoutePicker.routingPlayer(player) === player)
     }
 
     @Test("Route monitoring lifecycle is idempotent")

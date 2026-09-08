@@ -12,6 +12,19 @@ struct CadenceModeScreenshotTests {
         let entry: RhythmPulseVisualQAState
     }
 
+    @Test("Compare static Cadence Mode production screenshots without recording", .appKitExclusive)
+    func compareCadenceModeStaticScreenshots() async throws {
+        let fixture = try await DocumentationScreenshotFixture.make()
+        fixture.model.presentNowPlaying()
+        fixture.model.selectedNowPlayingPanel = .lyrics
+        let states = Self.makeVisualQAStates()
+        try await captureStaticStates(
+            fixture: fixture, standardState: states.standard,
+            cadenceModeState: states.cadenceMode, grayscaleState: states.grayscale
+        )
+        try await fixture.cleanup()
+    }
+
     @Test("Render Cadence Mode, its entry, and the inactive hint")
     func renderCadenceModeScreenshots() async throws {
         guard FileManager.default.fileExists(atPath: Self.updateMarker.path) else {

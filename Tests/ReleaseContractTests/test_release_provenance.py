@@ -819,6 +819,11 @@ os._exit(0)
                     os.killpg(owner.pid, 0)
                 except ProcessLookupError:
                     break
+                except PermissionError:
+                    # A hosted macOS runner can briefly deny a zero-signal
+                    # probe while the killed process group is being reaped.
+                    # Keep waiting; only ESRCH proves that the group is gone.
+                    pass
                 time.sleep(0.01)
             else:
                 self.fail("The abandoned operation process group did not exit.")
@@ -1604,6 +1609,11 @@ class ReleasePreparationOrderingTests(unittest.TestCase):
             ROOT / "scripts" / "swiftlint-warning-baseline.json",
             self.scripts,
         )
+        (self.scripts / "verify_ui_component_ownership.py").write_text(
+            "#!/usr/bin/env python3\n",
+            encoding="utf-8",
+        )
+        (self.scripts / "verify_ui_component_ownership.py").chmod(0o755)
         release_directory = self.root / "release"
         release_directory.mkdir()
         self.notes = release_directory / "release-notes-9.8.7-test.1.md"
@@ -1828,7 +1838,11 @@ class ReleasePreparationOrderingTests(unittest.TestCase):
         old_group: int | None = None
         supervisor_communicated = False
         try:
-            deadline = time.monotonic() + 10
+            # Hosted macOS runners can spend more than ten seconds reaching the
+            # create-dmg fixture while the release preflight is under load.
+            # Wait for the explicit readiness files instead of treating runner
+            # scheduling latency as a product failure.
+            deadline = time.monotonic() + 30
             while time.monotonic() < deadline and not (
                 owner_pid_path.is_file()
                 and resistant_pid_path.is_file()
