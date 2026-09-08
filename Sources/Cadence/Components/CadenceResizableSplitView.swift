@@ -50,16 +50,15 @@ struct CadenceSplitLayout: Equatable, Sendable {
         totalWidth: CGFloat,
         proposedFixedWidth: CGFloat,
         fixedPane: CadenceFixedSplitPane,
-        fixedMinimum: CGFloat,
-        fixedMaximum: CGFloat,
+        fixedRange: ClosedRange<CGFloat>,
         flexibleMinimum: CGFloat
     ) -> Self {
         let resolution = ResizableSplitLayout.resolve(
             availableWidth: Double(totalWidth),
             proposedFixedWidth: Double(proposedFixedWidth),
             fixedPane: fixedPane == .leading ? .leading : .trailing,
-            minimumFixedWidth: Double(fixedMinimum),
-            maximumFixedWidth: Double(fixedMaximum),
+            minimumFixedWidth: Double(fixedRange.lowerBound),
+            maximumFixedWidth: Double(fixedRange.upperBound),
             minimumFlexibleWidth: Double(flexibleMinimum),
             separatorWidth: Double(standardDividerWidth)
         )
@@ -94,8 +93,7 @@ struct CadenceResizableSplitView<Leading: View, Trailing: View>: View {
                 totalWidth: geometry.size.width,
                 proposedFixedWidth: CGFloat(liveWidth ?? fixedWidth),
                 fixedPane: fixedPane,
-                fixedMinimum: fixedMinimum,
-                fixedMaximum: fixedMaximum,
+                fixedRange: fixedMinimum ... fixedMaximum,
                 flexibleMinimum: flexibleMinimum
             )
 
@@ -186,8 +184,7 @@ struct CadenceResizableSplitView<Leading: View, Trailing: View>: View {
                     totalWidth: totalWidth,
                     proposedFixedWidth: CGFloat(proposed),
                     fixedPane: fixedPane,
-                    fixedMinimum: fixedMinimum,
-                    fixedMaximum: fixedMaximum,
+                    fixedRange: fixedMinimum ... fixedMaximum,
                     flexibleMinimum: flexibleMinimum
                 ).fixedWidth
             )
@@ -208,8 +205,7 @@ struct CadenceResizableSplitView<Leading: View, Trailing: View>: View {
             totalWidth: totalWidth,
             proposedFixedWidth: CGFloat(liveWidth ?? fixedWidth),
             fixedPane: fixedPane,
-            fixedMinimum: fixedMinimum,
-            fixedMaximum: fixedMaximum,
+            fixedRange: fixedMinimum ... fixedMaximum,
             flexibleMinimum: flexibleMinimum
         ).fixedWidth
     }

@@ -55,8 +55,7 @@ struct SmartCollectionsLayoutTests {
             totalWidth: 1100,
             proposedFixedWidth: 600,
             fixedPane: .trailing,
-            fixedMinimum: 280,
-            fixedMaximum: 460,
+            fixedRange: 280 ... 460,
             flexibleMinimum: 480
         )
         #expect(trailing.fixedWidth == 460)

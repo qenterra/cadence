@@ -25,7 +25,13 @@ struct CadenceTrackTableAdapterTests {
         #expect(presentation.isCurrent && presentation.isPlaying && presentation.isFavorite)
         let view = NSView()
         view.appearance = NSAppearance(named: .aqua)
-        #expect(CadenceTrackTableAdapter.environment(for: view, density: .compact, reduceMotion: true).appearance == .light)
+        #expect(
+            CadenceTrackTableAdapter.environment(
+                for: view,
+                density: .compact,
+                reduceMotion: true
+            ).appearance == .light
+        )
         view.appearance = NSAppearance(named: .darkAqua)
         let native = CadenceTrackTableAdapter.environment(for: view, density: .compact, reduceMotion: true)
         #expect(native.appearance == .dark && native.reducesMotion && native.density == .compact)

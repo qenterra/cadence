@@ -3,33 +3,57 @@ import SwiftUI
 
 extension ArtworkPalette {
     var designSystemPalette: QenTerraMediaComponents.ArtworkPalette {
-        let values: (Color, Color, String) = switch self {
+        let leading: Color
+        let trailing: Color
+        let symbolName: String
+
+        switch self {
         case .amberNoir:
-            (Color(red: 0.08, green: 0.06, blue: 0.04), Color(red: 0.75, green: 0.42, blue: 0.12), "waveform")
+            leading = Color(red: 0.08, green: 0.06, blue: 0.04)
+            trailing = Color(red: 0.75, green: 0.42, blue: 0.12)
+            symbolName = "waveform"
         case .arctic:
-            (Color(red: 0.10, green: 0.20, blue: 0.30), Color(red: 0.62, green: 0.86, blue: 0.94), "snowflake")
+            leading = Color(red: 0.10, green: 0.20, blue: 0.30)
+            trailing = Color(red: 0.62, green: 0.86, blue: 0.94)
+            symbolName = "snowflake"
         case .blueHour:
-            (Color(red: 0.03, green: 0.08, blue: 0.18), Color(red: 0.14, green: 0.38, blue: 0.74), "moonphase.waning.crescent")
+            leading = Color(red: 0.03, green: 0.08, blue: 0.18)
+            trailing = Color(red: 0.14, green: 0.38, blue: 0.74)
+            symbolName = "moonphase.waning.crescent"
         case .ember:
-            (Color(red: 0.12, green: 0.03, blue: 0.03), Color(red: 0.86, green: 0.24, blue: 0.10), "sparkles")
+            leading = Color(red: 0.12, green: 0.03, blue: 0.03)
+            trailing = Color(red: 0.86, green: 0.24, blue: 0.10)
+            symbolName = "sparkles"
         case .forest:
-            (Color(red: 0.03, green: 0.12, blue: 0.09), Color(red: 0.26, green: 0.58, blue: 0.38), "leaf")
+            leading = Color(red: 0.03, green: 0.12, blue: 0.09)
+            trailing = Color(red: 0.26, green: 0.58, blue: 0.38)
+            symbolName = "leaf"
         case .lilac:
-            (Color(red: 0.15, green: 0.10, blue: 0.22), Color(red: 0.58, green: 0.42, blue: 0.72), "circle.hexagongrid")
+            leading = Color(red: 0.15, green: 0.10, blue: 0.22)
+            trailing = Color(red: 0.58, green: 0.42, blue: 0.72)
+            symbolName = "circle.hexagongrid"
         case .ocean:
-            (Color(red: 0.02, green: 0.13, blue: 0.18), Color(red: 0.08, green: 0.52, blue: 0.64), "water.waves")
+            leading = Color(red: 0.02, green: 0.13, blue: 0.18)
+            trailing = Color(red: 0.08, green: 0.52, blue: 0.64)
+            symbolName = "water.waves"
         case .rose:
-            (Color(red: 0.18, green: 0.06, blue: 0.10), Color(red: 0.74, green: 0.27, blue: 0.40), "camera.macro")
+            leading = Color(red: 0.18, green: 0.06, blue: 0.10)
+            trailing = Color(red: 0.74, green: 0.27, blue: 0.40)
+            symbolName = "camera.macro"
         case .silver:
-            (Color(red: 0.12, green: 0.13, blue: 0.15), Color(red: 0.60, green: 0.64, blue: 0.68), "circle.grid.cross")
+            leading = Color(red: 0.12, green: 0.13, blue: 0.15)
+            trailing = Color(red: 0.60, green: 0.64, blue: 0.68)
+            symbolName = "circle.grid.cross"
         case .sunset:
-            (Color(red: 0.18, green: 0.06, blue: 0.16), Color(red: 0.92, green: 0.38, blue: 0.20), "sun.horizon")
+            leading = Color(red: 0.18, green: 0.06, blue: 0.16)
+            trailing = Color(red: 0.92, green: 0.38, blue: 0.20)
+            symbolName = "sun.horizon"
         }
         return QenTerraMediaComponents.ArtworkPalette(
-            leading: values.0,
-            trailing: values.1,
-            highlight: values.1,
-            symbolName: values.2
+            leading: leading,
+            trailing: trailing,
+            highlight: trailing,
+            symbolName: symbolName
         )
     }
 }

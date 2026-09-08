@@ -436,7 +436,7 @@ extension LibraryUXInfrastructureTests {
 
     @Test("About presents a compact product hero and one resource list")
     func settingsAboutContent() {
-        let configuration = CadenceAboutConfiguration.make(bundle: Bundle())
+        let configuration = CadenceAboutConfiguration.make(bundle: .main)
 
         #expect(configuration.resources.map(\.title) == [
             "GitHub Profile",

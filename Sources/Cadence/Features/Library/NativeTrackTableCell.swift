@@ -191,8 +191,14 @@ final class NativeTrackTableCell: NSTableCellView {
             guard !Task.isCancelled, let asset else { return }
             let image = await ArtworkImageCache.shared.image(for: asset)
             guard !Task.isCancelled, let self, let image, artworkRequest == request else { return }
+            let contentsRect = CadenceTrackTableAdapter.artworkContentsRect(
+                asset: asset,
+                image: image
+            )
             if presentationView.publishArtwork(
-                image, for: token, contentsRect: CadenceTrackTableAdapter.artworkContentsRect(asset: asset, image: image)
+                image,
+                for: token,
+                contentsRect: contentsRect
             ) {
                 publishedArtworkRequest = request
             }

@@ -23,24 +23,25 @@ struct CadenceAboutConfigurationTests {
     }
 
     @Test("About adapter fails closed to declared product fallbacks")
-    func suppliesVersionFallbacks() {
-        let configuration = CadenceAboutConfiguration.make(bundle: Bundle())
+    func suppliesVersionFallbacks() throws {
+        let bundle = try makeBundle(version: nil, build: nil)
+        let configuration = CadenceAboutConfiguration.make(bundle: bundle)
 
         #expect(configuration.versionText == "Version 0.1.0 (1)")
     }
 
-    private func makeBundle(version: String, build: String) throws -> Bundle {
+    private func makeBundle(version: String?, build: String?) throws -> Bundle {
         let root = FileManager.default.temporaryDirectory
             .appending(path: "CadenceAbout-\(UUID().uuidString).bundle")
         try FileManager.default.createDirectory(
             at: root,
             withIntermediateDirectories: true
         )
-        let plist: [String: Any] = [
+        var plist: [String: Any] = [
             "CFBundleIdentifier": "com.qenterra.cadence.tests.about",
-            "CFBundleShortVersionString": version,
-            "CFBundleVersion": build,
         ]
+        plist["CFBundleShortVersionString"] = version
+        plist["CFBundleVersion"] = build
         try (plist as NSDictionary).write(
             to: root.appending(path: "Info.plist")
         )
