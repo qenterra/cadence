@@ -17,6 +17,14 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
+      - name: Check out the shared Design System
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: qenterra/design-system
+          path: .dependencies/design-system
+          persist-credentials: false
+      - name: Expose the local Design System package
+        run: ln -s "$GITHUB_WORKSPACE/.dependencies/design-system" "$GITHUB_WORKSPACE/../design-system"
       - name: Install developer tools
         run: HOMEBREW_NO_AUTO_UPDATE=1 brew install xcodegen swiftformat swiftlint xcbeautify python@3.14
       - name: Prepare deterministic release image tools
