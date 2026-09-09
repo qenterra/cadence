@@ -46,6 +46,15 @@ Playback glitches, AirPlay, Bluetooth route changes, spatial audio, gapless
 transitions, media keys, reduced motion, VoiceOver, and large real libraries
 still need manual acceptance on relevant hardware.
 
+## Commit and review format
+
+Follow [Release writing](docs/release-writing.md) for commit grammar, PR and review
+comment templates, changelog entries, release notes, and publication updates.
+Write in English, use a specific Conventional Commit subject of at most 72
+characters, and keep one coherent outcome per change. Breaking changes include
+a migration footer. PR descriptions use the repository template's section order;
+review findings explain the condition, consequence, and requested change.
+
 ## Pull requests
 
 - Keep one problem per pull request.
