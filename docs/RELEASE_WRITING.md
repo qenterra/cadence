@@ -288,4 +288,3 @@ Use this for a maintainer status update after publication, not as an automatic a
 ```
 
 Report each intended surface separately when outcomes differ. Example: a verified GitHub Release with an unverified registry publication is `Partially published`; it is not “release complete.”
-
