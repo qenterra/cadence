@@ -22,7 +22,7 @@
   "conduct_contact": "https://github.com/QenTerra/cadence/security/advisories/new",
   "copyright_holder": "Nikita Melnychenko (QenTerra)",
   "copyright_year_range": "2026",
-  "current_version": "0.2.0-beta.1",
+  "current_version": "1.0.0",
   "default_branch": "main",
   "dependabot_ecosystem": "swift",
   "description": "A native macOS music player with a managed local library, lyrics, metadata tools, and private-by-default playback.",

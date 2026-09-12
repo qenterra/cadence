@@ -1,3 +1,4 @@
+import QenTerraMediaComponents
 import SwiftUI
 
 struct MediaMetadataLink: View {
@@ -5,11 +6,8 @@ struct MediaMetadataLink: View {
     let accessibilityLabel: String
     let action: () -> Void
 
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.visualRegressionFreezesHighlights)
     private var disablesInteractiveHighlights
-    @FocusState private var isFocused: Bool
-    @State private var isHovered = false
 
     init(
         _ title: String,
@@ -23,25 +21,11 @@ struct MediaMetadataLink: View {
     }
 
     var body: some View {
-        Button(action: action) {
-            Text(title)
-                .lineLimit(1)
-                .truncationMode(.tail)
-                .foregroundStyle(isHighlighted ? Color.primary : Color.secondary)
-                .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .focused($isFocused)
-        .onHover { isHovered = $0 }
-        .animation(
-            reduceMotion ? nil : .easeOut(duration: CadenceTheme.motionHover),
-            value: isHighlighted
+        QenTerraMediaComponents.MediaMetadataLink(
+            title,
+            accessibilityLabel: accessibilityLabel,
+            freezesInteractionHighlights: disablesInteractiveHighlights,
+            action: action
         )
-        .accessibilityLabel(accessibilityLabel)
-        .help(accessibilityLabel)
-    }
-
-    private var isHighlighted: Bool {
-        !disablesInteractiveHighlights && (isHovered || isFocused)
     }
 }

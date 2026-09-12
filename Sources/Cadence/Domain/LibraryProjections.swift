@@ -1,4 +1,5 @@
 import Foundation
+import QenTerraFoundation
 
 struct LibraryPageCursor: Codable, Hashable, Sendable {
     let sortValue: String

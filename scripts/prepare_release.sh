@@ -163,7 +163,7 @@ if [[ "${CADENCE_REUSE_ARCHIVE:-0}" != "1" ]]; then
         CODE_SIGNING_REQUIRED=YES
         CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO
     )
-    if [[ "$release_mode" == "public" ]]; then
+    if [[ "$release_mode" == "public" && "$DISTRIBUTION_SIGNING" == "developer-id" ]]; then
         signing_arguments+=(
             CODE_SIGN_STYLE=Manual
             "CODE_SIGN_IDENTITY=$CADENCE_DEVELOPER_ID_APPLICATION"
@@ -235,13 +235,20 @@ codesign --verify --deep --strict --verbose=2 "$app_bundle"
 check_release_operation
 if [[ "$release_mode" == "public" ]]; then
     signature_details="$(codesign --display --verbose=4 "$app_bundle" 2>&1)"
-    if [[ "$signature_details" == *"Signature=adhoc"* ]]; then
-        echo "Public archive is still ad-hoc signed." >&2
-        exit 70
-    fi
-    if [[ "$signature_details" != *"TeamIdentifier=$CADENCE_DEVELOPMENT_TEAM"* ]]; then
-        echo "Public archive TeamIdentifier does not match CADENCE_DEVELOPMENT_TEAM." >&2
-        exit 70
+    if [[ "$DISTRIBUTION_SIGNING" == "ad-hoc" ]]; then
+        if [[ "$signature_details" != *"Signature=adhoc"* ]]; then
+            echo "Public archive does not match the declared ad-hoc signature." >&2
+            exit 70
+        fi
+    else
+        if [[ "$signature_details" == *"Signature=adhoc"* ]]; then
+            echo "Public archive is still ad-hoc signed." >&2
+            exit 70
+        fi
+        if [[ "$signature_details" != *"TeamIdentifier=$CADENCE_DEVELOPMENT_TEAM"* ]]; then
+            echo "Public archive TeamIdentifier does not match CADENCE_DEVELOPMENT_TEAM." >&2
+            exit 70
+        fi
     fi
 fi
 
@@ -258,7 +265,38 @@ if [[ "$release_mode" == "local" ]]; then
     exit 0
 fi
 
-# The public path is deliberately fail-closed: the app and disk image both
+# The explicit ad-hoc contract produces manual downloads only. All source,
+# attestation, archive, signature, and operation checks above still apply.
+if [[ "$DISTRIBUTION_SIGNING" == "ad-hoc" ]]; then
+    check_release_operation
+    rm -f -- "$zip_file"
+    ditto -c -k --sequesterRsrc --keepParent "$app_bundle" "$zip_file"
+    check_release_operation
+    "$project_root/scripts/create_dmg.sh" "$app_bundle" "$dmg_file" "$HUMAN_RELEASE_NAME"
+    check_release_operation
+    "${release_contract[@]}" \
+        release-checksums-write \
+        --release-mode "$release_mode" \
+        --operation-token "$RELEASE_OPERATION_TOKEN" \
+        --operation-owner-pid "$$" \
+        --root "$project_root"
+    check_release_operation
+    codesign --verify --deep --strict --verbose=2 "$app_bundle"
+    unzip -t "$zip_file"
+    check_release_operation
+    echo "Prepared $HUMAN_RELEASE_NAME for manual download."
+    echo "Ad-hoc signed and not notarized; Gatekeeper may block opening."
+    echo "Git tag: $TAG"
+    echo "Manual download assets:"
+    echo "  $dmg_file"
+    echo "  $zip_file"
+    echo "  $checksums_file"
+    echo "No Sparkle update was generated; appcast.xml is unchanged."
+    finish_release_operation
+    exit 0
+fi
+
+# The Developer ID path is deliberately fail-closed: the app and disk image both
 # need an accepted notarization submission and a locally validated ticket.
 check_release_operation
 rm -f -- "$zip_file"

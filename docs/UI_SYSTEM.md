@@ -17,9 +17,8 @@ track-table coordination, and Cadence Mode input and effects. Reusable visuals
 flow in one direction: Design System source and registry, verified package,
 immutable release, then an explicit Cadence dependency update. A sibling path
 is permitted only while validating a coordinated candidate and is replaced by
-an exact release version before integration. The current candidate is expected
-to move from the sibling path to exact Design System 2.0.0 during release
-integration; this document does not claim that release already exists.
+an exact release version before integration. Cadence 1.0.0 uses exact Design System 2.0.0, with its source commit
+recorded in `Package.resolved`.
 
 The ownership inventory is registry-backed: direct package adoptions remain
 recorded after their former Cadence declarations disappear, while local adapters
@@ -124,7 +123,7 @@ Cadence follows the current Unspool About pattern:
 - full-row link targets with subtle hover feedback and an external-link glyph;
 - GitHub Profile, Source Code, Wiki, MIT License, and Third-Party Notices;
 - creator attribution remains `Nikita Melnychenko (QenTerra)`;
-- the visible version omits the build number.
+- the visible version includes the build number: `1.0.0 (3)`.
 
 ## Welcome and in-app guide
 
@@ -138,8 +137,8 @@ Cadence follows the current Unspool About pattern:
 - Keyboard navigation, accessibility focus, increased contrast, reduced
   transparency, and Reduce Motion are supported by the same overlay.
 
-The detailed behavior and lifecycle contract lives in
-[`ONBOARDING_GUIDE.md`](ONBOARDING_GUIDE.md).
+For installation and the first library workflow, see
+[Getting Started](wiki/Getting-Started.md).
 
 ## Now Playing Cadence Mode
 
@@ -166,12 +165,12 @@ The detailed behavior and lifecycle contract lives in
   Mode entry and exit are named product motions because the artwork hero
   transition is product-specific; animations remain interruptible and reduce
   to the short dismiss transition when Reduce Motion is enabled.
-- Behind the active composition, one conic artwork-color field rotates while a
-  radial bloom travels across the workspace. Their soft native gradient
-  falloff provides the blurred appearance without a live blur filter. Both are
-  Core Animation layers driven by compositor transforms beneath a dark static
-  scrim. Cadence Mode deliberately uses dark foreground semantics in both
-  system appearances so lyrics and effects keep reliable contrast.
+- Behind the active composition, the shared `ArtworkAccentGradientView`
+  renders an artwork-colored terrain through Metal. Cadence owns palette
+  extraction and activity tinting; Design System owns the renderer and its
+  palette transitions. A dark composition keeps lyrics readable in both
+  system appearances. Reduce Motion freezes the terrain; screenshot fixtures
+  capture the same renderer at a fixed time.
 - Each lane owns one active trio of color fields plus one bounded outgoing trio.
   Repeating the same key crossfades the outgoing wash instead of cutting it;
   `Z` and `X` overlap independently. Releasing a key never truncates the effect.
@@ -204,12 +203,10 @@ The detailed behavior and lifecycle contract lives in
   traveling particles. Reduce Transparency makes the background base opaque,
   removes pulse blur, and keeps solid particle geometry. Increased Contrast
   strengthens the background scrim.
-- Background, washes, and particles are compositor-driven. No Cadence Mode
-  surface uses a live Gaussian blur or a per-frame SwiftUI timeline. Exactly
-  two persistent layers provide background motion; transient fields and
-  particles use fixed reusable layer pools. Active hits do not play synchronous
-  haptics because frame pacing takes priority. Cadence Mode lyrics update
-  independently at 10 Hz.
+- Metal drives the background, while Core Animation advances cached washes
+  and particles through fixed reusable layer pools. SwiftUI coordinates the
+  composition and activity tint separately. Active hits do not play synchronous
+  haptics. Cadence Mode lyrics update independently at 10 Hz.
 - The minimum performance contract is stable 60 FPS on an Apple M1 and stable
   120 FPS on an Apple M1 Pro connected to a 120 Hz display, without sustained
   frame drops during background motion or rapid alternating `Z`/`X` input.

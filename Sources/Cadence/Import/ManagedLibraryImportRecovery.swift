@@ -1,4 +1,5 @@
 import Foundation
+import QenTerraFoundation
 
 enum ManagedImportRecoveryError: Error, Equatable, LocalizedError, Sendable {
     case inconsistent(importID: UUID, reason: String)

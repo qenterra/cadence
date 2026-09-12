@@ -1,4 +1,5 @@
 import Foundation
+import QenTerraFoundation
 
 struct ProductionSmartCollectionIndex: Sendable {
     let tracks: [LibraryTrackProjection]

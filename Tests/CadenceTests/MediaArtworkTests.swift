@@ -2,6 +2,7 @@ import AppKit
 @testable import Cadence
 import Foundation
 import ImageIO
+import QenTerraFoundation
 import SwiftData
 import SwiftUI
 import Testing
@@ -28,7 +29,7 @@ struct MediaArtworkTests {
             representation.representation(using: .png, properties: [:])
         )
         let thumbnail = try #require(
-            ArtworkThumbnailGenerator.data(
+            ImageThumbnailGenerator.data(
                 from: source,
                 maximumPixelDimension: 512
             )

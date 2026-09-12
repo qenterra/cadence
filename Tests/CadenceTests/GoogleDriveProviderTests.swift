@@ -1,5 +1,6 @@
 @testable import Cadence
 import Foundation
+import QenTerraFoundation
 import Testing
 
 @Suite(.serialized)
@@ -62,85 +63,6 @@ struct GoogleDriveProviderTests {
         #expect(try await stream.googleCollected() == Data("2345".utf8))
     }
 
-    @Test("Resumable upload is finalized only after local hash verification")
-    func resumableUpload() async throws {
-        let fixture = GoogleDriveFixture()
-        let lock = NSLock()
-        nonisolated(unsafe) var requestNumber = 0
-        GoogleDriveURLProtocolStub.install { request in
-            let number = lock.withLock {
-                requestNumber += 1
-                return requestNumber
-            }
-            switch number {
-            case 1:
-                #expect(request.httpMethod == "POST")
-                #expect(request.url?.query?.contains("uploadType=resumable") == true)
-                return .response(
-                    request,
-                    status: 200,
-                    headers: ["Location": "https://upload.example.test/session"]
-                )
-            case 2:
-                #expect(request.httpMethod == "PUT")
-                return .response(
-                    request,
-                    status: 200,
-                    body: Data(#"{"id":"temporary-drive-id"}"#.utf8)
-                )
-            default:
-                #expect(request.httpMethod == "PATCH")
-                #expect(request.url?.path.hasSuffix("/files/temporary-drive-id") == true)
-                return .response(request, status: 200)
-            }
-        }
-        let bytes = Data("0123456789".utf8)
-
-        let upload = try await fixture.provider.uploadTemporary(
-            object: fixture.object.id,
-            bytes: .googleBytes(bytes)
-        )
-        try await fixture.provider.finalize(
-            upload,
-            expectedSHA256: fixture.object.sha256
-        )
-
-        let finalRequestCount = lock.withLock { requestNumber }
-        #expect(finalRequestCount == 3)
-    }
-
-    @Test("Drive precondition failure maps to a conflict")
-    func manifestConflict() async throws {
-        let fixture = GoogleDriveFixture()
-        GoogleDriveURLProtocolStub.install { request in
-            #expect(request.httpMethod == "PATCH")
-            #expect(request.value(forHTTPHeaderField: "If-Match") == "stale")
-            return .response(request, status: 412)
-        }
-
-        await #expect(throws: RemoteProviderError.conflict) {
-            try await fixture.provider.commitManifest(
-                fixture.manifest,
-                matching: "stale"
-            )
-        }
-    }
-
-    @Test("A manifest commit requires a non-empty new revision")
-    func manifestCommitRequiresRevision() async throws {
-        let fixture = GoogleDriveFixture()
-        GoogleDriveURLProtocolStub.install { request in
-            .response(request, status: 200, headers: ["ETag": "   "])
-        }
-
-        await #expect(throws: RemoteProviderError.invalidRevision) {
-            try await fixture.provider.commitManifest(
-                fixture.manifest,
-                matching: "previous"
-            )
-        }
-    }
-
     @Test("Provider sign-out deletes the authorization state")
     func signOut() async throws {
         let fixture = GoogleDriveFixture()
@@ -194,8 +116,6 @@ private struct GoogleDriveFixture: Sendable {
 private actor GoogleDriveAuthorizationStub: GoogleDriveAuthorizing {
     private(set) var tokenRequests = 0
     private(set) var didSignOut = false
-
-    func restoreSession() async throws {}
 
     func accessToken() async throws -> String {
         tokenRequests += 1
@@ -272,13 +192,6 @@ private final class GoogleDriveURLProtocolStub: URLProtocol, @unchecked Sendable
 }
 
 private extension AsyncThrowingStream where Element == Data, Failure == Error {
-    static func googleBytes(_ data: Data) -> Self {
-        AsyncThrowingStream { continuation in
-            continuation.yield(data)
-            continuation.finish()
-        }
-    }
-
     func googleCollected() async throws -> Data {
         var data = Data()
         for try await chunk in self {

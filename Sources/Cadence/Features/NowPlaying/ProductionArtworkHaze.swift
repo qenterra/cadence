@@ -1,54 +1,22 @@
 import CoreImage
+import QenTerraMediaComponents
 import SwiftUI
 
 struct ProductionArtworkHaze: View {
     @Bindable var model: CadenceAppModel
     let artworkID: UUID?
 
-    @Environment(\.accessibilityReduceTransparency)
-    private var reduceTransparency
-    @Environment(\.colorScheme) private var colorScheme
     @State private var palette: ArtworkHazePalette?
 
     var body: some View {
         Group {
-            if let palette, !reduceTransparency {
-                ZStack {
-                    RadialGradient(
-                        colors: [
-                            palette.leading.opacity(leadingStrength),
-                            palette.leading.opacity(leadingStrength * 0.42),
-                            .clear,
-                        ],
-                        center: .topLeading,
-                        startRadius: 18,
-                        endRadius: 330
+            if let palette {
+                ArtworkHaze(
+                    palette: QenTerraMediaComponents.ArtworkPalette(
+                        leading: palette.leading,
+                        trailing: palette.trailing
                     )
-                    RadialGradient(
-                        colors: [
-                            palette.trailing.opacity(trailingStrength),
-                            palette.trailing.opacity(trailingStrength * 0.42),
-                            .clear,
-                        ],
-                        center: .bottomTrailing,
-                        startRadius: 12,
-                        endRadius: 310
-                    )
-                    LinearGradient(
-                        colors: [
-                            palette.leading.opacity(backgroundStrength),
-                            palette.trailing.opacity(backgroundStrength * 0.84),
-                            .clear,
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                }
-                .saturation(colorScheme == .dark ? 1.12 : 1.28)
-                .blur(radius: 44)
-                .blendMode(colorScheme == .dark ? .plusLighter : .normal)
-                .allowsHitTesting(false)
-                .accessibilityHidden(true)
+                )
             }
         }
         .task(id: artworkID) {
@@ -67,18 +35,6 @@ struct ProductionArtworkHaze: View {
             }
             palette = extractedPalette
         }
-    }
-
-    private var leadingStrength: Double {
-        colorScheme == .dark ? 0.48 : 0.62
-    }
-
-    private var trailingStrength: Double {
-        colorScheme == .dark ? 0.40 : 0.54
-    }
-
-    private var backgroundStrength: Double {
-        colorScheme == .dark ? 0.12 : 0.22
     }
 }
 

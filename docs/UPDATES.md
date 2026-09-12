@@ -1,23 +1,35 @@
 # Software updates
 
-Cadence uses Sparkle 2 for in-app updates. The app checks the signed appcast on
-GitHub daily, and users can also choose **Cadence > Check for Updates…**. Stable
-updates are enabled by default. Beta releases are opt-in under **Settings >
-Updates**.
+Cadence 1.0.0 (build 3) is a **manual download** for Apple silicon Macs running
+macOS 26 or later. The app is ad-hoc signed, not Developer ID signed, and
+**not notarized**. This release is not delivered through Sparkle. The obsolete
+appcast entry for the retired beta download has been removed. See [installation](../README.md#install-cadence)
+for the DMG and Gatekeeper instructions.
+
+Cadence also includes Sparkle 2 for separately published in-app updates. Users
+can choose **Cadence > Check for Updates…**; stable checks are enabled by
+default and beta releases are opt-in under **Settings > Updates**. Those
+settings do not make the 1.0.0 manual download an automatic update.
 
 ## Trust model
 
-- Release archives are signed with Sparkle EdDSA. The private key is stored in
+- Sparkle update archives use EdDSA signatures. The private key is stored in
   the maintainer's login Keychain under account `com.qenterra.cadence`; it is
   never stored in this repository.
-- `SUPublicEDKey` in `project.yml` verifies every downloaded archive.
+- `SUPublicEDKey` in `project.yml` verifies archives downloaded by Sparkle.
+  Manual downloads are checked against the release's published SHA-256 values.
 - Cadence remains sandboxed. Sparkle's Installer XPC service is enabled with
   the two narrowly scoped Mach lookup exceptions documented by Sparkle.
-- Public distributions must be Developer ID signed, accepted by Apple's
-  notary service, and stapled. Sparkle EdDSA protects update archives in
-  transit, but it is not a substitute for platform signing and notarization.
-- Ad-hoc signing exists only in the explicit `local` packaging mode. Its DMG is
-  a disposable acceptance artifact and must never be uploaded or announced.
+- The Developer ID distribution profile requires notarization and stapling.
+  Sparkle EdDSA protects update archives in transit; it does not substitute
+  for platform signing and notarization.
+- The 1.0.0 manual distribution profile uses the exact contract values
+  `signing: ad-hoc`, `notarized: false`, and `gatekeeperDisclosure: true`.
+  It produces downloadable artifacts without Developer ID or Apple notarization
+  and never changes the Sparkle feed. This profile still requires the exact
+  clean tagged source and complete local verification.
+- The separate `local` packaging mode creates a disposable DMG for installer
+  checks. It does not satisfy the public release provenance gate.
 - Every reusable archive is bound to the exact release-tag commit and the
   canonical full local gate attestation. Version/build equality alone is not
   provenance and never authorizes archive reuse.
@@ -25,12 +37,12 @@ Updates**.
 ## Preparing a release
 
 `release-contract.json` is the canonical release source. The current contract is
-**Cadence 0.2.0 Beta 1 (2)**, tag `v0.2.0-beta.1`, Apple silicon, macOS 26 or
+**Cadence 1.0.0 (3)**, tag `v1.0.0`, Apple silicon, macOS 26 or
 later. It produces exactly:
 
-- `Cadence-0.2.0-beta.1-arm64.dmg`
-- `Cadence-0.2.0-beta.1-arm64.zip`
-- `Cadence-0.2.0-beta.1-SHA256SUMS.txt`
+- `Cadence-1.0.0-arm64.dmg`
+- `Cadence-1.0.0-arm64.zip` (manual application archive, not a Sparkle update)
+- `Cadence-1.0.0-SHA256SUMS.txt`
 
 1. Update the release contract and every release surface, commit the candidate,
    and use a dedicated clean checkout or worktree. The intended new manifest
@@ -50,16 +62,21 @@ later. It produces exactly:
    path directly with the index and tagged commit blobs; repository-defined Git
    filters are not part of that comparison. Release input roots also reject
    ignored files, cache directories, symlinks, and hard links.
-4. Store notarization credentials once with `xcrun notarytool
-   store-credentials`, then set `CADENCE_DEVELOPER_ID_APPLICATION`,
-   `CADENCE_DEVELOPMENT_TEAM`, and `CADENCE_NOTARY_KEYCHAIN_PROFILE`.
+4. Select the distribution profile in the committed contract. For 1.0.0,
+   use the disclosed ad-hoc manual profile; no Developer ID or notary
+   credentials are required. For a Developer ID release, store notarization
+   credentials with `xcrun notarytool store-credentials`, then set
+   `CADENCE_DEVELOPER_ID_APPLICATION`, `CADENCE_DEVELOPMENT_TEAM`, and
+   `CADENCE_NOTARY_KEYCHAIN_PROFILE`.
 5. Run `CADENCE_RELEASE_MODE=public scripts/prepare_release.sh
    [release-notes.md]`. The script validates the release contract, archives Cadence
-   with hardened runtime and Developer ID, notarizes and staples the app and
-   DMG, creates the Sparkle-signed update ZIP, updates `appcast.xml`, and writes
-   checksums. It rechecks the clean tagged source after project generation and
+   using the validated distribution profile. The ad-hoc profile creates the
+   DMG, a manual ZIP, and checksums while skipping notarization and leaving
+   `appcast.xml` unchanged. The Developer ID profile notarizes and staples the
+   app and DMG, creates a Sparkle-signed update ZIP, updates `appcast.xml`,
+   and writes checksums. It rechecks the clean tagged source after project generation and
    dependency resolution, validates the archive's embedded SHA/tag/digest
-   before signing or notarization, and runs the preparation shell as leader of
+   before distribution processing, and runs the preparation shell as leader of
    a dedicated process group supervised by the outer command. The supervisor
    forwards termination signals to that whole group, allows one bounded graceful
    shutdown interval, terminates any surviving same-group processes, waits until
@@ -83,17 +100,19 @@ later. It produces exactly:
 6. Inspect the app provenance keys, archive attestation, mounted DMG, both
    archive payloads, appcast diff, release notes, version/build values, signing
    output, and checksums.
-7. Push the already verified tag and create the GitHub prerelease only with
-   separate publication authority; upload all three named assets without
-   renaming them after appcast generation.
-8. Commit and publish the updated `appcast.xml`. Read the public release and
-   enclosure URL back before announcing it.
+7. Push the already verified tag and create the GitHub Release only with
+   publication authority. Match the prerelease flag to the contract channel;
+   1.0.0 is stable. Upload the three named assets without renaming them.
+8. Read the release body, flags, target, asset names, and checksums back from
+   GitHub. For the 1.0.0 manual profile, confirm `appcast.xml` is unchanged.
+   Only a Developer ID update release publishes the generated appcast; verify
+   its public enclosure URL before announcing that update.
 
 The scripts do not fetch, push, create, delete, or move tags. Archive reuse via
 `CADENCE_REUSE_ARCHIVE=1` rejects legacy archives without schema-v1 provenance
-and same-version archives from any other commit. The existing
-`v0.2.0-beta.1` tag belongs to its original source commit; current recovery work
-requires a new release version and tag instead of retagging Beta 1.
+and same-version archives from any other commit. A published tag always
+belongs to its original source commit; corrections
+require a new release version and tag instead of moving the published tag.
 All release roots must be physical directories rather than symlink redirects,
 existing artifact destinations must be single-link regular files, and the
 public version plus artifact names are validated as single safe path components
@@ -133,5 +152,6 @@ the trusted toolchain.
 For layout or mount/copy/launch testing without credentials, run
 `CADENCE_RELEASE_MODE=local scripts/prepare_release.sh`. This path creates only
 an ad-hoc DMG under `.build/releases/local`; it cannot mutate the appcast or
-produce public update assets. Sparkle tags the public appcast item with the
-`beta` channel, so stable users never receive it.
+produce a verified public release. The public mode selects its distribution
+profile from the validated contract; the release channel controls whether an
+eligible Sparkle item belongs to stable or beta users.

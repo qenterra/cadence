@@ -8,6 +8,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 
@@ -24,6 +25,108 @@ def load_verifier():
     sys.modules[spec.name] = module
     spec.loader.exec_module(module)
     return module
+
+
+class PinnedRegistryTests(unittest.TestCase):
+    def fixture(self, root: Path):
+        verifier = load_verifier()
+        upstream = root / "upstream"
+        upstream.mkdir()
+        registry = upstream / "registry/qenterra-components.json"
+        registry.parent.mkdir()
+        registry.write_text('{"version":"2.0.0","components":[]}')
+        def git(*args):
+            return subprocess.check_output(["git", "-C", str(upstream), *args], stderr=subprocess.DEVNULL).decode().strip()
+        git("init", "--quiet")
+        git("add", ".")
+        git("-c", "user.name=Fixture", "-c", "user.email=fixture@example.invalid", "commit", "--quiet", "-m", "Fixture")
+        revision = git("rev-parse", "HEAD")
+        repository = root / "cadence"
+        lockfile = repository / verifier.PACKAGE_RESOLVED
+        lockfile.parent.mkdir(parents=True)
+        pin = {"identity": "design-system", "kind": "remoteSourceControl", "location": verifier.DESIGN_SYSTEM_URL,
+               "state": {"version": "2.0.0", "revision": revision}}
+        lockfile.write_text(json.dumps({"version": 3, "pins": [pin]}))
+        return verifier, repository, upstream, revision, lockfile, pin
+
+    def fetch_locally(self, verifier, repository, upstream):
+        original = verifier.design_system_git
+        def local_git(checkout, *arguments):
+            if arguments[0] == "fetch":
+                arguments = tuple(str(upstream) if item == verifier.DESIGN_SYSTEM_URL else item for item in arguments)
+            return original(checkout, *arguments)
+        with patch.object(verifier, "design_system_git", side_effect=local_git):
+            return verifier.prepare_registry(repository)
+
+    def test_clean_clone_prepares_pinned_registry_and_reuses_it_offline(self):
+        with tempfile.TemporaryDirectory() as directory:
+            verifier, repository, upstream, revision, _, _ = self.fixture(Path(directory))
+            registry = self.fetch_locally(verifier, repository, upstream)
+            self.assertEqual(registry.read_bytes(), (upstream / verifier.DESIGN_SYSTEM_REGISTRY).read_bytes())
+            self.assertIn(revision, str(registry))
+            original = verifier.design_system_git
+            def offline(checkout, *arguments):
+                self.assertNotIn("fetch", arguments)
+                return original(checkout, *arguments)
+            with patch.object(verifier, "design_system_git", side_effect=offline):
+                self.assertEqual(verifier.prepare_registry(repository), registry)
+
+    def test_missing_lock_pin_rejects_mutable_sibling_fallback(self):
+        with tempfile.TemporaryDirectory() as directory:
+            verifier, repository, upstream, _, lockfile, _ = self.fixture(Path(directory))
+            upstream.rename(Path(directory) / "design-system")
+            lockfile.write_text('{"pins": []}')
+            with self.assertRaisesRegex(ValueError, "exactly one"):
+                verifier.default_registry_path(repository)
+
+    def test_pin_rejects_wrong_origin_branch_short_revision_and_duplicates(self):
+        with tempfile.TemporaryDirectory() as directory:
+            verifier, repository, _, _, lockfile, pin = self.fixture(Path(directory))
+            candidates = []
+            for key, value in [("location", "https://example.invalid/design-system.git"), ("kind", "localSourceControl")]:
+                candidate = copy.deepcopy(pin); candidate[key] = value; candidates.append([candidate])
+            for key, value in [("revision", "main"), ("branch", "main"), ("version", None)]:
+                candidate = copy.deepcopy(pin); candidate["state"][key] = value; candidates.append([candidate])
+            candidates.append([pin, pin])
+            for pins in candidates:
+                with self.subTest(pins=pins):
+                    lockfile.write_text(json.dumps({"pins": pins}))
+                    with self.assertRaises(ValueError):
+                        verifier.design_system_revision(repository)
+
+    def test_modified_registry_and_wrong_head_are_rejected(self):
+        with tempfile.TemporaryDirectory() as directory:
+            verifier, repository, upstream, _, _, _ = self.fixture(Path(directory))
+            registry = self.fetch_locally(verifier, repository, upstream)
+            registry.write_text('{}')
+            with self.assertRaisesRegex(ValueError, "pinned Git blob"):
+                verifier.default_registry_path(repository)
+            checkout = registry.parents[1]
+            verifier.design_system_git(checkout, "add", ".")
+            verifier.design_system_git(checkout, "-c", "user.name=Fixture", "-c", "user.email=fixture@example.invalid", "commit", "--quiet", "-m", "Wrong revision")
+            with self.assertRaisesRegex(ValueError, "does not match Package.resolved"):
+                verifier.default_registry_path(repository)
+
+    def test_failed_fetch_does_not_poison_cache_retry(self):
+        with tempfile.TemporaryDirectory() as directory:
+            verifier, repository, upstream, revision, _, _ = self.fixture(Path(directory))
+            original = verifier.design_system_git
+            def fail_fetch(checkout, *arguments):
+                if arguments[0] == "fetch":
+                    raise ValueError("simulated fetch failure")
+                return original(checkout, *arguments)
+            with patch.object(verifier, "design_system_git", side_effect=fail_fetch):
+                with self.assertRaisesRegex(ValueError, "simulated"):
+                    verifier.prepare_registry(repository)
+            self.assertFalse(verifier.registry_checkout(repository, revision).exists())
+            self.assertTrue(self.fetch_locally(verifier, repository, upstream).is_file())
+
+    def test_symlinked_cache_cannot_escape_repository(self):
+        with tempfile.TemporaryDirectory() as directory:
+            verifier, repository, upstream, _, _, _ = self.fixture(Path(directory))
+            (repository / ".build").symlink_to(upstream, target_is_directory=True)
+            with self.assertRaisesRegex(ValueError, "inside this repository"):
+                verifier.prepare_registry(repository)
 
 
 class UIComponentOwnershipTests(unittest.TestCase):

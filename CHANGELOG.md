@@ -5,30 +5,47 @@ uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-09-12
+
+Cadence 1.0.0 (build 3) supports Apple silicon Macs running macOS 26 or later.
+This release is a manual download with an ad-hoc signature; it is not
+Developer ID signed or notarized and is not delivered through Sparkle. See the
+[installation guide](README.md#install-cadence) for Gatekeeper instructions.
+
 ### Added
 
-- Added advanced playback, library, notification, and interface settings.
-- Added an artwork-colored Metal background in Cadence Mode with smooth track-color transitions and activity-aware tinting for keyboard effects.
+- Advanced playback, library, notification, and interface settings.
+- An artwork-colored Metal background in Cadence Mode with smooth track-color
+  transitions and activity-aware tinting for keyboard effects.
 
 ### Changed
 
-- Standardised commit messages, pull request reviews, changelogs, and release notes with shared contributor templates.
-
-- Added a registry-backed ownership contract for every Cadence visual declaration and retained direct Design System adoption.
-- Moved reusable Cadence interface presentation to the versioned QenTerra Design System while keeping product state and behavior in Cadence adapters.
-- Reused shared native table cells and artwork-gradient presentation while keeping Cadence's selection, artwork loading, keyboard effects, and playback policy local.
-- Adopted QenTerra repository standard 1.3.0 with maintained governance, collaboration, Wiki-source, and repository-health documentation.
-- Standardised the README Contact block across the QenTerra repository family.
-- Updated GRDB to 7.11.1 and AppAuth to 3.0.0, with canonical XcodeGen dependency pins.
+- Separated Home favorites into tracks, albums, and artists.
+- Adopted shared native table cells, artwork gradients, and interface components
+  from QenTerra Design System while retaining Cadence's library and playback behavior.
+- Reused independent QenTerraFoundation and QenTerraAudioAnalysis products for
+  hashing, text, caches, pagination, image processing, media clocks, and PCM analysis.
+- Updated GRDB to 7.11.1 and AppAuth to 3.0.0.
+- Updated contributor guides and canonical Wiki sources for the current app and
+  release process.
 
 ### Removed
 
-- Removed obsolete external donation configuration.
+- Unused interface declarations and unreachable remote-library write APIs;
+  configured remote libraries remain readable.
+- Obsolete external donation configuration.
+- The Sparkle entry for the retired beta download.
 
 ### Fixed
 
-- Improved track-row playback indicators, allowed tracks to appear in both Favorites and Recently Played, and applied inactive-line blur to lyrics instead of track titles.
-- Kept automatic library maintenance out of preview sessions so retention settings cannot erase fixture history or interrupt previews with library alerts.
+- Kept favorite tracks visible in Recently Played as well as Favorites.
+- Corrected track-row playback indicators and aligned year, duration, and options
+  controls in track tables.
+- Applied inactive-line blur to lyrics without blurring track titles.
+- Removed dark backgrounds from About resource links, the selected-track outline,
+  and the current-track queue decoration.
+- Kept automatic library maintenance out of preview sessions so retention settings
+  cannot erase fixture history or interrupt previews with library alerts.
 
 ## [0.2.0-beta.1] - 2026-08-13
 
@@ -62,6 +79,7 @@ uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   light, dark, and system appearance modes.
 - SwiftData persistence and a unit and integration test suite.
 
-[Unreleased]: https://github.com/QenTerra/cadence/compare/v0.2.0-beta.1...HEAD
-[0.2.0-beta.1]: https://github.com/QenTerra/cadence/releases/tag/v0.2.0-beta.1
+[Unreleased]: https://github.com/QenTerra/cadence/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/QenTerra/cadence/releases/tag/v1.0.0
+[0.2.0-beta.1]: https://github.com/QenTerra/cadence/tree/730f61fe837493d550f335edb0ded97d5c19562a
 [0.1.0]: https://github.com/QenTerra/cadence/tree/main

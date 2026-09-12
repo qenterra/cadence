@@ -1,6 +1,6 @@
 # Architecture
 
-Cadence is a sandboxed SwiftUI application using Swift 6 strict concurrency,
+Cadence is a sandboxed SwiftUI and AppKit application using Swift 6 strict concurrency,
 SwiftData, AVFoundation, and native macOS media services.
 
 ## Runtime flow
@@ -10,7 +10,8 @@ flowchart LR
     UI["SwiftUI features"] -->|"intent"| Model["CadenceAppModel<br/>@MainActor"]
     Model --> Store["LibraryStore"]
     Store --> Repository["LibraryRepository"]
-    Repository --> SwiftData["SwiftData store in Cadence folder"]
+    Repository --> SwiftData["SwiftData catalog<br/>sandboxed Application Support"]
+    Repository --> Search["GRDB lyrics-search index<br/>sandboxed Application Support"]
     Model --> Import["ImportCoordinator"]
     Import --> Inspector["Inspection and duplicate review"]
     Import --> Managed["Cadence folder"]
@@ -50,6 +51,10 @@ in-memory cache. The live SwiftData store and derived lyrics-search database
 stay in the app container's Application Support directory, keyed by the
 managed folder's stable library identity. This keeps SQLite and its WAL files
 off external volumes and file-provider storage.
+
+GRDB maintains the derived FTS5 lyrics-search index and performs SQLite
+integrity checks and WAL consolidation during local-catalog migration.
+SwiftData remains the canonical catalog and schema owner.
 
 The current schema stores tracks, albums, artists, artwork, tags, assignments,
 exclusions, playlists, smart collections, lyrics references, playback fields,
@@ -123,13 +128,26 @@ the current file to the existing import inspection and duplicate-review flow.
 
 Remote libraries keep the live SwiftData catalog local. The provider-neutral
 manifest maps track IDs to immutable media objects. WebDAV and Google Drive
-adapters use conditional manifest revisions so concurrent changes fail closed.
+adapters fetch manifests conditionally using provider revisions and expose
+read-only media streams; the app does not publish remote-library changes.
 Playback downloads the current object to staging, verifies its size and
 SHA-256, atomically promotes it into a bounded LRU cache, and only then gives a
 local URL to the existing backends. Current and next tracks are pinned; stale
 prefetch work is cancelled. Credentials and OAuth state stay in Keychain. The
 Google adapter keeps the narrow `drive.file` scope and therefore accepts only
 objects created by Cadence under the same OAuth client.
+
+## Shared packages
+
+QenTerraDesignTokens, QenTerraComponents, and QenTerraMediaComponents supply
+reusable native presentation. Cadence retains application state, SwiftData
+models, table coordination, asynchronous artwork loading, queue mutation,
+lyrics editing, and playback policy.
+
+QenTerraFoundation supplies reusable hashing, normalization, caches, pagination,
+and image processing. QenTerraAudioAnalysis supplies media-clock and PCM-analysis
+algorithms without depending on the UI products. See [Dependencies](DEPENDENCIES.md)
+for the current package pin.
 
 ## Concurrency
 

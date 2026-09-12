@@ -3,20 +3,6 @@ import Foundation
 import Testing
 
 struct RemoteLibraryProviderContractTests {
-    @Test("A stale manifest revision fails closed")
-    func staleManifestRevisionFailsClosed() async throws {
-        let fixture = RemoteProviderFixture()
-        let first = try await fixture.provider.fetchManifest(ifNoneMatch: nil)
-        await fixture.provider.simulateConcurrentCommit()
-
-        await #expect(throws: RemoteProviderError.conflict) {
-            try await fixture.provider.commitManifest(
-                fixture.updatedManifest,
-                matching: first.revision
-            )
-        }
-    }
-
     @Test("Conditional manifest fetch reports not modified")
     func conditionalManifestFetch() async throws {
         let fixture = RemoteProviderFixture()
@@ -39,22 +25,6 @@ struct RemoteLibraryProviderContractTests {
         )
 
         #expect(try await stream.collected() == Data("2345".utf8))
-    }
-
-    @Test("Finalization rejects a mismatched content hash")
-    func finalizeRejectsMismatchedHash() async throws {
-        let fixture = RemoteProviderFixture()
-        let upload = try await fixture.provider.uploadTemporary(
-            object: fixture.media.id,
-            bytes: .bytes(Data("replacement".utf8))
-        )
-
-        await #expect(throws: RemoteProviderError.integrityMismatch) {
-            try await fixture.provider.finalize(
-                upload,
-                expectedSHA256: String(repeating: "0", count: 64)
-            )
-        }
     }
 
     @Test("The remote manifest round trips all portable references")
@@ -81,7 +51,6 @@ private struct RemoteProviderFixture {
         fileExtension: "flac"
     )
     let manifest: RemoteLibraryManifest
-    let updatedManifest: RemoteLibraryManifest
     let provider: FakeRemoteLibraryProvider
 
     init() {
@@ -107,11 +76,6 @@ private struct RemoteProviderFixture {
                 ),
             ]
         )
-        updatedManifest = RemoteLibraryManifest(
-            libraryID: manifest.libraryID,
-            generation: 2,
-            tracks: manifest.tracks
-        )
         provider = FakeRemoteLibraryProvider(
             manifest: manifest,
             objects: [media.id: Data("0123456789".utf8)]
@@ -120,10 +84,9 @@ private struct RemoteProviderFixture {
 }
 
 private actor FakeRemoteLibraryProvider: RemoteLibraryProvider {
-    private var manifest: RemoteLibraryManifest
-    private var revision = "revision-1"
-    private var objects: [RemoteObjectID: Data]
-    private var temporaryUploads: [UUID: (RemoteObjectID, Data)] = [:]
+    private let manifest: RemoteLibraryManifest
+    private let revision = "revision-1"
+    private let objects: [RemoteObjectID: Data]
 
     init(
         manifest: RemoteLibraryManifest,
@@ -132,8 +95,6 @@ private actor FakeRemoteLibraryProvider: RemoteLibraryProvider {
         self.manifest = manifest
         self.objects = objects
     }
-
-    func restoreSession() async throws {}
 
     func fetchManifest(
         ifNoneMatch revision: String?
@@ -165,48 +126,6 @@ private actor FakeRemoteLibraryProvider: RemoteLibraryProvider {
             selected = bytes
         }
         return .bytes(selected)
-    }
-
-    func uploadTemporary(
-        object: RemoteObjectID,
-        bytes: AsyncThrowingStream<Data, Error>
-    ) async throws -> RemoteUpload {
-        let id = UUID()
-        temporaryUploads[id] = try await (object, bytes.collected())
-        return RemoteUpload(id: id, object: object)
-    }
-
-    func finalize(
-        _ upload: RemoteUpload,
-        expectedSHA256: String
-    ) async throws {
-        guard let pending = temporaryUploads.removeValue(forKey: upload.id) else {
-            throw RemoteProviderError.objectNotFound(upload.object)
-        }
-        guard ContentHasher().sha256(of: pending.1) == expectedSHA256 else {
-            throw RemoteProviderError.integrityMismatch
-        }
-        objects[pending.0] = pending.1
-    }
-
-    func commitManifest(
-        _ manifest: RemoteLibraryManifest,
-        matching revision: String?
-    ) async throws -> String {
-        guard revision == self.revision else {
-            throw RemoteProviderError.conflict
-        }
-        self.manifest = manifest
-        self.revision = "revision-\(manifest.generation)"
-        return self.revision
-    }
-
-    func delete(object: RemoteObjectID) async throws {
-        objects[object] = nil
-    }
-
-    func simulateConcurrentCommit() {
-        revision = "revision-concurrent"
     }
 }
 

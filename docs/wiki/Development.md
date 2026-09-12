@@ -5,8 +5,15 @@
 ```sh
 git clone https://github.com/QenTerra/cadence.git
 cd cadence
-bash scripts/verify.sh
+brew bundle
+./scripts/prepare_python_tools.sh
+xcodegen generate --spec project.yml
+open Cadence.xcodeproj
 ```
+
+Use Xcode 27 or later. Resolve the Design System dependency described in the
+[build guide](https://github.com/QenTerra/cadence/blob/main/docs/BUILDING.md)
+before generating the project.
 
 ## Verify
 

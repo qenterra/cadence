@@ -1,6 +1,7 @@
 import AVFoundation
 @testable import Cadence
 import Foundation
+import QenTerraFoundation
 import Testing
 
 struct MetadataReaderTests {

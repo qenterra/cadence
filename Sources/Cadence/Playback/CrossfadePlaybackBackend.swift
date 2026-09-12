@@ -1,4 +1,5 @@
 import Foundation
+import QenTerraAudioAnalysis
 
 /// Adds an overlapping successor renderer while preserving the coordinator as
 /// the sole queue authority. With crossfade disabled, the wrapped backend keeps

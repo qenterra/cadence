@@ -1,5 +1,6 @@
 @testable import Cadence
 import Foundation
+import QenTerraFoundation
 import Testing
 
 @Suite(.serialized)
@@ -92,38 +93,6 @@ struct WebDAVProviderTests {
         }
     }
 
-    @Test("Manifest preconditions map to a conflict")
-    func manifestConflict() async throws {
-        let fixture = await WebDAVFixture()
-        WebDAVURLProtocolStub.install { request in
-            #expect(request.httpMethod == "PUT")
-            #expect(request.value(forHTTPHeaderField: "If-Match") == "stale")
-            return .response(request, status: 412)
-        }
-
-        await #expect(throws: RemoteProviderError.conflict) {
-            try await fixture.provider.commitManifest(
-                fixture.manifest,
-                matching: "stale"
-            )
-        }
-    }
-
-    @Test("A manifest commit requires a non-empty new revision")
-    func manifestCommitRequiresRevision() async throws {
-        let fixture = await WebDAVFixture()
-        WebDAVURLProtocolStub.install { request in
-            .response(request, status: 200, headers: ["ETag": "\t"])
-        }
-
-        await #expect(throws: RemoteProviderError.invalidRevision) {
-            try await fixture.provider.commitManifest(
-                fixture.manifest,
-                matching: "previous"
-            )
-        }
-    }
-
     @Test("Credentials are restored without exposing them in errors")
     func authenticationRestore() async throws {
         let store = InMemoryWebDAVCredentialStore()
@@ -139,7 +108,7 @@ struct WebDAVProviderTests {
             return .response(request, status: 304, headers: ["ETag": "same"])
         }
 
-        try await fixture.provider.restoreSession()
+        try await authentication.restore()
         let response = try await fixture.provider.fetchManifest(ifNoneMatch: "same")
 
         #expect(response.manifest == nil)

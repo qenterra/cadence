@@ -1,5 +1,6 @@
 @testable import Cadence
 import Foundation
+@testable import QenTerraAudioAnalysis
 
 @MainActor
 final class PlaybackTestResolver: PlaybackTrackResolving {

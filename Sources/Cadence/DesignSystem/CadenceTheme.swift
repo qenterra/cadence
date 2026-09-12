@@ -72,7 +72,6 @@ enum CadenceTheme {
     static let fillDisabled = GeneratedTokens.Color.fillDisabled
     static let fillHover = GeneratedTokens.Color.fillHover
     static let fillSelected = GeneratedTokens.Color.fillSelected
-    static let fillSelectedStrong = GeneratedTokens.Color.fillSelectedStrong
     static let textPrimary = GeneratedTokens.Color.textPrimary
     static let textSecondary = GeneratedTokens.Color.textSecondary
 
@@ -84,12 +83,8 @@ enum CadenceTheme {
     static let strongSeparator = adaptive(borderStrong)
     static let subduedFill = adaptive(fillDisabled)
     static let selectionFill = adaptive(fillSelected)
-    static let selectionStrongFill = adaptive(fillSelectedStrong)
     static let hoverFill = adaptive(fillHover)
     static let playerMetadata = adaptive(textSecondary)
-    static let nativePrimaryAccent = adaptiveNSColor(actionPrimary)
-    static let nativeSelectionFill = adaptiveNSColor(fillSelected)
-    static let nativeHoverFill = adaptiveNSColor(fillHover)
 
     static let radiusNone = GeneratedTokens.Radius.none
     static let radiusControl = GeneratedTokens.Radius.control
@@ -104,22 +99,10 @@ enum CadenceTheme {
     static let motionDismiss = GeneratedTokens.Motion.floatingDismiss.seconds
     static let motionSpatialLong = GeneratedTokens.Motion.navigationSpatial.seconds
 
-    static func playerControl(
-        _ state: PlayerControlVisualState
-    ) -> Color {
-        adaptive(state.token)
-    }
-
     // Product motion: Cadence Mode has no second consumer, so it stays named
     // here rather than inflating the shared feedback motion scale.
     static let motionCadenceModeEnter = 0.5
     private static func adaptive(_ token: CadenceColorValue) -> Color {
         Color(designToken: token)
-    }
-
-    private static func adaptiveNSColor(
-        _ token: CadenceColorValue
-    ) -> NSColor {
-        NSColor.designToken(token)
     }
 }

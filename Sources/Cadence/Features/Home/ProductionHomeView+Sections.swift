@@ -36,52 +36,60 @@ extension ProductionHomeView {
             limit: budget.artistLimit
         )
 
-        if !tracks.isEmpty || !albums.isEmpty || !artists.isEmpty {
-            HomeShelf(
-                title: "Favorites",
-                actionTitle: "See All",
-                action: openFavorites
-            ) {
-                HomeCompactGrid {
-                    ForEach(tracks) { track in
-                        HomeTrackTile(
-                            model: model,
-                            track: track,
-                            queue: store.favoriteTracks,
-                            queueSource: .favorites
-                        )
-                    }
+        if !tracks.isEmpty {
+            favoriteTracksShelf(tracks)
+        }
+        if !albums.isEmpty {
+            favoriteAlbumsShelf(albums)
+        }
+        if !artists.isEmpty {
+            favoriteArtistsShelf(artists)
+        }
+    }
 
-                    ForEach(albums) { album in
-                        ProductionAlbumTile(
-                            model: model,
-                            store: store,
-                            album: album,
-                            orderedTargets: albums.map {
-                                CatalogActivationTarget(
-                                    kind: .album,
-                                    id: $0.id
-                                )
-                            }
-                        )
-                    }
-
-                    ForEach(artists) { artist in
-                        ProductionArtistTile(
-                            model: model,
-                            store: store,
-                            artist: artist,
-                            orderedTargets: artists.map {
-                                CatalogActivationTarget(
-                                    kind: .artist,
-                                    id: $0.id
-                                )
-                            }
-                        )
-                    }
+    private func favoriteTracksShelf(_ tracks: [LibraryTrackProjection]) -> some View {
+        HomeShelf(title: String(localized: "Favorite Tracks"), actionTitle: "See All", action: {
+            openFavorites(.songs)
+        }, content: {
+            HomeCompactGrid {
+                ForEach(tracks) { track in
+                    HomeTrackTile(
+                        model: model, track: track,
+                        queue: store.favoriteTracks, queueSource: .favorites
+                    )
                 }
             }
-        }
+        })
+    }
+
+    private func favoriteAlbumsShelf(_ albums: [LibraryAlbumProjection]) -> some View {
+        HomeShelf(title: String(localized: "Favorite Albums"), actionTitle: "See All", action: {
+            openFavorites(.albums)
+        }, content: {
+            HomeCompactGrid {
+                ForEach(albums) { album in
+                    ProductionAlbumTile(
+                        model: model, store: store, album: album,
+                        orderedTargets: albums.map { CatalogActivationTarget(kind: .album, id: $0.id) }
+                    )
+                }
+            }
+        })
+    }
+
+    private func favoriteArtistsShelf(_ artists: [LibraryArtistProjection]) -> some View {
+        HomeShelf(title: String(localized: "Favorite Artists"), actionTitle: "See All", action: {
+            openFavorites(.artists)
+        }, content: {
+            HomeCompactGrid {
+                ForEach(artists) { artist in
+                    ProductionArtistTile(
+                        model: model, store: store, artist: artist,
+                        orderedTargets: artists.map { CatalogActivationTarget(kind: .artist, id: $0.id) }
+                    )
+                }
+            }
+        })
     }
 
     var pinnedItems: some View {
@@ -219,7 +227,8 @@ extension ProductionHomeView {
         )
     }
 
-    private func openFavorites() {
+    private func openFavorites(_ section: FavoriteCatalogSection) {
+        UserDefaults.standard.set(section.rawValue, forKey: "library.favoriteSection")
         model.requestNavigationDestination(.favorites)
     }
 }

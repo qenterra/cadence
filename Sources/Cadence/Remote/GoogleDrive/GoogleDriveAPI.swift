@@ -17,10 +17,6 @@ struct GoogleDriveAPI: Sendable {
     static let filesURL = URL(
         string: "https://www.googleapis.com/drive/v3/files"
     )!
-    static let uploadFilesURL = URL(
-        string: "https://www.googleapis.com/upload/drive/v3/files"
-    )!
-
     let authorization: any GoogleDriveAuthorizing
 
     func request(
@@ -51,11 +47,8 @@ struct GoogleDriveAPI: Sendable {
         return request
     }
 
-    func fileURL(
-        _ id: String,
-        upload: Bool = false
-    ) -> URL {
-        (upload ? Self.uploadFilesURL : Self.filesURL)
+    func fileURL(_ id: String) -> URL {
+        Self.filesURL
             .appending(path: id, directoryHint: .notDirectory)
     }
 }

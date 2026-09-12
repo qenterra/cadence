@@ -1,5 +1,6 @@
 @testable import Cadence
 import CoreGraphics
+import QenTerraFoundation
 import QenTerraMediaComponents
 import QuartzCore
 import Testing

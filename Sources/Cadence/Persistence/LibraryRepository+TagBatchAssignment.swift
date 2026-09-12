@@ -1,4 +1,5 @@
 import Foundation
+import QenTerraFoundation
 import SwiftData
 
 extension LibraryRepository {

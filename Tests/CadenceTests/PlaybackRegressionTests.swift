@@ -1,5 +1,6 @@
 @testable import Cadence
 import Foundation
+import QenTerraAudioAnalysis
 import Testing
 
 @MainActor

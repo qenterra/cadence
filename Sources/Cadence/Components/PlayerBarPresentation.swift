@@ -5,14 +5,9 @@ enum PlayerBarLayoutMetrics {
     static let contentHeight: CGFloat = 56
     static let opticalVerticalAdjustment = CadenceLayout.textStack
     static let horizontalInset = CadenceLayout.panelInset
-    static let regionSpacing = CadenceLayout.pageInset
-    static let controlSpacing = CadenceLayout.contentGap
-    static let transportSpacing = CadenceLayout.controlGap
-    static let metadataSpacing = CadenceLayout.textStack
     static let metadataMinimumWidth: CGFloat = 244
     static let metadataMaximumWidth: CGFloat = 380
     static let outputWidth: CGFloat = 244
-    static let transportMinimumWidth: CGFloat = 500
 
     static func contentFrame(availableWidth: CGFloat) -> CGRect {
         CGRect(
@@ -21,19 +16,6 @@ enum PlayerBarLayoutMetrics {
                 - opticalVerticalAdjustment,
             width: max(availableWidth, 0),
             height: contentHeight
-        )
-    }
-
-    static func metadataWidth(availableWidth: CGFloat) -> CGFloat {
-        min(
-            max(
-                availableWidth
-                    - outputWidth
-                    - transportMinimumWidth
-                    - regionSpacing * 2,
-                metadataMinimumWidth
-            ),
-            metadataMaximumWidth
         )
     }
 }
