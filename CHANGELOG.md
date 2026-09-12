@@ -12,6 +12,8 @@ uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- Standardised commit messages, pull request reviews, changelogs, and release notes with shared contributor templates.
+
 - Added a registry-backed ownership contract for every Cadence visual declaration and retained direct Design System adoption.
 - Moved reusable Cadence interface presentation to the versioned QenTerra Design System while keeping product state and behavior in Cadence adapters.
 - Reused shared native table cells and artwork-gradient presentation while keeping Cadence's selection, artwork loading, keyboard effects, and playback policy local.
@@ -19,14 +21,14 @@ uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Standardised the README Contact block across the QenTerra repository family.
 - Updated GRDB to 7.11.1 and AppAuth to 3.0.0, with canonical XcodeGen dependency pins.
 
+### Removed
+
+- Removed obsolete external donation configuration.
+
 ### Fixed
 
 - Improved track-row playback indicators, allowed tracks to appear in both Favorites and Recently Played, and applied inactive-line blur to lyrics instead of track titles.
 - Kept automatic library maintenance out of preview sessions so retention settings cannot erase fixture history or interrupt previews with library alerts.
-
-### Removed
-
-- Removed obsolete external donation configuration.
 
 ## [0.2.0-beta.1] - 2026-08-13
 
