@@ -71,4 +71,4 @@ or acceptance across all supported hardware and assistive technologies.
 
 ## Full changelog
 
-[Cadence 1.0.0 changelog](https://github.com/QenTerra/cadence/blob/v1.0.0/CHANGELOG.md#100---2026-09-12).
+[Changes since 0.2.0 Beta 1](https://github.com/QenTerra/cadence/compare/730f61fe837493d550f335edb0ded97d5c19562a...v1.0.0).

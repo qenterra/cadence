@@ -79,7 +79,7 @@ Developer ID signed or notarized and is not delivered through Sparkle. See the
   light, dark, and system appearance modes.
 - SwiftData persistence and a unit and integration test suite.
 
-[Unreleased]: https://github.com/QenTerra/cadence/compare/v1.0.0...HEAD
-[1.0.0]: https://github.com/QenTerra/cadence/releases/tag/v1.0.0
+[Unreleased]: https://github.com/QenTerra/cadence/compare/v1.0.0...main
+[1.0.0]: https://github.com/QenTerra/cadence/compare/730f61fe837493d550f335edb0ded97d5c19562a...v1.0.0
 [0.2.0-beta.1]: https://github.com/QenTerra/cadence/tree/730f61fe837493d550f335edb0ded97d5c19562a
 [0.1.0]: https://github.com/QenTerra/cadence/tree/main
