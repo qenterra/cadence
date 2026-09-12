@@ -1,4 +1,5 @@
 import Foundation
+import QenTerraFoundation
 
 protocol LyricsSearchIndexing: AnyObject, Sendable {
     func synchronize() async throws

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import itertools
 import sys
 import tempfile
 import unittest
@@ -10,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from release_contract import (  # noqa: E402
+    ReleaseContractError,
     environment_values,
     validate_product_surfaces,
     validate_public_release_environment,
@@ -68,7 +70,8 @@ class CadenceReleaseContractTests(unittest.TestCase):
         (self.root / "README.md").write_text(
             "Version 0.2.0-beta.1\n"
             "Cadence-0.2.0-beta.1-arm64.dmg\n"
-            "This ad-hoc beta is not notarized and macOS may show Gatekeeper friction.\n",
+            "This ad-hoc beta is not notarized and macOS may show Gatekeeper friction.\n"
+            "Use manual download; no automatic update is published.\n",
             encoding="utf-8",
         )
         (self.root / "CHANGELOG.md").write_text(
@@ -124,24 +127,52 @@ class CadenceReleaseContractTests(unittest.TestCase):
         )
 
     def test_public_release_rejects_missing_credentials(self) -> None:
+        self.set_distribution("developer-id", True, False)
         errors = validate_public_release_environment(self.root, {})
 
         self.assertIn("CADENCE_DEVELOPER_ID_APPLICATION is required", errors)
         self.assertIn("CADENCE_DEVELOPMENT_TEAM is required", errors)
         self.assertIn("CADENCE_NOTARY_KEYCHAIN_PROFILE is required", errors)
 
-    def test_public_release_rejects_ad_hoc_manifest(self) -> None:
-        environment = {
-            "CADENCE_DEVELOPER_ID_APPLICATION": "Developer ID Application: QenTerra",
-            "CADENCE_DEVELOPMENT_TEAM": "ABCDE12345",
-            "CADENCE_NOTARY_KEYCHAIN_PROFILE": "cadence-notary",
+    def test_public_ad_hoc_release_accepts_disclosure_without_credentials(self) -> None:
+        self.assertEqual(validate_public_release_environment(self.root, {}), [])
+        self.assertEqual(environment_values(self.root)["DISTRIBUTION_SIGNING"], "ad-hoc")
+
+    def test_public_ad_hoc_release_requires_each_disclosure(self) -> None:
+        readme = self.root / "README.md"
+        original = readme.read_text(encoding="utf-8")
+        for disclosure in ("ad-hoc", "not notarized", "Gatekeeper", "manual download"):
+            with self.subTest(disclosure=disclosure):
+                readme.write_text(original.replace(disclosure, "omitted"), encoding="utf-8")
+                self.assertIn(
+                    f"README.md Gatekeeper disclosure must include {disclosure}",
+                    validate_public_release_environment(self.root, {}),
+                )
+
+    def test_mixed_distribution_claims_fail_before_packaging(self) -> None:
+        for signing, notarized, disclosure in itertools.product(
+            ("developer-id", "ad-hoc", "unknown"), (False, True), (False, True)
+        ):
+            if (signing, notarized, disclosure) in {
+                ("developer-id", True, False), ("ad-hoc", False, True)
+            }:
+                continue
+            with self.subTest(signing=signing, notarized=notarized, disclosure=disclosure):
+                self.set_distribution(signing, notarized, disclosure)
+                with self.assertRaisesRegex(ReleaseContractError, "mixed claims"):
+                    environment_values(self.root)
+                with self.assertRaisesRegex(ReleaseContractError, "mixed claims"):
+                    validate_public_release_environment(self.root, {})
+
+    def set_distribution(self, signing: str, notarized: bool, disclosure: bool) -> None:
+        path = self.root / "release-contract.json"
+        manifest = json.loads(path.read_text(encoding="utf-8"))
+        manifest["distribution"] = {
+            "signing": signing,
+            "notarized": notarized,
+            "gatekeeperDisclosure": disclosure,
         }
-
-        errors = validate_public_release_environment(self.root, environment)
-
-        self.assertIn("distribution.signing must be developer-id", errors)
-        self.assertIn("distribution.notarized must be true", errors)
-        self.assertIn("distribution.gatekeeperDisclosure must be false", errors)
+        path.write_text(json.dumps(manifest), encoding="utf-8")
 
     def test_public_release_accepts_complete_distribution_contract(self) -> None:
         manifest_path = self.root / "release-contract.json"
@@ -184,7 +215,7 @@ class DependencyResolutionContractTests(unittest.TestCase):
 
 
 class ReleaseScriptContractTests(unittest.TestCase):
-    def test_public_mode_notarizes_and_validates_every_distribution(self) -> None:
+    def test_developer_id_mode_retains_notarization_and_validation(self) -> None:
         script = (ROOT / "scripts" / "prepare_release.sh").read_text(encoding="utf-8")
 
         self.assertIn('CADENCE_RELEASE_MODE', script)
@@ -211,7 +242,8 @@ class ReleaseScriptContractTests(unittest.TestCase):
 
         self.assertIn('CadenceVisualRegression/update', script)
         self.assertIn('candidate_dir="${TMPDIR:?}', script)
-        self.assertIn('expected_candidate_count="89"', script)
+        self.assertIn('expected_candidate_count="91"', script)
+        self.assertIn('-only-testing:CadenceTests/AllTracksVisualAcceptanceTests', script)
         self.assertIn('candidate_count', script)
         self.assertIn('cp -f "$candidate_dir"/*.png', script)
 

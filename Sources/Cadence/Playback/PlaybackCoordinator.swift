@@ -1,6 +1,7 @@
 import AVFoundation
 import Foundation
 import Observation
+import QenTerraAudioAnalysis
 
 enum PlaybackIntentTransport: Equatable, Sendable {
     case failed

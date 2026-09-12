@@ -238,7 +238,7 @@ struct LibraryUXInfrastructureTests {
         )
     }
 
-    @Test("Home favorites preview shares six slots across media types")
+    @Test("Home favorites gives each media type its own preview budget")
     func homeFavoritesPreviewBudget() {
         #expect(
             HomeFavoritesPreviewBudget.resolve(
@@ -247,7 +247,7 @@ struct LibraryUXInfrastructureTests {
                 artistCount: 1,
                 limit: 6
             ) == HomeFavoritesPreviewBudget(
-                trackLimit: 3,
+                trackLimit: 6,
                 albumLimit: 2,
                 artistLimit: 1
             )

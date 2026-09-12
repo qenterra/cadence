@@ -1795,6 +1795,80 @@ class ReleasePreparationOrderingTests(unittest.TestCase):
             ],
         )
 
+    def test_public_ad_hoc_prepare_creates_manual_assets_without_notary_or_sparkle(self) -> None:
+        self.complete_gate()
+        self.make_reused_archive(
+            source_sha=self.sha, include_attestation=False, release_mode="public"
+        )
+        self.install_trace_shims(prepare_success=True)
+        appcast = self.root / "appcast.xml"
+        original_appcast = appcast.read_bytes()
+        arguments_trace = self.root / ".build" / "archive-arguments.txt"
+
+        result = self.run_prepare(extra_env={
+            "CADENCE_RELEASE_MODE": "public",
+            "ARCHIVE_ARGUMENTS_TRACE": str(arguments_trace),
+            "CADENCE_DEVELOPER_ID_APPLICATION": "",
+            "CADENCE_DEVELOPMENT_TEAM": "",
+            "CADENCE_NOTARY_KEYCHAIN_PROFILE": "",
+        })
+
+        self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
+        self.assertIn("Ad-hoc signed and not notarized", result.stdout)
+        self.assertIn("manual download", result.stdout)
+        self.assertNotIn("Commit and publish appcast.xml", result.stdout)
+        self.assertEqual(appcast.read_bytes(), original_appcast)
+        self.assertNotIn("xcrun", self.trace_lines())
+        self.assertNotIn("spctl", self.trace_lines())
+        arguments = arguments_trace.read_text(encoding="utf-8")
+        self.assertIn("CODE_SIGN_IDENTITY=-", arguments)
+        self.assertNotIn("DEVELOPMENT_TEAM=", arguments)
+        output = self.root / ".build" / "releases" / "public" / "9.8.7-test.1"
+        self.assertEqual(
+            {path.name for path in output.iterdir()},
+            {"Cadence-9.8.7-test.1-arm64.dmg", "Cadence-9.8.7-test.1-arm64.zip",
+             "Cadence-9.8.7-test.1-SHA256SUMS.txt"},
+        )
+        checksums = (output / "Cadence-9.8.7-test.1-SHA256SUMS.txt").read_text()
+        for suffix in ("dmg", "zip"):
+            artifact = output / f"Cadence-9.8.7-test.1-arm64.{suffix}"
+            self.assertIn(hashlib.sha256(artifact.read_bytes()).hexdigest(), checksums)
+        self.assertFalse((self.root / ".build" / "cadence-release-operation.lock").exists())
+
+    def test_public_ad_hoc_rejects_archive_with_different_signature(self) -> None:
+        self.complete_gate()
+        self.make_reused_archive(
+            source_sha=self.sha, include_attestation=False, release_mode="public"
+        )
+        self.install_trace_shims(prepare_success=True)
+        result = self.run_prepare(extra_env={
+            "CADENCE_RELEASE_MODE": "public", "FIXTURE_SIGNATURE": "Developer ID"
+        })
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("does not match the declared ad-hoc signature", result.stderr)
+        self.assertNotIn("create-dmg", self.trace_lines())
+        self.assertNotIn("ditto", self.trace_lines())
+
+    def test_public_ad_hoc_still_requires_full_gate_before_tools(self) -> None:
+        self.install_trace_shims()
+        result = self.run_prepare(extra_env={"CADENCE_RELEASE_MODE": "public"})
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("attestation", (result.stderr + result.stdout).lower())
+        self.assertEqual(self.trace_lines(), [])
+
+    def test_public_ad_hoc_still_rejects_wrong_source_archive_before_tools(self) -> None:
+        self.complete_gate()
+        self.install_trace_shims()
+        self.make_reused_archive(
+            source_sha="3" * 40, include_attestation=True, release_mode="public"
+        )
+        result = self.run_prepare(
+            reuse_archive=True, extra_env={"CADENCE_RELEASE_MODE": "public"}
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("source SHA", result.stderr + result.stdout)
+        self.assertEqual(self.trace_lines(), [])
+
     def test_prepare_supervisor_preserves_requested_developer_directory(self) -> None:
         self.complete_gate()
         self.make_reused_archive(source_sha=self.sha, include_attestation=False)
@@ -2404,7 +2478,7 @@ class ReleasePreparationOrderingTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
 
     def make_reused_archive(
-        self, *, source_sha: str, include_attestation: bool
+        self, *, source_sha: str, include_attestation: bool, release_mode: str = "local"
     ) -> None:
         attestation_path = (
             self.root
@@ -2417,7 +2491,7 @@ class ReleasePreparationOrderingTests(unittest.TestCase):
             self.root
             / ".build"
             / "Release"
-            / "local"
+            / release_mode
             / "Cadence.xcarchive"
         )
         contents = (
@@ -2516,6 +2590,10 @@ class ReleasePreparationOrderingTests(unittest.TestCase):
                     )
                 body.append("elif [[ \" $* \" == *\" archive \"* ]]; then")
                 body.append("  echo xcodebuild-archive >> \"$TRACE_PATH\"")
+                body.append(
+                    '  if [[ -n "${ARCHIVE_ARGUMENTS_TRACE:-}" ]]; then '
+                    'printf "%s\\n" "$@" > "$ARCHIVE_ARGUMENTS_TRACE"; fi'
+                )
                 body.append("else")
                 body.append("  echo xcodebuild-test >> \"$TRACE_PATH\"")
                 if verify_success:
@@ -2548,6 +2626,13 @@ class ReleasePreparationOrderingTests(unittest.TestCase):
                 body.append("printf '%s\\n' arm64")
             else:
                 body.append(f"echo {shlex.quote(command)} >> \"$TRACE_PATH\"")
+            if command == "codesign" and prepare_success:
+                body.append(
+                    'if [[ "$1" == "--display" ]]; then '
+                    'printf "%s\\n" "Signature=${FIXTURE_SIGNATURE:-adhoc}"; fi'
+                )
+            if command == "ditto" and prepare_success:
+                body.append('exec /usr/bin/ditto "$@"')
             if command == "codesign" and codesign_moves_tag_to is not None:
                 body.append(
                     "env -u DEVELOPER_DIR /usr/bin/git -C "
@@ -2634,9 +2719,11 @@ class ReleasePreparationOrderingTests(unittest.TestCase):
         (self.root / "README.md").write_text(
             "Version 9.8.7-test.1\n"
             "Cadence-9.8.7-test.1-arm64.dmg\n"
-            "This build is not notarized; Gatekeeper may show friction.\n",
+            "This ad-hoc build is not notarized; Gatekeeper may show friction.\n"
+            "Use manual download; no automatic update is published.\n",
             encoding="utf-8",
         )
+        (self.root / "appcast.xml").write_text("<rss/>\n", encoding="utf-8")
         (self.root / "CHANGELOG.md").write_text(
             "## [9.8.7-test.1]\n", encoding="utf-8"
         )

@@ -144,7 +144,7 @@ struct CadencePlayerAdapterTests {
         #expect(!stale.isAvailable)
         #expect(stale.isDraggable)
         #expect(stale.accessibilityValue == "Selected, unavailable")
-        #expect(current.trailingSymbolName == "waveform")
+        #expect(current.trailingSymbolName == nil)
         #expect(current.trailingAccessibilityLabel == "Playing")
     }
 

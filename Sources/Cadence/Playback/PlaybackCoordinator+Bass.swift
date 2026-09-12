@@ -1,4 +1,5 @@
 import Foundation
+import QenTerraAudioAnalysis
 
 typealias PlaybackBassEnvelopeLoading =
     @Sendable (URL) async -> PlaybackBassEnvelope?

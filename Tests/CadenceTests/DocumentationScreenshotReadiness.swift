@@ -32,6 +32,7 @@ extension DocumentationScreenshotFixture {
         switch scene {
         case .home:
             return model.selectedDestination == .home
+                && model.librarySession.store.availability == .ready
         case let .library(destination):
             let destinationIsReady = if destination == .allTracks {
                 model.librarySession.store.allTracksWindow?.firstPageState
@@ -69,7 +70,8 @@ extension DocumentationScreenshotFixture {
     ) -> String {
         switch scene {
         case .home:
-            "destination=\(model.selectedDestination)"
+            "destination=\(model.selectedDestination), "
+                + "availability=\(model.librarySession.store.availability)"
         case let .album(albumID):
             "selected=\(String(describing: model.selectedProductionAlbumID)), "
                 + readinessTracker.albumDiagnostic(albumID)

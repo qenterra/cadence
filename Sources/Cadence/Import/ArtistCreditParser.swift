@@ -1,4 +1,5 @@
 import Foundation
+import QenTerraFoundation
 
 struct ArtistCreditParser: Sendable {
     private static let featuringExpression: NSRegularExpression = {

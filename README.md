@@ -17,7 +17,7 @@
   <a href="LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-f2f2f2"></a>
   <img alt="macOS 26 or later" src="https://img.shields.io/badge/macOS-26%2B-f2f2f2">
   <img alt="Swift 6" src="https://img.shields.io/badge/Swift-6-f2f2f2">
-  <img alt="Version 0.2.0-beta.1" src="https://img.shields.io/badge/version-0.2.0--beta.1-f2f2f2">
+  <img alt="Version 1.0.0" src="https://img.shields.io/badge/version-1.0.0-f2f2f2">
 </p>
 
 <p align="center">
@@ -35,10 +35,10 @@ one native SwiftUI app. Its managed folder lives on this Mac or a connected
 local drive chosen by the user.
 
 > [!IMPORTANT]
-> Cadence 0.2.0 Beta 1 (2) is an Apple silicon release candidate. No binary
-> from this branch is ready for publication until it is signed with Developer
-> ID, accepted by Apple's notary service, stapled, and passes the installation
-> acceptance checklist. It is not an App Store release.
+> Cadence 1.0.0 (build 3) is distributed for Apple silicon as a manual
+> download. The app is ad-hoc signed, **not Developer ID signed and not notarized**.
+> Gatekeeper may block the first launch. See the installation steps below.
+> This release is not delivered through Sparkle or the App Store.
 
 ## Interface
 
@@ -81,7 +81,7 @@ synthetic; the capture process cannot open the developer's music library.
 - Link a same-folder `.lrc` file when its normalized basename matches the audio
   file.
 - Move tracks, albums, or artists to Cadence Trash and restore them later.
-- Keep the catalog, artwork, lyrics, and original media together in the local
+- Keep artwork, lyrics, and original media together in the local
   Cadence folder.
 
 ### Native playback
@@ -103,6 +103,8 @@ synthetic; the capture process cannot open the developer's music library.
 ### Browse and organize
 
 - Browse all tracks, albums, artists, tags, playlists, and smart collections.
+- Return to separate favorite tracks, albums, and artists on Home, alongside
+  recently played music.
 - Learn the interface through a first-run welcome and replayable Help chapters.
 - Sort track-table columns while Cadence keeps their widths stable.
 - Assign hierarchical tags such as `genre/ambient` or standalone tags such as
@@ -119,20 +121,25 @@ synthetic; the capture process cannot open the developer's music library.
 
 ## Quick start
 
-### Install the beta
+### Install Cadence
 
-The public beta has not been published yet. When the signed and notarized
-[`Cadence-0.2.0-beta.1-arm64.dmg`](https://github.com/QenTerra/cadence/releases/tag/v0.2.0-beta.1)
-appears on the official release page, open it and drag Cadence to the visible
-**Applications** alias. Do not redistribute the ad-hoc artifact produced by
-the local packaging mode.
+1. Download [`Cadence-1.0.0-arm64.dmg`](https://github.com/QenTerra/cadence/releases/download/v1.0.0/Cadence-1.0.0-arm64.dmg)
+   from the [official 1.0.0 release](https://github.com/QenTerra/cadence/releases/tag/v1.0.0).
+   Compare its SHA-256 with `Cadence-1.0.0-SHA256SUMS.txt` on that page.
+2. Open the DMG and drag Cadence to **Applications**. Launch it from there.
+3. If Gatekeeper blocks it because the developer cannot be verified, and you
+   trust the download, open **System Settings > Privacy & Security** and use
+   **Open Anyway** for Cadence. Follow [Apple's instructions](https://support.apple.com/en-gb/102445).
+
+The app is not notarized. An ad-hoc signature does not establish a verified
+developer identity. Updates to this release require a manual download; the
+Sparkle does not deliver version 1.0.0.
 
 ### Requirements
 
-- macOS 26 or later
-- Xcode 27 or later with a compatible macOS SDK
-- Homebrew
-- Apple silicon Mac for the documented local test destination
+- Apple silicon Mac with macOS 26 or later.
+- For source builds: Xcode 27 or later with a compatible macOS SDK, Homebrew,
+  and Git.
 
 ### Build from source
 
@@ -212,8 +219,10 @@ Tests/CadenceTests/ Unit and integration tests
 
 Reusable interface presentation comes from the versioned QenTerra Design
 System products `QenTerraDesignTokens`, `QenTerraComponents`, and
-`QenTerraMediaComponents`. Cadence owns music-domain state, persistence,
-asynchronous artwork loading, playback clocks and actions, queue mutation,
+`QenTerraMediaComponents`. Independent `QenTerraFoundation` and
+`QenTerraAudioAnalysis` products supply shared algorithms without UI
+dependencies. Cadence owns music-domain state, persistence, asynchronous
+artwork loading, playback-clock ownership and actions, queue mutation,
 lyrics documents and editing, table coordination, and Cadence Mode input and
 effects. Its compatibility types may translate those values, but do not carry
 an independent reusable visual implementation.
@@ -222,13 +231,15 @@ an independent reusable visual implementation.
 the exact Design System registry target used by each adapter, and the tests that
 protect the retained product boundary. `python3 scripts/verify_ui_component_ownership.py`
 fails closed when a declaration, adoption, registry identity, or evidence path drifts.
+`bash scripts/verify.sh` first fetches the registry at the same commit recorded
+in `Package.resolved`; standalone checks can prepare it with `--prepare-registry`.
 
 The update direction is one way: Design System source, registry, tests, package
 manifest, version, and changelog are released together; Cadence then adopts an
 explicit immutable version. A sibling package path is allowed only in an
-isolated coordinated-development worktree before that release is pinned. The
-current coordinated candidate remains on that path until Design System 2.0.0
-is released; production integration then pins exactly 2.0.0.
+isolated coordinated-development worktree before that release is pinned.
+Cadence 1.0.0 pins Design System exactly at 2.0.0; `Package.resolved`
+records its immutable source commit.
 
 Read the [architecture](docs/ARCHITECTURE.md),
 [build guide](docs/BUILDING.md), [dependency policy](docs/DEPENDENCIES.md), or
@@ -236,10 +247,9 @@ the [GitHub Wiki](https://github.com/QenTerra/cadence/wiki) for more detail.
 
 ## Current limitations
 
-- The first binary beta is Apple silicon only; publication remains blocked
-  until Developer ID signing, notarization, stapling, and clean-machine
-  installation acceptance all pass.
-- Intel and universal binaries are not included in `0.2.0-beta.1`.
+- The 1.0.0 download is ad-hoc signed and not notarized; first launch may
+  require the app-specific Gatekeeper exception described above.
+- Intel and universal binaries are not included in `1.0.0`.
 - The complete Xcode 27 build and test gate remains local while the hosted
   GitHub runner provides an older toolchain.
 - Output-device behavior, long playback, VoiceOver, spatial audio, and large

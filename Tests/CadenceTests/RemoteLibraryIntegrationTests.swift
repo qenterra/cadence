@@ -1,5 +1,6 @@
 @testable import Cadence
 import Foundation
+import QenTerraFoundation
 import SwiftData
 import Testing
 
@@ -251,8 +252,6 @@ private actor SuspendedRemoteProvider: RemoteLibraryProvider {
         continuation.finish()
     }
 
-    func restoreSession() async throws {}
-
     func fetchManifest(ifNoneMatch _: String?) async throws -> RemoteManifestResponse {
         throw RemoteProviderError.serviceUnavailable("unused")
     }
@@ -269,22 +268,4 @@ private actor SuspendedRemoteProvider: RemoteLibraryProvider {
         continuations[object] = continuation
         return stream
     }
-
-    func uploadTemporary(
-        object _: RemoteObjectID,
-        bytes _: AsyncThrowingStream<Data, Error>
-    ) async throws -> RemoteUpload {
-        throw RemoteProviderError.serviceUnavailable("unused")
-    }
-
-    func finalize(_: RemoteUpload, expectedSHA256 _: String) async throws {}
-
-    func commitManifest(
-        _: RemoteLibraryManifest,
-        matching _: String?
-    ) async throws -> String {
-        throw RemoteProviderError.serviceUnavailable("unused")
-    }
-
-    func delete(object _: RemoteObjectID) async throws {}
 }

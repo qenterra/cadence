@@ -1,4 +1,5 @@
 import Foundation
+import QenTerraFoundation
 
 @MainActor
 final class ArtworkAssetCache {
@@ -8,101 +9,38 @@ final class ArtworkAssetCache {
         let variant: ArtworkAssetVariant
     }
 
-    private struct Entry {
-        let asset: ArtworkAsset
-        let cost: Int
+    private var cache: CostLimitedCache<Key, ArtworkAsset>
+
+    init(countLimit: Int = 128, totalCostLimit: Int = 64 * 1024 * 1024) {
+        cache = CostLimitedCache(countLimit: countLimit, totalCostLimit: totalCostLimit)
     }
 
-    let countLimit: Int
-    let totalCostLimit: Int
-
-    private var entries: [Key: Entry] = [:]
-    private var recency: [Key] = []
-    private(set) var totalCost = 0
-
-    init(
-        countLimit: Int = 128,
-        totalCostLimit: Int = 64 * 1024 * 1024
-    ) {
-        self.countLimit = max(countLimit, 1)
-        self.totalCostLimit = max(totalCostLimit, 1)
+    var totalCost: Int {
+        cache.totalCost
     }
 
     var count: Int {
-        entries.count
+        cache.count
     }
 
     var isEmpty: Bool {
-        entries.isEmpty
+        cache.isEmpty
     }
 
-    func asset(
-        id: UUID,
-        revision: Int,
-        variant: ArtworkAssetVariant = .thumbnail
-    ) -> ArtworkAsset? {
-        let key = Key(id: id, revision: revision, variant: variant)
-        guard let entry = entries[key] else {
-            return nil
-        }
-        touch(key)
-        return entry.asset
+    func asset(id: UUID, revision: Int, variant: ArtworkAssetVariant = .thumbnail) -> ArtworkAsset? {
+        cache.value(forKey: Key(id: id, revision: revision, variant: variant))
     }
 
-    func insert(
-        _ asset: ArtworkAsset,
-        variant: ArtworkAssetVariant = .thumbnail
-    ) {
-        let key = Key(
-            id: asset.id,
-            revision: asset.revision,
-            variant: variant
-        )
+    func insert(_ asset: ArtworkAsset, variant: ArtworkAssetVariant = .thumbnail) {
         invalidate(id: asset.id, exceptRevision: asset.revision)
-        remove(key)
-
-        let cost = asset.data.count
-        guard cost <= totalCostLimit else {
-            return
-        }
-
-        entries[key] = Entry(asset: asset, cost: cost)
-        recency.append(key)
-        totalCost += cost
-        evictIfNeeded()
+        cache.insert(
+            asset,
+            forKey: Key(id: asset.id, revision: asset.revision, variant: variant),
+            cost: asset.data.count
+        )
     }
 
-    func invalidate(
-        id: UUID,
-        exceptRevision: Int? = nil
-    ) {
-        let keys = entries.keys.filter {
-            $0.id == id && $0.revision != exceptRevision
-        }
-        for key in keys {
-            remove(key)
-        }
-    }
-
-    private func touch(_ key: Key) {
-        recency.removeAll { $0 == key }
-        recency.append(key)
-    }
-
-    private func evictIfNeeded() {
-        while entries.count > countLimit || totalCost > totalCostLimit {
-            guard let leastRecent = recency.first else {
-                break
-            }
-            remove(leastRecent)
-        }
-    }
-
-    private func remove(_ key: Key) {
-        guard let entry = entries.removeValue(forKey: key) else {
-            return
-        }
-        recency.removeAll { $0 == key }
-        totalCost -= entry.cost
+    func invalidate(id: UUID, exceptRevision: Int? = nil) {
+        cache.removeAll { $0.id == id && $0.revision != exceptRevision }
     }
 }

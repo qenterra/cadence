@@ -1,4 +1,5 @@
 import Foundation
+import QenTerraFoundation
 
 actor ManagedArtworkService {
     private let package: ManagedLibraryPackage

@@ -1,5 +1,5 @@
 {
-  "originHash" : "e345dad39dc46ef6bbccf76c15c1df0c010b0b24031a9b856f1d884338943f05",
+  "originHash" : "585d51930779da965507a25c57366a3c6f897c0a275c614ec640c0840d520ad4",
   "pins" : [
     {
       "identity" : "appauth-ios",
@@ -8,6 +8,15 @@
       "state" : {
         "revision" : "a972daac82d449d58ab119e91c68153e29ddac33",
         "version" : "3.0.0"
+      }
+    },
+    {
+      "identity" : "design-system",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/QenTerra/design-system.git",
+      "state" : {
+        "revision" : "1d677a2c6bfc4c6def8971f4151c77635f1b958d",
+        "version" : "2.0.0"
       }
     },
     {

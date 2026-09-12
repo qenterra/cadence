@@ -75,6 +75,7 @@ python3 -B -m unittest \
     Tests/ReleaseContractTests/test_release_provenance.py \
     Tests/ReleaseContractTests/test_swiftlint_debt_gate.py \
     -v
+python3 -I -B scripts/verify_ui_component_ownership.py --prepare-registry
 python3 -I -B -m unittest discover \
     -s Tests/ReleaseContractTests \
     -p test_ui_component_ownership.py \

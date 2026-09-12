@@ -1,5 +1,6 @@
 import AppKit
 @testable import Cadence
+@testable import QenTerraAudioAnalysis
 import SwiftUI
 import Testing
 
@@ -271,6 +272,10 @@ private extension CadenceModeScreenshotTests {
         ) else {
             throw CadenceModeScreenshotError.encodingFailed
         }
+        try FileManager.default.createDirectory(
+            at: Self.outputDirectory,
+            withIntermediateDirectories: true
+        )
         try data.write(
             to: Self.outputDirectory.appending(path: filename),
             options: .atomic
@@ -286,11 +291,8 @@ private extension CadenceModeScreenshotTests {
     }
 
     private static var outputDirectory: URL {
-        URL(filePath: #filePath)
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-            .appending(path: "docs/images", directoryHint: .isDirectory)
+        FileManager.default.temporaryDirectory
+            .appending(path: "CadenceVisualRegression/update", directoryHint: .isDirectory)
     }
 
     private static var cadenceModeLyricDocument: LyricDocument {
