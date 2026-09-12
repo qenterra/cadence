@@ -3,6 +3,7 @@
 
 @testable import Cadence
 import Foundation
+@testable import QenTerraAudioAnalysis
 import Testing
 
 @MainActor

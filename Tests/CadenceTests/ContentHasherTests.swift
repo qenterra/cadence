@@ -1,5 +1,5 @@
-@testable import Cadence
 import Foundation
+import QenTerraFoundation
 import Testing
 
 struct ContentHasherTests {

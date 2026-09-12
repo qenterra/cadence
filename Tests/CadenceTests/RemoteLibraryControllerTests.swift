@@ -76,9 +76,6 @@ private actor WebDAVActivationFailureProvider: WebDAVRemoteLibraryProvider {
         )
     }
 
-    // periphery:ignore - Required by the full provider protocol for this capability-only fake.
-    func restoreSession() async throws {}
-
     func fetchManifest(ifNoneMatch _: String?) async throws -> RemoteManifestResponse {
         throw RemoteProviderError.serviceUnavailable("unused")
     }
@@ -89,26 +86,4 @@ private actor WebDAVActivationFailureProvider: WebDAVRemoteLibraryProvider {
     ) async throws -> AsyncThrowingStream<Data, Error> {
         throw RemoteProviderError.serviceUnavailable("unused")
     }
-
-    // periphery:ignore - Required by the full provider protocol for this capability-only fake.
-    func uploadTemporary(
-        object _: RemoteObjectID,
-        bytes _: AsyncThrowingStream<Data, Error>
-    ) async throws -> RemoteUpload {
-        throw RemoteProviderError.serviceUnavailable("unused")
-    }
-
-    // periphery:ignore - Required by the full provider protocol for this capability-only fake.
-    func finalize(_: RemoteUpload, expectedSHA256 _: String) async throws {}
-
-    // periphery:ignore - Required by the full provider protocol for this capability-only fake.
-    func commitManifest(
-        _: RemoteLibraryManifest,
-        matching _: String?
-    ) async throws -> String {
-        throw RemoteProviderError.serviceUnavailable("unused")
-    }
-
-    // periphery:ignore - Required by the full provider protocol for this capability-only fake.
-    func delete(object _: RemoteObjectID) async throws {}
 }

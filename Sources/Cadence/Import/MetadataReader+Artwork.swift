@@ -1,6 +1,7 @@
 import AVFoundation
 import Foundation
 import ImageIO
+import QenTerraFoundation
 
 private enum FLACArtworkReadError: LocalizedError {
     case invalidSignature

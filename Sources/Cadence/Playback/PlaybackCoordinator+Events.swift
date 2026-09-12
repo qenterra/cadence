@@ -1,4 +1,5 @@
 import Foundation
+import QenTerraAudioAnalysis
 
 private struct PlaybackCompletionExpectation {
     let backend: PlaybackBackendKind

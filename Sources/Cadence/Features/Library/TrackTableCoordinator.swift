@@ -1,4 +1,5 @@
 import AppKit
+import QenTerraFoundation
 import SwiftUI
 
 enum TrackTablePullRefreshPolicy {
@@ -40,7 +41,7 @@ extension TrackTableCore {
         var requestGeneration: UInt64 = 0
         var nextPageToken: UInt64 = 0
         var previousVisibleRow: Int?
-        var lastPrefetchDirection: TrackViewportPrefetchDirection?
+        var lastPrefetchDirection: PagePrefetchDirection?
         var lastProcessedVisibleRows: IndexSet?
         var rangeAnchorRow: Int?
         var actionSelectionCache: TrackTableActionSelectionCache?
@@ -685,8 +686,8 @@ extension TrackTableCore.Coordinator {
 
     private func retainedPrefetchDirection(
         observing firstRow: Int
-    ) -> TrackViewportPrefetchDirection {
-        let observedDirection: TrackViewportPrefetchDirection = if let previousVisibleRow {
+    ) -> PagePrefetchDirection {
+        let observedDirection: PagePrefetchDirection = if let previousVisibleRow {
             if firstRow < previousVisibleRow {
                 .before
             } else if firstRow > previousVisibleRow {
@@ -710,7 +711,7 @@ extension TrackTableCore.Coordinator {
     private func directionalPrefetchPages(
         in window: LibraryTrackWindow,
         visiblePages: [Int],
-        direction: TrackViewportPrefetchDirection
+        direction: PagePrefetchDirection
     ) -> [Int] {
         switch direction {
         case .before:

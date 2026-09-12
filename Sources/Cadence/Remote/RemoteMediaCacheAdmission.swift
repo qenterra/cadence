@@ -1,4 +1,5 @@
 import Foundation
+import QenTerraFoundation
 
 struct RemoteCacheEvictionPlan {
     let index: RemoteCacheIndex

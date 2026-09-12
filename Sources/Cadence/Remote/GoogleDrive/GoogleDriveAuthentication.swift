@@ -8,7 +8,6 @@ import Security
 /// Implementations persist the authorization state in Keychain-backed storage
 /// and remove it on sign-out; callers never receive refresh credentials.
 protocol GoogleDriveAuthorizing: Sendable {
-    func restoreSession() async throws
     func accessToken() async throws -> String
     func signOut() async throws
 }

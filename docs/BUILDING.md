@@ -1,7 +1,8 @@
 # Building from source
 
-Cadence currently ships as source. The repository does not provide a signed or
-notarized application.
+Cadence 1.0.0 is available as an ad-hoc signed, non-notarized manual download.
+See [installation](../README.md#install-cadence) for the DMG and Gatekeeper
+instructions. This page covers building and verifying the source.
 
 ## Requirements
 
@@ -36,10 +37,14 @@ Change the path when your Xcode app has another name or location.
 
 ```sh
 brew bundle
+./scripts/prepare_python_tools.sh
 ```
 
 This installs XcodeGen, SwiftFormat, SwiftLint, and xcbeautify. All Cadence UI
-tokens are part of this repository, so no sibling checkout is required.
+presentation and shared algorithms come from QenTerra Design System. The
+release pins Design System 2.0.0 through Swift Package Manager; no sibling
+checkout is required. The ownership check fetches the same locked commit into
+an ignored local cache. See [Dependencies](DEPENDENCIES.md).
 
 ## Generate and open the project
 
@@ -83,9 +88,9 @@ CADENCE_RELEASE_MODE=local bash scripts/prepare_release.sh
 
 The local mode produces an ad-hoc signed DMG under `.build/releases/local` for
 layout and mount/copy/launch checks. It intentionally does not create a Sparkle
-archive, change `appcast.xml`, or produce anything suitable for publication.
-The public mode and its required Developer ID/notarization inputs are documented
-in [Software updates](UPDATES.md).
+archive, change `appcast.xml`, or constitute a verified public release.
+The 1.0.0 manual distribution and the separate Developer ID/notarization
+workflow are documented in [Software updates](UPDATES.md).
 
 GitHub Actions runs project generation, SwiftFormat, and SwiftLint. The hosted
 macOS image currently provides Xcode 26.6, which cannot build this Xcode 27

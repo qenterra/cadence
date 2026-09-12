@@ -1,6 +1,7 @@
 import AppKit
 @testable import Cadence
 import Foundation
+import QenTerraFoundation
 import SwiftData
 import SwiftUI
 import Testing
@@ -11,7 +12,7 @@ struct AllTracksPerformanceTests {
 
     @Test("The track window evicts least-recently-used pages")
     func boundedTrackWindow() {
-        var cache = TrackPageWindow<Int>(pageCapacity: 3)
+        var cache = PageWindow<Int>(pageCapacity: 3)
 
         cache.insert([0, 1], page: 0)
         cache.insert([2, 3], page: 1)
@@ -28,7 +29,7 @@ struct AllTracksPerformanceTests {
 
     @Test("A viewport requests each page once until that page completes")
     func coalescedViewportRequests() {
-        var requests = TrackViewportPageRequests(pageSize: 200)
+        var requests = PageRequestTracker(pageSize: 200)
 
         #expect(requests.beginRequest(containing: 399) == 1)
         #expect(requests.beginRequest(containing: 398) == nil)
@@ -41,7 +42,7 @@ struct AllTracksPerformanceTests {
 
     @Test("Viewport prefetch stays a fixed distance ahead of visible rows")
     func boundedPrefetchRange() {
-        let range = TrackViewportPrefetch.range(
+        let range = PagePrefetchPolicy.range(
             visibleRows: 9 ... 27,
             totalCount: 1_000_000,
             pageSize: 200,
@@ -54,7 +55,7 @@ struct AllTracksPerformanceTests {
     @Test("Viewport prefetch follows the current scroll direction")
     func directionalPrefetchPages() {
         #expect(
-            TrackViewportPrefetch.pages(
+            PagePrefetchPolicy.pages(
                 around: 8,
                 pageCount: 20,
                 prefetchPages: 2,
@@ -62,7 +63,7 @@ struct AllTracksPerformanceTests {
             ) == [7, 6]
         )
         #expect(
-            TrackViewportPrefetch.pages(
+            PagePrefetchPolicy.pages(
                 around: 8,
                 pageCount: 20,
                 prefetchPages: 2,
@@ -70,7 +71,7 @@ struct AllTracksPerformanceTests {
             ) == [9, 10]
         )
         #expect(
-            TrackViewportPrefetch.pages(
+            PagePrefetchPolicy.pages(
                 around: 0,
                 pageCount: 20,
                 prefetchPages: 2,

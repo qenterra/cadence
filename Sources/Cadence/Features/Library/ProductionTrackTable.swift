@@ -249,6 +249,7 @@ private extension ProductionTrackTable {
         }
         .menuIndicator(.hidden)
         .menuStyle(.borderlessButton)
+        .frame(width: TrackTableColumnPolicy.actionWidth, height: TrackTableColumnPolicy.actionWidth)
         .help("Choose Columns")
     }
 
@@ -260,7 +261,7 @@ private extension ProductionTrackTable {
             title: field.title,
             alignment: field == .song || field == .album
                 ? .leading
-                : .trailing,
+                : .center,
             isSorted: effectiveSortDescriptor.field == field,
             direction: effectiveSortDescriptor.direction,
             resolvedWidth: resolvedWidth,

@@ -1,5 +1,6 @@
 @testable import Cadence
 import Foundation
+import QenTerraFoundation
 import SwiftData
 import Testing
 

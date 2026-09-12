@@ -1,13 +1,13 @@
 # Dependencies
 
-Cadence uses Apple platform frameworks and three pinned Swift packages at
+Cadence uses Apple platform frameworks and the QenTerra products and three pinned third-party Swift packages at
 runtime, plus six Homebrew tools during development and release packaging.
 
 ## Runtime
 
 | Component | Version policy | Role | Source |
 | --- | --- | --- | --- |
-| Cadence | `0.2.0-beta.1` | Application | This repository |
+| Cadence | `1.0.0` | Application | This repository |
 | Swift and SwiftUI | Active compatible Xcode | Language and interface | Apple |
 | SwiftData | Active macOS SDK | Library persistence and migration | Apple |
 | AVFoundation and AVFAudio | Active macOS SDK | Audio inspection and playback | Apple |
@@ -16,12 +16,16 @@ runtime, plus six Homebrew tools during development and release packaging.
 | CoreImage | Active macOS SDK | Artwork processing | Apple |
 | MediaPlayer | Active macOS SDK | Now Playing and remote commands | Apple |
 | UniformTypeIdentifiers | Active macOS SDK | File and library package types | Apple |
-| GRDB.swift | Exactly `7.10.0` | Derived SQLite FTS5 index for lyrics search | [groue/GRDB.swift](https://github.com/groue/GRDB.swift) |
-| AppAuth | Exactly `2.1.0` | OAuth 2.0 authorization and token refresh for Google Drive | [openid/AppAuth-iOS](https://github.com/openid/AppAuth-iOS) |
-| Sparkle | Exactly `2.9.5` | Signed in-app software updates with stable and beta channels | [sparkle-project/Sparkle](https://github.com/sparkle-project/Sparkle) |
+| QenTerraFoundation, QenTerraAudioAnalysis | Exactly `2.0.0` | Hashing, text, caches, pagination, images, media clock and PCM analysis | [QenTerra/design-system](https://github.com/QenTerra/design-system) |
+| QenTerraDesignTokens, QenTerraComponents, QenTerraMediaComponents | Exactly `2.0.0` | Shared native interface and media presentation | [QenTerra/design-system](https://github.com/QenTerra/design-system) |
+| GRDB.swift | Exactly `7.11.1` | Lyrics FTS5 search and SQLite catalog-migration validation | [groue/GRDB.swift](https://github.com/groue/GRDB.swift) |
+| AppAuth | Exactly `3.0.0` | OAuth 2.0 authorization and token refresh for Google Drive | [openid/AppAuth-iOS](https://github.com/openid/AppAuth-iOS) |
+| Sparkle | Exactly `2.9.6` | Signed in-app software updates with stable and beta channels | [sparkle-project/Sparkle](https://github.com/sparkle-project/Sparkle) |
 
-GRDB, AppAuth, and Sparkle are locked in `Package.resolved`; none introduces analytics. GRDB owns
-only the rebuildable lyrics-search index, never the canonical library. AppAuth
+Design System, GRDB, AppAuth, and Sparkle are locked in `Package.resolved`; none introduces analytics. GRDB owns
+the rebuildable lyrics-search index and performs SQLite integrity checks and
+WAL consolidation during catalog relocation. SwiftData owns the canonical
+library models and migrations. AppAuth
 stores Google authorization state through Cadence's Keychain adapter. Sparkle
 uses an EdDSA public key in the app; its private signing key remains outside the
 repository in the maintainer's Keychain.

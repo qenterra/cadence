@@ -112,16 +112,9 @@ enum NavigationRailMetrics {
     static let collapsedWidth = CGFloat(shared.compactWidth)
     static let expandedWidth = CGFloat(shared.expandedWidth)
     static let horizontalInset = CGFloat(shared.horizontalInset)
-    static let verticalInset = CGFloat(shared.verticalInset)
-    static let rowInset = CGFloat(shared.rowInset)
     static let rowSpacing = CGFloat(shared.rowSpacing)
     static let rowSurfaceInset = CGFloat(shared.rowSurfaceInset)
     static let rowHeight = CGFloat(shared.rowHeight)
-    static let iconSlotWidth = CGFloat(shared.iconSlotWidth)
-
-    static func totalWidth(isExpanded: Bool) -> CGFloat {
-        CGFloat(shared.totalWidth(isExpanded: isExpanded))
-    }
 
     static func contentWidth(isExpanded: Bool) -> CGFloat {
         CGFloat(shared.contentWidth(isExpanded: isExpanded))

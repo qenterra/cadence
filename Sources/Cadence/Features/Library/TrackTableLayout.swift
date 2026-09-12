@@ -81,32 +81,39 @@ struct TrackTableHeaderCell: View {
 
     var body: some View {
         Button(action: sortAction) {
-            HStack(spacing: 5) {
-                if alignment == .trailing {
-                    Spacer(minLength: 0)
-                }
-                Text(title)
-                    .lineLimit(1)
-                if isSorted {
-                    Image(
-                        systemName: direction == .ascending
-                            ? "chevron.up"
-                            : "chevron.down"
-                    )
-                    .font(.system(size: 8, weight: .bold))
-                }
-                if alignment != .trailing {
-                    Spacer(minLength: 0)
+            Group {
+                if alignment == .leading {
+                    HStack(spacing: 5) {
+                        titleLabel
+                        sortIndicator
+                        Spacer(minLength: 0)
+                    }
+                } else {
+                    titleLabel
+                        .frame(maxWidth: .infinity, alignment: alignment)
+                        .overlay(alignment: .trailing) { sortIndicator }
                 }
             }
+            .frame(width: CGFloat(resolvedWidth), alignment: alignment)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .frame(width: CGFloat(resolvedWidth), alignment: alignment)
         .accessibilityValue(
             isSorted
                 ? direction == .ascending ? "Ascending" : "Descending"
                 : "Not sorted"
         )
+    }
+
+    private var titleLabel: some View {
+        Text(title).lineLimit(1)
+    }
+
+    @ViewBuilder private var sortIndicator: some View {
+        if isSorted {
+            Image(systemName: direction == .ascending ? "chevron.up" : "chevron.down")
+                .font(.system(size: 8, weight: .bold))
+                .accessibilityHidden(true)
+        }
     }
 }

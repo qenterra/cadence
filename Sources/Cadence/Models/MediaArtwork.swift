@@ -70,21 +70,6 @@ enum ArtworkPlaceholder: String, Hashable, Sendable {
     case track
     case playlist
     case smartCollection
-
-    var symbolName: String {
-        switch self {
-        case .artist:
-            "person.fill"
-        case .album:
-            "square.stack.fill"
-        case .track:
-            "music.note"
-        case .playlist:
-            "music.note.list"
-        case .smartCollection:
-            "sparkles.rectangle.stack"
-        }
-    }
 }
 
 enum ArtworkAssetVariant: Hashable, Sendable {

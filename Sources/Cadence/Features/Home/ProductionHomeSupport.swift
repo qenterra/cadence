@@ -72,33 +72,11 @@ struct HomeFavoritesPreviewBudget: Equatable {
         artistCount: Int,
         limit: Int
     ) -> HomeFavoritesPreviewBudget {
-        let capacities = [trackCount, albumCount, artistCount].map {
-            max($0, 0)
-        }
-        var allocations = [0, 0, 0]
         let resolvedLimit = max(limit, 0)
-        var allocatedCount = 0
-
-        while allocatedCount < resolvedLimit {
-            var allocatedItem = false
-            for index in allocations.indices
-                where allocations[index] < capacities[index] {
-                allocations[index] += 1
-                allocatedCount += 1
-                allocatedItem = true
-                if allocatedCount == resolvedLimit {
-                    break
-                }
-            }
-            if !allocatedItem {
-                break
-            }
-        }
-
         return HomeFavoritesPreviewBudget(
-            trackLimit: allocations[0],
-            albumLimit: allocations[1],
-            artistLimit: allocations[2]
+            trackLimit: min(max(trackCount, 0), resolvedLimit),
+            albumLimit: min(max(albumCount, 0), resolvedLimit),
+            artistLimit: min(max(artistCount, 0), resolvedLimit)
         )
     }
 }

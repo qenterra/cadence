@@ -1,6 +1,7 @@
 import AVFoundation
 @testable import Cadence
 import Foundation
+@testable import QenTerraAudioAnalysis
 import QenTerraMediaComponents
 import Testing
 

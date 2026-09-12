@@ -217,17 +217,6 @@ struct SecondAuditPresentationTests {
             )
         }
     }
-
-    private func source(at relativePath: String) throws -> String {
-        let projectRoot = URL(filePath: #filePath)
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-        return try String(
-            contentsOf: projectRoot.appending(path: relativePath),
-            encoding: .utf8
-        )
-    }
 }
 
 private func reflectedTrackIDs(

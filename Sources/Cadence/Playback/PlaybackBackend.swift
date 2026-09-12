@@ -1,5 +1,6 @@
 import AVFoundation
 import Foundation
+import QenTerraAudioAnalysis
 
 struct PlaybackBackendLoadRequest: Sendable {
     let current: ResolvedPlaybackTrack

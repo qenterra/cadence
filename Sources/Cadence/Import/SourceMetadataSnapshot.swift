@@ -1,5 +1,6 @@
 import AVFoundation
 import Foundation
+import QenTerraFoundation
 
 struct SourceMetadataItem: Codable, Equatable, Sendable {
     let identifier: String?

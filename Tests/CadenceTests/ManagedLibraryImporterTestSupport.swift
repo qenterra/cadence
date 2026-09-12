@@ -1,5 +1,6 @@
 @testable import Cadence
 import Foundation
+import QenTerraFoundation
 
 struct SuccessfulImportContext {
     let fixture: ImportFixture

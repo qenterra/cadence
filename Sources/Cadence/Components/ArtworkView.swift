@@ -1,29 +1,7 @@
 import AppKit
-import ImageIO
+import QenTerraFoundation
 import QenTerraMediaComponents
 import SwiftUI
-
-struct ArtworkView: View {
-    let palette: ArtworkPalette
-    let title: String
-    var cornerRadius: CGFloat = 8
-    var showsBorder = true
-    var fillsAvailableSpace = false
-
-    var body: some View {
-        ArtworkSurface(
-            state: .content,
-            title: title,
-            cornerRadius: cornerRadius,
-            showsBorder: showsBorder,
-            fillsAvailableSpace: fillsAvailableSpace
-        ) {
-            QenTerraMediaComponents.ArtworkPlaceholder(
-                palette: palette.designSystemPalette
-            )
-        }
-    }
-}
 
 struct MediaArtworkView: View {
     let source: ResolvedArtworkSource
@@ -125,40 +103,11 @@ struct ArtworkImageCacheMetrics: Equatable, Sendable {
 
 enum ArtworkImageDecoder {
     static func image(for asset: ArtworkAsset) -> CGImage? {
-        guard
-            let source = CGImageSourceCreateWithData(asset.data as CFData, nil)
-        else {
-            return nil
-        }
-        switch asset.variant {
-        case .original:
-            return CGImageSourceCreateImageAtIndex(source, 0, [
-                kCGImageSourceShouldCacheImmediately: true,
-            ] as CFDictionary)
-        case .thumbnail, .trackRow:
-            guard let maximumPixelDimension = asset.variant
-                .maximumPixelDimension else {
-                return nil
-            }
-            return CGImageSourceCreateThumbnailAtIndex(source, 0, [
-                kCGImageSourceCreateThumbnailFromImageAlways: true,
-                kCGImageSourceCreateThumbnailWithTransform: true,
-                kCGImageSourceShouldCacheImmediately: true,
-                kCGImageSourceThumbnailMaxPixelSize:
-                    maximumPixelDimension,
-            ] as CFDictionary)
-        }
+        ImageDataDecoder.image(from: asset.data, maximumPixelDimension: asset.variant.maximumPixelDimension)
     }
 
     static func decodedByteCost(of image: CGImage) -> Int {
-        let (pixels, pixelOverflow) = image.width.multipliedReportingOverflow(
-            by: image.height
-        )
-        let (bytes, byteOverflow) = pixels.multipliedReportingOverflow(by: 4)
-        guard !pixelOverflow, !byteOverflow else {
-            return .max
-        }
-        return max(bytes, 0)
+        ImageDataDecoder.decodedByteCost(of: image)
     }
 }
 

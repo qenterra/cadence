@@ -141,7 +141,7 @@ struct ProductionTrackTableRow: View {
                 columnValue(column)
                     .frame(
                         width: CGFloat(widths[column]),
-                        alignment: column == .album ? .leading : .trailing
+                        alignment: column == .album ? .leading : .center
                     )
             }
 
@@ -189,7 +189,7 @@ struct ProductionTrackTableRow: View {
                 lightweightColumnValue(column)
                     .frame(
                         width: CGFloat(widths[column]),
-                        alignment: column == .album ? .leading : .trailing
+                        alignment: column == .album ? .leading : .center
                     )
             }
 

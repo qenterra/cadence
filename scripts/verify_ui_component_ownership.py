@@ -8,6 +8,8 @@ import hashlib
 import json
 import re
 import sys
+import subprocess
+import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -526,8 +528,82 @@ def default_repository_root(source_root: Path) -> Path:
     return source_root
 
 
+DESIGN_SYSTEM_URL = "https://github.com/QenTerra/design-system.git"
+DESIGN_SYSTEM_REGISTRY = "registry/qenterra-components.json"
+PACKAGE_RESOLVED = "Cadence.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved"
+
+
+def design_system_revision(repository_root: Path) -> str:
+    """Read the immutable source identity from the same lockfile as the app."""
+    resolved = json.loads((repository_root / PACKAGE_RESOLVED).read_text(encoding="utf-8"))
+    pins = [pin for pin in resolved.get("pins", []) if pin.get("identity") == "design-system"]
+    if len(pins) != 1:
+        raise ValueError("Package.resolved must contain exactly one Design System pin")
+    pin = pins[0]
+    location = pin.get("location", "").removesuffix(".git").lower()
+    state = pin.get("state", {})
+    revision = state.get("revision", "")
+    if pin.get("kind") != "remoteSourceControl" or location != DESIGN_SYSTEM_URL.removesuffix(".git").lower():
+        raise ValueError("Design System pin must use the canonical GitHub repository")
+    if not isinstance(revision, str) or re.fullmatch(r"[0-9a-f]{40}", revision) is None:
+        raise ValueError("Design System pin requires a full immutable Git revision")
+    if state.get("branch") or not isinstance(state.get("version"), str) or re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", state["version"]) is None:
+        raise ValueError("Design System pin requires an exact release version, not a branch")
+    return revision
+
+
+def design_system_git(checkout: Path, *arguments: str) -> bytes:
+    result = subprocess.run(
+        ["git", "--no-replace-objects", "-C", str(checkout), *arguments],
+        check=False, capture_output=True, timeout=120,
+    )
+    if result.returncode:
+        raise ValueError(f"Design System Git operation failed ({arguments[0]}): {result.stderr.decode(errors='replace').strip()}")
+    return result.stdout
+
+
+def registry_checkout(repository_root: Path, revision: str) -> Path:
+    cache_root = repository_root / ".build" / "ownership-design-system"
+    checkout = cache_root / revision
+    if not checkout.resolve().is_relative_to(repository_root.resolve()):
+        raise ValueError("Design System registry cache must stay inside this repository")
+    return checkout
+
+
 def default_registry_path(repository_root: Path) -> Path:
-    return repository_root.parent / "design-system" / "registry" / "qenterra-components.json"
+    """Use only the locked Git blob; a mutable sibling is never a fallback."""
+    revision = design_system_revision(repository_root)
+    checkout = registry_checkout(repository_root, revision)
+    registry = checkout / DESIGN_SYSTEM_REGISTRY
+    if not registry.is_file():
+        raise ValueError("Design System registry cache is missing; run this checker with --prepare-registry")
+    if not registry.resolve().is_relative_to(checkout.resolve()):
+        raise ValueError("Design System registry must stay inside its verified checkout")
+    head = design_system_git(checkout, "rev-parse", "HEAD").decode().strip()
+    if head != revision:
+        raise ValueError("Design System registry checkout does not match Package.resolved")
+    expected = design_system_git(checkout, "show", f"{revision}:{DESIGN_SYSTEM_REGISTRY}")
+    if registry.read_bytes() != expected:
+        raise ValueError("Design System registry differs from its pinned Git blob")
+    return registry
+
+
+def prepare_registry(repository_root: Path) -> Path:
+    """Fetch a dedicated ignored checkout by commit, then verify its registry."""
+    revision = design_system_revision(repository_root)
+    checkout = registry_checkout(repository_root, revision)
+    if checkout.exists():
+        # Do not repair or overwrite unexpected cache contents silently.
+        return default_registry_path(repository_root)
+    checkout.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix="fetch-", dir=checkout.parent) as temporary:
+        staged = Path(temporary) / "checkout"
+        staged.mkdir()
+        design_system_git(staged, "init", "--quiet")
+        design_system_git(staged, "fetch", "--quiet", "--depth=1", DESIGN_SYSTEM_URL, revision)
+        design_system_git(staged, "-c", "advice.detachedHead=false", "checkout", "--quiet", "--detach", revision)
+        staged.rename(checkout)
+    return default_registry_path(repository_root)
 
 
 def registry_targets(registry: dict[str, Any], errors: list[str]) -> set[tuple[str, str, str]]:
@@ -652,7 +728,10 @@ def validate_manifest(
     """Return deterministic validation errors for stale or incomplete inventory data."""
     errors: list[str] = []
     repository_root = repository_root or default_repository_root(source_root)
-    registry_path = registry_path or default_registry_path(repository_root)
+    try:
+        registry_path = registry_path or default_registry_path(repository_root)
+    except (OSError, ValueError, subprocess.TimeoutExpired) as error:
+        return [f"Cannot verify the pinned Design System registry: {error}"]
     if not registry_path.is_file():
         errors.append(f"Design System registry does not exist: {registry_path}")
         registry: dict[str, Any] = {}
@@ -920,10 +999,23 @@ def main() -> int:
     parser.add_argument(
         "--registry",
         type=Path,
-        default=default_registry_path(repository_root),
+        default=None,
         help="Design System component registry",
     )
+    parser.add_argument(
+        "--prepare-registry", action="store_true",
+        help="Fetch and verify the Package.resolved Design System registry, then exit",
+    )
     arguments = parser.parse_args()
+    if arguments.prepare_registry:
+        if arguments.registry is not None:
+            parser.error("--prepare-registry cannot be combined with --registry")
+        try:
+            print(prepare_registry(repository_root))
+        except (OSError, ValueError, subprocess.TimeoutExpired) as error:
+            print(f"Cannot prepare the pinned Design System registry: {error}", file=sys.stderr)
+            return 1
+        return 0
     errors = validate_manifest(
         arguments.root,
         load_manifest(arguments.manifest),

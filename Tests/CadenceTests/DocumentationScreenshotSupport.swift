@@ -115,7 +115,8 @@ final class DocumentationScreenshotFixture {
         _ filename: String,
         contentSize: NSSize = .minimum,
         appearance: DocumentationScreenshotAppearance = .dark,
-        rhythmPulseVisualQAState: RhythmPulseVisualQAState? = nil
+        rhythmPulseVisualQAState: RhythmPulseVisualQAState? = nil,
+        recordsOnly: Bool = false
     ) async throws {
         let cadenceModeSession = CadenceModeSession(automatesTiming: false)
         if let rhythmPulseVisualQAState {
@@ -132,7 +133,8 @@ final class DocumentationScreenshotFixture {
             contentSize: contentSize,
             appearance: appearance,
             scene: inferredScene,
-            rhythmPulseVisualQAState: rhythmPulseVisualQAState
+            rhythmPulseVisualQAState: rhythmPulseVisualQAState,
+            recordsOnly: recordsOnly
         )
     }
 

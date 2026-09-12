@@ -1,4 +1,5 @@
 import Observation
+import QenTerraFoundation
 import SwiftUI
 
 /// Main-actor owner of Cadence Mode's deterministic simulations and compositor.

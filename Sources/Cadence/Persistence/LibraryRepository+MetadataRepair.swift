@@ -1,4 +1,5 @@
 import Foundation
+import QenTerraFoundation
 import SwiftData
 
 struct ManagedMetadataRepairCandidate: Sendable {

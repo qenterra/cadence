@@ -1,6 +1,7 @@
 import AVFAudio
 @testable import Cadence
 import Foundation
+@testable import QenTerraAudioAnalysis
 import Testing
 
 @MainActor
@@ -228,69 +229,6 @@ struct PCMPlaybackBackendTests {
         backend.stop()
         #expect(backend.bassMeter.currentBassLevel() == 0)
     }
-
-    @Test("A straddled gapless tap buffer starts the successor fresh")
-    func exactGaplessBassBoundary() throws {
-        let sampleRate = 48000.0
-        let format = try #require(
-            AVAudioFormat(
-                commonFormat: .pcmFormatFloat32,
-                sampleRate: sampleRate,
-                channels: 2,
-                interleaved: false
-            )
-        )
-        let combined = try #require(
-            AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 1024)
-        )
-        combined.frameLength = 1024
-        let combinedChannels = try #require(combined.floatChannelData)
-        for frame in 0 ..< 1024 {
-            let frequency = frame < 512 ? 80.0 : 80.0
-            let amplitude = frame < 512 ? 0.9 : 0.02
-            let sample = Float(
-                amplitude * sin(Double(frame) * 2 * .pi * frequency / sampleRate)
-            )
-            combinedChannels[0][frame] = sample
-            combinedChannels[1][frame] = sample
-        }
-
-        let successorOnly = try #require(
-            AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 512)
-        )
-        successorOnly.frameLength = 512
-        let successorChannels = try #require(successorOnly.floatChannelData)
-        for frame in 0 ..< 512 {
-            successorChannels[0][frame] = combinedChannels[0][frame + 512]
-            successorChannels[1][frame] = combinedChannels[1][frame + 512]
-        }
-
-        let boundaryMeter = PCMBassLevelMeter()
-        let boundaryAnalyzer = PCMBassAnalyzer(meter: boundaryMeter)
-        boundaryAnalyzer.scheduleSuccessorBoundary(
-            at: 512,
-            scheduleGeneration: 1,
-            predecessorTicket: 1
-        )
-        boundaryAnalyzer.process(
-            combined,
-            at: AVAudioTime(sampleTime: 0, atRate: sampleRate)
-        )
-
-        let freshMeter = PCMBassLevelMeter()
-        let freshAnalyzer = PCMBassAnalyzer(meter: freshMeter)
-        freshAnalyzer.process(
-            successorOnly,
-            at: AVAudioTime(sampleTime: 512, atRate: sampleRate)
-        )
-
-        #expect(
-            abs(
-                boundaryMeter.currentBassLevel()
-                    - freshMeter.currentBassLevel()
-            ) < 0.000_001
-        )
-    }
 }
 
 extension PCMPlaybackBackendTests {
@@ -341,59 +279,6 @@ extension PCMPlaybackBackendTests {
         try await assertCoordinatorLifecyclePreservesGaplessBoundary(
             .equalSampleSeekWithStaleCompletion
         )
-    }
-
-    @Test("A stale equal-sample completion cannot consume a rearmed boundary")
-    func staleEqualSampleCompletionCannotClearReplacementBoundary() throws {
-        let meter = PCMBassLevelMeter()
-        let analyzer = PCMBassAnalyzer(meter: meter)
-
-        analyzer.scheduleSuccessorBoundary(
-            at: 512,
-            scheduleGeneration: 1,
-            predecessorTicket: 41
-        )
-        analyzer.scheduleSuccessorBoundary(
-            at: 512,
-            scheduleGeneration: 2,
-            predecessorTicket: 42
-        )
-        analyzer.resetAtSuccessorBoundary(
-            512,
-            scheduleGeneration: 1,
-            predecessorTicket: 41
-        )
-
-        try assertSuccessorStartsFresh(analyzer: analyzer, meter: meter)
-    }
-
-    @Test("Successor adoption gives the following transition new authority")
-    func threeTrackBoundaryAuthorityCannotBeClearedByPriorCompletion() throws {
-        let meter = PCMBassLevelMeter()
-        let analyzer = PCMBassAnalyzer(meter: meter)
-
-        analyzer.scheduleSuccessorBoundary(
-            at: 512,
-            scheduleGeneration: 7,
-            predecessorTicket: 51
-        )
-        analyzer.resetAtSuccessorBoundary(
-            512,
-            scheduleGeneration: 7,
-            predecessorTicket: 51
-        )
-        analyzer.scheduleSuccessorBoundary(
-            at: 512,
-            scheduleGeneration: 7,
-            predecessorTicket: 52
-        )
-        analyzer.resetAtSuccessorBoundary(
-            512,
-            scheduleGeneration: 7,
-            predecessorTicket: 51
-        )
-
-        try assertSuccessorStartsFresh(analyzer: analyzer, meter: meter)
     }
 
     @Test("The installed PCM tap analyzes a temporary 80 Hz WAV")

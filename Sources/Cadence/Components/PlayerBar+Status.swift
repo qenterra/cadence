@@ -2,16 +2,6 @@ import SwiftUI
 
 extension PlayerBar {
     @ViewBuilder
-    var emptyPlaybackGuidance: some View {
-        let presentation = PlayerBarEmptyPresentation(
-            libraryTrackCount: model.librarySession.store.catalogCounts.liveTrackCount
-        )
-        Label(presentation.title, systemImage: presentation.symbolName)
-            .foregroundStyle(CadenceTheme.playerMetadata)
-            .help(presentation.title)
-    }
-
-    @ViewBuilder
     var playbackFailureMenu: some View {
         if let failure = model.playbackCoordinator?.state.failure {
             Menu {

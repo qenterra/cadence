@@ -1,5 +1,6 @@
 import AVFAudio
 import Foundation
+import QenTerraAudioAnalysis
 
 enum PCMGainAutomation {
     static let silenceDecibels: Float = -96

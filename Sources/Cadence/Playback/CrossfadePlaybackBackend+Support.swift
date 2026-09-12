@@ -1,5 +1,6 @@
 import AVFoundation
 import Foundation
+import QenTerraAudioAnalysis
 
 enum CrossfadePlaybackSlot: Equatable {
     case primary

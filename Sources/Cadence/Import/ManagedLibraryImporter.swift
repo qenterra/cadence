@@ -1,4 +1,5 @@
 import Foundation
+import QenTerraFoundation
 
 enum ManagedLibraryImportError: Error, Equatable, LocalizedError, Sendable {
     case emptySelection

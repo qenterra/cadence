@@ -31,7 +31,7 @@ xcodegen generate --spec project.yml
 marker="$project_root/.build/update-screenshots"
 cadence_mode_marker="$project_root/.build/update-cadence-mode-screenshots"
 candidate_dir="${TMPDIR:?}/CadenceVisualRegression/update"
-expected_candidate_count="89"
+expected_candidate_count="91"
 mkdir -p "$project_root/.build"
 mkdir -p "$candidate_dir"
 find "$candidate_dir" -maxdepth 1 -type f -name '*.png' -delete
@@ -66,6 +66,7 @@ DEVELOPER_DIR="$developer_dir" xcodebuild \
     -jobs 2 \
     -only-testing:CadenceTests/DocumentationScreenshotTests \
     -only-testing:CadenceTests/CollapsedNavigationScreenshotTests \
+    -only-testing:CadenceTests/AllTracksVisualAcceptanceTests \
     -only-testing:CadenceTests/CadenceModeScreenshotTests \
     -parallel-testing-enabled NO \
     CODE_SIGN_ENTITLEMENTS= \

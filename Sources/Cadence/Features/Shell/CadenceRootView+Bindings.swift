@@ -1,3 +1,4 @@
+import QenTerraFoundation
 import SwiftUI
 
 enum TextEntryEscapeResolution: Equatable, Sendable {

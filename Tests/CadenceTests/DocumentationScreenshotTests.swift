@@ -6,6 +6,30 @@ import Testing
 
 @MainActor
 struct DocumentationScreenshotTests {
+    @Test("Render the requested UI corrections", .appKitExclusive)
+    func captureRequestedUICorrections() async throws {
+        let fixture = try await DocumentationScreenshotFixture.make()
+        let navigation = NavigationScreenshotPreferences()
+        navigation.install()
+        defer { navigation.restore() }
+        fixture.model.librarySession.store.recentlyPlayedTracks = []
+        fixture.model.selectedDestination = .home
+        try await fixture.capture(
+            "ui-corrections-home.png", contentSize: NSSize(width: 1440, height: 1100), recordsOnly: true
+        )
+        for appearance in [DocumentationScreenshotAppearance.dark, .light] {
+            try await fixture.captureSettings(
+                "ui-corrections-about-\(appearance).png", appearance: appearance, tab: .about, recordsOnly: true
+            )
+        }
+        fixture.model.selectedDestination = .allTracks
+        try await fixture.capture("ui-corrections-table.png", contentSize: .wide, recordsOnly: true)
+        fixture.model.presentNowPlaying()
+        fixture.model.selectedNowPlayingPanel = .queue
+        try await fixture.capture("ui-corrections-queue.png", recordsOnly: true)
+        try await fixture.cleanup()
+    }
+
     @Test("Screenshot preferences cannot mutate the live navigation profile")
     func navigationPreferencesAreIsolated() {
         let key = "navigationRail.expanded"
@@ -122,7 +146,8 @@ struct DocumentationScreenshotTests {
         try await fixture.cleanup()
     }
 
-    private func captureEmptyHome() async throws {
+    @Test("Empty Home capture waits for completed library loading", .appKitExclusive)
+    func captureEmptyHome() async throws {
         let fixture = try await DocumentationScreenshotFixture.makeEmpty()
         fixture.model.selectedDestination = .home
         for appearance in DocumentationScreenshotAppearance.allCases {

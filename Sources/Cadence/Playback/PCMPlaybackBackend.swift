@@ -1,5 +1,6 @@
 import AVFAudio
 import Foundation
+import QenTerraAudioAnalysis
 
 @MainActor
 final class PCMPlaybackBackend: PlaybackBackend {

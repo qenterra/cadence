@@ -70,9 +70,20 @@ struct LocalLibraryCatalogMigrationTests {
     func shmIsRebuiltNotPromoted() throws {
         let fixture = try MigrationFixture()
         defer { fixture.remove() }
-        try autoreleasepool {
-            let sourceContainer = try fixture.makeSourceCatalog(marker: "shm-marker")
-            withExtendedLifetime(sourceContainer) {}
+        let sourceFixture = try MigrationFixture()
+        defer { sourceFixture.remove() }
+        let sourceContainer = try sourceFixture.makeSourceCatalog(marker: "shm-marker")
+        defer { withExtendedLifetime(sourceContainer) {} }
+
+        // CoreData can close asynchronously. Corrupt only an unopened copy.
+        for suffix in ["", "-wal"] {
+            let source = URL(filePath: sourceFixture.package.metadataStoreURL.path + suffix)
+            if FileManager.default.fileExists(atPath: source.path) {
+                try FileManager.default.copyItem(
+                    at: source,
+                    to: URL(filePath: fixture.package.metadataStoreURL.path + suffix)
+                )
+            }
         }
         let sourceSHM = URL(filePath: fixture.package.metadataStoreURL.path + "-shm")
         let staleSHM = Data("stale-shm-must-not-be-promoted".utf8)
@@ -89,6 +100,8 @@ struct LocalLibraryCatalogMigrationTests {
             manifest.sourceFiles.first(where: { $0.role == .shm })
         )
         #expect(shm.disposition == .rebuild)
+        #expect(shm.byteCount == Int64(staleSHM.count))
+        #expect(shm.sha256 == "6380da4883e410ac68dd94ea8ce13a85da528d4860a690d25a029d031b5ef15b")
         let finalSHM = URL(filePath: fixture.localCatalog.storeURL.path + "-shm")
         #expect(!FileManager.default.fileExists(atPath: finalSHM.path))
         #expect(

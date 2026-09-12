@@ -161,6 +161,20 @@ def _validate_manifest_schema(manifest: dict[str, Any]) -> None:
                     "Release manifest field "
                     f"{section_name}.{field_name} must be {field_type.__name__}."
                 )
+    distribution = manifest["distribution"]
+    distribution_tuple = (
+        distribution["signing"],
+        distribution["notarized"],
+        distribution["gatekeeperDisclosure"],
+    )
+    if distribution_tuple not in {
+        ("developer-id", True, False),
+        ("ad-hoc", False, True),
+    }:
+        raise ReleaseContractError(
+            "Distribution must be developer-id/notarized/no-disclosure or "
+            "ad-hoc/not-notarized/Gatekeeper-disclosure; mixed claims are invalid."
+        )
 
 
 def _run_git(root: Path, *arguments: str) -> bytes:
@@ -1934,6 +1948,7 @@ def environment_values(root: Path = ROOT) -> dict[str, str]:
         "TAG": str(release["tag"]),
         "MINIMUM_MACOS": str(platform["minimumVersion"]),
         "ARCHITECTURE": str(platform["architecture"]),
+        "DISTRIBUTION_SIGNING": data["distribution"]["signing"],
         "DMG_NAME": _safe_component(
             artifacts["installer"], "Installer artifact name", ".dmg"
         ),
@@ -1983,9 +1998,8 @@ def validate_product_surfaces(root: Path = ROOT) -> list[str]:
     readme = root / "README.md"
     require_text(readme, f'Version {values["PUBLIC_VERSION"]}', "README.md", errors)
     require_text(readme, values["DMG_NAME"], "README.md", errors)
-    if data.get("distribution", {}).get("gatekeeperDisclosure") is True:
-        require_text(readme, "not notarized", "README.md Gatekeeper disclosure", errors)
-        require_text(readme, "Gatekeeper", "README.md Gatekeeper disclosure", errors)
+    if data["distribution"]["gatekeeperDisclosure"]:
+        validate_gatekeeper_disclosure(root, errors)
 
     changelog = root / "CHANGELOG.md"
     require_text(
@@ -2008,6 +2022,13 @@ def validate_product_surfaces(root: Path = ROOT) -> list[str]:
     return errors
 
 
+def validate_gatekeeper_disclosure(root: Path, errors: list[str]) -> None:
+    for expected in ("ad-hoc", "not notarized", "Gatekeeper", "manual download"):
+        require_text(
+            root / "README.md", expected, "README.md Gatekeeper disclosure", errors
+        )
+
+
 def validate_public_release_environment(
     root: Path = ROOT,
     environment: dict[str, str] | os._Environ[str] = os.environ,
@@ -2017,6 +2038,12 @@ def validate_public_release_environment(
     distribution = data.get("distribution", {})
     errors: list[str] = []
 
+    # load_manifest has already rejected every mixed distribution tuple.
+    # Manual ad-hoc downloads never use Apple credentials or Sparkle signing.
+    if distribution["signing"] == "ad-hoc":
+        validate_gatekeeper_disclosure(root, errors)
+        return errors
+
     required_environment = (
         "CADENCE_DEVELOPER_ID_APPLICATION",
         "CADENCE_DEVELOPMENT_TEAM",
@@ -2025,13 +2052,6 @@ def validate_public_release_environment(
     for key in required_environment:
         if not environment.get(key, "").strip():
             errors.append(f"{key} is required")
-
-    if distribution.get("signing") != "developer-id":
-        errors.append("distribution.signing must be developer-id")
-    if distribution.get("notarized") is not True:
-        errors.append("distribution.notarized must be true")
-    if distribution.get("gatekeeperDisclosure") is not False:
-        errors.append("distribution.gatekeeperDisclosure must be false")
 
     return errors
 

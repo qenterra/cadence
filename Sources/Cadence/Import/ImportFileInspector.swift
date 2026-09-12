@@ -1,4 +1,5 @@
 import Foundation
+import QenTerraFoundation
 
 /// Produces the read-only Scan/Review evidence for one selected audio file.
 ///

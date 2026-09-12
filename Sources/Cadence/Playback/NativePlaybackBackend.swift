@@ -1,5 +1,6 @@
 import AVFoundation
 import Foundation
+import QenTerraAudioAnalysis
 
 @MainActor
 final class NativePlaybackBackend: NSObject, PlaybackBackend,

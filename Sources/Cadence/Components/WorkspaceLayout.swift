@@ -4,8 +4,6 @@ import SwiftUI
 enum WorkspaceLayout {
     static let paneMinimumWidth: CGFloat = 230
     static let paneMaximumWidth: CGFloat = 420
-    static let paneHeaderHeight: CGFloat = 64
-    static let paneHeaderInset = CadenceLayout.contentGap
     static let listInset = CadenceLayout.compactGap
     static let rowHeight = CadenceLayout.rowHeight
     static let pageInset = CadenceLayout.pageInset
