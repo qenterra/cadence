@@ -5,7 +5,7 @@ uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-## [1.0.0] - 2026-09-12
+## [1.0.0] - 2026-09-13
 
 Cadence 1.0.0 (build 3) supports Apple silicon Macs running macOS 26 or later.
 This release is a manual download with an ad-hoc signature; it is not
