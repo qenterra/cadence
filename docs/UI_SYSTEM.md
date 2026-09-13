@@ -114,7 +114,7 @@ bundle, not merely the project configuration.
 - Hover feedback is immediate and restrained. Selection does not change row
   geometry. Reduce Motion removes spatial transitions.
 
-## Updated About surface
+## About surface
 
 Cadence follows the current Unspool About pattern:
 
