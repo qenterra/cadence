@@ -35,8 +35,8 @@ one native SwiftUI app. Its managed folder lives on this Mac or a connected
 local drive chosen by the user.
 
 > [!IMPORTANT]
-> Cadence 1.0.0 (build 3) is distributed for Apple silicon as a manual
-> download. The app is ad-hoc signed, **not Developer ID signed and not notarized**.
+> Cadence 1.0.0 (build 3) is the first public release, available for Apple silicon
+> as a manual download (DMG or ZIP). The app is ad-hoc signed, **not Developer ID signed and not notarized**.
 > Gatekeeper may block the first launch. See the installation steps below.
 > This release is not delivered through Sparkle or the App Store.
 
@@ -132,8 +132,7 @@ synthetic; the capture process cannot open the developer's music library.
    **Open Anyway** for Cadence. Follow [Apple's instructions](https://support.apple.com/en-gb/102445).
 
 The app is not notarized. An ad-hoc signature does not establish a verified
-developer identity. Updates to this release require a manual download; the
-Sparkle does not deliver version 1.0.0.
+developer identity. Install this first release from the DMG or ZIP linked above.
 
 ### Requirements
 

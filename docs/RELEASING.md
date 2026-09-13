@@ -20,11 +20,11 @@ A local commit, tag, GitHub Release, package publication, deployment, store subm
 
 ## Current distribution
 
-Cadence 1.0.0 is an Apple silicon manual download for macOS 26 or later. Its
+Cadence 1.0.0 is the first public release, for Apple silicon and macOS 26 or later. Its
 ad-hoc signature does not provide a Developer ID identity, and it is not
 notarized. The release notes and installation guide disclose the Gatekeeper
-implications. This release does not deliver a Sparkle update. The obsolete
-feed entry for the retired beta has been removed. See [Software updates](UPDATES.md) for the distribution
+implications. First installation uses the DMG or ZIP. See
+[Software updates](UPDATES.md) for the future update infrastructure and distribution
 boundaries and [release notes](../release/release-notes-1.0.0.md) for the public body.
 
 ## Prepare

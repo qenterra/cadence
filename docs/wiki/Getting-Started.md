@@ -1,6 +1,7 @@
 # Getting Started
 
-Cadence 1.0.0 (build 3) runs on Apple silicon Macs with macOS 26 or later.
+Cadence 1.0.0 (build 3) is the first public release. It runs on Apple silicon
+Macs with macOS 26 or later.
 Intel and universal binaries are not included.
 
 ## Install
@@ -14,8 +15,7 @@ Intel and universal binaries are not included.
    **Open Anyway** for Cadence in **System Settings > Privacy & Security**.
    See [Apple's instructions](https://support.apple.com/en-gb/102445).
 
-This release requires a manual download. It does not change the Sparkle feed
-and is not offered as an automatic update.
+Install this first release from the DMG or ZIP on the release page.
 
 ## Add music
 
