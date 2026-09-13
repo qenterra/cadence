@@ -1,6 +1,6 @@
 # Getting Started
 
-Cadence 1.0.0 (build 3) is the first public release. It runs on Apple silicon
+Cadence 1.0.0 is the first public release. It runs on Apple silicon
 Macs with macOS 26 or later.
 Intel and universal binaries are not included.
 

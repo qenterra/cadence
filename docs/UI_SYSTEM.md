@@ -123,7 +123,6 @@ Cadence follows the current Unspool About pattern:
 - full-row link targets with subtle hover feedback and an external-link glyph;
 - GitHub Profile, Source Code, Wiki, MIT License, and Third-Party Notices;
 - creator attribution remains `Nikita Melnychenko (QenTerra)`;
-- the visible version includes the build number: `1.0.0 (3)`.
 
 ## Welcome and in-app guide
 

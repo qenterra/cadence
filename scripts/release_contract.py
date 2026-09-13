@@ -2011,7 +2011,7 @@ def validate_product_surfaces(root: Path = ROOT) -> list[str]:
 
     updates = root / "docs" / "UPDATES.md"
     for expected in (
-        values["HUMAN_RELEASE_NAME"],
+        f'{values["PRODUCT_NAME"]} {values["MARKETING_VERSION"]}',
         values["TAG"],
         values["DMG_NAME"],
         values["ZIP_NAME"],

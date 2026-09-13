@@ -22,8 +22,7 @@ The first public release of Cadence, a native macOS music player and library man
 
 ## Downloads
 
-Requires an Apple silicon Mac running macOS 26 or later. Settings shows
-**1.0.0 (build 3)**.
+Version **1.0.0** requires an Apple silicon Mac running macOS 26 or later.
 
 - [Cadence-1.0.0-arm64.dmg](https://github.com/QenTerra/cadence/releases/download/v1.0.0/Cadence-1.0.0-arm64.dmg) — open the DMG and drag Cadence to Applications.
 - [Cadence-1.0.0-arm64.zip](https://github.com/QenTerra/cadence/releases/download/v1.0.0/Cadence-1.0.0-arm64.zip) — alternative application archive.

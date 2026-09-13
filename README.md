@@ -35,7 +35,7 @@ one native SwiftUI app. Its managed folder lives on this Mac or a connected
 local drive chosen by the user.
 
 > [!IMPORTANT]
-> Cadence 1.0.0 (build 3) is the first public release, available for Apple silicon
+> Cadence 1.0.0 is the first public release, available for Apple silicon
 > as a manual download (DMG or ZIP). The app is ad-hoc signed, **not Developer ID signed and not notarized**.
 > Gatekeeper may block the first launch. See the installation steps below.
 > This release is not delivered through Sparkle or the App Store.

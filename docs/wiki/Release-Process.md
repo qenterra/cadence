@@ -2,7 +2,7 @@
 
 Releases use `semver`, the version source `release-contract.json`, curated changelog entries, exact revision verification, profile-specific artifact checks, and post-publication remote verification.
 
-The first public release is Cadence 1.0.0 (build 3), tag `v1.0.0`, for Apple
+The first public release is Cadence 1.0.0, tag `v1.0.0`, for Apple
 silicon and macOS 26 or later. This release uses the disclosed ad-hoc manual
 distribution profile: DMG, manual ZIP, and SHA-256 checksums. It is not
 notarized. Future in-app updates can use the separate Developer ID and

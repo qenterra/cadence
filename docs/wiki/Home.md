@@ -2,7 +2,7 @@
 
 A native macOS music player with a managed local library, lyrics, metadata tools, and private-by-default playback.
 
-Cadence 1.0.0 (build 3) is the first public release, for Apple silicon and
+Cadence 1.0.0 is the first public release, for Apple silicon and
 macOS 26 or later. The
 [download](https://github.com/QenTerra/cadence/releases/tag/v1.0.0) is ad-hoc
 signed and not notarized; read [Getting Started](Getting-Started) for the

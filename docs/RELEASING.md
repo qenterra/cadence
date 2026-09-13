@@ -14,7 +14,7 @@ A hosted draft still requires publication authority.
 - Release owner: Nikita Melnychenko (QenTerra)
 - Version scheme: semver
 - Version source: `release-contract.json`
-- Current version: `1.0.0` (build 3)
+- Current version: `1.0.0`
 
 A local commit, tag, GitHub Release, package publication, deployment, store submission, and update-feed change are separate authorised actions.
 

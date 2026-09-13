@@ -10,7 +10,7 @@ uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 The first public release of Cadence, a native macOS music player and library
 manager for local collections.
 
-Cadence 1.0.0 (build 3) supports Apple silicon Macs running macOS 26 or later.
+Cadence 1.0.0 supports Apple silicon Macs running macOS 26 or later.
 The app is ad-hoc signed and not notarized. See the
 [installation guide](README.md#install-cadence) for download and Gatekeeper
 instructions.
