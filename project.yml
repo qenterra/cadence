@@ -20,7 +20,7 @@ settings:
 packages:
   QenTerraDesignSystem:
     url: https://github.com/QenTerra/design-system.git
-    exactVersion: 2.0.0
+    exactVersion: 1.0.2
   GRDB:
     url: https://github.com/groue/GRDB.swift.git
     exactVersion: 7.11.1

@@ -17,7 +17,7 @@ track-table coordination, and Cadence Mode input and effects. Reusable visuals
 flow in one direction: Design System source and registry, verified package,
 immutable release, then an explicit Cadence dependency update. A sibling path
 is permitted only while validating a coordinated candidate and is replaced by
-an exact release version before integration. Cadence 1.0.0 uses exact Design System 2.0.0, with its source commit
+an exact release version before integration. Current source uses exact Design System 1.0.2, with its source commit
 recorded in `Package.resolved`.
 
 The ownership inventory is registry-backed: direct package adoptions remain

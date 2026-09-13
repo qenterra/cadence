@@ -237,7 +237,7 @@ The update direction is one way: Design System source, registry, tests, package
 manifest, version, and changelog are released together; Cadence then adopts an
 explicit immutable version. A sibling package path is allowed only in an
 isolated coordinated-development worktree before that release is pinned.
-Cadence 1.0.0 pins Design System exactly at 2.0.0; `Package.resolved`
+Current source builds pin Design System exactly at 1.0.2; `Package.resolved`
 records its immutable source commit.
 
 Read the [architecture](docs/ARCHITECTURE.md),

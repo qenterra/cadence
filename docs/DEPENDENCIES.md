@@ -3,7 +3,9 @@
 Cadence uses Apple platform frameworks and the QenTerra products and three pinned third-party Swift packages at
 runtime, plus six Homebrew tools during development and release packaging.
 
-## Runtime
+## Runtime in current source builds
+
+For a published binary, use the dependency lockfile at its release tag.
 
 | Component | Version policy | Role | Source |
 | --- | --- | --- | --- |
@@ -16,8 +18,8 @@ runtime, plus six Homebrew tools during development and release packaging.
 | CoreImage | Active macOS SDK | Artwork processing | Apple |
 | MediaPlayer | Active macOS SDK | Now Playing and remote commands | Apple |
 | UniformTypeIdentifiers | Active macOS SDK | File and library package types | Apple |
-| QenTerraFoundation, QenTerraAudioAnalysis | Exactly `2.0.0` | Hashing, text, caches, pagination, images, media clock and PCM analysis | [QenTerra/design-system](https://github.com/QenTerra/design-system) |
-| QenTerraDesignTokens, QenTerraComponents, QenTerraMediaComponents | Exactly `2.0.0` | Shared native interface and media presentation | [QenTerra/design-system](https://github.com/QenTerra/design-system) |
+| QenTerraFoundation, QenTerraAudioAnalysis | Exactly `1.0.2` | Hashing, text, caches, pagination, images, media clock and PCM analysis | [QenTerra/design-system](https://github.com/QenTerra/design-system) |
+| QenTerraDesignTokens, QenTerraComponents, QenTerraMediaComponents | Exactly `1.0.2` | Shared native interface and media presentation | [QenTerra/design-system](https://github.com/QenTerra/design-system) |
 | GRDB.swift | Exactly `7.11.1` | Lyrics FTS5 search and SQLite catalog-migration validation | [groue/GRDB.swift](https://github.com/groue/GRDB.swift) |
 | AppAuth | Exactly `3.0.0` | OAuth 2.0 authorization and token refresh for Google Drive | [openid/AppAuth-iOS](https://github.com/openid/AppAuth-iOS) |
 | Sparkle | Exactly `2.9.6` | Signed in-app software updates with stable and beta channels | [sparkle-project/Sparkle](https://github.com/sparkle-project/Sparkle) |

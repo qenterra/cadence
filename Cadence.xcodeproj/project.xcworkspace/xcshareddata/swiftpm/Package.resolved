@@ -15,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/QenTerra/design-system.git",
       "state" : {
-        "revision" : "1d677a2c6bfc4c6def8971f4151c77635f1b958d",
-        "version" : "2.0.0"
+        "revision" : "6f164006e577063a90b0dc7c23283eb34d3e50b4",
+        "version" : "1.0.2"
       }
     },
     {
