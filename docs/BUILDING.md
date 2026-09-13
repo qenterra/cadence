@@ -41,8 +41,8 @@ brew bundle
 ```
 
 This installs XcodeGen, SwiftFormat, SwiftLint, and xcbeautify. All Cadence UI
-presentation and shared algorithms come from QenTerra Design System. The
-release pins Design System 2.0.0 through Swift Package Manager; no sibling
+presentation and shared algorithms come from QenTerra Design System. Current
+source builds pin Design System 1.0.2 through Swift Package Manager; no sibling
 checkout is required. The ownership check fetches the same locked commit into
 an ignored local cache. See [Dependencies](DEPENDENCIES.md).
 

@@ -2,8 +2,8 @@
   "schemaVersion": 3,
   "sourceRoot": "Sources/Cadence",
   "designSystemRegistry": {
-    "version": "2.0.0",
-    "sha256": "33ba3b1791399b9fb7bc0fd64dd200f96d098d09a00f9a297bbb6d25c090476d"
+    "version": "1.0.2",
+    "sha256": "290408109715d63dff291979d2b918c52107f1b0d7ff1f7f9b4e0b4bddac9867"
   },
   "adoptions": [
     {
