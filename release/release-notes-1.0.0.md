@@ -52,4 +52,4 @@ or acceptance across all supported hardware and assistive technologies.
 
 ## Full changelog
 
-[Cadence 1.0.0 — first release](https://github.com/QenTerra/cadence/releases/tag/v1.0.0).
+[Cadence changelog](https://github.com/QenTerra/cadence/blob/main/CHANGELOG.md#100---2026-09-13).
