@@ -21,9 +21,8 @@ About resource links use a quiet surface with hover feedback.
 Track titles and artists share the leading content column. Album, Year, and
 Time are visible by default and can be configured. Headers align with their
 row values, and the options button occupies a consistent trailing slot.
-Selection uses a background fill without the previous white row outline and
-does not change row geometry. The current queue track no longer has a waveform
-decoration beside its duration.
+Selection uses a background fill and preserves row geometry. Queue rows show
+track metadata and duration in aligned columns.
 
 ## Appearance and motion
 

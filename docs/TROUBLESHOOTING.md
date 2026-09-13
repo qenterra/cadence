@@ -10,10 +10,11 @@ after the blocked launch. See [Apple's instructions](https://support.apple.com/e
 If macOS instead reports malware or a damaged app, stop and report the exact
 message and asset checksum.
 
-## Check for Updates does not offer 1.0.0
+## No updates are available
 
-This release requires a manual download. It does not change the Sparkle feed.
-Quit Cadence, install the official DMG into Applications, and reopen the app.
+Cadence 1.0.0 is the first and currently only public release. Install it from
+the official DMG or ZIP. The update checker is available for future releases;
+there is no newer version to install.
 
 ## Source-build problems
 

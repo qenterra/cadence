@@ -52,12 +52,12 @@ them into the ignored `.build/release-tools` virtual environment. macOS 27 uses
 ## Evaluated alternatives
 
 Dependencies are added only when they remove more product risk than they add.
-The following libraries were reviewed during the 0.2 beta audit and are not
+The following libraries were evaluated during development and are not
 runtime dependencies:
 
 | Candidate | Decision | Rationale |
 | --- | --- | --- |
-| [SFBAudioEngine](https://github.com/sbooth/SFBAudioEngine) | Do not adopt for 0.2 | Its decoders, player, conversion, and writable metadata model are valuable for broader format support. Cadence currently targets formats supported by Apple's audio stack, so replacing the tested AVFoundation/AVFAudio path would expand the binary, licensing review, and playback surface without solving a confirmed beta defect. Re-evaluate only if a supported-format or gapless-playback acceptance test proves the native stack insufficient. |
+| [SFBAudioEngine](https://github.com/sbooth/SFBAudioEngine) | Not included in 1.0.0 | Its decoders, player, conversion, and writable metadata model are valuable for broader format support. Cadence currently targets formats supported by Apple's audio stack, so replacing the tested AVFoundation/AVFAudio path would expand the binary, licensing review, and playback surface without solving a confirmed playback defect. Re-evaluate only if a supported-format or gapless-playback acceptance test proves the native stack insufficient. |
 | [SnapshotTesting](https://github.com/pointfreeco/swift-snapshot-testing) | Keep as a later test-only option | It provides recording and image, text, and data snapshot strategies. Cadence's existing native RGBA comparator already gives deterministic macOS screenshot diffs and is integrated into the release gate. Consider a hybrid adoption when hierarchy or serialized-state snapshots become a concrete need; replacing the current image gate alone would add migration work without broader coverage. |
 
 These are deliberate boundaries, not fallback implementations. A future change

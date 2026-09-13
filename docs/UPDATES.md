@@ -1,12 +1,13 @@
 # Software updates
 
-Cadence 1.0.0 (build 3) is a **manual download** for Apple silicon Macs running
-macOS 26 or later. The app is ad-hoc signed, not Developer ID signed, and
-**not notarized**. This release is not delivered through Sparkle. The obsolete
-appcast entry for the retired beta download has been removed. See [installation](../README.md#install-cadence)
-for the DMG and Gatekeeper instructions.
+Cadence 1.0.0 is the **first public release**, available as a DMG or
+ZIP for Apple silicon Macs running macOS 26 or later. The app is ad-hoc signed,
+not Developer ID signed, and **not notarized**. See
+[installation](../README.md#install-cadence) for the download and Gatekeeper
+instructions.
 
-Cadence also includes Sparkle 2 for separately published in-app updates. Users
+Cadence includes Sparkle 2 for future in-app updates. No subsequent release
+is currently published. Users
 can choose **Cadence > Check for Updates…**; stable checks are enabled by
 default and beta releases are opt-in under **Settings > Updates**. Those
 settings do not make the 1.0.0 manual download an automatic update.
@@ -37,7 +38,7 @@ settings do not make the 1.0.0 manual download an automatic update.
 ## Preparing a release
 
 `release-contract.json` is the canonical release source. The current contract is
-**Cadence 1.0.0 (3)**, tag `v1.0.0`, Apple silicon, macOS 26 or
+**Cadence 1.0.0**, tag `v1.0.0`, Apple silicon, macOS 26 or
 later. It produces exactly:
 
 - `Cadence-1.0.0-arm64.dmg`

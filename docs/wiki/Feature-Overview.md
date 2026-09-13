@@ -1,7 +1,7 @@
 # Feature Overview
 
-Cadence 1.0.0 brings a managed local music library, native playback,
-organization, and lyrics into one macOS application. It does not supply a
+Cadence 1.0.0 is the first public release. It combines a managed local music
+library, native playback, organization, and lyrics in one macOS application. It does not supply a
 streaming catalog, and importing music leaves the selected source files intact.
 
 ## Library and Home

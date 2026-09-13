@@ -42,7 +42,7 @@ both stores before deleting or moving library data.
 
 ## Release identity
 
-Cadence 1.0.0 (build 3) is ad-hoc signed, not Developer ID signed, and not
+Cadence 1.0.0 is ad-hoc signed, not Developer ID signed, and not
 notarized. It is a manual download, with no Sparkle update for this version.
 See [Getting Started](Getting-Started) for official downloads, checksums, and
 Gatekeeper instructions.

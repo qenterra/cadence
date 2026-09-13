@@ -114,7 +114,7 @@ bundle, not merely the project configuration.
 - Hover feedback is immediate and restrained. Selection does not change row
   geometry. Reduce Motion removes spatial transitions.
 
-## Updated About surface
+## About surface
 
 Cadence follows the current Unspool About pattern:
 
@@ -123,7 +123,6 @@ Cadence follows the current Unspool About pattern:
 - full-row link targets with subtle hover feedback and an external-link glyph;
 - GitHub Profile, Source Code, Wiki, MIT License, and Third-Party Notices;
 - creator attribution remains `Nikita Melnychenko (QenTerra)`;
-- the visible version includes the build number: `1.0.0 (3)`.
 
 ## Welcome and in-app guide
 

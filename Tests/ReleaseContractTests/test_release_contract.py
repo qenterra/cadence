@@ -94,6 +94,18 @@ class CadenceReleaseContractTests(unittest.TestCase):
     def test_aligned_product_surfaces_pass(self) -> None:
         self.assertEqual(validate_product_surfaces(self.root), [])
 
+    def test_public_version_does_not_require_a_displayed_build_number(self) -> None:
+        updates = self.root / "docs" / "UPDATES.md"
+        updates.write_text(updates.read_text(encoding="utf-8").replace(" (2)", ""), encoding="utf-8")
+        self.assertEqual(validate_product_surfaces(self.root), [])
+
+        project = self.root / "project.yml"
+        project.write_text(
+            project.read_text(encoding="utf-8").replace('CURRENT_PROJECT_VERSION: "2"', 'CURRENT_PROJECT_VERSION: "1"'),
+            encoding="utf-8",
+        )
+        self.assertIn("CURRENT_PROJECT_VERSION", "\n".join(validate_product_surfaces(self.root)))
+
     def test_version_and_artifact_drift_fail_together(self) -> None:
         project = self.root / "project.yml"
         project.write_text(
