@@ -5,6 +5,15 @@ uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-09-17
+
+### Fixed
+
+- Prevented optimized builds from crashing when the track table is sorted by
+  album or year. Cadence now applies those relationship-backed orders itself
+  after a safe SwiftData fetch, preserving stable pagination for equal or
+  missing album metadata.
+
 ## [1.0.0] - 2026-09-13
 
 The first public release of Cadence, a native macOS music player and library
@@ -35,5 +44,6 @@ instructions.
 - Optional WebDAV and Google Drive library reading, configured explicitly in
   Settings; local playback requires no account.
 
-[Unreleased]: https://github.com/QenTerra/cadence/compare/v1.0.0...main
+[Unreleased]: https://github.com/QenTerra/cadence/compare/v1.0.1...main
+[1.0.1]: https://github.com/QenTerra/cadence/releases/tag/v1.0.1
 [1.0.0]: https://github.com/QenTerra/cadence/releases/tag/v1.0.0

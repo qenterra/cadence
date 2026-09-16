@@ -223,27 +223,4 @@ extension LibraryRepository {
             return [SortDescriptor(\TrackRecord.normalizedTitle), identity]
         }
     }
-
-    func relationshipSortDescriptors(
-        _ sort: LibraryTrackSort
-    ) -> [SortDescriptor<TrackRecord>] {
-        let order: SortOrder = sort.direction == .ascending
-            ? .forward
-            : .reverse
-        let identity = SortDescriptor(\TrackRecord.sortIdentity)
-        switch sort.field {
-        case .album:
-            return [
-                SortDescriptor(\TrackRecord.album?.normalizedTitle, order: order),
-                identity,
-            ]
-        case .year:
-            return [
-                SortDescriptor(\TrackRecord.album?.year, order: order),
-                identity,
-            ]
-        case .song, .duration:
-            return scalarSortDescriptors(sort)
-        }
-    }
 }

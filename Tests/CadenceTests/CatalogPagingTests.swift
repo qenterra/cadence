@@ -36,37 +36,30 @@ struct CatalogPagingTests {
         #expect(Set(descending.map(\.id)).count == 401)
     }
 
-    @Test("Relationship-backed sorts remain paged and stable")
+    @Test("Relationship-backed sorts avoid SwiftData traversal and remain stable")
     func relationshipBackedSorting() async throws {
-        let fixture = try makeLargeRelationshipFixture()
+        let fixture = try PersistentRelationshipSortFixture.make()
         let repository = LibraryRepository(modelContainer: fixture.container)
-
-        let albumSorted = try await allTracks(
+        try await expectRelationshipSort(
             repository: repository,
             query: LibraryTrackQuery(
                 sort: LibraryTrackSort(
                     field: .album,
                     direction: .descending
                 )
-            )
+            ),
+            expectedIDs: fixture.albumDescendingIDs
         )
-        let yearSorted = try await allTracks(
+        try await expectRelationshipSort(
             repository: repository,
             query: LibraryTrackQuery(
                 sort: LibraryTrackSort(
                     field: .year,
                     direction: .ascending
                 )
-            )
+            ),
+            expectedIDs: fixture.yearAscendingIDs
         )
-        let stableOrder = albumSorted.map(\.id).sorted {
-            $0.uuidString < $1.uuidString
-        }
-
-        #expect(albumSorted.count == 401)
-        #expect(yearSorted.count == 401)
-        #expect(albumSorted.map(\.id) == stableOrder)
-        #expect(yearSorted.map(\.id) == stableOrder)
     }
 
     @Test("Scoped relationship pages do not depend on global first pages")
@@ -143,6 +136,26 @@ struct CatalogPagingTests {
 }
 
 private extension CatalogPagingTests {
+    func expectRelationshipSort(
+        repository: LibraryRepository,
+        query: LibraryTrackQuery,
+        expectedIDs: [UUID]
+    ) async throws {
+        let sorted = try await allTracks(
+            repository: repository,
+            query: query
+        )
+        let window = try await repository.tracksWindow(
+            query: query,
+            offset: 177,
+            limit: 64
+        )
+
+        #expect(sorted.count == 401)
+        #expect(sorted.map(\.id) == expectedIDs)
+        #expect(window.map(\.id) == Array(expectedIDs[177 ..< 241]))
+    }
+
     func allTracks(
         repository: LibraryRepository,
         query: LibraryTrackQuery

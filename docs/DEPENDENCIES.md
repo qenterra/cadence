@@ -9,7 +9,7 @@ For a published binary, use the dependency lockfile at its release tag.
 
 | Component | Version policy | Role | Source |
 | --- | --- | --- | --- |
-| Cadence | `1.0.0` | Application | This repository |
+| Cadence | `1.0.1` | Application | This repository |
 | Swift and SwiftUI | Active compatible Xcode | Language and interface | Apple |
 | SwiftData | Active macOS SDK | Library persistence and migration | Apple |
 | AVFoundation and AVFAudio | Active macOS SDK | Audio inspection and playback | Apple |
@@ -59,7 +59,7 @@ runtime dependencies:
 
 | Candidate | Decision | Rationale |
 | --- | --- | --- |
-| [SFBAudioEngine](https://github.com/sbooth/SFBAudioEngine) | Not included in 1.0.0 | Its decoders, player, conversion, and writable metadata model are valuable for broader format support. Cadence currently targets formats supported by Apple's audio stack, so replacing the tested AVFoundation/AVFAudio path would expand the binary, licensing review, and playback surface without solving a confirmed playback defect. Re-evaluate only if a supported-format or gapless-playback acceptance test proves the native stack insufficient. |
+| [SFBAudioEngine](https://github.com/sbooth/SFBAudioEngine) | Not included | Its decoders, player, conversion, and writable metadata model are valuable for broader format support. Cadence currently targets formats supported by Apple's audio stack, so replacing the tested AVFoundation/AVFAudio path would expand the binary, licensing review, and playback surface without solving a confirmed playback defect. Re-evaluate only if a supported-format or gapless-playback acceptance test proves the native stack insufficient. |
 | [SnapshotTesting](https://github.com/pointfreeco/swift-snapshot-testing) | Keep as a later test-only option | It provides recording and image, text, and data snapshot strategies. Cadence's existing native RGBA comparator already gives deterministic macOS screenshot diffs and is integrated into the release gate. Consider a hybrid adoption when hierarchy or serialized-state snapshots become a concrete need; replacing the current image gate alone would add migration work without broader coverage. |
 
 These are deliberate boundaries, not fallback implementations. A future change

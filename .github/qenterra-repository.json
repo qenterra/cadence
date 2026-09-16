@@ -22,7 +22,7 @@
   "conduct_contact": "https://github.com/QenTerra/cadence/blob/main/CODE_OF_CONDUCT.md",
   "copyright_holder": "Nikita Melnychenko (QenTerra)",
   "copyright_year_range": "2026",
-  "current_version": "1.0.0",
+  "current_version": "1.0.1",
   "default_branch": "main",
   "dependabot_ecosystem": "swift",
   "description": "Native macOS player and library manager for local music.",

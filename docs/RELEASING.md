@@ -14,18 +14,18 @@ A hosted draft still requires publication authority.
 - Release owner: Nikita Melnychenko (QenTerra)
 - Version scheme: semver
 - Version source: `release-contract.json`
-- Current version: `1.0.0`
+- Current version: `1.0.1`
 
 A local commit, tag, GitHub Release, package publication, deployment, store submission, and update-feed change are separate authorized actions.
 
 ## Current distribution
 
-Cadence 1.0.0 is the first public release, for Apple silicon and macOS 26 or later. Its
+Cadence 1.0.1 is the current public release, for Apple silicon and macOS 26 or later. Its
 ad-hoc signature does not provide a Developer ID identity, and it is not
 notarized. The release notes and installation guide disclose the Gatekeeper
 implications. First installation uses the DMG or ZIP. See
 [Software updates](UPDATES.md) for the future update infrastructure and distribution
-boundaries and [release notes](../release/release-notes-1.0.0.md) for the public body.
+boundaries and [release notes](../release/release-notes-1.0.1.md) for the public body.
 
 ## Prepare
 
@@ -47,7 +47,7 @@ boundaries and [release notes](../release/release-notes-1.0.0.md) for the public
 
 ## Publish
 
-1. Create an annotated release tag `v1.0.0` at the verified commit.
+1. Create an annotated release tag `v1.0.1` at the verified commit.
 2. Create a draft GitHub Release with the changelog entry, assets, checksums, support status, and known issues.
 3. Inspect every asset and link before publication; use immutable releases when supported.
 4. Publish only the authorized surfaces.

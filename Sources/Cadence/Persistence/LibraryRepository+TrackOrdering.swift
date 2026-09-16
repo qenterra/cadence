@@ -46,4 +46,47 @@ extension LibraryRepository {
         }
         return albumTrackOrder(lhs: lhs, rhs: rhs)
     }
+
+    static func relationshipTrackOrder(
+        lhs: TrackRecord,
+        rhs: TrackRecord,
+        sort: LibraryTrackSort
+    ) -> Bool {
+        let primaryOrder: Bool? = switch sort.field {
+        case .album:
+            optionalSortOrder(
+                lhs.album?.normalizedTitle,
+                rhs.album?.normalizedTitle,
+                direction: sort.direction
+            )
+        case .year:
+            optionalSortOrder(
+                lhs.album?.year,
+                rhs.album?.year,
+                direction: sort.direction
+            )
+        case .song, .duration:
+            nil
+        }
+        return primaryOrder ?? (lhs.sortIdentity < rhs.sortIdentity)
+    }
+
+    private static func optionalSortOrder<Value: Comparable>(
+        _ lhs: Value?,
+        _ rhs: Value?,
+        direction: LibraryTrackSortDirection
+    ) -> Bool? {
+        switch (lhs, rhs) {
+        case (nil, nil):
+            nil
+        case (nil, .some):
+            direction == .ascending
+        case (.some, nil):
+            direction == .descending
+        case let (lhs?, rhs?) where lhs != rhs:
+            direction == .ascending ? lhs < rhs : lhs > rhs
+        default:
+            nil
+        }
+    }
 }
