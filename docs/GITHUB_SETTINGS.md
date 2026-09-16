@@ -1,6 +1,6 @@
 # GitHub settings and verification
 
-Repository files declare expected behaviour but do not prove live GitHub settings. Verify the exact repository through an authorised API query or settings review and retain the evidence with the adopting task.
+Repository files declare expected behavior but do not prove live GitHub settings. Verify the exact repository through an authorized API query or settings review and retain the evidence with the adopting task.
 
 ## Metadata and features
 
@@ -25,6 +25,7 @@ Review dependency graph, Dependabot alerts and updates, secret scanning, push pr
 
 | Checked at | Exact repository | Evidence source | Reviewer | Result | Unverified or exception |
 | --- | --- | --- | --- | --- | --- |
-| 2026-08-29 | https://github.com/QenTerra/cadence | Authorised GitHub API, Actions, and ruleset read-back after protected publication | Nikita Melnychenko (QenTerra) | Passed: public visibility, `main`, Issues, Wiki, squash-only merges, branch deletion, required PR checks, and immutable `v*` tags verified | Code scanning, signing, notarisation, and release assets remain release-specific checks |
+| 2026-09-16T19:00Z | https://github.com/QenTerra/cadence | Pre-publication GitHub API, ruleset, release, asset, and Wiki read-back | Repository audit | Mixed: public visibility, metadata, `main`, Issues, Wiki, squash-only merges, branch deletion, required PR checks, protected `v*` tags, secret scanning, push protection, release assets, and the pre-audit Wiki projection verified | Private vulnerability reporting, Dependabot alerts and security updates were disabled; code scanning was not configured; Actions permitted all actions without SHA enforcement; live labels did not match `.github/labels.yml`; future-release immutability was disabled. This row records the state before publication, not the intended final state. |
+| 2026-08-29 | https://github.com/QenTerra/cadence | Authorized GitHub API, Actions, and ruleset read-back after protected publication | Nikita Melnychenko (QenTerra) | Passed: public visibility, `main`, Issues, Wiki, squash-only merges, branch deletion, required PR checks, and immutable `v*` tags verified | Code scanning, signing, notarization, and release assets remain release-specific checks |
 
 Never copy a prior repository’s result forward. Provider features, plan availability, and settings can change without a source diff.

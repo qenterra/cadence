@@ -7,7 +7,7 @@ Cadence separates SwiftUI presentation, application coordination, the managed-li
 | Component | Responsibility | Boundary |
 | --- | --- | --- |
 | SwiftUI features and components | Present library, playback, metadata, lyrics, and settings | Main-actor view state and explicit user actions |
-| Managed library and import pipeline | Copy, index, recover, and remove user-selected media | User-authorised managed Cadence folder |
+| Managed library and import pipeline | Copy, index, recover, and remove user-selected media | User-authorized managed Cadence folder |
 | Persistence | SwiftData catalog, GRDB lyrics search, and catalog-migration integrity checks | Sandboxed Application Support; never a removable-media database |
 | Playback | Coordinate local and temporary external audio | AVFoundation, output routes, and media controls |
 | Providers | Resolve explicitly requested external metadata or media | Network boundary with provider-specific policy |

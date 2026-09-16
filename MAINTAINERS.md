@@ -10,7 +10,7 @@
 | --- | --- | --- |
 | Repository and release | @qenterra | Governance, CI, version, changelog, and release evidence |
 | Security and legal | @qenterra | Security policy, private reports, licenses, and notices |
-| Product source | @qenterra | Architecture, implementation, tests, and public behaviour |
+| Product source | @qenterra | Architecture, implementation, tests, and public behavior |
 | Documentation | @qenterra | README, maintained docs, Wiki source, and examples |
 
 Update this file and `.github/CODEOWNERS` together when responsibility changes.

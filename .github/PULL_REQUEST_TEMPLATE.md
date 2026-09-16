@@ -35,7 +35,7 @@ Attach screenshots, recordings, benchmark data, logs, or provider links only whe
 
 - [ ] The title follows the repository’s Conventional Commit grammar.
 - [ ] The diff contains one coherent outcome and no unrelated changes.
-- [ ] Tests or checks cover mechanically observable behaviour.
+- [ ] Tests or checks cover mechanically observable behavior.
 - [ ] User-visible, API, operational, privacy, and security changes are documented.
 - [ ] No credentials, personal data, private paths, signing material, or unreviewed generated artifacts are included.
 - [ ] External or manual checks that remain unverified are named explicitly.

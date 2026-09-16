@@ -18,7 +18,7 @@ body:
     id: environment
     attributes:
       label: Environment
-      description: Operating system, architecture, runtime, device, browser, or deployment details that affect reproduction.
+      description: macOS version, Mac model and architecture, audio output route, and file format when relevant.
     validations:
       required: true
   - type: textarea
@@ -31,20 +31,20 @@ body:
   - type: textarea
     id: expected
     attributes:
-      label: Expected behaviour
+      label: Expected behavior
     validations:
       required: true
   - type: textarea
     id: actual
     attributes:
-      label: Actual behaviour
+      label: Actual behavior
     validations:
       required: true
   - type: textarea
     id: evidence
     attributes:
       label: Safe supporting evidence
-      description: Sanitised logs, screenshots, recordings, or sample code. Do not attach secrets or private user content.
+      description: Sanitized logs, screenshots, recordings, or sample code. Do not attach secrets or private user content.
   - type: checkboxes
     id: checks
     attributes:

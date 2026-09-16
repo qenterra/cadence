@@ -47,6 +47,7 @@ notarized. It is a manual download, with no Sparkle update for this version.
 See [Getting Started](Getting-Started) for official downloads, checksums, and
 Gatekeeper instructions.
 
-Report vulnerabilities through [private vulnerability reporting](https://github.com/QenTerra/cadence/security/advisories/new).
-Do not include credentials, private media, personal paths, or unrelated logs in
-public issues.
+Report vulnerabilities through
+[GitHub private vulnerability reporting](https://github.com/QenTerra/cadence/security/advisories/new).
+Do not include credentials, private media, personal paths, unrelated logs, or
+vulnerability details in public issues or email.

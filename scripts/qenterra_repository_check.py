@@ -593,7 +593,7 @@ def validate_contract(config: dict[str, Any], findings: list[Finding]) -> bool:
         findings.append(finding("CONDUCT_CONTACT_INVALID", "error", "conduct_contact must use https:// or mailto:."))
     code_owner = config.get("code_owner")
     if not isinstance(code_owner, str) or re.fullmatch(r"@[A-Za-z0-9-]+(?:/[A-Za-z0-9_.-]+)?", code_owner) is None:
-        findings.append(finding("CODE_OWNER_INVALID", "error", "code_owner must be a GitHub user or organisation/team handle."))
+        findings.append(finding("CODE_OWNER_INVALID", "error", "code_owner must be a GitHub user or organization/team handle."))
     year_range = config.get("copyright_year_range")
     year_match = re.fullmatch(r"(\d{4})(?:-(\d{4}))?", year_range) if isinstance(year_range, str) else None
     if year_match is None or not 1900 <= int(year_match.group(1)) <= 2099 or (year_match.group(2) and not int(year_match.group(1)) <= int(year_match.group(2)) <= 2099):
@@ -1477,7 +1477,7 @@ def audit_repository(root: Path) -> dict[str, Any]:
                 "EXTERNAL_GITHUB_SETTINGS_UNVERIFIED",
                 "unverified",
                 "Live GitHub rulesets, repository features, security settings, Wiki projection, releases, assets, and links were not inspected by this local audit.",
-                remediation="Run and record an authorised GitHub API or settings review for the exact repository.",
+                remediation="Run and record an authorized GitHub API or settings review for the exact repository.",
             )
         )
     findings = sorted_findings(findings)
@@ -1536,7 +1536,7 @@ def format_markdown(report: dict[str, Any]) -> str:
             "",
             "## Evidence boundary",
             "",
-            "A clean local audit does not prove live GitHub settings, legal sufficiency, release assets, signatures, deployments, accessibility, or product behaviour. Those surfaces remain Unverified until separately inspected.",
+            "A clean local audit does not prove live GitHub settings, legal sufficiency, release assets, signatures, deployments, accessibility, or product behavior. Those surfaces remain Unverified until separately inspected.",
             "",
         ]
     )

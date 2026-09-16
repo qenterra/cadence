@@ -1,6 +1,6 @@
 # Cadence
 
-A native macOS music player with a managed local library, lyrics, metadata tools, and private-by-default playback.
+Native macOS player and library manager for local music.
 
 Cadence 1.0.0 is the first public release, for Apple silicon and
 macOS 26 or later. The
@@ -10,9 +10,10 @@ installation and Gatekeeper steps.
 
 ![Cadence library with synthetic music](https://raw.githubusercontent.com/QenTerra/cadence/main/docs/images/cadence-library.png)
 
-Home favorites, native library tables, line-timed lyrics, editable artwork,
-hierarchical tags, and smart collections share one local catalog. Cadence Mode
-uses artwork colors for its animated background.
+Cadence keeps playback and organization in one local catalog: favorites,
+albums and artists, line-timed lyrics, editable artwork, hierarchical tags,
+playlists, and smart collections. Cadence Mode adds artwork-driven visuals
+without changing the audio path.
 
 ## Start here
 
@@ -32,7 +33,7 @@ uses artwork colors for its animated background.
 - [Source](https://github.com/QenTerra/cadence)
 - [Documentation](https://github.com/QenTerra/cadence/tree/main/docs)
 - [Issues](https://github.com/QenTerra/cadence/issues)
-- [Security](https://github.com/QenTerra/cadence/security/advisories/new)
+- [Security](https://github.com/QenTerra/cadence/blob/main/SECURITY.md)
 - [License](https://github.com/QenTerra/cadence/blob/main/LICENSE)
 
 Cadence is created and maintained by Nikita Melnychenko (QenTerra).

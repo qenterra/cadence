@@ -3,7 +3,7 @@ import QenTerraMediaComponents
 import Testing
 
 struct CadenceAccentGradientAdapterTests {
-    @Test func rhythmPaletteMapsDisplayColoursWithoutDoubleLinearization() {
+    @Test func rhythmPaletteMapsDisplayColorsWithoutDoubleLinearization() {
         let source = RhythmAccentPalette(colors: [
             RhythmPulseColor(red: 0.25, green: 0.5, blue: 0.75),
             RhythmPulseColor(red: 1, green: 0.25, blue: 0.125),
