@@ -228,6 +228,10 @@ final class DocumentationScreenshotFixture {
         // screenshot window is mounting. Restore the capture-owned override
         // immediately before rasterization so the frame cannot record a
         // half-transitioned mix of AppKit and SwiftUI appearances.
+        if NSApp.isActive {
+            NSApp.deactivate()
+            await Task.yield()
+        }
         window.appearance = capturedAppearance
         hostingView.layoutSubtreeIfNeeded()
         hostingView.displayIfNeeded()

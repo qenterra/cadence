@@ -2,8 +2,8 @@
 
 ## Gatekeeper blocks the first launch
 
-Cadence 1.0.0 is ad-hoc signed, not Developer ID signed, and not notarized.
-Download the DMG from the [official release](https://github.com/QenTerra/cadence/releases/tag/v1.0.0)
+Cadence 1.0.1 is ad-hoc signed, not Developer ID signed, and not notarized.
+Download the DMG from the [official release](https://github.com/QenTerra/cadence/releases/tag/v1.0.1)
 and compare its SHA-256 with the attached checksums. If you trust that download,
 use Cadence's **Open Anyway** option in **System Settings > Privacy & Security**
 after the blocked launch. See [Apple's instructions](https://support.apple.com/en-gb/102445).
@@ -12,9 +12,9 @@ message and asset checksum.
 
 ## No updates are available
 
-Cadence 1.0.0 is the first and currently only public release. Install it from
-the official DMG or ZIP. The update checker is available for future releases;
-there is no newer version to install.
+Cadence 1.0.1 is the current public release. Install it from the official DMG
+or ZIP. This ad-hoc build is not published through the Sparkle feed, so the
+update checker does not install it automatically.
 
 ## Source-build problems
 

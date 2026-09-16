@@ -17,7 +17,7 @@
   <a href="LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-f2f2f2"></a>
   <img alt="macOS 26 or later" src="https://img.shields.io/badge/macOS-26%2B-f2f2f2">
   <img alt="Swift 6" src="https://img.shields.io/badge/Swift-6-f2f2f2">
-  <img alt="Version 1.0.0" src="https://img.shields.io/badge/version-1.0.0-f2f2f2">
+  <img alt="Version 1.0.1" src="https://img.shields.io/badge/version-1.0.1-f2f2f2">
 </p>
 
 <p align="center">
@@ -35,7 +35,7 @@ one native SwiftUI app. Its managed folder lives on this Mac or a connected
 local drive chosen by the user.
 
 > [!IMPORTANT]
-> Cadence 1.0.0 is the first public release, available for Apple silicon
+> Cadence 1.0.1 is the current public release, available for Apple silicon
 > as a manual download (DMG or ZIP). The app is ad-hoc signed, **not Developer ID signed and not notarized**.
 > Gatekeeper may block the first launch. See the installation steps below.
 > This release is not delivered through Sparkle or the App Store.
@@ -128,16 +128,16 @@ synthetic; the capture process cannot open the developer's music library.
 
 ### Install Cadence
 
-1. Download [`Cadence-1.0.0-arm64.dmg`](https://github.com/QenTerra/cadence/releases/download/v1.0.0/Cadence-1.0.0-arm64.dmg)
-   from the [official 1.0.0 release](https://github.com/QenTerra/cadence/releases/tag/v1.0.0).
-   Compare its SHA-256 with `Cadence-1.0.0-SHA256SUMS.txt` on that page.
+1. Download [`Cadence-1.0.1-arm64.dmg`](https://github.com/QenTerra/cadence/releases/download/v1.0.1/Cadence-1.0.1-arm64.dmg)
+   from the [official 1.0.1 release](https://github.com/QenTerra/cadence/releases/tag/v1.0.1).
+   Compare its SHA-256 with `Cadence-1.0.1-SHA256SUMS.txt` on that page.
 2. Open the DMG and drag Cadence to **Applications**. Launch it from there.
 3. If Gatekeeper blocks it because the developer cannot be verified, and you
    trust the download, open **System Settings > Privacy & Security** and use
    **Open Anyway** for Cadence. Follow [Apple's instructions](https://support.apple.com/en-gb/102445).
 
 The app is not notarized. An ad-hoc signature does not establish a verified
-developer identity. Install this first release from the DMG or ZIP linked above.
+developer identity. Install the release from the DMG or ZIP linked above.
 
 ### Requirements
 
@@ -251,9 +251,9 @@ the [GitHub Wiki](https://github.com/QenTerra/cadence/wiki) for more detail.
 
 ## Current limitations
 
-- The 1.0.0 download is ad-hoc signed and not notarized; first launch may
+- The 1.0.1 download is ad-hoc signed and not notarized; first launch may
   require the app-specific Gatekeeper exception described above.
-- Intel and universal binaries are not included in `1.0.0`.
+- Intel and universal binaries are not included in `1.0.1`.
 - The complete Xcode 27 build and test gate remains local while the hosted
   GitHub runner provides an older toolchain.
 - Output-device behavior, long playback, VoiceOver, spatial audio, and large

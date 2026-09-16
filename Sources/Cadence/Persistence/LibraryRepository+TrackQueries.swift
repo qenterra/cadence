@@ -9,14 +9,18 @@ extension LibraryRepository {
     ) throws -> [LibraryTrackProjection] {
         let boundedOffset = max(offset, 0)
         let boundedLimit = min(max(limit, 1), Self.maximumPageSize)
+        if query.sort.field == .album || query.sort.field == .year {
+            let records = try relationshipSortedRecords(query: query)
+            let pageRecords = records.dropFirst(boundedOffset)
+                .prefix(boundedLimit)
+            return try trackProjections(Array(pageRecords))
+        }
         let sortBy = switch query.sort.field {
         case .song:
             titleSortDescriptors(
                 isAscending: query.sort.direction == .ascending
             )
-        case .album, .year:
-            relationshipSortDescriptors(query.sort)
-        case .duration:
+        case .album, .year, .duration:
             scalarSortDescriptors(query.sort)
         }
         var descriptor = trackDescriptor(
@@ -54,11 +58,10 @@ extension LibraryRepository {
         }
 
         if query.sort.field == .album || query.sort.field == .year {
-            return try offsetSortedTracksPage(
+            return try relationshipSortedTracksPage(
                 query: query,
                 after: cursor,
-                limit: boundedLimit,
-                sortBy: relationshipSortDescriptors(query.sort)
+                limit: boundedLimit
             )
         }
 
@@ -99,25 +102,43 @@ private extension LibraryRepository {
         }
 
         let offset = cursor?.offset ?? 0
-        let sortBy = query.sort.field == .album || query.sort.field == .year
-            ? relationshipSortDescriptors(query.sort)
-            : scalarSortDescriptors(query.sort)
-        let hasSearch = !query.search.isEmpty
-        let search = query.search
-        let predicate = #Predicate<TrackRecord> { record in
-            trackIDs.contains(record.id)
-                && (!hasSearch || record.normalizedTitle.contains(search))
-        }
-        var descriptor = FetchDescriptor(
-            predicate: predicate,
-            sortBy: sortBy
+        var descriptor = creditedTracksDescriptor(
+            trackIDs: trackIDs,
+            query: query
         )
+        if query.sort.field == .album || query.sort.field == .year {
+            return try slicedOffsetPage(
+                records: relationshipSortedRecords(
+                    descriptor: descriptor,
+                    sort: query.sort
+                ),
+                offset: offset,
+                limit: limit
+            )
+        }
+        descriptor.sortBy = scalarSortDescriptors(query.sort)
         descriptor.fetchOffset = offset
         descriptor.fetchLimit = limit + 1
         return try offsetPage(
             records: modelContext.fetch(descriptor),
             offset: offset,
             limit: limit
+        )
+    }
+
+    func creditedTracksDescriptor(
+        trackIDs: [UUID],
+        query: LibraryTrackQuery
+    ) -> FetchDescriptor<TrackRecord> {
+        let hasSearch = !query.search.isEmpty
+        let search = query.search
+        let predicate = #Predicate<TrackRecord> { record in
+            trackIDs.contains(record.id)
+                && (!hasSearch || record.normalizedTitle.contains(search))
+        }
+        return FetchDescriptor(
+            predicate: predicate,
+            sortBy: [SortDescriptor(\TrackRecord.sortIdentity)]
         )
     }
 
@@ -206,6 +227,60 @@ private extension LibraryRepository {
         let records = try modelContext.fetch(descriptor)
         return try offsetPage(
             records: records,
+            offset: offset,
+            limit: limit
+        )
+    }
+
+    func relationshipSortedTracksPage(
+        query: LibraryTrackQuery,
+        after cursor: LibraryPageCursor?,
+        limit: Int
+    ) throws -> LibraryPage<LibraryTrackProjection> {
+        try slicedOffsetPage(
+            records: relationshipSortedRecords(query: query),
+            offset: cursor?.offset ?? 0,
+            limit: limit
+        )
+    }
+
+    func relationshipSortedRecords(
+        query: LibraryTrackQuery
+    ) throws -> [TrackRecord] {
+        let descriptor = trackDescriptor(
+            scope: query.scope,
+            search: query.search,
+            sortBy: [SortDescriptor(\TrackRecord.sortIdentity)]
+        )
+        return try relationshipSortedRecords(
+            descriptor: descriptor,
+            sort: query.sort
+        )
+    }
+
+    func relationshipSortedRecords(
+        descriptor input: FetchDescriptor<TrackRecord>,
+        sort: LibraryTrackSort
+    ) throws -> [TrackRecord] {
+        var descriptor = input
+        descriptor.relationshipKeyPathsForPrefetching = [\TrackRecord.album]
+        return try modelContext.fetch(descriptor).sorted {
+            Self.relationshipTrackOrder(
+                lhs: $0,
+                rhs: $1,
+                sort: sort
+            )
+        }
+    }
+
+    func slicedOffsetPage(
+        records: [TrackRecord],
+        offset: Int,
+        limit: Int
+    ) throws -> LibraryPage<LibraryTrackProjection> {
+        let candidates = records.dropFirst(offset).prefix(limit + 1)
+        return try offsetPage(
+            records: Array(candidates),
             offset: offset,
             limit: limit
         )
