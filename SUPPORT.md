@@ -5,7 +5,7 @@
 - Product support, product help, and technical questions: [support@qenterra.com](mailto:support@qenterra.com).
 - Proposals, general enquiries, and commercial matters: [contact@qenterra.com](mailto:contact@qenterra.com).
 
-These mailboxes are not vulnerability or conduct-reporting routes. Follow `SECURITY.md` for vulnerabilities and `CODE_OF_CONDUCT.md` for private conduct reports.
+These mailboxes are not vulnerability or conduct-reporting routes. Follow `SECURITY.md` and `CODE_OF_CONDUCT.md` for the current reporting status.
 
 ## Usage questions
 
@@ -17,11 +17,13 @@ Use [contact@qenterra.com](mailto:contact@qenterra.com) for proposals, general c
 
 ## Bugs and feature requests
 
-Use the structured issue forms. Include the affected version, environment, exact steps, expected behaviour, actual behaviour, and a minimal synthetic example.
+Use the structured issue forms. Include the affected version, environment, exact steps, expected behavior, actual behavior, and a minimal synthetic example.
 
 ## Security
 
-Follow `SECURITY.md` and use https://github.com/QenTerra/cadence/security/advisories/new. Do not disclose vulnerabilities publicly before coordinated disclosure.
+Follow `SECURITY.md` and use
+[GitHub private vulnerability reporting](https://github.com/QenTerra/cadence/security/advisories/new).
+Do not disclose vulnerabilities publicly before coordinated disclosure.
 
 ## Scope
 

@@ -18,9 +18,9 @@ Cadence can copy selected files into `~/Music/Cadence`. It leaves the
 source files unchanged, but actions inside Cadence can modify or delete managed
 copies and related metadata. Keep independent backups.
 
-## No streaming catalogue
+## No streaming catalog
 
-Cadence does not provide music, artwork, lyrics, or a shared catalogue. Project
+Cadence does not provide music, artwork, lyrics, or a shared catalog. Project
 links in Settings open external websites under their own terms and privacy
 policies.
 

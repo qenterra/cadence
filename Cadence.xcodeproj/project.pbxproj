@@ -209,6 +209,7 @@
 		4984AD2DE53D349E5BCA0DEA /* LibraryStore+CatalogSearch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 837D83C3AAD382F423614956 /* LibraryStore+CatalogSearch.swift */; };
 		49D923FF647AF2DE026D80F5 /* TagSelectionSummaryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6484AACC544C7FD29070DBE /* TagSelectionSummaryTests.swift */; };
 		4A2B770BCA19D9A68D778193 /* ProductionPlaybackAppModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB1B326A905A38F0D23EAAA8 /* ProductionPlaybackAppModelTests.swift */; };
+		4A4C4E0A2CE22C835010D55B /* GRDB.txt in Resources */ = {isa = PBXBuildFile; fileRef = 674ADA02EEAD55271B472E4F /* GRDB.txt */; };
 		4AD1210D5C9B617B6A263E25 /* ProductionLibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF3C6652C7103108DFDCDC0A /* ProductionLibraryView.swift */; };
 		4B2490545AEE9CB41229F8E5 /* AudioRouteMonitoringTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84AAFA33A06C37D6CAAE7BED /* AudioRouteMonitoringTests.swift */; };
 		4B4621935D05775664B056AB /* CadenceAppModel+ExternalAudio.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89933AE9BA6575338172D62F /* CadenceAppModel+ExternalAudio.swift */; };
@@ -250,6 +251,7 @@
 		592344CE3C83ED057855E91A /* LibraryStore+Reset.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83DB86E7A74A30C1ABE759C3 /* LibraryStore+Reset.swift */; };
 		594A30A18D23328EC37A549F /* RemoteCachePersistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D7D37D8325E789302879903 /* RemoteCachePersistence.swift */; };
 		59B99142B89542B0B7061CBA /* RemoteCacheIndex.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8A65B14A963B8D139172113 /* RemoteCacheIndex.swift */; };
+		59BD8BB68ADA17510A6752C7 /* AppAuth.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9FA386194D53F9581DC39958 /* AppAuth.txt */; };
 		5A3716A645E50BC6A6EC91AE /* CadenceModeBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F3B206C42DF6E3A1DE8E0BA /* CadenceModeBackground.swift */; };
 		5A511809527E8AA211DBFD97 /* ProductionTagsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 344F66B086354C9D263B887E /* ProductionTagsView.swift */; };
 		5AF7A164C40CA928B699CB8B /* ArtworkMenuItems.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5009AA7A8898AE08084C886C /* ArtworkMenuItems.swift */; };
@@ -351,6 +353,7 @@
 		86F053B5C0AC9296D9ABBCEB /* LibraryStore+CatalogLookups.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC41F35DC98C095517DD416B /* LibraryStore+CatalogLookups.swift */; };
 		870AB6A2514692FB104E264B /* LocalLibraryStorageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA652BDE266F8B989B635816 /* LocalLibraryStorageTests.swift */; };
 		87756DD8C2D1A4447A295238 /* SettingsSidebarCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64EB72E16AC1B2A6A9850F00 /* SettingsSidebarCard.swift */; };
+		879A2B0B2422FB1B1E2732B3 /* QenTerra-Design-System.txt in Resources */ = {isa = PBXBuildFile; fileRef = DF96207FD40EAAAA4AF77655 /* QenTerra-Design-System.txt */; };
 		87B76602C3C8C046E9B4E2BC /* LibraryStore+Fixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8E635C95EA759D02184FAF3 /* LibraryStore+Fixtures.swift */; };
 		87BA5C0ED3300EBC780C91EB /* CadenceAppModel+PlaybackQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEA0268576023D07D01DF7D6 /* CadenceAppModel+PlaybackQueue.swift */; };
 		87E255DF2D2E54C703C34D3D /* SmartCollectionPersistenceAppModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFDC987ABE6AC221EEDAE4ED /* SmartCollectionPersistenceAppModelTests.swift */; };
@@ -586,6 +589,7 @@
 		E893DD69B53A86458B85F3C3 /* CatalogRenameAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5491EC21974CF6B3DC28B848 /* CatalogRenameAlert.swift */; };
 		E8D75CCC9113957FD822593A /* GoogleDriveAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91F900EC49FB13D693CB5D51 /* GoogleDriveAPI.swift */; };
 		E9226B42344BB21C64E695E2 /* QenTerraMediaComponents in Frameworks */ = {isa = PBXBuildFile; productRef = ABF01BAD96148FB950EFE9CD /* QenTerraMediaComponents */; };
+		E930E2D4A8D8E5F79BC24BCA /* Sparkle.txt in Resources */ = {isa = PBXBuildFile; fileRef = E8F5A27CE8CEC08A08A1981C /* Sparkle.txt */; };
 		E9CD383314E7A96E00F92A47 /* NativeTrackTablePresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C46B7622B1AA9EA2A73809B /* NativeTrackTablePresentation.swift */; };
 		EA96A0DF09FA341325FD40DC /* NavigationRailTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A2687359F95B20BAB97940D /* NavigationRailTests.swift */; };
 		EAF92C66725B05F0DE017EE3 /* NowPlayingLayoutMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = E58947A7A402EF9F02EE1F57 /* NowPlayingLayoutMetrics.swift */; };
@@ -906,6 +910,7 @@
 		6610C59996FEFF939C1382DC /* RhythmParticleModelsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RhythmParticleModelsTests.swift; sourceTree = "<group>"; };
 		667B64958F551116269592DB /* ExternalAudioSessionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExternalAudioSessionTests.swift; sourceTree = "<group>"; };
 		66FC2C1F3CA4870EC6247974 /* CadenceModeLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CadenceModeLayoutTests.swift; sourceTree = "<group>"; };
+		674ADA02EEAD55271B472E4F /* GRDB.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = GRDB.txt; sourceTree = "<group>"; };
 		675EAF61632215B7A54DF781 /* LibraryStoreArtworkLookupTestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryStoreArtworkLookupTestSupport.swift; sourceTree = "<group>"; };
 		6778AAC21B282E5A0BE4FF05 /* MetadataValueResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetadataValueResolver.swift; sourceTree = "<group>"; };
 		67DE62CCBCD09C87AC5D16DD /* TrackTableCore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackTableCore.swift; sourceTree = "<group>"; };
@@ -1044,6 +1049,7 @@
 		9EBF5979C58434B0F38995A4 /* RemoteMediaCacheTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteMediaCacheTests.swift; sourceTree = "<group>"; };
 		9F13E61403357E3082D9E24B /* ArtworkAssetCacheTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtworkAssetCacheTests.swift; sourceTree = "<group>"; };
 		9F29DFC292813272EDBF610D /* ArtistsListeningAppModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistsListeningAppModelTests.swift; sourceTree = "<group>"; };
+		9FA386194D53F9581DC39958 /* AppAuth.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = AppAuth.txt; sourceTree = "<group>"; };
 		A01029DC4D6199E424B002B5 /* ImportSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportSource.swift; sourceTree = "<group>"; };
 		A068A72A512AC652B80D8F6D /* TrackArtistCreditRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackArtistCreditRecord.swift; sourceTree = "<group>"; };
 		A07795D7FE55A08D67ABA1AC /* CadenceModeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CadenceModeView.swift; sourceTree = "<group>"; };
@@ -1188,6 +1194,7 @@
 		DEC28E22C5CA2E2B2E8A10FA /* CadenceModePaletteTransitionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CadenceModePaletteTransitionTests.swift; sourceTree = "<group>"; };
 		DEDFF500AB9B942E070E62FA /* RemoteMediaCacheAdmission.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteMediaCacheAdmission.swift; sourceTree = "<group>"; };
 		DF3C6652C7103108DFDCDC0A /* ProductionLibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductionLibraryView.swift; sourceTree = "<group>"; };
+		DF96207FD40EAAAA4AF77655 /* QenTerra-Design-System.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "QenTerra-Design-System.txt"; sourceTree = "<group>"; };
 		E07FA2192A4CF9D2BEE47258 /* LibraryStore+FavoriteCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LibraryStore+FavoriteCatalog.swift"; sourceTree = "<group>"; };
 		E0930A86A0AF7E46943945C6 /* CadenceAppModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CadenceAppModelTests.swift; sourceTree = "<group>"; };
 		E19B1B77C472ED7BEB2DE7A5 /* SmartCollectionListeningLifecycleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartCollectionListeningLifecycleTests.swift; sourceTree = "<group>"; };
@@ -1210,6 +1217,7 @@
 		E8BA8F07187294E05583D45D /* CadenceTrackTableAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CadenceTrackTableAdapter.swift; sourceTree = "<group>"; };
 		E8D64D969C4AC58E2B2E1A57 /* SmartCollectionListeningHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartCollectionListeningHeader.swift; sourceTree = "<group>"; };
 		E8E635C95EA759D02184FAF3 /* LibraryStore+Fixtures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LibraryStore+Fixtures.swift"; sourceTree = "<group>"; };
+		E8F5A27CE8CEC08A08A1981C /* Sparkle.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = Sparkle.txt; sourceTree = "<group>"; };
 		E8FB690AF294C6A6570674D0 /* LibraryResetLifecycleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryResetLifecycleTests.swift; sourceTree = "<group>"; };
 		E91781B788683FEF7C61FD07 /* RhythmParticleModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RhythmParticleModels.swift; sourceTree = "<group>"; };
 		E9202F6B1DF2F18568F919A4 /* RemoteLibrarySettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteLibrarySettingsView.swift; sourceTree = "<group>"; };
@@ -1986,6 +1994,17 @@
 			path = LyricsEditor;
 			sourceTree = "<group>";
 		};
+		8AD70B541753D181223FBD8B /* ThirdPartyLicenses */ = {
+			isa = PBXGroup;
+			children = (
+				9FA386194D53F9581DC39958 /* AppAuth.txt */,
+				674ADA02EEAD55271B472E4F /* GRDB.txt */,
+				DF96207FD40EAAAA4AF77655 /* QenTerra-Design-System.txt */,
+				E8F5A27CE8CEC08A08A1981C /* Sparkle.txt */,
+			);
+			path = ThirdPartyLicenses;
+			sourceTree = "<group>";
+		};
 		8B701379B065B9C1DB770527 /* Tags */ = {
 			isa = PBXGroup;
 			children = (
@@ -2073,6 +2092,7 @@
 				DC8844F690D651FA2F80D1DA /* CadenceDebug.entitlements */,
 				2B02B767B601F9BBB8ABF4AB /* Info.plist */,
 				E2B1DAE0F6C28932ECAB0E12 /* Localizable.xcstrings */,
+				8AD70B541753D181223FBD8B /* ThirdPartyLicenses */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -2350,8 +2370,12 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				59BD8BB68ADA17510A6752C7 /* AppAuth.txt in Resources */,
 				33D47D02472A1A51145FC511 /* Cadence.icon in Resources */,
+				4A4C4E0A2CE22C835010D55B /* GRDB.txt in Resources */,
 				3862066A8CA690CE191F4DDD /* Localizable.xcstrings in Resources */,
+				879A2B0B2422FB1B1E2732B3 /* QenTerra-Design-System.txt in Resources */,
+				E930E2D4A8D8E5F79BC24BCA /* Sparkle.txt in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

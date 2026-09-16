@@ -133,7 +133,7 @@ read-only media streams; the app does not publish remote-library changes.
 Playback downloads the current object to staging, verifies its size and
 SHA-256, atomically promotes it into a bounded LRU cache, and only then gives a
 local URL to the existing backends. Current and next tracks are pinned; stale
-prefetch work is cancelled. Credentials and OAuth state stay in Keychain. The
+prefetch work is canceled. Credentials and OAuth state stay in Keychain. The
 Google adapter keeps the narrow `drive.file` scope and therefore accepts only
 objects created by Cadence under the same OAuth client.
 

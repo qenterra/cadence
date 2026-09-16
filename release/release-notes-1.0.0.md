@@ -39,6 +39,9 @@ after the blocked launch. Follow [Apple's instructions](https://support.apple.co
 ## Known issues
 
 - Intel and universal binaries are not included.
+- The app bundle does not embed the dependency license text files. They remain
+  available from the tagged source dependencies; future releases include them
+  in the app bundle.
 - Hardware-specific output routes, extended playback, VoiceOver, and
   Cadence Mode frame pacing require manual acceptance on the target Mac.
 
@@ -51,4 +54,4 @@ or acceptance across all supported hardware and assistive technologies.
 
 ## Full changelog
 
-[Cadence changelog](https://github.com/QenTerra/cadence/blob/main/CHANGELOG.md#100---2026-09-13).
+[Cadence changelog](https://github.com/QenTerra/cadence/blob/v1.0.0/CHANGELOG.md#100---2026-09-13).

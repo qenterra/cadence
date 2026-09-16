@@ -6,7 +6,7 @@ Cadence is maintained by Nikita Melnychenko (QenTerra) under the QenTerra reposi
 
 - Maintainers own issue triage, review, merge, version, release, and security decisions for their declared areas.
 - Material changes use a focused pull request and the checks in `CONTRIBUTING.md`.
-- Commit, push, tag, release, deployment, and GitHub-setting changes remain separate authorised actions.
+- Commit, push, tag, release, deployment, and GitHub-setting changes remain separate authorized actions.
 - Security disclosures use the private route in `SECURITY.md`.
 
 ## Decisions

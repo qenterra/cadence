@@ -20,11 +20,11 @@ bash scripts/verify.sh
 git diff --check
 ```
 
-`scripts/verify.sh` regenerates the Xcode project from `project.yml`, validates the release contract and installer artwork, runs SwiftFormat and SwiftLint, executes the Xcode test suite, checks localisation and Periphery debt, and inspects the built application. It writes disposable build state only under `.build/`; remove that directory to clean the checkout.
+`scripts/verify.sh` regenerates the Xcode project from `project.yml`, validates the release contract and installer artwork, runs SwiftFormat and SwiftLint, executes the Xcode test suite, checks localization and Periphery debt, and inspects the built application. It writes disposable build state only under `.build/`; remove that directory to clean the checkout.
 
 ## Configuration and secrets
 
-Development configuration is versioned in `project.yml`, `.swiftformat`, `.swiftlint.yml`, `Brewfile`, and `requirements-dev.txt`. Keep Developer ID credentials, notarisation credentials, local library contents, and user data outside the repository.
+Development configuration is versioned in `project.yml`, `.swiftformat`, `.swiftlint.yml`, `Brewfile`, and `requirements-dev.txt`. Keep Developer ID credentials, notarization credentials, local library contents, and user data outside the repository.
 
 ## Generated source
 

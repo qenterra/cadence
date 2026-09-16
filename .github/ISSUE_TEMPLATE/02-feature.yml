@@ -1,5 +1,5 @@
 name: Feature request
-description: Propose a concrete user, consumer, or operator outcome.
+description: Propose a specific improvement to Cadence.
 title: "feat: "
 labels: ["type: feature", "status: triage"]
 body:
@@ -7,14 +7,14 @@ body:
     id: problem
     attributes:
       label: Problem
-      description: Describe who is blocked, what they are trying to do, and current evidence.
+      description: Describe what you are trying to do, what prevents it, and any evidence that shows the problem.
     validations:
       required: true
   - type: textarea
     id: outcome
     attributes:
       label: Desired outcome
-      description: Describe observable behaviour rather than only an implementation.
+      description: Describe observable behavior rather than only an implementation.
     validations:
       required: true
   - type: textarea

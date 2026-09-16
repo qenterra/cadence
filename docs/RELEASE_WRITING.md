@@ -46,11 +46,11 @@ first and released versions newest first, using `## [version] - YYYY-MM-DD`.
 Use the actual publication date. The version has no tag prefix.
 
 Keep nonempty categories in this order: `Added`, `Changed`, `Deprecated`,
-`Removed`, `Fixed`, `Security`. Describe user, consumer, or operator impact,
-not individual commits. Deprecations identify the replacement and removal window;
+`Removed`, `Fixed`, `Security`. Describe externally relevant impact, not
+individual commits. Deprecations identify the replacement and removal window;
 if no removal is scheduled, say so. Mark incompatible entries `**Breaking:**`
 and put required migration guidance before the categories. Publish security
-detail only through the project's authorised disclosure process.
+detail only through the project's authorized disclosure process.
 
 Use `<Product> <version>` as the GitHub Release title, retaining the full version
 and prerelease suffix. A native application's display/build label remains governed
@@ -133,7 +133,7 @@ Title: `<type>(<scope>): <observable change>`.
 ```markdown
 ## Purpose
 
-<Problem, trigger, and resulting behaviour in one short paragraph.>
+<Problem, trigger, and resulting behavior in one short paragraph.>
 
 ## Scope
 
@@ -220,7 +220,7 @@ Attach findings to the smallest relevant code location. These examples do not au
 
 ### Security
 
-- <Authorised disclosure summary and public advisory link, if available.>
+- <Authorized disclosure summary and public advisory link, if available.>
 
 [Unreleased]: <repository-url>/compare/<current-tag>...<default-branch>
 [<version>]: <repository-url>/compare/<previous-tag>...<current-tag>
@@ -253,7 +253,7 @@ Title: `<Product> <version>`; set tag and provider prerelease status separately.
 | --- | --- | --- |
 | [<exact filename>](https://example.invalid/asset) | <OS and architecture> | [SHA-256 checksums](https://example.invalid/checksums) |
 
-<Verified signing or notarisation status when relevant.>
+<Verified signing or notarization status when relevant.>
 
 ## Known issues
 
@@ -265,7 +265,7 @@ Title: `<Product> <version>`; set tag and provider prerelease status separately.
 
 ## Acknowledgements
 
-<Actual contribution and authorised attribution.>
+<Actual contribution and authorized attribution.>
 
 ## Full changelog
 

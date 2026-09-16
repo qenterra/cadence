@@ -22,7 +22,7 @@ Retest documented setup, install, quick-start, migration, troubleshooting, and r
 
 ## Inactivity, transfer, and archival
 
-If active maintenance stops, update the README and repository description with status, final supported version, replacement, security boundary, and archival date. Transfers, visibility changes, archival, deletion, and publication remain separately authorised external actions.
+If active maintenance stops, update the README and repository description with status, final supported version, replacement, security boundary, and archival date. Transfers, visibility changes, archival, deletion, and publication remain separately authorized external actions.
 
 ## Maintenance record
 

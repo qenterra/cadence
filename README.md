@@ -91,14 +91,19 @@ synthetic; the capture process cannot open the developer's music library.
 - Choose **Add to Library…** to send only the current external file through the
   normal scan and duplicate-review flow.
 - Play supported lossless stereo through an `AVAudioEngine` PCM path.
-- Fall back to the system player for formats and routes that need native
-  handling.
+- Use an `AVPlayer`-backed path for AirPlay, multichannel or Dolby Atmos audio,
+  and compatible formats that do not use the PCM path.
 - Control playback from the app, media keys, Control Center, queue, and Now
   Playing.
+- Play, pause, seek, skip, adjust volume, shuffle only the upcoming items, and
+  cycle repeat off, repeat all, or repeat one.
+- Reorder or remove upcoming items without rewriting playback history.
 - Inspect the source format, sample rate, channel count, selected backend, and
   output route.
-- Use a direct PCM path whenever the format and output support it, with
-  automatic native fallback for compatible system routes and formats.
+- Optionally apply Track ReplayGain when a file provides it. Crossfade is
+  limited to compatible tracks during normal queue advancement. With crossfade
+  off, compatible PCM tracks with matching sample rate and channel count can
+  transition gaplessly.
 
 ### Browse and organize
 

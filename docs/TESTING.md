@@ -6,7 +6,7 @@
 bash scripts/verify.sh
 ```
 
-The gate regenerates the Xcode project, validates release metadata and DMG imagery, runs SwiftFormat and SwiftLint debt checks, executes the unit and integration suite, verifies localisation and Periphery findings, and inspects the built app bundle and asset catalogue.
+The gate regenerates the Xcode project, validates release metadata and DMG imagery, runs SwiftFormat and SwiftLint debt checks, executes the unit and integration suite, verifies localization and Periphery findings, and inspects the built app bundle and asset catalog.
 
 ## Test layers
 
@@ -14,12 +14,12 @@ The gate regenerates the Xcode project, validates release metadata and DMG image
 | --- | --- | --- | --- |
 | Unit | Models, stores, coordinators, import, playback, and release tooling | `bash scripts/verify.sh` | Does not prove prolonged playback or real libraries |
 | Integration | SwiftData, managed-library, provider, and application boundaries | `bash scripts/verify.sh` | Uses controlled fixtures and the selected macOS/Xcode environment |
-| Built product | Bundle metadata, document roles, icons, and appearance assets | `bash scripts/verify.sh` | Does not prove signed installation or notarisation |
+| Built product | Bundle metadata, document roles, icons, and appearance assets | `bash scripts/verify.sh` | Does not prove signed installation or notarization |
 | Manual | Audio hardware, VoiceOver, appearance, updater, and clean-machine install | Release checklist in `docs/RELEASING.md` | Requires current human and device evidence |
 
 ## Fixtures
 
-Use synthetic, deterministic fixtures. Do not read personal data, live user libraries, production credentials, or mutable external resources unless a separately authorised acceptance test requires them.
+Use synthetic, deterministic fixtures. Do not read personal data, live user libraries, production credentials, or mutable external resources unless a separately authorized acceptance test requires them.
 
 ## Failures and flaky tests
 

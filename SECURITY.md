@@ -2,15 +2,16 @@
 
 ## Supported version
 
-Cadence `0.2.0-beta.1` is the current binary beta. Security fixes target the
-current `main` branch; the beta is ad-hoc signed and not notarized.
+Cadence `1.0.0` is the current public release. Security fixes target the
+current `main` branch. The release is ad-hoc signed and not notarized.
 
 ## Report a vulnerability
 
 Use GitHub's private vulnerability reporting for
 [QenTerra/cadence](https://github.com/QenTerra/cadence/security/advisories/new).
-If that form is unavailable, open a minimal issue asking for a private contact
-route. Do not publish exploit details or private media.
+Do not open a public issue or email exploit details, private media,
+credentials, logs, or identifying paths. If the private form is unavailable,
+retain the report privately until the route is restored.
 
 Include:
 

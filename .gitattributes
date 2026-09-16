@@ -11,5 +11,8 @@
 
 *.pbxproj merge=union
 
+# Preserve upstream license texts byte-for-byte, including their whitespace.
+Sources/Cadence/Resources/ThirdPartyLicenses/*.txt whitespace=-blank-at-eol
+
 .github/** linguist-documentation
 docs/** linguist-documentation

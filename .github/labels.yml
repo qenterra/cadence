@@ -3,7 +3,7 @@
   description: Confirmed or reported defect.
 - name: "type: feature"
   color: "0e8a16"
-  description: New user, consumer, or operator capability.
+  description: New or changed user-facing capability.
 - name: "type: documentation"
   color: "0075ca"
   description: Documentation-only work.
@@ -15,7 +15,7 @@
   description: Dependency or supply-chain change.
 - name: "type: refactor"
   color: "5319e7"
-  description: Behaviour-preserving structure change.
+  description: Behavior-preserving structure change.
 - name: "type: performance"
   color: "fbca04"
   description: Measured performance work.
@@ -33,7 +33,7 @@
   description: Security boundaries, tooling, and coordinated remediation.
 - name: "area: product"
   color: "0e8a16"
-  description: Primary product behaviour and user-facing interfaces.
+  description: Primary product behavior and user-facing interfaces.
 - name: "status: triage"
   color: "ededed"
   description: Needs classification and evidence review.
