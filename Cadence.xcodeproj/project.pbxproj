@@ -3292,7 +3292,7 @@
 			repositoryURL = "https://github.com/QenTerra/design-system.git";
 			requirement = {
 				kind = exactVersion;
-				version = 1.0.2;
+				version = 2.0.0;
 			};
 		};
 		ABF6D8ED10F9172FA1271512 /* XCRemoteSwiftPackageReference "AppAuth-iOS" */ = {
