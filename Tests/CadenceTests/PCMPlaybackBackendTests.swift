@@ -395,7 +395,7 @@ extension PCMPlaybackBackendTests {
         #expect(trebleBand.gain < 0)
         #expect(trebleBand.gain > -6)
 
-        try await Task.sleep(for: .milliseconds(240))
+        await backend.trebleRampTask?.value
         #expect(abs(trebleBand.gain - -6) < 0.01)
     }
 
@@ -417,7 +417,7 @@ extension PCMPlaybackBackendTests {
         #expect(trebleBand.gain > -6)
         #expect(trebleBand.gain < 0)
 
-        try await Task.sleep(for: .milliseconds(240))
+        await backend.trebleRampTask?.value
         #expect(abs(trebleBand.gain) < 0.01)
     }
 
