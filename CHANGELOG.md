@@ -5,7 +5,7 @@ uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-## [1.0.1] - 2026-09-17
+## [1.0.1] - 2026-09-20
 
 ### Fixed
 
