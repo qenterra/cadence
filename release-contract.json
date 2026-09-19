@@ -4,15 +4,15 @@
     "name": "Cadence",
     "artifactStem": "Cadence",
     "bundleIdentifier": "com.qenterra.cadence",
-    "humanReleaseName": "Cadence 1.0.0 (3)"
+    "humanReleaseName": "Cadence 1.0.1 (4)"
   },
   "release": {
-    "marketingVersion": "1.0.0",
-    "build": 3,
+    "marketingVersion": "1.0.1",
+    "build": 4,
     "channel": "stable",
     "iteration": 0,
-    "version": "1.0.0",
-    "tag": "v1.0.0"
+    "version": "1.0.1",
+    "tag": "v1.0.1"
   },
   "platform": {
     "name": "macOS",
@@ -37,8 +37,8 @@
     }
   },
   "artifacts": {
-    "installer": "Cadence-1.0.0-arm64.dmg",
-    "update": "Cadence-1.0.0-arm64.zip",
-    "checksums": "Cadence-1.0.0-SHA256SUMS.txt"
+    "installer": "Cadence-1.0.1-arm64.dmg",
+    "update": "Cadence-1.0.1-arm64.zip",
+    "checksums": "Cadence-1.0.1-SHA256SUMS.txt"
   }
 }

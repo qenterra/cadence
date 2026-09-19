@@ -1,21 +1,21 @@
 # Getting Started
 
-Cadence 1.0.0 is the first public release. It runs on Apple silicon
+Cadence 1.0.1 is the current public release. It runs on Apple silicon
 Macs with macOS 26 or later.
 Intel and universal binaries are not included.
 
 ## Install
 
-1. Download [Cadence-1.0.0-arm64.dmg](https://github.com/QenTerra/cadence/releases/download/v1.0.0/Cadence-1.0.0-arm64.dmg)
-   from the [official release](https://github.com/QenTerra/cadence/releases/tag/v1.0.0).
-   Compare its SHA-256 with the attached `Cadence-1.0.0-SHA256SUMS.txt`.
+1. Download [Cadence-1.0.1-arm64.dmg](https://github.com/QenTerra/cadence/releases/download/v1.0.1/Cadence-1.0.1-arm64.dmg)
+   from the [official release](https://github.com/QenTerra/cadence/releases/tag/v1.0.1).
+   Compare its SHA-256 with the attached `Cadence-1.0.1-SHA256SUMS.txt`.
 2. Open the DMG, drag Cadence to **Applications**, and launch it from there.
 3. The app is ad-hoc signed, not Developer ID signed, and **not notarized**.
    If Gatekeeper blocks the first launch and you trust the download, use
    **Open Anyway** for Cadence in **System Settings > Privacy & Security**.
    See [Apple's instructions](https://support.apple.com/en-gb/102445).
 
-Install this first release from the DMG or ZIP on the release page.
+Install this release from the DMG or ZIP on the release page.
 
 ## Add music
 
