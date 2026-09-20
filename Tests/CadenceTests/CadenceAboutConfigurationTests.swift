@@ -10,8 +10,12 @@ struct CadenceAboutConfigurationTests {
         let configuration = CadenceAboutConfiguration.make(bundle: bundle)
 
         #expect(configuration.applicationName == "Cadence")
-        #expect(configuration.versionText == "Version 0.2.0 (2)")
-        #expect(configuration.creatorText == "Created by \(AppConfiguration.creatorName)")
+        #expect(configuration.versionText == "Version 0.2.0")
+        #expect(configuration.creatorText == "Created by Nikita Melnychenko")
+        #expect(
+            configuration.resources.first?.subtitle
+                == "More projects by Nikita Melnychenko"
+        )
         #expect(configuration.resources.map(\.title) == [
             "GitHub Profile",
             "Source Code",
@@ -27,7 +31,7 @@ struct CadenceAboutConfigurationTests {
         let bundle = try makeBundle(version: nil, build: nil)
         let configuration = CadenceAboutConfiguration.make(bundle: bundle)
 
-        #expect(configuration.versionText == "Version 0.1.0 (1)")
+        #expect(configuration.versionText == "Version 0.1.0")
     }
 
     private func makeBundle(version: String?, build: String?) throws -> Bundle {

@@ -122,7 +122,7 @@ Cadence follows the current Unspool About pattern:
 - a compact two-column link grid below it;
 - full-row link targets with subtle hover feedback and an external-link glyph;
 - GitHub Profile, Source Code, Wiki, MIT License, and Third-Party Notices;
-- creator attribution remains `Nikita Melnychenko (QenTerra)`;
+- creator attribution is `Nikita Melnychenko`;
 
 ## Welcome and in-app guide
 

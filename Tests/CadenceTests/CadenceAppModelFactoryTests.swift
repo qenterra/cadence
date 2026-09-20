@@ -124,47 +124,6 @@ extension CadenceAppModelFactoryTests {
         }
     }
 
-    @Test("Remote setup preserves an explicit local identity failure")
-    func remoteIdentityFailureIsExplicit() async {
-        let controller = RemoteLibraryController(
-            source: RemotePlaybackSource(),
-            identityExpectation: .unavailable(
-                "The Cadence folder has an unreadable library identity."
-            )
-        )
-
-        await controller.restore()
-
-        guard case let .unavailable(message) = controller.status else {
-            Issue.record("Expected remote configuration to fail explicitly.")
-            return
-        }
-        #expect(message.contains("unreadable library identity"))
-    }
-
-    @Test("Corrupt remote settings fail explicitly")
-    func corruptRemoteSettingsFailExplicitly() async throws {
-        let suiteName = "Cadence.RemoteSettings.\(UUID().uuidString)"
-        let defaults = try #require(UserDefaults(suiteName: suiteName))
-        defer { defaults.removePersistentDomain(forName: suiteName) }
-        defaults.set(
-            Data("not remote settings".utf8),
-            forKey: "remoteLibrary.settings.v1"
-        )
-        let controller = RemoteLibraryController(
-            source: RemotePlaybackSource(),
-            identityExpectation: .unbound,
-            store: UserDefaultsRemoteLibrarySettingsStore(defaults: defaults)
-        )
-
-        await controller.restore()
-
-        guard case .unavailable = controller.status else {
-            Issue.record("Expected corrupt remote settings to fail explicitly.")
-            return
-        }
-    }
-
     @Test("A damaged existing package blocks startup without replacement")
     func damagedPackageBlocksStartup() throws {
         try withTemporaryDirectory { musicDirectory in

@@ -287,7 +287,6 @@ private extension CadenceAppModel {
         _ prepared: PreparedLibraryReset
     ) async {
         await Task { @MainActor in
-            await self.remoteLibraryController?.disconnect()
             self.resetNavigationAfterLibraryDeletion()
             if await !(self.libraryResetter.finish(prepared)) {
                 self.libraryResetNotice = "The library was reset, but the original package "

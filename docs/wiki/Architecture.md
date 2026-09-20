@@ -1,6 +1,6 @@
 # Architecture
 
-Cadence separates SwiftUI presentation, application coordination, the managed-library file boundary, SwiftData persistence, playback services, and optional remote providers. Detailed and version-specific engineering documentation remains in [`docs/ARCHITECTURE.md`](https://github.com/QenTerra/cadence/blob/main/docs/ARCHITECTURE.md).
+Cadence separates SwiftUI presentation, application coordination, the managed-library file boundary, SwiftData persistence, and playback services. Detailed and version-specific engineering documentation remains in [`docs/ARCHITECTURE.md`](https://github.com/QenTerra/cadence/blob/main/docs/ARCHITECTURE.md).
 
 ## Components
 
@@ -10,7 +10,6 @@ Cadence separates SwiftUI presentation, application coordination, the managed-li
 | Managed library and import pipeline | Copy, index, recover, and remove user-selected media | User-authorized managed Cadence folder |
 | Persistence | SwiftData catalog, GRDB lyrics search, and catalog-migration integrity checks | Sandboxed Application Support; never a removable-media database |
 | Playback | Coordinate local and temporary external audio | AVFoundation, output routes, and media controls |
-| Providers | Resolve explicitly requested external metadata or media | Network boundary with provider-specific policy |
 
 ## Shared packages
 
@@ -19,10 +18,6 @@ reusable presentation. QenTerraFoundation and QenTerraAudioAnalysis provide
 shared algorithms without UI dependencies. Cadence owns library models,
 application state, import policy, artwork loading, table coordination, and
 playback behavior.
-
-WebDAV and Google Drive providers expose read-only manifest and media access.
-Remote playback uses a bounded local cache and verifies downloaded objects
-before handing local files to the audio backends.
 
 ## Decisions
 

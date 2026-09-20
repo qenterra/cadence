@@ -10,7 +10,42 @@ enum CadenceUpdateChannelPolicy {
 }
 
 @MainActor
-final class CadenceUpdateController: NSObject, SPUUpdaterDelegate {
+protocol CadenceUpdateChecking: AnyObject {
+    var automaticallyChecksForUpdates: Bool { get }
+
+    func checkForUpdatesInBackground()
+}
+
+@MainActor
+final class CadenceUpdateLaunchCoordinator {
+    private var didRun = false
+
+    func run(
+        updateController: any CadenceUpdateChecking,
+        notificationController: CadenceNotificationController,
+        defaults: UserDefaults = .standard
+    ) async {
+        guard !didRun,
+              updateController.automaticallyChecksForUpdates
+        else {
+            return
+        }
+        didRun = true
+
+        if defaults.bool(
+            forKey: CadenceNotificationPreferences.updateAvailabilityKey
+        ) {
+            _ = await notificationController.requestAuthorizationIfNeeded()
+        }
+        updateController.checkForUpdatesInBackground()
+    }
+}
+
+@MainActor
+final class CadenceUpdateController:
+    NSObject,
+    CadenceUpdateChecking,
+    SPUUpdaterDelegate {
     static let includesBetaUpdatesKey = "updates.includesBeta"
 
     private let startsUpdater: Bool
@@ -51,6 +86,10 @@ final class CadenceUpdateController: NSObject, SPUUpdaterDelegate {
 
     func checkForUpdates() {
         standardController.checkForUpdates(nil)
+    }
+
+    func checkForUpdatesInBackground() {
+        standardController.updater.checkForUpdatesInBackground()
     }
 
     func updateChannelPreferenceDidChange() {

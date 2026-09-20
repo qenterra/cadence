@@ -20,6 +20,7 @@ struct AdvancedSettingsPreferencesTests {
         #expect(defaults.bool(forKey: CadencePreferences.Keys.showsTechnicalInformation))
         #expect(!defaults.bool(forKey: CadencePreferences.Keys.preventsDisplaySleep))
         #expect(defaults.bool(forKey: CadenceNotificationPreferences.foregroundBannersKey))
+        #expect(defaults.bool(forKey: CadenceNotificationPreferences.updateAvailabilityKey))
 
         defaults.set("microscopic", forKey: CadencePreferences.Keys.interfaceTextSize)
         defaults.set("crushed", forKey: CadencePreferences.Keys.trackTableDensity)

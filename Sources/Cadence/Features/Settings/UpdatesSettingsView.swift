@@ -73,7 +73,7 @@ struct UpdatesSettingsView: View {
 
                 Spacer()
 
-                Text("Version \(appVersion) (\(buildNumber))")
+                Text("Version \(appVersion)")
                     .font(.caption)
                     .foregroundStyle(.tertiary)
             }
@@ -84,11 +84,5 @@ struct UpdatesSettingsView: View {
         Bundle.main.object(
             forInfoDictionaryKey: "CFBundleShortVersionString"
         ) as? String ?? "0.1.0"
-    }
-
-    private var buildNumber: String {
-        Bundle.main.object(
-            forInfoDictionaryKey: "CFBundleVersion"
-        ) as? String ?? "1"
     }
 }

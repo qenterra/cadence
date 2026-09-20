@@ -55,7 +55,6 @@ struct CadencePreferencesTests {
             forKey: CadencePreferences.Keys.catalogCardSize
         )
         defaults.set(false, forKey: CadencePreferences.Keys.showsTrackArtwork)
-        defaults.set(Data([0x01]), forKey: "remoteLibrary.settings.v1")
         defaults.set(Data([0x02]), forKey: CadencePreferences.Keys.playbackSession)
         defaults.set("secret", forKey: "managedLibrary.locationBookmark")
         defaults.set("1.2.3", forKey: CadenceNotificationPreferences.lastUpdateVersionKey)
@@ -70,7 +69,6 @@ struct CadencePreferencesTests {
             profile.preferences[CadencePreferences.Keys.showsTrackArtwork]
                 == .bool(false)
         )
-        #expect(profile.preferences["remoteLibrary.settings.v1"] == nil)
         #expect(profile.preferences[CadencePreferences.Keys.playbackSession] == nil)
         #expect(profile.preferences["managedLibrary.locationBookmark"] == nil)
         #expect(
@@ -131,7 +129,7 @@ struct CadencePreferencesTests {
         }
     }
 
-    @Test("Customization reset preserves the library, remote connection, and queue session")
+    @Test("Customization reset preserves the library and queue session")
     func resetPreservesNonCustomizationState() throws {
         let (defaults, suite) = try isolatedDefaults()
         defer { defaults.removePersistentDomain(forName: suite) }
@@ -140,14 +138,12 @@ struct CadencePreferencesTests {
             CatalogCardSize.large.rawValue,
             forKey: CadencePreferences.Keys.catalogCardSize
         )
-        defaults.set(Data([0x01]), forKey: "remoteLibrary.settings.v1")
         defaults.set(Data([0x02]), forKey: CadencePreferences.Keys.playbackSession)
         defaults.set("bookmark", forKey: "managedLibrary.locationBookmark")
 
         CadenceSettingsProfileService(defaults: defaults).resetCustomization()
 
         #expect(CadencePreferences.catalogCardSize(in: defaults) == .automatic)
-        #expect(defaults.data(forKey: "remoteLibrary.settings.v1") == Data([0x01]))
         #expect(
             defaults.data(forKey: CadencePreferences.Keys.playbackSession)
                 == Data([0x02])

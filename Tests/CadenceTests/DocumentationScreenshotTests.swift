@@ -263,7 +263,7 @@ struct SettingsVisualAcceptanceTests {
     func renderSettingsMatrix() async throws {
         #expect(
             CadenceSettingsTab.allCases.count
-                * DocumentationScreenshotAppearance.allCases.count == 24
+                * DocumentationScreenshotAppearance.allCases.count == 21
         )
 
         let fixture = try await DocumentationScreenshotFixture.make()

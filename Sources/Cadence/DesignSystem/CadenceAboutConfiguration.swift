@@ -9,16 +9,12 @@ enum CadenceAboutConfiguration {
         let version = bundle.object(
             forInfoDictionaryKey: "CFBundleShortVersionString"
         ) as? String ?? "0.1.0"
-        let build = bundle.object(
-            forInfoDictionaryKey: "CFBundleVersion"
-        ) as? String ?? "1"
-
         return AboutPageConfiguration(
             applicationName: "Cadence",
             tagline: "Native music, kept focused.",
             description: "A focused macOS music library built for local collections, "
                 + "careful metadata, and uninterrupted listening.",
-            versionText: "Version \(version) (\(build))",
+            versionText: "Version \(version)",
             creatorText: "Created by \(AppConfiguration.creatorName)",
             copyrightText: "© 2026 QenTerra",
             resourcesTitle: "Resources",

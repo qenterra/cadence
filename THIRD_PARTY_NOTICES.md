@@ -7,16 +7,15 @@ runtime dependencies:
 | --- | --- | --- | --- | --- |
 | QenTerra Design System | `1.0.2` | Shared foundations, audio analysis, design tokens, components, and media presentation | MIT | [QenTerra/design-system](https://github.com/QenTerra/design-system) |
 | GRDB.swift | `7.11.1` | Derived lyrics full-text index and catalog-migration validation | MIT | [groue/GRDB.swift](https://github.com/groue/GRDB.swift) |
-| AppAuth | `3.0.0` | Google Drive OAuth 2.0 flow | Apache-2.0 | [openid/AppAuth-iOS](https://github.com/openid/AppAuth-iOS) |
 | Sparkle | `2.9.6` | Signed in-app software updates | MIT | [sparkle-project/Sparkle](https://github.com/sparkle-project/Sparkle) |
 
 Verbatim license texts and required notices are stored in
 `Sources/Cadence/Resources/ThirdPartyLicenses` and are copied into source-built
 app bundles. Cadence does not modify or relicense these dependencies.
 
-The published Cadence 1.0.0 source tag and binary pin QenTerra Design System
-`2.0.0`; the other three package versions match the table above. Use the
-`Package.resolved` file at a release tag as the authority for that release.
+The published Cadence 1.0.0 source tag and binary use their own historical
+dependency inventory. Use the `Package.resolved` file at a release tag as the
+authority for that release.
 The published `1.0.0` downloads predate the bundled-license correction and do
 not contain these files; correct this in the next release instead of silently
 replacing an existing release asset.

@@ -250,7 +250,6 @@ final class CadenceAppModel {
     let externalAudioSession: ExternalAudioSession?
     let libraryRelocator: LibraryRelocator
     let libraryResetter: ManagedLibraryResetter
-    let remoteLibraryController: RemoteLibraryController?
 
     var runtimeMode: CadenceRuntimeMode {
         runtimeEnvironment.mode
@@ -268,7 +267,6 @@ final class CadenceAppModel {
         managedRecoveryCheckpoint: @escaping ManagedRecoveryCheckpoint = { _ in },
         playbackCoordinator: PlaybackCoordinator? = nil,
         externalAudioSession: ExternalAudioSession? = nil,
-        remoteLibraryController: RemoteLibraryController? = nil,
         libraryRelocator: LibraryRelocator = LibraryRelocator(),
         libraryResetter: ManagedLibraryResetter = ManagedLibraryResetter(),
         artworkEditingSession: ArtworkEditingSession = ArtworkEditingSession()
@@ -299,7 +297,6 @@ final class CadenceAppModel {
         self.managedRecoveryCheckpoint = managedRecoveryCheckpoint
         self.playbackCoordinator = playbackCoordinator
         self.externalAudioSession = externalAudioSession
-        self.remoteLibraryController = remoteLibraryController
         self.libraryRelocator = libraryRelocator
         self.libraryResetter = libraryResetter
         self.artworkEditingSession = artworkEditingSession

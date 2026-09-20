@@ -13,7 +13,6 @@ enum CadenceSettingsTab: String, CaseIterable, Identifiable {
     case playback
     case library
     case sidebar
-    case remote
     case shortcuts
     case updates
     case about
@@ -28,7 +27,6 @@ enum CadenceSettingsTab: String, CaseIterable, Identifiable {
         case .playback: String(localized: "Playback")
         case .library: String(localized: "Library")
         case .sidebar: String(localized: "Navigation")
-        case .remote: String(localized: "Remote Media")
         case .shortcuts: String(localized: "Shortcuts")
         case .updates: String(localized: "Updates")
         case .about: String(localized: "About")
@@ -41,7 +39,6 @@ enum CadenceSettingsTab: String, CaseIterable, Identifiable {
         case .playback: "play.circle"
         case .library: "externaldrive"
         case .sidebar: "sidebar.left"
-        case .remote: "network"
         case .shortcuts: "keyboard"
         case .updates: "arrow.triangle.2.circlepath"
         case .about: "info.circle"
@@ -181,18 +178,6 @@ struct ProductionSettingsView: View {
                 orderRawValue: $navigationOrderRawValue,
                 hiddenRawValue: $hiddenNavigationRawValue
             )
-        case .remote:
-            if let remoteLibraryController = model.remoteLibraryController {
-                RemoteLibrarySettingsView(controller: remoteLibraryController)
-            } else {
-                ContentUnavailableView(
-                    "Remote Media Unavailable",
-                    systemImage: "network.slash",
-                    description: Text(
-                        "Remote media is not configured for this library."
-                    )
-                )
-            }
         case .shortcuts:
             ShortcutsSettingsView()
         case .updates:

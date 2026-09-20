@@ -7,6 +7,10 @@ protocol CadenceInstanceMessageAuthenticating: AnyObject {
     func verifies(signature: String, paths: [String]) -> Bool
 }
 
+private enum InstanceMessageAuthenticationError: Error {
+    case keychainUnavailable
+}
+
 final class CadenceInstanceMessageAuthenticator: CadenceInstanceMessageAuthenticating {
     private static let service = "com.qenterra.cadence.instance-messaging"
     private static let account = "hmac-key-v1"
@@ -79,7 +83,7 @@ private extension CadenceInstanceMessageAuthenticator {
             return secret
         }
         guard readStatus == errSecItemNotFound else {
-            throw RemoteProviderError.authenticationRequired
+            throw InstanceMessageAuthenticationError.keychainUnavailable
         }
 
         var secret = Data(repeating: 0, count: 32)
@@ -88,7 +92,7 @@ private extension CadenceInstanceMessageAuthenticator {
             SecRandomCopyBytes(kSecRandomDefault, secretLength, buffer.baseAddress!)
         }
         guard randomStatus == errSecSuccess else {
-            throw RemoteProviderError.authenticationRequired
+            throw InstanceMessageAuthenticationError.keychainUnavailable
         }
         var insertion = identity
         insertion[kSecValueData as String] = secret
@@ -99,7 +103,7 @@ private extension CadenceInstanceMessageAuthenticator {
             return secret
         }
         guard writeStatus == errSecDuplicateItem else {
-            throw RemoteProviderError.authenticationRequired
+            throw InstanceMessageAuthenticationError.keychainUnavailable
         }
         return try loadOrCreateSecret()
     }

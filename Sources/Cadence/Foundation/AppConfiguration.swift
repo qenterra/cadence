@@ -3,7 +3,7 @@ import Foundation
 enum AppConfiguration {
     static let bundleIdentifier = "com.qenterra.cadence"
     static let minimumDeploymentTarget = "26.0"
-    static let creatorName = "Nikita Melnychenko (QenTerra)"
+    static let creatorName = "Nikita Melnychenko"
     static let projectURL = URL(string: "https://github.com/QenTerra/cadence")!
     static let creatorURL = URL(string: "https://github.com/QenTerra")!
     static let licenseURL = projectURL.appending(path: "blob/main/LICENSE")

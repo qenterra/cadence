@@ -179,14 +179,11 @@ build settings.
 
 ## Privacy and security
 
-Cadence does not contain analytics, ads, tracking, or an account system. Remote
-media stays disconnected until you explicitly configure WebDAV or Google Drive
-in Settings. When connected, Cadence uses the selected provider only to read
-the remote library manifest and transfer the media needed for playback; it does
-not send your local library or listening activity to QenTerra. Credentials and
-Google OAuth state stay in Keychain, while remote audio uses a bounded local
-cache. Cadence does not synchronize the managed library through iCloud.
-External project links open only when you select one in Settings.
+Cadence does not contain analytics, ads, tracking, or an account system. It
+does not send your local library or listening activity to QenTerra and does not
+synchronize the managed library through iCloud. External project links open
+only when you select one in Settings. Sparkle contacts the published Cadence
+update feed when automatic checks are enabled.
 
 The selected Cadence folder contains managed audio, artwork, lyrics, Trash,
 and recovery records. Its SwiftData catalog and derived search index remain in

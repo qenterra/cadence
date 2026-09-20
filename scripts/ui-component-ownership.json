@@ -373,7 +373,7 @@
       "path": "CadenceApp.swift",
       "symbol": "CadenceSettingsWindow",
       "kind": "View",
-      "line": 273,
+      "line": 280,
       "classification": "product-shell",
       "resolution": "cadence-owned",
       "ownershipReason": "CadenceSettingsWindow composes Cadence-owned defaultAudioApplication, dismiss, model, notificationController, updateController into a product route or feature surface; shared primitives remain package-owned.",
@@ -6737,7 +6737,7 @@
       "path": "Features/Settings/ProductionSettingsView.swift",
       "symbol": "ProductionSettingsView",
       "kind": "View",
-      "line": 52,
+      "line": 49,
       "classification": "product-shell",
       "resolution": "cadence-owned",
       "ownershipReason": "ProductionSettingsView composes Cadence-owned appearanceRawValue, catalogCardSizeRawValue, hiddenHomeSectionsRawValue, hiddenNavigationRawValue, homeSectionOrderRawValue, interfaceTextSizeRawValue, model, model.chooseAnotherLibraryLocation, model.dismissLibraryRelocationError, model.openConflictingLibrary, navigationOrderRawValue, notificationController, openDestination, startupPageRawValue, tab, updateController into a product route or feature surface; shared primitives remain package-owned.",
@@ -6844,7 +6844,7 @@
       "path": "Features/Settings/ProductionSettingsView.swift",
       "symbol": "SettingsCard",
       "kind": "View",
-      "line": 355,
+      "line": 340,
       "classification": "product-shell",
       "resolution": "cadence-owned",
       "ownershipReason": "SettingsCard composes Cadence-owned content, symbol, title into a product route or feature surface; shared primitives remain package-owned.",
@@ -6892,107 +6892,6 @@
       "evidence": {
         "status": "verified",
         "detail": "SettingsCard is exercised by the focused family contract in SettingsPresentationTests.swift.",
-        "references": [
-          "Tests/CadenceTests/SettingsPresentationTests.swift"
-        ]
-      }
-    },
-    {
-      "path": "Features/Settings/RemoteLibrarySettingsView.swift",
-      "symbol": "RemoteLibraryConnectionSheet",
-      "kind": "View",
-      "line": 194,
-      "classification": "product-shell",
-      "resolution": "cadence-owned",
-      "ownershipReason": "RemoteLibraryConnectionSheet composes Cadence-owned controller, isPresented into a product route or feature surface; shared primitives remain package-owned.",
-      "sharedTarget": null,
-      "remainingCadenceSymbol": "Cadence.RemoteLibraryConnectionSheet",
-      "consumers": [],
-      "dependencies": {
-        "data": [
-          {
-            "symbol": "controller",
-            "role": "data"
-          },
-          {
-            "symbol": "isPresented",
-            "role": "data"
-          }
-        ],
-        "actions": []
-      },
-      "states": {
-        "appearance": [
-          "system",
-          "light",
-          "dark"
-        ],
-        "motion": [
-          "static"
-        ],
-        "accessibility": [
-          "native-semantics",
-          "keyboard-focus"
-        ],
-        "interaction": [
-          "default"
-        ]
-      },
-      "wave": "wave-7-product",
-      "evidence": {
-        "status": "verified",
-        "detail": "RemoteLibraryConnectionSheet is exercised by the focused family contract in SettingsPresentationTests.swift.",
-        "references": [
-          "Tests/CadenceTests/SettingsPresentationTests.swift"
-        ]
-      }
-    },
-    {
-      "path": "Features/Settings/RemoteLibrarySettingsView.swift",
-      "symbol": "RemoteLibrarySettingsView",
-      "kind": "View",
-      "line": 4,
-      "classification": "product-shell",
-      "resolution": "cadence-owned",
-      "ownershipReason": "RemoteLibrarySettingsView composes Cadence-owned controller, controller.setCacheBudget into a product route or feature surface; shared primitives remain package-owned.",
-      "sharedTarget": null,
-      "remainingCadenceSymbol": "Cadence.RemoteLibrarySettingsView",
-      "consumers": [],
-      "dependencies": {
-        "data": [
-          {
-            "symbol": "controller",
-            "role": "data"
-          }
-        ],
-        "actions": [
-          {
-            "symbol": "controller.setCacheBudget",
-            "role": "actions"
-          }
-        ]
-      },
-      "states": {
-        "appearance": [
-          "system",
-          "light",
-          "dark"
-        ],
-        "motion": [
-          "static"
-        ],
-        "accessibility": [
-          "native-semantics",
-          "keyboard-focus"
-        ],
-        "interaction": [
-          "default"
-        ]
-      },
-      "wave": "wave-7-product",
-      "evidence": {
-        "status": "verified",
-        "detail": "RemoteLibrarySettingsView is exercised by the focused family contract in SettingsPresentationTests.swift.",
         "references": [
           "Tests/CadenceTests/SettingsPresentationTests.swift"
         ]

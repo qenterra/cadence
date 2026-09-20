@@ -2,7 +2,7 @@
 
 ## Supported version
 
-Cadence `1.0.0` is the current public release. Security fixes target the
+Cadence `1.0.1` is the current public release. Security fixes target the
 current `main` branch. The release is ad-hoc signed and not notarized.
 
 ## Report a vulnerability
@@ -33,8 +33,7 @@ Cadence:
 - uses staged import and manifests so interrupted work can recover or roll back;
 - resolves managed paths inside the `Cadence` library folder;
 - keeps Trash restore information with the deleted managed item;
-- connects to WebDAV or Google Drive only after explicit Remote Media setup;
-- keeps WebDAV credentials and Google OAuth state in Keychain; and
+- verifies software-update metadata and downloads through Sparkle; and
 - does not include an analytics SDK or embedded web view.
 
 Do not weaken sandbox entitlements, path containment, duplicate validation,
