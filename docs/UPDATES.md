@@ -6,10 +6,12 @@ not Developer ID signed, and **not notarized**. See
 [installation](../README.md#install-cadence) for the download and Gatekeeper
 instructions.
 
-Cadence includes Sparkle 2 for future Developer ID signed in-app updates. Users
-can choose **Cadence > Check for Updates…**; stable checks are enabled by
-default and beta releases are opt-in under **Settings > Updates**. Those
-settings do not make the 1.0.1 manual download an automatic update.
+Cadence uses Sparkle 2 for EdDSA-signed in-app updates. Users can choose
+**Cadence > Check for Updates…**; stable checks are enabled by default and beta
+releases are opt-in under **Settings > Updates**. Cadence 1.0.1 is published in
+the stable feed for existing installations. A first installation still starts
+from the official DMG or ZIP and may encounter Gatekeeper because the app is
+not Developer ID signed or notarized.
 
 ## Trust model
 
@@ -17,17 +19,20 @@ settings do not make the 1.0.1 manual download an automatic update.
   the maintainer's login Keychain under account `com.qenterra.cadence`; it is
   never stored in this repository.
 - `SUPublicEDKey` in `project.yml` verifies archives downloaded by Sparkle.
-  Manual downloads are checked against the release's published SHA-256 values.
+  Initial manual downloads are checked against the release's published SHA-256
+  values.
 - Cadence remains sandboxed. Sparkle's Installer XPC service is enabled with
   the two narrowly scoped Mach lookup exceptions documented by Sparkle.
 - The Developer ID distribution profile requires notarization and stapling.
   Sparkle EdDSA protects update archives in transit; it does not substitute
   for platform signing and notarization.
-- The 1.0.1 manual distribution profile uses the exact contract values
+- The 1.0.1 distribution profile uses the exact contract values
   `signing: ad-hoc`, `notarized: false`, and `gatekeeperDisclosure: true`.
-  It produces downloadable artifacts without Developer ID or Apple notarization
-  and never changes the Sparkle feed. This profile still requires the exact
-  clean tagged source and complete local verification.
+  It produces downloadable artifacts without Developer ID or Apple
+  notarization and separately signs the update ZIP with Sparkle EdDSA. Platform
+  identity and updater archive authenticity are independent trust surfaces.
+  This profile still requires the exact clean tagged source and complete local
+  verification.
 - The separate `local` packaging mode creates a disposable DMG for installer
   checks. It does not satisfy the public release provenance gate.
 - Every reusable archive is bound to the exact release-tag commit and the
@@ -41,7 +46,7 @@ settings do not make the 1.0.1 manual download an automatic update.
 later. It produces exactly:
 
 - `Cadence-1.0.1-arm64.dmg`
-- `Cadence-1.0.1-arm64.zip` (manual application archive, not a Sparkle update)
+- `Cadence-1.0.1-arm64.zip` (Sparkle update archive and manual alternative)
 - `Cadence-1.0.1-SHA256SUMS.txt`
 
 1. Update the release contract and every release surface, commit the candidate,
@@ -63,18 +68,19 @@ later. It produces exactly:
    filters are not part of that comparison. Release input roots also reject
    ignored files, cache directories, symlinks, and hard links.
 4. Select the distribution profile in the committed contract. For 1.0.1,
-   use the disclosed ad-hoc manual profile; no Developer ID or notary
-   credentials are required. For a Developer ID release, store notarization
+   use the disclosed ad-hoc profile; no Developer ID or notary credentials are
+   required. Every public profile still requires the Sparkle private key in the
+   maintainer Keychain under the contract's `keyAccount`. For a Developer ID release, store notarization
    credentials with `xcrun notarytool store-credentials`, then set
    `CADENCE_DEVELOPER_ID_APPLICATION`, `CADENCE_DEVELOPMENT_TEAM`, and
    `CADENCE_NOTARY_KEYCHAIN_PROFILE`.
 5. Run `CADENCE_RELEASE_MODE=public scripts/prepare_release.sh
    [release-notes.md]`. The script validates the release contract, archives Cadence
-   using the validated distribution profile. The ad-hoc profile creates the
-   DMG, a manual ZIP, and checksums while skipping notarization and leaving
-   `appcast.xml` unchanged. The Developer ID profile notarizes and staples the
-   app and DMG, creates a Sparkle-signed update ZIP, updates `appcast.xml`,
-   and writes checksums. It rechecks the clean tagged source after project generation and
+   using the validated distribution profile. Both public profiles create the
+   DMG and ZIP, validate the configured Sparkle key, EdDSA-sign the update
+   archive, embed release notes, update `appcast.xml`, and write checksums. The
+   ad-hoc profile skips only Apple notarization. The Developer ID profile also
+   notarizes and staples the app and DMG. The script rechecks the clean tagged source after project generation and
    dependency resolution, validates the archive's embedded SHA/tag/digest
    before distribution processing, and runs the preparation shell as leader of
    a dedicated process group supervised by the outer command. The supervisor
@@ -104,9 +110,9 @@ later. It produces exactly:
    publication authority. Match the prerelease flag to the contract channel;
    1.0.1 is stable. Upload the three named assets without renaming them.
 8. Read the release body, flags, target, asset names, and checksums back from
-   GitHub. For the 1.0.1 manual profile, confirm `appcast.xml` is unchanged.
-   Only a Developer ID update release publishes the generated appcast; verify
-   its public enclosure URL before announcing that update.
+   GitHub. Publish the generated appcast for every public release, then verify
+   its public enclosure URL, archive length, EdDSA signature, version, and
+   channel before announcing the update.
 
 The scripts do not fetch, push, create, delete, or move tags. Archive reuse via
 `CADENCE_REUSE_ARCHIVE=1` rejects legacy archives without schema-v1 provenance

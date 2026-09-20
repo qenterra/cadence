@@ -14,6 +14,11 @@ uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   after a safe SwiftData fetch, preserving stable pagination for equal or
   missing album metadata.
 
+### Distribution
+
+- Published the unchanged 1.0.1 update archive through Cadence's EdDSA-signed
+  Sparkle feed. The app remains ad-hoc signed and not notarized.
+
 ## [1.0.0] - 2026-09-13
 
 The first public release of Cadence, a native macOS music player and library

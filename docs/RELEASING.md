@@ -24,7 +24,7 @@ Cadence 1.0.1 is the current public release, for Apple silicon and macOS 26 or l
 ad-hoc signature does not provide a Developer ID identity, and it is not
 notarized. The release notes and installation guide disclose the Gatekeeper
 implications. First installation uses the DMG or ZIP. See
-[Software updates](UPDATES.md) for the future update infrastructure and distribution
+[Software updates](UPDATES.md) for the current Sparkle infrastructure and distribution
 boundaries and [release notes](../release/release-notes-1.0.1.md) for the public body.
 
 ## Prepare
@@ -42,6 +42,7 @@ boundaries and [release notes](../release/release-notes-1.0.1.md) for the public
 - [ ] Produce artifacts from the exact release commit in the declared environment.
 - [ ] Verify platform signing, notarization, package metadata, container metadata, or registry rules that apply.
 - [ ] Generate SHA-256 checksums for downloadable binary assets.
+- [ ] Sign the update archive, publish the appcast, and verify both from the public endpoints.
 - [ ] Generate an SBOM and provenance or attestation when applicable.
 - [ ] Test install, upgrade, downgrade, uninstall, migration, clean-environment use, and rollback as the profile requires.
 

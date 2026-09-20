@@ -12,9 +12,11 @@ message and asset checksum.
 
 ## No updates are available
 
-Cadence 1.0.1 is the current public release. Install it from the official DMG
-or ZIP. This ad-hoc build is not published through the Sparkle feed, so the
-update checker does not install it automatically.
+Cadence 1.0.1 is the current public release. If you already run 1.0.1, no newer
+stable update is available. Earlier installations should receive 1.0.1 through
+the signed Sparkle feed; confirm that the Mac can reach the feed URL and retry
+**Cadence > Check for Updates…**. A first installation still uses the official
+DMG or ZIP.
 
 ## Source-build problems
 
@@ -44,6 +46,20 @@ brew bundle
 ```
 
 Do not add similarly named binaries to the repository.
+
+## Xcode cannot check out Design System
+
+If package resolution reports `git-lfs: command not found`, Git LFS is installed
+outside the PATH inherited by GUI-Xcode. Configure Git's filters with the
+installed executable's absolute path, then resolve packages again:
+
+```sh
+brew bundle
+./scripts/configure_git_lfs.sh
+```
+
+The pinned Design System revision should not be changed to work around this
+local tool-discovery failure.
 
 ## The generated project changed
 

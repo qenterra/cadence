@@ -1,8 +1,8 @@
 # Cadence documentation
 
-Cadence 1.0.1 is an Apple silicon manual download for macOS 26 or
-later. Read the installation guide for its ad-hoc signing and Gatekeeper
-requirements.
+Cadence 1.0.1 starts with an Apple silicon download for macOS 26 or later and
+uses Sparkle for subsequent signed updates. Read the installation guide for its
+ad-hoc signing and Gatekeeper requirements.
 
 ## For users
 

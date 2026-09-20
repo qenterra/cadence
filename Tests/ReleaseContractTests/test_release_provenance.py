@@ -1487,6 +1487,14 @@ os._exit(0)
                 "notarized": False,
                 "gatekeeperDisclosure": True,
             },
+            "updates": {
+                "provider": "sparkle",
+                "enabled": True,
+                "feedURL": "https://example.invalid/appcast.xml",
+                "keyAccount": "com.qenterra.cadence",
+                "publicKey": "fixture-public-key",
+                "embedReleaseNotes": True,
+            },
             "artifacts": {
                 "installer": "Cadence-9.8.7-test.1-arm64.dmg",
                 "update": "Cadence-9.8.7-test.1-arm64.zip",
@@ -1795,14 +1803,13 @@ class ReleasePreparationOrderingTests(unittest.TestCase):
             ],
         )
 
-    def test_public_ad_hoc_prepare_creates_manual_assets_without_notary_or_sparkle(self) -> None:
+    def test_public_ad_hoc_prepare_publishes_signed_sparkle_feed_without_notary(self) -> None:
         self.complete_gate()
         self.make_reused_archive(
             source_sha=self.sha, include_attestation=False, release_mode="public"
         )
         self.install_trace_shims(prepare_success=True)
         appcast = self.root / "appcast.xml"
-        original_appcast = appcast.read_bytes()
         arguments_trace = self.root / ".build" / "archive-arguments.txt"
 
         result = self.run_prepare(extra_env={
@@ -1815,11 +1822,14 @@ class ReleasePreparationOrderingTests(unittest.TestCase):
 
         self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
         self.assertIn("Ad-hoc signed and not notarized", result.stdout)
-        self.assertIn("manual download", result.stdout)
-        self.assertNotIn("Commit and publish appcast.xml", result.stdout)
-        self.assertEqual(appcast.read_bytes(), original_appcast)
+        self.assertIn("Commit and publish appcast.xml", result.stdout)
+        generated_appcast = appcast.read_text(encoding="utf-8")
+        self.assertIn('sparkle:edSignature="fixture-signature"', generated_appcast)
+        self.assertIn("<sparkle:version>1</sparkle:version>", generated_appcast)
         self.assertNotIn("xcrun", self.trace_lines())
         self.assertNotIn("spctl", self.trace_lines())
+        self.assertIn("generate-keys", self.trace_lines())
+        self.assertIn("generate-appcast", self.trace_lines())
         arguments = arguments_trace.read_text(encoding="utf-8")
         self.assertIn("CODE_SIGN_IDENTITY=-", arguments)
         self.assertNotIn("DEVELOPMENT_TEAM=", arguments)
@@ -1833,6 +1843,10 @@ class ReleasePreparationOrderingTests(unittest.TestCase):
         for suffix in ("dmg", "zip"):
             artifact = output / f"Cadence-9.8.7-test.1-arm64.{suffix}"
             self.assertIn(hashlib.sha256(artifact.read_bytes()).hexdigest(), checksums)
+        update_archive = output / "Cadence-9.8.7-test.1-arm64.zip"
+        self.assertIn(
+            f'length="{update_archive.stat().st_size}"', generated_appcast
+        )
         self.assertFalse((self.root / ".build" / "cadence-release-operation.lock").exists())
 
     def test_public_ad_hoc_rejects_archive_with_different_signature(self) -> None:
@@ -1848,6 +1862,30 @@ class ReleasePreparationOrderingTests(unittest.TestCase):
         self.assertIn("does not match the declared ad-hoc signature", result.stderr)
         self.assertNotIn("create-dmg", self.trace_lines())
         self.assertNotIn("ditto", self.trace_lines())
+
+    def test_public_release_rejects_mismatched_sparkle_key_before_packaging(self) -> None:
+        self.complete_gate()
+        self.make_reused_archive(
+            source_sha=self.sha, include_attestation=True, release_mode="public"
+        )
+        self.install_trace_shims(prepare_success=True)
+        appcast = self.root / "appcast.xml"
+        original_appcast = appcast.read_bytes()
+
+        result = self.run_prepare(
+            reuse_archive=True,
+            extra_env={
+                "CADENCE_RELEASE_MODE": "public",
+                "FIXTURE_SPARKLE_PUBLIC_KEY": "wrong-key",
+            },
+        )
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("public key does not match", result.stderr)
+        self.assertEqual(appcast.read_bytes(), original_appcast)
+        self.assertIn("generate-keys", self.trace_lines())
+        self.assertNotIn("ditto", self.trace_lines())
+        self.assertNotIn("create-dmg", self.trace_lines())
 
     def test_public_ad_hoc_still_requires_full_gate_before_tools(self) -> None:
         self.install_trace_shims()
@@ -2646,6 +2684,49 @@ class ReleasePreparationOrderingTests(unittest.TestCase):
             path.write_text("\n".join(body) + "\n", encoding="utf-8")
             path.chmod(0o755)
 
+        sparkle_tools = (
+            self.root
+            / ".build"
+            / "ReleaseDerivedData"
+            / "SourcePackages"
+            / "artifacts"
+            / "sparkle"
+            / "Sparkle"
+            / "bin"
+        )
+        sparkle_tools.mkdir(parents=True, exist_ok=True)
+        generate_appcast = sparkle_tools / "generate_appcast"
+        generate_appcast.write_text(
+            "#!/usr/bin/env python3\n"
+            "import os\n"
+            "import sys\n"
+            "from pathlib import Path\n"
+            "staging = Path(sys.argv[-1])\n"
+            "archive = next(staging.glob('*.zip'))\n"
+            "trace = Path(os.environ['TRACE_PATH'])\n"
+            "trace.parent.mkdir(parents=True, exist_ok=True)\n"
+            "with trace.open('a', encoding='utf-8') as handle:\n"
+            "    handle.write('generate-appcast\\n')\n"
+            "(staging / 'appcast.xml').write_text(\n"
+            "    '<rss xmlns:sparkle=\"http://www.andymatuschak.org/xml-namespaces/sparkle\">'\n"
+            "    '<channel><item><sparkle:version>1</sparkle:version>'\n"
+            "    '<enclosure sparkle:edSignature=\"fixture-signature\" '\n"
+            "    f'length=\"{archive.stat().st_size}\" /></item></channel></rss>\\n',\n"
+            "    encoding='utf-8',\n"
+            ")\n",
+            encoding="utf-8",
+        )
+        generate_appcast.chmod(0o755)
+        generate_keys = sparkle_tools / "generate_keys"
+        generate_keys.write_text(
+            "#!/usr/bin/env bash\n"
+            "set -euo pipefail\n"
+            "echo generate-keys >> \"$TRACE_PATH\"\n"
+            "printf '%s\\n' \"${FIXTURE_SPARKLE_PUBLIC_KEY:-fixture-public-key}\"\n",
+            encoding="utf-8",
+        )
+        generate_keys.chmod(0o755)
+
     def trace_lines(self) -> list[str]:
         if not self.trace.exists():
             return []
@@ -2687,6 +2768,14 @@ class ReleasePreparationOrderingTests(unittest.TestCase):
                 "notarized": False,
                 "gatekeeperDisclosure": True,
             },
+            "updates": {
+                "provider": "sparkle",
+                "enabled": True,
+                "feedURL": "https://example.invalid/appcast.xml",
+                "keyAccount": "com.qenterra.cadence",
+                "publicKey": "fixture-public-key",
+                "embedReleaseNotes": True,
+            },
             "artifacts": {
                 "installer": "Cadence-9.8.7-test.1-arm64.dmg",
                 "update": "Cadence-9.8.7-test.1-arm64.zip",
@@ -2703,7 +2792,9 @@ class ReleasePreparationOrderingTests(unittest.TestCase):
             'deploymentTarget:\n  macOS: "26.0"\n'
             'MARKETING_VERSION: "9.8.7"\n'
             'CURRENT_PROJECT_VERSION: "1"\n'
-            'PRODUCT_BUNDLE_IDENTIFIER: com.qenterra.cadence\n',
+            'PRODUCT_BUNDLE_IDENTIFIER: com.qenterra.cadence\n'
+            'SUFeedURL: https://example.invalid/appcast.xml\n'
+            'SUPublicEDKey: fixture-public-key\n',
             encoding="utf-8",
         )
         package_resolved = (

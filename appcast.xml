@@ -5,5 +5,63 @@
         <link>https://github.com/QenTerra/cadence/releases</link>
         <description>Stable and beta releases of Cadence.</description>
         <language>en</language>
+        <item>
+            <title>1.0.1</title>
+            <pubDate>Sun, 20 Sep 2026 21:22:51 +0200</pubDate>
+            <link>https://github.com/QenTerra/cadence/releases/tag/v1.0.1</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/QenTerra/cadence/releases/tag/v1.0.1</sparkle:fullReleaseNotesLink>
+            <sparkle:version>4</sparkle:version>
+            <sparkle:shortVersionString>1.0.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description sparkle:format="markdown"><![CDATA[Cadence 1.0.1 fixes a crash in optimized builds when sorting library tracks by
+album or year.
+
+## Fixed
+
+- Replaced SwiftData relationship-traversing sort descriptors for the Album and
+  Year columns with Cadence-owned stable ordering after a safe fetch.
+- Preserved global pagination and virtual track-window ordering when album names
+  are equal or album and year metadata are missing.
+
+## Downloads
+
+Version **1.0.1** requires an Apple silicon Mac running macOS 26 or later.
+
+- [Cadence-1.0.1-arm64.dmg](https://github.com/QenTerra/cadence/releases/download/v1.0.1/Cadence-1.0.1-arm64.dmg) — open the DMG and drag Cadence to Applications.
+- [Cadence-1.0.1-arm64.zip](https://github.com/QenTerra/cadence/releases/download/v1.0.1/Cadence-1.0.1-arm64.zip) — alternative application archive.
+- [Cadence-1.0.1-SHA256SUMS.txt](https://github.com/QenTerra/cadence/releases/download/v1.0.1/Cadence-1.0.1-SHA256SUMS.txt) — checksums for the downloads.
+
+The app is **ad-hoc signed, not Developer ID signed, and not notarized**.
+Gatekeeper may block its first launch. If you trust the official download, use
+**Open Anyway** for Cadence in **System Settings > Privacy & Security** after
+the blocked launch. Follow [Apple's instructions](https://support.apple.com/en-gb/102445).
+
+Initial installation uses the manual download. Existing Cadence installations
+can verify and install this release through the EdDSA-signed Sparkle feed.
+
+## Known issues
+
+- Intel and universal binaries are not included.
+- Hardware-specific output routes, extended playback, VoiceOver, and Cadence
+  Mode frame pacing require manual acceptance on the target Mac.
+
+## Verification
+
+The source release gate covers the Xcode build and tests, localization,
+formatting and linting, dependency ownership, and release-contract checks. A
+release-optimized persistent-store regression covers album and year sorting,
+including equal and missing metadata.
+
+Sparkle's EdDSA signature authenticates the update archive but does not
+establish Developer ID identity or notarization. Automated checks also do not
+establish acceptance across all supported hardware and assistive technologies.
+
+## Full changelog
+
+[Cadence changelog](https://github.com/QenTerra/cadence/blob/v1.0.1/CHANGELOG.md#101---2026-09-20).
+]]></description>
+            <enclosure url="https://github.com/QenTerra/cadence/releases/download/v1.0.1/Cadence-1.0.1-arm64.zip" length="7967856" type="application/octet-stream" sparkle:edSignature="cpplEnP0FM5EMN5ZZmSjP498ofVb+n/iB/GtXfypKMKMreuxl4dWTJts/+vBGquGDZ1WyfYxfsZCRka0b/tkDQ=="/>
+        </item>
     </channel>
 </rss>

@@ -21,6 +21,7 @@ the safest playback fixture.
 git clone https://github.com/QenTerra/cadence.git
 cd cadence
 brew bundle
+./scripts/configure_git_lfs.sh
 xcodegen generate --spec project.yml
 open Cadence.xcodeproj
 ```

@@ -1,7 +1,7 @@
 # Dependencies
 
 Cadence uses Apple platform frameworks and the QenTerra products and three pinned third-party Swift packages at
-runtime, plus six Homebrew tools during development and release packaging.
+runtime, plus seven Homebrew tools during development and release packaging.
 
 ## Runtime in current source builds
 
@@ -40,6 +40,7 @@ repository in the maintainer's Keychain.
 | `swiftformat` | Homebrew-resolved | Check Swift formatting | MIT |
 | `swiftlint` | Homebrew-resolved | Check Swift style and common mistakes | MIT |
 | `xcbeautify` | Homebrew-resolved | Format Xcode build output | MIT |
+| `git-lfs` | Homebrew-resolved | Materialize Git LFS assets required while Xcode checks out Design System | MIT |
 | `python@3.14` | Homebrew-resolved | Run release-contract, Finder-layout, and image tests | Python-2.0 |
 | `periphery` | Homebrew cask | Reject newly unreachable Swift declarations | MIT |
 
