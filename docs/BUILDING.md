@@ -1,6 +1,6 @@
 # Building from source
 
-Cadence 1.0.1 is available as an ad-hoc signed, non-notarized manual download.
+Cadence 1.0.1 starts with an ad-hoc signed, non-notarized manual download.
 See [installation](../README.md#install-cadence) for the DMG and Gatekeeper
 instructions. This page covers building and verifying the source.
 
@@ -37,10 +37,14 @@ Change the path when your Xcode app has another name or location.
 
 ```sh
 brew bundle
+./scripts/configure_git_lfs.sh
 ./scripts/prepare_python_tools.sh
 ```
 
-This installs XcodeGen, SwiftFormat, SwiftLint, and xcbeautify. All Cadence UI
+This installs XcodeGen, SwiftFormat, SwiftLint, xcbeautify, and Git LFS. The
+configuration step records Git LFS's absolute executable path so GUI-Xcode can
+check out package revisions even though it does not inherit Homebrew's shell
+`PATH`. All Cadence UI
 presentation and shared algorithms come from QenTerra Design System. Current
 source builds pin Design System 1.0.2 through Swift Package Manager; no sibling
 checkout is required. The ownership check fetches the same locked commit into
@@ -89,7 +93,7 @@ CADENCE_RELEASE_MODE=local bash scripts/prepare_release.sh
 The local mode produces an ad-hoc signed DMG under `.build/releases/local` for
 layout and mount/copy/launch checks. It intentionally does not create a Sparkle
 archive, change `appcast.xml`, or constitute a verified public release.
-The 1.0.1 manual distribution and the separate Developer ID/notarization
+The 1.0.1 public distribution and the separate Developer ID/notarization
 workflow are documented in [Software updates](UPDATES.md).
 
 GitHub Actions runs project generation, SwiftFormat, and SwiftLint. The hosted

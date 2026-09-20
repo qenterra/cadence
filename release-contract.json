@@ -24,6 +24,14 @@
     "notarized": false,
     "gatekeeperDisclosure": true
   },
+  "updates": {
+    "provider": "sparkle",
+    "enabled": true,
+    "feedURL": "https://raw.githubusercontent.com/QenTerra/cadence/main/appcast.xml",
+    "keyAccount": "com.qenterra.cadence",
+    "publicKey": "7/3AjNwmfbQhlvGOgMuXxlu2cWV/pb009DPVu6AuSN0=",
+    "embedReleaseNotes": true
+  },
   "installer": {
     "format": "dmg",
     "style": "soft-graphite-monochrome",

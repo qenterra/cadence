@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import json
 import itertools
+import os
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -48,6 +50,14 @@ class CadenceReleaseContractTests(unittest.TestCase):
                 "notarized": False,
                 "gatekeeperDisclosure": True,
             },
+            "updates": {
+                "provider": "sparkle",
+                "enabled": True,
+                "feedURL": "https://example.invalid/appcast.xml",
+                "keyAccount": "com.qenterra.cadence",
+                "publicKey": "fixture-public-key",
+                "embedReleaseNotes": True,
+            },
             "installer": {
                 "format": "dmg",
                 "style": "soft-graphite-monochrome",
@@ -64,7 +74,9 @@ class CadenceReleaseContractTests(unittest.TestCase):
             'deploymentTarget:\n  macOS: "26.0"\n'
             'MARKETING_VERSION: "0.2.0"\n'
             'CURRENT_PROJECT_VERSION: "2"\n'
-            'PRODUCT_BUNDLE_IDENTIFIER: com.qenterra.cadence\n',
+            'PRODUCT_BUNDLE_IDENTIFIER: com.qenterra.cadence\n'
+            'SUFeedURL: https://example.invalid/appcast.xml\n'
+            'SUPublicEDKey: fixture-public-key\n',
             encoding="utf-8",
         )
         (self.root / "README.md").write_text(
@@ -137,6 +149,20 @@ class CadenceReleaseContractTests(unittest.TestCase):
             values["CHECKSUMS_NAME"],
             "Cadence-0.2.0-beta.1-SHA256SUMS.txt",
         )
+        self.assertEqual(values["SPARKLE_KEY_ACCOUNT"], "com.qenterra.cadence")
+        self.assertEqual(values["SPARKLE_PUBLIC_KEY"], "fixture-public-key")
+
+    def test_sparkle_public_key_drift_fails_product_surfaces(self) -> None:
+        project = self.root / "project.yml"
+        project.write_text(
+            project.read_text(encoding="utf-8").replace(
+                "SUPublicEDKey: fixture-public-key",
+                "SUPublicEDKey: wrong-key",
+            ),
+            encoding="utf-8",
+        )
+
+        self.assertIn("SUPublicEDKey", "\n".join(validate_product_surfaces(self.root)))
 
     def test_public_release_rejects_missing_credentials(self) -> None:
         self.set_distribution("developer-id", True, False)
@@ -205,6 +231,55 @@ class CadenceReleaseContractTests(unittest.TestCase):
             validate_public_release_environment(self.root, environment),
             [],
         )
+
+
+class GitLFSBootstrapTests(unittest.TestCase):
+    def test_bootstrap_pins_filters_to_absolute_executable_for_xcode(self) -> None:
+        with tempfile.TemporaryDirectory() as directory_name:
+            directory = Path(directory_name)
+            shim_directory = directory / "bin"
+            shim_directory.mkdir()
+            git_lfs = shim_directory / "git-lfs"
+            git_lfs.write_text(
+                "#!/usr/bin/env bash\n"
+                "set -euo pipefail\n"
+                "[[ \"${1:-}\" == version ]]\n",
+                encoding="utf-8",
+            )
+            git_lfs.chmod(0o755)
+            global_config = directory / "gitconfig"
+
+            result = subprocess.run(
+                ["bash", str(ROOT / "scripts" / "configure_git_lfs.sh")],
+                check=False,
+                capture_output=True,
+                text=True,
+                env={
+                    **os.environ,
+                    "GIT_CONFIG_GLOBAL": str(global_config),
+                    "GIT_LFS_EXECUTABLE": str(git_lfs),
+                    "PATH": "/usr/bin:/bin:/usr/sbin:/sbin",
+                },
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
+            configured = subprocess.run(
+                [
+                    "/usr/bin/git",
+                    "config",
+                    "--file",
+                    str(global_config),
+                    "--get-regexp",
+                    r"^filter\.lfs\.",
+                ],
+                check=True,
+                capture_output=True,
+                text=True,
+            ).stdout
+            self.assertIn(f"filter.lfs.process {git_lfs} filter-process", configured)
+            self.assertIn(f"filter.lfs.smudge {git_lfs} smudge -- %f", configured)
+            self.assertIn(f"filter.lfs.clean {git_lfs} clean -- %f", configured)
+            self.assertIn("filter.lfs.required true", configured)
 
 
 class DependencyResolutionContractTests(unittest.TestCase):

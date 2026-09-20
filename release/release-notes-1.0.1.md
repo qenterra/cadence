@@ -21,7 +21,8 @@ Gatekeeper may block its first launch. If you trust the official download, use
 **Open Anyway** for Cadence in **System Settings > Privacy & Security** after
 the blocked launch. Follow [Apple's instructions](https://support.apple.com/en-gb/102445).
 
-This release is a manual download and is not delivered through Sparkle.
+Initial installation uses the manual download. Existing Cadence installations
+can verify and install this release through the EdDSA-signed Sparkle feed.
 
 ## Known issues
 
@@ -36,8 +37,9 @@ formatting and linting, dependency ownership, and release-contract checks. A
 release-optimized persistent-store regression covers album and year sorting,
 including equal and missing metadata.
 
-Those automated checks do not establish Developer ID identity, notarization,
-or acceptance across all supported hardware and assistive technologies.
+Sparkle's EdDSA signature authenticates the update archive but does not
+establish Developer ID identity or notarization. Automated checks also do not
+establish acceptance across all supported hardware and assistive technologies.
 
 ## Full changelog
 

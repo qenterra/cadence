@@ -136,6 +136,14 @@ def _validate_manifest_schema(manifest: dict[str, Any]) -> None:
             "notarized": bool,
             "gatekeeperDisclosure": bool,
         },
+        "updates": {
+            "provider": str,
+            "enabled": bool,
+            "feedURL": str,
+            "keyAccount": str,
+            "publicKey": str,
+            "embedReleaseNotes": bool,
+        },
         "artifacts": {
             "installer": str,
             "update": str,
@@ -174,6 +182,19 @@ def _validate_manifest_schema(manifest: dict[str, Any]) -> None:
         raise ReleaseContractError(
             "Distribution must be developer-id/notarized/no-disclosure or "
             "ad-hoc/not-notarized/Gatekeeper-disclosure; mixed claims are invalid."
+        )
+    updates = manifest["updates"]
+    if (
+        updates["provider"] != "sparkle"
+        or updates["enabled"] is not True
+        or updates["embedReleaseNotes"] is not True
+        or not updates["feedURL"].startswith("https://")
+        or not updates["keyAccount"].strip()
+        or not updates["publicKey"].strip()
+    ):
+        raise ReleaseContractError(
+            "Cadence releases must publish an HTTPS Sparkle feed with embedded "
+            "release notes and an explicit signing-key account/public key."
         )
 
 
@@ -1937,6 +1958,7 @@ def environment_values(root: Path = ROOT) -> dict[str, str]:
     release = data["release"]
     platform = data["platform"]
     artifacts = data["artifacts"]
+    updates = data["updates"]
     return {
         "PRODUCT_NAME": str(product["name"]),
         "BUNDLE_IDENTIFIER": str(product["bundleIdentifier"]),
@@ -1949,6 +1971,9 @@ def environment_values(root: Path = ROOT) -> dict[str, str]:
         "MINIMUM_MACOS": str(platform["minimumVersion"]),
         "ARCHITECTURE": str(platform["architecture"]),
         "DISTRIBUTION_SIGNING": data["distribution"]["signing"],
+        "SPARKLE_FEED_URL": str(updates["feedURL"]),
+        "SPARKLE_KEY_ACCOUNT": str(updates["keyAccount"]),
+        "SPARKLE_PUBLIC_KEY": str(updates["publicKey"]),
         "DMG_NAME": _safe_component(
             artifacts["installer"], "Installer artifact name", ".dmg"
         ),
@@ -1984,6 +2009,8 @@ def validate_product_surfaces(root: Path = ROOT) -> list[str]:
             "MARKETING_VERSION": f'"{values["MARKETING_VERSION"]}"',
             "CURRENT_PROJECT_VERSION": f'"{values["BUILD_NUMBER"]}"',
             "PRODUCT_BUNDLE_IDENTIFIER": values["BUNDLE_IDENTIFIER"],
+            "SUFeedURL": values["SPARKLE_FEED_URL"],
+            "SUPublicEDKey": values["SPARKLE_PUBLIC_KEY"],
         }
         for key, expected in expected_settings.items():
             pattern = rf"^\s*{re.escape(key)}:\s*{re.escape(expected)}\s*$"
@@ -2039,7 +2066,8 @@ def validate_public_release_environment(
     errors: list[str] = []
 
     # load_manifest has already rejected every mixed distribution tuple.
-    # Manual ad-hoc downloads never use Apple credentials or Sparkle signing.
+    # Sparkle signing is validated independently by prepare_release.sh. Ad-hoc
+    # distribution does not need Apple Developer ID or notarization credentials.
     if distribution["signing"] == "ad-hoc":
         validate_gatekeeper_disclosure(root, errors)
         return errors

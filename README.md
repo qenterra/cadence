@@ -36,9 +36,10 @@ local drive chosen by the user.
 
 > [!IMPORTANT]
 > Cadence 1.0.1 is the current public release, available for Apple silicon
-> as a manual download (DMG or ZIP). The app is ad-hoc signed, **not Developer ID signed and not notarized**.
+> as a manual download for initial installation (DMG or ZIP). The app is ad-hoc signed, **not Developer ID signed and not notarized**.
 > Gatekeeper may block the first launch. See the installation steps below.
-> This release is not delivered through Sparkle or the App Store.
+> Existing Cadence installations receive 1.0.1 through the EdDSA-signed Sparkle feed.
+> Cadence is not distributed through the App Store.
 
 ## Interface
 
@@ -151,6 +152,7 @@ developer identity. Install the release from the DMG or ZIP linked above.
 git clone https://github.com/QenTerra/cadence.git
 cd cadence
 brew bundle
+./scripts/configure_git_lfs.sh
 ./scripts/prepare_python_tools.sh
 xcodegen generate --spec project.yml
 open Cadence.xcodeproj

@@ -118,6 +118,20 @@ dmg_file="$RELEASE_DMG_PATH"
 checksums_file="$RELEASE_CHECKSUMS_PATH"
 sparkle_tools="$derived_data/SourcePackages/artifacts/sparkle/Sparkle/bin"
 
+validate_sparkle_signing_key() {
+    local generate_keys="$sparkle_tools/generate_keys"
+    local actual_public_key
+    if [[ ! -x "$generate_keys" ]]; then
+        echo "Sparkle generate_keys is unavailable at $generate_keys." >&2
+        exit 69
+    fi
+    actual_public_key="$("$generate_keys" --account "$SPARKLE_KEY_ACCOUNT" -p)"
+    if [[ "$actual_public_key" != "$SPARKLE_PUBLIC_KEY" ]]; then
+        echo "Sparkle Keychain public key does not match release-contract.json." >&2
+        exit 70
+    fi
+}
+
 if [[ -n "$requested_developer_dir" ]]; then
     developer_dir="$requested_developer_dir"
 else
@@ -252,6 +266,11 @@ if [[ "$release_mode" == "public" ]]; then
     fi
 fi
 
+if [[ "$release_mode" == "public" ]]; then
+    validate_sparkle_signing_key
+    check_release_operation
+fi
+
 staging_dir="$(mktemp -d /private/tmp/cadence-release.XXXXXX)"
 appcast_staging="$staging_dir/appcast"
 mkdir -p "$appcast_staging"
@@ -265,78 +284,56 @@ if [[ "$release_mode" == "local" ]]; then
     exit 0
 fi
 
-# The explicit ad-hoc contract produces manual downloads only. All source,
-# attestation, archive, signature, and operation checks above still apply.
-if [[ "$DISTRIBUTION_SIGNING" == "ad-hoc" ]]; then
+check_release_operation
+rm -f -- "$zip_file"
+ditto -c -k --sequesterRsrc --keepParent "$app_bundle" "$zip_file"
+check_release_operation
+
+if [[ "$DISTRIBUTION_SIGNING" == "developer-id" ]]; then
+    # Apple platform trust is separate from Sparkle archive trust. Developer ID
+    # releases additionally require notarization and stapled tickets.
+    DEVELOPER_DIR="$developer_dir" xcrun notarytool submit \
+        "$zip_file" \
+        --keychain-profile "$CADENCE_NOTARY_KEYCHAIN_PROFILE" \
+        --wait
+    check_release_operation
+    DEVELOPER_DIR="$developer_dir" xcrun stapler staple "$app_bundle"
+    DEVELOPER_DIR="$developer_dir" xcrun stapler validate "$app_bundle"
+    spctl --assess --type execute --verbose=4 "$app_bundle"
+
+    # Recreate the update archive after stapling the app so offline Gatekeeper
+    # verification does not depend on network ticket lookup.
     check_release_operation
     rm -f -- "$zip_file"
     ditto -c -k --sequesterRsrc --keepParent "$app_bundle" "$zip_file"
     check_release_operation
-    "$project_root/scripts/create_dmg.sh" "$app_bundle" "$dmg_file" "$HUMAN_RELEASE_NAME"
-    check_release_operation
-    "${release_contract[@]}" \
-        release-checksums-write \
-        --release-mode "$release_mode" \
-        --operation-token "$RELEASE_OPERATION_TOKEN" \
-        --operation-owner-pid "$$" \
-        --root "$project_root"
-    check_release_operation
-    codesign --verify --deep --strict --verbose=2 "$app_bundle"
-    unzip -t "$zip_file"
-    check_release_operation
-    echo "Prepared $HUMAN_RELEASE_NAME for manual download."
-    echo "Ad-hoc signed and not notarized; Gatekeeper may block opening."
-    echo "Git tag: $TAG"
-    echo "Manual download assets:"
-    echo "  $dmg_file"
-    echo "  $zip_file"
-    echo "  $checksums_file"
-    echo "No Sparkle update was generated; appcast.xml is unchanged."
-    finish_release_operation
-    exit 0
 fi
 
-# The Developer ID path is deliberately fail-closed: the app and disk image both
-# need an accepted notarization submission and a locally validated ticket.
-check_release_operation
-rm -f -- "$zip_file"
-ditto -c -k --sequesterRsrc --keepParent "$app_bundle" "$zip_file"
-check_release_operation
-DEVELOPER_DIR="$developer_dir" xcrun notarytool submit \
-    "$zip_file" \
-    --keychain-profile "$CADENCE_NOTARY_KEYCHAIN_PROFILE" \
-    --wait
-check_release_operation
-DEVELOPER_DIR="$developer_dir" xcrun stapler staple "$app_bundle"
-DEVELOPER_DIR="$developer_dir" xcrun stapler validate "$app_bundle"
-spctl --assess --type execute --verbose=4 "$app_bundle"
-
-# Recreate the update archive after stapling the app so offline Gatekeeper
-# verification does not depend on network ticket lookup.
-check_release_operation
-rm -f -- "$zip_file"
-ditto -c -k --sequesterRsrc --keepParent "$app_bundle" "$zip_file"
-check_release_operation
 "$project_root/scripts/create_dmg.sh" "$app_bundle" "$dmg_file" "$HUMAN_RELEASE_NAME"
 check_release_operation
-DEVELOPER_DIR="$developer_dir" xcrun notarytool submit \
-    "$dmg_file" \
-    --keychain-profile "$CADENCE_NOTARY_KEYCHAIN_PROFILE" \
-    --wait
-check_release_operation
-DEVELOPER_DIR="$developer_dir" xcrun stapler staple "$dmg_file"
-DEVELOPER_DIR="$developer_dir" xcrun stapler validate "$dmg_file"
-spctl --assess --type open --context context:primary-signature --verbose=4 "$dmg_file"
+
+if [[ "$DISTRIBUTION_SIGNING" == "developer-id" ]]; then
+    DEVELOPER_DIR="$developer_dir" xcrun notarytool submit \
+        "$dmg_file" \
+        --keychain-profile "$CADENCE_NOTARY_KEYCHAIN_PROFILE" \
+        --wait
+    check_release_operation
+    DEVELOPER_DIR="$developer_dir" xcrun stapler staple "$dmg_file"
+    DEVELOPER_DIR="$developer_dir" xcrun stapler validate "$dmg_file"
+    spctl --assess --type open --context context:primary-signature --verbose=4 "$dmg_file"
+fi
 
 check_release_operation
 cp "$project_root/appcast.xml" "$appcast_staging/appcast.xml"
 cp "$zip_file" "$appcast_staging/$ZIP_NAME"
-cp "$release_notes_path" "$appcast_staging/Cadence-$PUBLIC_VERSION.md"
+cp "$release_notes_path" "$appcast_staging/${ZIP_NAME%.zip}.md"
 
 generate_arguments=(
-    --account com.qenterra.cadence
+    --account "$SPARKLE_KEY_ACCOUNT"
     --download-url-prefix "https://github.com/QenTerra/cadence/releases/download/$TAG/"
     --link "https://github.com/QenTerra/cadence/releases/tag/$TAG"
+    --full-release-notes-url "https://github.com/QenTerra/cadence/releases/tag/$TAG"
+    --embed-release-notes
     --maximum-versions 0
 )
 if [[ "$CHANNEL" != "stable" ]]; then
@@ -348,6 +345,14 @@ fi
     "$appcast_staging"
 
 check_release_operation
+if ! grep -Fq "<sparkle:version>$BUILD_NUMBER</sparkle:version>" "$appcast_staging/appcast.xml"; then
+    echo "Generated appcast does not contain build $BUILD_NUMBER." >&2
+    exit 70
+fi
+if ! grep -Fq 'sparkle:edSignature=' "$appcast_staging/appcast.xml"; then
+    echo "Generated appcast does not contain an EdDSA update signature." >&2
+    exit 70
+fi
 rm -f -- "$zip_file"
 mv "$appcast_staging/$ZIP_NAME" "$zip_file"
 check_release_operation
@@ -370,8 +375,11 @@ check_release_operation
 cp "$appcast_staging/appcast.xml" "$project_root/appcast.xml"
 
 echo "Prepared $HUMAN_RELEASE_NAME."
+if [[ "$DISTRIBUTION_SIGNING" == "ad-hoc" ]]; then
+    echo "Ad-hoc signed and not notarized; Gatekeeper may block the initial install."
+fi
 echo "Git tag: $TAG"
-echo "GitHub prerelease assets:"
+echo "GitHub release assets:"
 echo "  $dmg_file"
 echo "  $zip_file"
 echo "  $checksums_file"

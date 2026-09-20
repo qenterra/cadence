@@ -43,7 +43,8 @@ both stores before deleting or moving library data.
 ## Release identity
 
 Cadence 1.0.1 is ad-hoc signed, not Developer ID signed, and not
-notarized. It is a manual download, with no Sparkle update for this version.
+notarized. Initial installation is manual; existing installations can verify
+and install 1.0.1 through the EdDSA-signed Sparkle feed.
 See [Getting Started](Getting-Started) for official downloads, checksums, and
 Gatekeeper instructions.
 

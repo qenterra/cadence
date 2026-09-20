@@ -6,6 +6,7 @@
 git clone https://github.com/QenTerra/cadence.git
 cd cadence
 brew bundle
+./scripts/configure_git_lfs.sh
 ./scripts/prepare_python_tools.sh
 xcodegen generate --spec project.yml
 open Cadence.xcodeproj
