@@ -23,8 +23,6 @@ flowchart LR
     Playback --> Native["NativePlaybackBackend"]
     Playback --> System["Media keys and Control Center"]
     Managed --> Media["Media, artwork, lyrics, manifests, Trash"]
-    Playback --> RemoteCache["Verified bounded remote cache"]
-    RemoteCache --> Providers["WebDAV or Google Drive"]
 ```
 
 Views render observable state and call model intents. They do not write managed
@@ -125,17 +123,6 @@ security-scoped access for that session, and never writes catalog records or
 scans sibling folders. `CompositePlaybackTrackResolver` lets that queue use the
 normal playback backends. The explicit **Add to Library…** action passes only
 the current file to the existing import inspection and duplicate-review flow.
-
-Remote libraries keep the live SwiftData catalog local. The provider-neutral
-manifest maps track IDs to immutable media objects. WebDAV and Google Drive
-adapters fetch manifests conditionally using provider revisions and expose
-read-only media streams; the app does not publish remote-library changes.
-Playback downloads the current object to staging, verifies its size and
-SHA-256, atomically promotes it into a bounded LRU cache, and only then gives a
-local URL to the existing backends. Current and next tracks are pinned; stale
-prefetch work is canceled. Credentials and OAuth state stay in Keychain. The
-Google adapter keeps the narrow `drive.file` scope and therefore accepts only
-objects created by Cadence under the same OAuth client.
 
 ## Shared packages
 

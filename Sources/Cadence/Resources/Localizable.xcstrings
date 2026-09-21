@@ -1093,38 +1093,6 @@
         }
       }
     },
-    "Cache cleared: %@. Removed: %lld." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Cache cleared: %1$@. Removed: %2$lld."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Кэш очищен: %1$@. Удалено: %2$lld."
-          }
-        }
-      }
-    },
-    "Cache cleared: %@. Removed: %lld. Kept for the active queue: %lld." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Cache cleared: %1$@. Removed: %2$lld. Kept for the active queue: %3$lld."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Кэш очищен: %1$@. Удалено: %2$lld. Сохранено для активной очереди: %3$lld."
-          }
-        }
-      }
-    },
     "Cadence" : {
       "localizations" : {
         "ru" : {
@@ -1687,36 +1655,6 @@
         }
       }
     },
-    "Clear Cache" : {
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Очистить кэш"
-          }
-        }
-      }
-    },
-    "Clear Cache…" : {
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Очистить кэш…"
-          }
-        }
-      }
-    },
-    "Clear Downloaded Remote Media?" : {
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Очистить загруженные удалённые медиафайлы?"
-          }
-        }
-      }
-    },
     "Clear Timing" : {
       "localizations" : {
         "ru" : {
@@ -1823,36 +1761,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Завершено"
-          }
-        }
-      }
-    },
-    "Connect" : {
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Подключить"
-          }
-        }
-      }
-    },
-    "Connect Remote Media" : {
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Подключить удалённую медиатеку"
-          }
-        }
-      }
-    },
-    "Connect…" : {
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Подключить…"
           }
         }
       }
@@ -2566,16 +2474,6 @@
         }
       }
     },
-    "Disconnect" : {
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Отключить"
-          }
-        }
-      }
-    },
     "Discovering Files" : {
       "localizations" : {
         "ru" : {
@@ -2636,16 +2534,6 @@
         }
       }
     },
-    "Downloaded files outside the active playback queue will be removed. Catalog data and remote credentials stay intact." : {
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Загруженные файлы вне активной очереди воспроизведения будут удалены. Каталог и учётные данные удалённого подключения останутся без изменений."
-          }
-        }
-      }
-    },
     "Draft" : {
       "localizations" : {
         "ru" : {
@@ -2683,16 +2571,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Перетащите, чтобы изменить порядок"
-          }
-        }
-      }
-    },
-    "Drive Folder ID" : {
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ID папки на Диске"
           }
         }
       }
@@ -3794,16 +3672,6 @@
         }
       }
     },
-    "Local Cache" : {
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Локальный кэш"
-          }
-        }
-      }
-    },
     "Locate Library…" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -3997,16 +3865,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Аудиофайлы, обложки и тексты в корзине нельзя будет восстановить."
-          }
-        }
-      }
-    },
-    "Manifest File ID" : {
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ID файла манифеста"
           }
         }
       }
@@ -4525,16 +4383,6 @@
         }
       }
     },
-    "OAuth Client ID" : {
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ID клиента OAuth"
-          }
-        }
-      }
-    },
     "of the following" : {
       "localizations" : {
         "ru" : {
@@ -4719,16 +4567,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Частично синхронизированный"
-          }
-        }
-      }
-    },
-    "Password" : {
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Пароль"
           }
         }
       }
@@ -5083,16 +4921,6 @@
         }
       }
     },
-    "Provider" : {
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Провайдер"
-          }
-        }
-      }
-    },
     "Queue" : {
       "localizations" : {
         "ru" : {
@@ -5224,16 +5052,6 @@
         }
       }
     },
-    "Redirect URL" : {
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "URL перенаправления"
-          }
-        }
-      }
-    },
     "Release Year" : {
       "localizations" : {
         "ru" : {
@@ -5250,36 +5068,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Осталось"
-          }
-        }
-      }
-    },
-    "Remote Media" : {
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Удалённая медиатека"
-          }
-        }
-      }
-    },
-    "Remote media is not configured for this library." : {
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Для этой медиатеки не настроено удалённое хранилище."
-          }
-        }
-      }
-    },
-    "Remote Media Unavailable" : {
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Удалённая медиатека недоступна"
           }
         }
       }
@@ -5997,16 +5785,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Выбрано"
-          }
-        }
-      }
-    },
-    "Server URL" : {
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "URL сервера"
           }
         }
       }
@@ -7305,16 +7083,6 @@
         }
       }
     },
-    "Username" : {
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Имя пользователя"
-          }
-        }
-      }
-    },
     "Value" : {
       "localizations" : {
         "ru" : {
@@ -7345,18 +7113,18 @@
         }
       }
     },
-    "Version %@ (%@)" : {
+    "Version %@" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Version %1$@ (%2$@)"
+            "value" : "Version %1$@"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Версия %@ (%@)"
+            "value" : "Версия %@"
           }
         }
       }

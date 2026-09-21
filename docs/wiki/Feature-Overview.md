@@ -27,13 +27,6 @@ Hierarchical tags, rule-based smart collections, and ordered playlists serve
 different organization needs. Artwork and lyrics can be edited on managed
 records without rewriting the original imported files.
 
-## Optional remote libraries
-
-Configure WebDAV or Google Drive in Settings to read a remote library manifest
-and play its media through a bounded local cache. Remote Media is disconnected
-by default and does not upload your local library when connected. See
-[Privacy and Security](Privacy-And-Security) before configuring a provider.
-
 ## Interface
 
 System, Light, and Dark appearances share native table selection, configurable

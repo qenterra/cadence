@@ -1,6 +1,6 @@
 # Dependencies
 
-Cadence uses Apple platform frameworks and the QenTerra products and three pinned third-party Swift packages at
+Cadence uses Apple platform frameworks and the QenTerra products and two pinned third-party Swift packages at
 runtime, plus seven Homebrew tools during development and release packaging.
 
 ## Runtime in current source builds
@@ -21,14 +21,12 @@ For a published binary, use the dependency lockfile at its release tag.
 | QenTerraFoundation, QenTerraAudioAnalysis | Exactly `1.0.2` | Hashing, text, caches, pagination, images, media clock and PCM analysis | [QenTerra/design-system](https://github.com/QenTerra/design-system) |
 | QenTerraDesignTokens, QenTerraComponents, QenTerraMediaComponents | Exactly `1.0.2` | Shared native interface and media presentation | [QenTerra/design-system](https://github.com/QenTerra/design-system) |
 | GRDB.swift | Exactly `7.11.1` | Lyrics FTS5 search and SQLite catalog-migration validation | [groue/GRDB.swift](https://github.com/groue/GRDB.swift) |
-| AppAuth | Exactly `3.0.0` | OAuth 2.0 authorization and token refresh for Google Drive | [openid/AppAuth-iOS](https://github.com/openid/AppAuth-iOS) |
 | Sparkle | Exactly `2.9.6` | Signed in-app software updates with stable and beta channels | [sparkle-project/Sparkle](https://github.com/sparkle-project/Sparkle) |
 
-Design System, GRDB, AppAuth, and Sparkle are locked in `Package.resolved`; none introduces analytics. GRDB owns
+Design System, GRDB, and Sparkle are locked in `Package.resolved`; none introduces analytics. GRDB owns
 the rebuildable lyrics-search index and performs SQLite integrity checks and
 WAL consolidation during catalog relocation. SwiftData owns the canonical
-library models and migrations. AppAuth
-stores Google authorization state through Cadence's Keychain adapter. Sparkle
+library models and migrations. Sparkle
 uses an EdDSA public key in the app; its private signing key remains outside the
 repository in the maintainer's Keychain.
 

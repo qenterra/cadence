@@ -27,6 +27,6 @@ Reproduce before repair, preserve the failing evidence, identify whether the env
 
 ## Reachability exceptions
 
-The Periphery baseline contains seven explicit retained declarations: three SwiftUI selection states referenced through projected bindings, two legacy SwiftData constructors retained with the historical schema, and two Swift Testing suite types whose test methods execute through macro registration. It does not suppress the removed remote-write API or old UI facades. New findings still fail the gate.
+The Periphery baseline contains seven explicit retained declarations: three SwiftUI selection states referenced through projected bindings, two legacy SwiftData constructors retained with the historical schema, and two Swift Testing suite types whose test methods execute through macro registration. It does not suppress removed feature APIs or old UI facades. New findings still fail the gate.
 
 Pure hashing, pagination, image-processing and PCM-analysis tests also live in the corresponding Design System products. Cadence retains consumer, persistence, playback-backend and coordinator integration tests.

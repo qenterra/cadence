@@ -46,9 +46,6 @@ instructions.
 - Cadence Mode with an artwork-colored animated background and keyboard effects.
 - System, light, and dark appearance, plus playback, library, notification,
   and interface settings.
-- Optional WebDAV and Google Drive library reading, configured explicitly in
-  Settings; local playback requires no account.
-
 [Unreleased]: https://github.com/QenTerra/cadence/compare/v1.0.1...main
 [1.0.1]: https://github.com/QenTerra/cadence/releases/tag/v1.0.1
 [1.0.0]: https://github.com/QenTerra/cadence/releases/tag/v1.0.0

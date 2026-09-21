@@ -10,6 +10,7 @@ struct CadenceApp: App {
     private let instanceCoordinator = CadenceInstanceCoordinator.shared
     private let appearanceController = AppearanceController()
     private let notificationController: CadenceNotificationController
+    private let updateLaunchCoordinator = CadenceUpdateLaunchCoordinator()
     @State private var updateController: CadenceUpdateController
     @AppStorage("appearance")
     private var appearanceRawValue = CadenceAppearance.system.rawValue
@@ -78,6 +79,12 @@ struct CadenceApp: App {
                 }
                 applicationDelegate.onTermination {
                     model.shutdownPlayback()
+                }
+                if !CadenceLaunchEnvironment.shouldUsePreviewLibrary() {
+                    await updateLaunchCoordinator.run(
+                        updateController: updateController,
+                        notificationController: notificationController
+                    )
                 }
             }
         }

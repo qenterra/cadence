@@ -39,10 +39,6 @@ Now Playing combines playback, queue, artwork, and line-timed lyrics. Select a
 timed lyric line to seek; use the Lyrics Editor to adjust text and timestamps.
 Cadence Mode adds an artwork-colored background and keyboard effects.
 
-Remote libraries connect only after you configure WebDAV or Google Drive in
-Settings. Read [Privacy](https://github.com/QenTerra/cadence/blob/main/PRIVACY.md)
-before connecting a provider.
-
 ## Next
 
 - [Architecture](Architecture)

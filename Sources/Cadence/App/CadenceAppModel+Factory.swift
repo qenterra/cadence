@@ -6,18 +6,12 @@ private struct ImportRuntime {
     let availability: ImportRuntimeAvailability
 }
 
-private struct RemoteRuntime {
-    let source: RemotePlaybackSource
-    let controller: RemoteLibraryController
-}
-
 extension CadenceAppModel {
     static func production(
         librarySession: LibrarySession,
         notificationController: CadenceNotificationController? = nil
     ) -> CadenceAppModel {
         let importRuntime = importRuntime(librarySession: librarySession)
-        let remote = remoteRuntime(librarySession: librarySession)
         let externalAudioSession = ExternalAudioSession()
         let systemMediaArtworkProvider = SystemMediaArtworkProvider { id in
             if let asset = externalAudioSession.artwork(id: id) {
@@ -33,8 +27,7 @@ extension CadenceAppModel {
             resolver: CompositePlaybackTrackResolver(
                 external: externalAudioSession,
                 managed: ManagedPlaybackTrackResolver(
-                    librarySession: librarySession,
-                    remoteSource: remote.source
+                    librarySession: librarySession
                 )
             ),
             backends: productionPlaybackBackends(),
@@ -44,7 +37,7 @@ extension CadenceAppModel {
             audioRouteProvider: SystemAudioRouteProvider(),
             notificationController: notificationController
         )
-        let model = CadenceAppModel(
+        return CadenceAppModel(
             runtimeEnvironment: .production,
             importRuntimeAvailability: importRuntime.availability,
             librarySession: librarySession,
@@ -54,13 +47,8 @@ extension CadenceAppModel {
                 ManagedLibraryImportRecovery(destination: $0)
             },
             playbackCoordinator: playbackCoordinator,
-            externalAudioSession: externalAudioSession,
-            remoteLibraryController: remote.controller
+            externalAudioSession: externalAudioSession
         )
-        Task {
-            await remote.controller.restore()
-        }
-        return model
     }
 
     static func preview(
@@ -153,47 +141,6 @@ private extension CadenceAppModel {
                 importer: ManagedLibraryImporter(destination: destination)
             ),
             availability: .available
-        )
-    }
-
-    static func remoteRuntime(
-        librarySession: LibrarySession
-    ) -> RemoteRuntime {
-        let source = RemotePlaybackSource()
-        let identityExpectation: RemoteLibraryIdentityExpectation
-        switch librarySession.availability {
-        case .empty:
-            identityExpectation = .unbound
-        case .recovering, .ready:
-            do {
-                guard let location = librarySession.location else {
-                    identityExpectation = .unavailable(
-                        "Remote libraries are unavailable because the local library location is missing."
-                    )
-                    break
-                }
-                let identity = try ManagedLibraryPackage(
-                    location: location
-                ).readIdentity()
-                identityExpectation = .exact(identity.id)
-            } catch {
-                identityExpectation = .unavailable(
-                    "Remote libraries are unavailable because the local library identity cannot be read."
-                )
-            }
-        case let .failed(failure):
-            identityExpectation = .unavailable(failure.message)
-        case .preview:
-            identityExpectation = .unavailable(
-                "Remote libraries are unavailable until the local library is ready."
-            )
-        }
-        return RemoteRuntime(
-            source: source,
-            controller: RemoteLibraryController(
-                source: source,
-                identityExpectation: identityExpectation
-            )
         )
     }
 }

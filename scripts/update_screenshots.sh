@@ -31,7 +31,7 @@ xcodegen generate --spec project.yml
 marker="$project_root/.build/update-screenshots"
 cadence_mode_marker="$project_root/.build/update-cadence-mode-screenshots"
 candidate_dir="${TMPDIR:?}/CadenceVisualRegression/update"
-expected_candidate_count="91"
+expected_candidate_count="88"
 mkdir -p "$project_root/.build"
 mkdir -p "$candidate_dir"
 find "$candidate_dir" -maxdepth 1 -type f -name '*.png' -delete
@@ -124,7 +124,7 @@ long_copy_home_image="$project_root/docs/images/qa-home-min-long-copy-dark.png"
 settings_image="$project_root/docs/images/cadence-settings.png"
 [[ -f "$settings_image" ]]
 [[ "$(sips -g pixelWidth "$settings_image" | tail -n 1 | awk '{print $2}')" == "1680" ]]
-for tab in general playback library sidebar remote shortcuts updates about; do
+for tab in general playback library sidebar shortcuts updates about; do
     for appearance in system light dark; do
         image="$project_root/docs/images/qa-settings-$tab-$appearance.png"
         [[ -f "$image" ]]

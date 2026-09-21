@@ -42,7 +42,7 @@ struct AppConfigurationTests {
     func publicLinks() {
         #expect(
             AppConfiguration.creatorName
-                == "Nikita Melnychenko (QenTerra)"
+                == "Nikita Melnychenko"
         )
         #expect(
             AppConfiguration.projectURL.absoluteString
@@ -78,6 +78,115 @@ struct AppConfigurationTests {
                 includesBetaUpdates: true
             ) == Set(["beta"])
         )
+    }
+}
+
+@MainActor
+struct CadenceUpdateLaunchCoordinatorTests {
+    @Test("Launch requests notification access and one background update check")
+    func checksOnceAtLaunch() async throws {
+        let (defaults, suiteName) = try launchDefaults()
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        defaults.set(
+            true,
+            forKey: CadenceNotificationPreferences.updateAvailabilityKey
+        )
+        let updates = CadenceUpdateCheckerSpy(
+            automaticallyChecksForUpdates: true
+        )
+        let center = CadenceNotificationCenterSpy()
+        let notifications = CadenceNotificationController(
+            center: center,
+            defaults: defaults
+        )
+        let coordinator = CadenceUpdateLaunchCoordinator()
+
+        await coordinator.run(
+            updateController: updates,
+            notificationController: notifications,
+            defaults: defaults
+        )
+        await coordinator.run(
+            updateController: updates,
+            notificationController: notifications,
+            defaults: defaults
+        )
+
+        #expect(center.authorizationRequestCount == 1)
+        #expect(updates.backgroundCheckCount == 1)
+    }
+
+    @Test("Disabled automatic checks do not ask permission or contact Sparkle")
+    func respectsAutomaticChecksPreference() async throws {
+        let (defaults, suiteName) = try launchDefaults()
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        defaults.set(
+            true,
+            forKey: CadenceNotificationPreferences.updateAvailabilityKey
+        )
+        let updates = CadenceUpdateCheckerSpy(
+            automaticallyChecksForUpdates: false
+        )
+        let center = CadenceNotificationCenterSpy()
+        let notifications = CadenceNotificationController(
+            center: center,
+            defaults: defaults
+        )
+
+        await CadenceUpdateLaunchCoordinator().run(
+            updateController: updates,
+            notificationController: notifications,
+            defaults: defaults
+        )
+
+        #expect(center.authorizationRequestCount == 0)
+        #expect(updates.backgroundCheckCount == 0)
+    }
+
+    @Test("A silent launch check does not require notification opt-in")
+    func checksWithoutNotifications() async throws {
+        let (defaults, suiteName) = try launchDefaults()
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        defaults.set(
+            false,
+            forKey: CadenceNotificationPreferences.updateAvailabilityKey
+        )
+        let updates = CadenceUpdateCheckerSpy(
+            automaticallyChecksForUpdates: true
+        )
+        let center = CadenceNotificationCenterSpy()
+        let notifications = CadenceNotificationController(
+            center: center,
+            defaults: defaults
+        )
+
+        await CadenceUpdateLaunchCoordinator().run(
+            updateController: updates,
+            notificationController: notifications,
+            defaults: defaults
+        )
+
+        #expect(center.authorizationRequestCount == 0)
+        #expect(updates.backgroundCheckCount == 1)
+    }
+
+    private func launchDefaults() throws -> (UserDefaults, String) {
+        let suite = "CadenceUpdateLaunchTests-\(UUID().uuidString)"
+        return try (#require(UserDefaults(suiteName: suite)), suite)
+    }
+}
+
+@MainActor
+private final class CadenceUpdateCheckerSpy: CadenceUpdateChecking {
+    let automaticallyChecksForUpdates: Bool
+    private(set) var backgroundCheckCount = 0
+
+    init(automaticallyChecksForUpdates: Bool) {
+        self.automaticallyChecksForUpdates = automaticallyChecksForUpdates
+    }
+
+    func checkForUpdatesInBackground() {
+        backgroundCheckCount += 1
     }
 }
 

@@ -188,6 +188,11 @@ struct SecondAuditPresentationTests {
         #expect(CadenceSettingsTab.allCases.map(\.symbolName).allSatisfy { !$0.isEmpty })
     }
 
+    @Test("Settings no longer expose Remote Media")
+    func settingsExcludeRemoteMedia() {
+        #expect(!CadenceSettingsTab.allCases.map(\.title).contains("Remote Media"))
+    }
+
     @Test("Every settings card symbol resolves on the supported macOS baseline")
     func settingsSymbolsResolve() {
         let symbols = [
@@ -195,7 +200,6 @@ struct SecondAuditPresentationTests {
             "circle.lefthalf.filled",
             "externaldrive",
             "sidebar.left",
-            "network",
             "keyboard",
             "arrow.triangle.2.circlepath",
             "person.2.circle",

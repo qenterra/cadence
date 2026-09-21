@@ -18,7 +18,7 @@ open Cadence.xcodeproj
 
 Follow the current [dependency instructions](https://github.com/QenTerra/cadence/blob/main/docs/DEPENDENCIES.md)
 before generating the project. Cadence consumes Swift packages for shared
-QenTerra components and algorithms, database access, OAuth, and updates; it is
+QenTerra components and algorithms, database access, and updates; it is
 not dependency-free. The release uses an immutable Design System dependency.
 
 Select the **Cadence** scheme and **My Mac**. Set `DEVELOPER_DIR` for the current

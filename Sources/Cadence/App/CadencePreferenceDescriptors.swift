@@ -102,7 +102,7 @@ extension CadencePreferences {
         .bool(CadenceNotificationPreferences.trackChangesKey, default: false),
         .bool(
             CadenceNotificationPreferences.updateAvailabilityKey,
-            default: false
+            default: true
         ),
         .bool(
             CadenceNotificationPreferences.foregroundBannersKey,

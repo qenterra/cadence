@@ -2,7 +2,7 @@
 
 ## Ownership and cadence
 
-Nikita Melnychenko (QenTerra) owns repository health, releases, security coordination, and support status. Reviews are event-driven for security or release changes, monthly for routine drift, and quarterly for provider settings; a calendar reminder is not evidence that the review happened.
+Nikita Melnychenko (QenTerra) owns repository health, releases, security coordination, and support status. Reviews are event-driven for security or release changes, monthly for routine drift, and quarterly for platform settings; a calendar reminder is not evidence that the review happened.
 
 ## Routine review
 
@@ -18,7 +18,7 @@ Record accepted update sources, lockfile ownership, vulnerability decisions, pri
 
 ## Documentation and compatibility
 
-Retest documented setup, install, quick-start, migration, troubleshooting, and recovery paths. Mark volatile provider instructions with their verification date and update compatibility tables when support changes.
+Retest documented setup, install, quick-start, migration, troubleshooting, and recovery paths. Mark volatile external-service instructions with their verification date and update compatibility tables when support changes.
 
 ## Inactivity, transfer, and archival
 

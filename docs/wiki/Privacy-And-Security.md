@@ -1,9 +1,8 @@
 # Privacy and Security
 
 Cadence is local-first. It has no Cadence account system, analytics,
-advertising, telemetry, or crash-reporting service. Optional Remote Media uses
-network access after you choose and configure WebDAV or Google Drive in
-Settings. The authoritative policy is [Privacy](https://github.com/QenTerra/cadence/blob/main/PRIVACY.md).
+advertising, telemetry, or crash-reporting service. The authoritative policy is
+[Privacy](https://github.com/QenTerra/cadence/blob/main/PRIVACY.md).
 
 ## Local data
 
@@ -15,19 +14,6 @@ storage. Importing leaves the selected source files unchanged.
 
 Cadence does not send your managed library or listening activity to QenTerra or
 an analytics service. Project links open in your browser when selected.
-
-## Remote Media
-
-Remote providers are disconnected by default. Connecting a provider permits
-manifest reads and media downloads or prefetches needed for playback. Downloaded
-audio is hash-verified and stored in a bounded cache. Connecting does not upload
-your local library.
-
-WebDAV uses HTTPS, except loopback development addresses; its password is stored
-in Keychain. Google Drive uses browser OAuth with the `drive.file` scope and
-stores authorization state in Keychain. Provider configuration stays local.
-Disconnecting removes configuration and credentials, but does not automatically
-erase downloaded cache files. See the privacy policy for removal details.
 
 ## File access and deletion
 
