@@ -9,7 +9,7 @@ For a published binary, use the dependency lockfile at its release tag.
 
 | Component | Version policy | Role | Source |
 | --- | --- | --- | --- |
-| Cadence | `1.0.1` | Application | This repository |
+| Cadence | `1.0.2` | Application | This repository |
 | Swift and SwiftUI | Active compatible Xcode | Language and interface | Apple |
 | SwiftData | Active macOS SDK | Library persistence and migration | Apple |
 | AVFoundation and AVFAudio | Active macOS SDK | Audio inspection and playback | Apple |

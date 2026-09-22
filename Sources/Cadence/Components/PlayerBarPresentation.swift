@@ -3,7 +3,6 @@ import Foundation
 enum PlayerBarLayoutMetrics {
     static let height: CGFloat = 96
     static let contentHeight: CGFloat = 56
-    static let opticalVerticalAdjustment = CadenceLayout.textStack
     static let horizontalInset = CadenceLayout.panelInset
     static let metadataMinimumWidth: CGFloat = 244
     static let metadataMaximumWidth: CGFloat = 380
@@ -12,8 +11,7 @@ enum PlayerBarLayoutMetrics {
     static func contentFrame(availableWidth: CGFloat) -> CGRect {
         CGRect(
             x: 0,
-            y: (height - contentHeight) / 2
-                - opticalVerticalAdjustment,
+            y: (height - contentHeight) / 2,
             width: max(availableWidth, 0),
             height: contentHeight
         )
@@ -68,10 +66,10 @@ struct PlayerBarEmptyPresentation: Equatable, Sendable {
 
     init(libraryTrackCount: Int) {
         if libraryTrackCount == 0 {
-            title = "Open an audio file to listen"
+            title = "Open a music file"
             symbolName = "waveform"
         } else {
-            title = "Select a Track"
+            title = "Choose a song to play"
             symbolName = "music.note"
         }
     }

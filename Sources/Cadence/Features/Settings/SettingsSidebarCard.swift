@@ -16,8 +16,7 @@ struct SettingsSidebarCard: View {
             symbol: "sidebar.left"
         ) {
             Text(
-                "Choose which destinations appear. Drag a row to change "
-                    + "its sidebar position."
+                "Choose what appears in the sidebar and drag items into order."
             )
             .font(.caption)
             .foregroundStyle(.secondary)
@@ -48,13 +47,13 @@ struct SettingsSidebarCard: View {
             }
 
             HStack {
-                Text("Reset restores the default order and makes every destination visible.")
+                Text("Restoring defaults shows every item in its original position.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
 
                 Spacer(minLength: CadenceLayout.contentGap)
 
-                Button("Reset Sidebar", systemImage: "arrow.counterclockwise") {
+                Button("Restore Defaults", systemImage: "arrow.counterclockwise") {
                     resetSidebar()
                 }
             }
@@ -218,7 +217,7 @@ private struct SettingsSidebarRow: View {
                 .font(.system(size: 13, weight: .semibold))
                 .foregroundStyle(.tertiary)
                 .frame(width: 24, height: 24)
-                .help("Drag to Reorder")
+                .help("Drag to reorder")
         }
         .padding(.horizontal, CadenceLayout.controlGap)
         .frame(minHeight: CadenceLayout.rowHeight)
@@ -241,7 +240,7 @@ private struct SettingsSidebarRow: View {
         }
         .accessibilityHint(
             canMoveUp || canMoveDown
-                ? "Drag to change the sidebar position."
+                ? "Drag to change its sidebar position."
                 : ""
         )
     }

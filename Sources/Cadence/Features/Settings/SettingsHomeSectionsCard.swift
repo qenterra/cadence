@@ -11,7 +11,7 @@ struct SettingsHomeSectionsCard: View {
     var body: some View {
         SettingsCard(title: "Home", symbol: "house") {
             Text(
-                "Recently Played always stays first. Choose which other sections appear and drag them into order."
+                "Choose what appears on Home and drag sections into order. Recently Played stays first."
             )
             .font(.caption)
             .foregroundStyle(.secondary)
@@ -38,7 +38,7 @@ struct SettingsHomeSectionsCard: View {
 
             HStack {
                 Spacer()
-                Button("Reset Home", systemImage: "arrow.counterclockwise") {
+                Button("Restore Defaults", systemImage: "arrow.counterclockwise") {
                     withAnimation(.smooth(duration: CadenceTheme.motionDismiss)) {
                         orderRawValue = HomeSectionConfiguration.defaultOrderRawValue
                         hiddenRawValue = ""
@@ -65,7 +65,7 @@ struct SettingsHomeSectionsCard: View {
                 .font(.caption)
                 .foregroundStyle(.tertiary)
                 .frame(width: 24, height: 24)
-                .help("Recently Played always stays first")
+                .help("Recently Played stays first")
         }
         .padding(.horizontal, CadenceLayout.controlGap)
         .frame(minHeight: CadenceLayout.rowHeight)
@@ -92,7 +92,7 @@ struct SettingsHomeSectionsCard: View {
                 .font(.system(size: 13, weight: .semibold))
                 .foregroundStyle(.tertiary)
                 .frame(width: 24, height: 24)
-                .help("Drag to Reorder")
+                .help("Drag to reorder")
         }
         .padding(.horizontal, CadenceLayout.controlGap)
         .frame(minHeight: CadenceLayout.rowHeight)

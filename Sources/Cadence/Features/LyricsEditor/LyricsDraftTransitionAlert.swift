@@ -5,7 +5,7 @@ struct LyricsDraftTransitionAlert: ViewModifier {
 
     func body(content: Content) -> some View {
         content.alert(
-            "Save Changes to Lyrics?",
+            "Save changes to lyrics?",
             isPresented: Binding(
                 get: { model.pendingLyricsTransition != nil },
                 set: { _ in }
@@ -38,7 +38,7 @@ struct LyricsDraftTransitionAlert: ViewModifier {
                 }
             }
         } message: {
-            Text("Your unsaved line text and timing changes will be lost.")
+            Text("Your unsaved lyrics and timing changes will be lost.")
         }
     }
 }

@@ -21,7 +21,7 @@ struct UpdatesSettingsView: View {
 
     var body: some View {
         SettingsCard(
-            title: "Software Updates",
+            title: "Software updates",
             symbol: "arrow.triangle.2.circlepath"
         ) {
             SettingsToggleRow(
@@ -34,7 +34,7 @@ struct UpdatesSettingsView: View {
             }
 
             SettingsToggleRow(
-                "Download and install updates automatically",
+                "Download and install automatically",
                 isOn: $automaticallyDownloadsUpdates
             )
             .onChange(of: automaticallyDownloadsUpdates) {
@@ -49,7 +49,7 @@ struct UpdatesSettingsView: View {
             Divider()
 
             SettingsToggleRow(
-                "Include beta updates",
+                "Include beta versions",
                 isOn: $includesBetaUpdates
             )
             .onChange(of: includesBetaUpdates) {
@@ -58,8 +58,8 @@ struct UpdatesSettingsView: View {
 
             Text(
                 includesBetaUpdates
-                    ? "Cadence will offer stable and beta releases. Beta builds may be less reliable."
-                    : "Cadence will install stable releases only."
+                    ? "Beta versions may contain unfinished changes."
+                    : "Only stable versions are shown."
             )
             .font(.caption)
             .foregroundStyle(.secondary)

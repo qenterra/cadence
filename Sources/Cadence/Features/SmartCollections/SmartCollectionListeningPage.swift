@@ -44,11 +44,11 @@ struct SmartCollectionListeningPage: View {
     private var noSelection: some View {
         ContentUnavailableView {
             Label(
-                "No Smart Collection Selected",
+                "Choose a Smart Collection",
                 systemImage: "sparkles.rectangle.stack"
             )
         } description: {
-            Text("Choose a collection, or create one from the sidebar.")
+            Text("Select a collection in the sidebar or create a new one.")
         } actions: {
             Button("New Collection") {
                 model.requestNewSmartCollection()

@@ -14,7 +14,7 @@ struct CadenceAboutConfigurationTests {
         #expect(configuration.creatorText == "Created by Nikita Melnychenko")
         #expect(
             configuration.resources.first?.subtitle
-                == "More projects by Nikita Melnychenko"
+                == "More from Nikita Melnychenko"
         )
         #expect(configuration.resources.map(\.title) == [
             "GitHub Profile",

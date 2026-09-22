@@ -19,7 +19,7 @@ struct ProductionTrashView: View {
                     "Trash Is Empty",
                     systemImage: "trash",
                     description: Text(
-                        "Items removed from the managed library appear here."
+                        "Tracks, albums, and artists you remove appear here."
                     )
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -39,7 +39,7 @@ struct ProductionTrashView: View {
         }
         .background(CadenceTheme.contentBackground)
         .confirmationDialog(
-            "Empty Trash Permanently?",
+            "Empty Trash?",
             isPresented: $confirmsEmptyTrash
         ) {
             Button("Empty Trash", role: .destructive) {
@@ -51,11 +51,11 @@ struct ProductionTrashView: View {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text(
-                "Managed audio, artwork, and lyrics in Trash cannot be recovered."
+                "This permanently deletes the music, artwork, and lyrics in Trash."
             )
         }
         .confirmationDialog(
-            "Delete This Item Permanently?",
+            "Delete This Item?",
             isPresented: Binding(
                 get: { pendingPermanentDeletion != nil },
                 set: {
@@ -80,8 +80,7 @@ struct ProductionTrashView: View {
             }
         } message: { operation in
             Text(
-                "\(operation.itemCount) tracks and their managed files "
-                    + "will be removed permanently."
+                "This permanently deletes \(operation.itemCount) tracks and their files."
             )
         }
     }

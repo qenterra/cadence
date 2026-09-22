@@ -6,7 +6,7 @@ struct ImportMusicDropOverlay: View {
         DropZone(
             state: .targeted(accessibilityValue: "Drop music to review"),
             title: "Drop to Review Music",
-            message: "Cadence will scan a preview before anything is imported.",
+            message: "Review files before adding them to your library.",
             visualStyle: .cadenceOverlay
         )
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -14,7 +14,7 @@ struct ImportMusicDropOverlay: View {
         .allowsHitTesting(false)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(
-            "Drop music to review. No files will be imported immediately."
+            "Drop music to review before importing."
         )
     }
 }

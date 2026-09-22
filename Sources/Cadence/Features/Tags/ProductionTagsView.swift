@@ -233,7 +233,7 @@ private extension ProductionTagsView {
                     "No Matching Tracks",
                     systemImage: "music.note",
                     description: Text(
-                        "Nothing currently matches \(selectedTag?.displayPath ?? "this tag")."
+                        "No tracks match \(selectedTag?.displayPath ?? "this tag")."
                     )
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity)

@@ -1,6 +1,6 @@
 # Building from Source
 
-Cadence 1.0.1 is available as an ad-hoc signed, non-notarized
+Cadence 1.0.2 is available as an ad-hoc signed, non-notarized
 [manual download](Getting-Started). Building from source requires an Apple
 silicon Mac, macOS 26 or later, Xcode 27 or later, Homebrew, and Git.
 

@@ -31,7 +31,7 @@ xcodegen generate --spec project.yml
 marker="$project_root/.build/update-screenshots"
 cadence_mode_marker="$project_root/.build/update-cadence-mode-screenshots"
 candidate_dir="${TMPDIR:?}/CadenceVisualRegression/update"
-expected_candidate_count="88"
+expected_candidate_count="91"
 mkdir -p "$project_root/.build"
 mkdir -p "$candidate_dir"
 find "$candidate_dir" -maxdepth 1 -type f -name '*.png' -delete
@@ -80,6 +80,9 @@ if [[ "$candidate_count" != "$expected_candidate_count" ]]; then
     echo "Expected $expected_candidate_count documentation screenshot candidates, found $candidate_count." >&2
     exit 70
 fi
+for obsolete_settings_image in "$project_root"/docs/images/qa-settings-sidebar-{system,light,dark}.png; do
+    unlink "$obsolete_settings_image" 2>/dev/null || true
+done
 cp -f "$candidate_dir"/*.png "$project_root/docs/images/"
 
 for image in "$project_root"/docs/images/cadence-{library,now-playing,tags}.png; do
@@ -124,7 +127,7 @@ long_copy_home_image="$project_root/docs/images/qa-home-min-long-copy-dark.png"
 settings_image="$project_root/docs/images/cadence-settings.png"
 [[ -f "$settings_image" ]]
 [[ "$(sips -g pixelWidth "$settings_image" | tail -n 1 | awk '{print $2}')" == "1680" ]]
-for tab in general playback library sidebar shortcuts updates about; do
+for tab in general playback library interface shortcuts updates advanced about; do
     for appearance in system light dark; do
         image="$project_root/docs/images/qa-settings-$tab-$appearance.png"
         [[ -f "$image" ]]

@@ -11,9 +11,8 @@ enum CadenceAboutConfiguration {
         ) as? String ?? "0.1.0"
         return AboutPageConfiguration(
             applicationName: "Cadence",
-            tagline: "Native music, kept focused.",
-            description: "A focused macOS music library built for local collections, "
-                + "careful metadata, and uninterrupted listening.",
+            tagline: "Your music, on your Mac.",
+            description: "Play and organize a local music library without an account.",
             versionText: "Version \(version)",
             creatorText: "Created by \(AppConfiguration.creatorName)",
             copyrightText: "© 2026 QenTerra",
@@ -26,35 +25,35 @@ enum CadenceAboutConfiguration {
         resource(
             id: "creator",
             title: "GitHub Profile",
-            subtitle: "More projects by \(AppConfiguration.creatorName)",
+            subtitle: "More from \(AppConfiguration.creatorName)",
             symbol: "person.crop.circle",
             destination: AppConfiguration.creatorURL
         ),
         resource(
             id: "source",
             title: "Source Code",
-            subtitle: "Browse and contribute to Cadence",
+            subtitle: "View Cadence on GitHub",
             symbol: "chevron.left.forwardslash.chevron.right",
             destination: AppConfiguration.projectURL
         ),
         resource(
             id: "wiki",
             title: "Wiki",
-            subtitle: "Product and engineering documentation",
+            subtitle: "Read the documentation",
             symbol: "book.pages",
             destination: AppConfiguration.wikiURL
         ),
         resource(
             id: "license",
             title: "MIT License",
-            subtitle: "Cadence source and documentation",
+            subtitle: "Read the license",
             symbol: "doc.text",
             destination: AppConfiguration.licenseURL
         ),
         resource(
             id: "third-party-notices",
             title: "Third-Party Notices",
-            subtitle: "Licenses for bundled dependencies",
+            subtitle: "Licenses for included software",
             symbol: "books.vertical",
             destination: AppConfiguration.thirdPartyNoticesURL
         ),

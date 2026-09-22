@@ -101,7 +101,7 @@ struct LibraryFavoritesView: View {
         if store.favoriteTrackIDs.isEmpty {
             emptyState(
                 title: "No Favorite Tracks",
-                description: "Tracks you favorite will appear here."
+                description: "Favorite a track to see it here."
             )
         } else if let window = store.favoriteTracksWindow {
             favoriteWindowContent(window)
@@ -170,7 +170,7 @@ struct LibraryFavoritesView: View {
         if store.favoriteAlbums.isEmpty {
             emptyState(
                 title: "No Favorite Albums",
-                description: "Albums you favorite will appear here."
+                description: "Favorite an album to see it here."
             )
         } else {
             ScrollView(.vertical) {
@@ -211,7 +211,7 @@ struct LibraryFavoritesView: View {
         if store.favoriteArtists.isEmpty {
             emptyState(
                 title: "No Favorite Artists",
-                description: "Artists you favorite will appear here."
+                description: "Favorite an artist to see it here."
             )
         } else {
             ScrollView(.vertical) {

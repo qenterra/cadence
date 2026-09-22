@@ -47,28 +47,28 @@ struct SettingsPlaybackView: View {
     }
 
     private var playbackBehaviorCard: some View {
-        SettingsCard(title: "Playback", symbol: "play.circle") {
-            SettingsToggleRow("Restore Queue", isOn: $restoresQueue)
+        SettingsCard(title: "Playback behavior", symbol: "play.circle") {
+            SettingsToggleRow("Restore queue on launch", isOn: $restoresQueue)
 
-            Picker("Previous Button", selection: previousBehaviorBinding) {
+            Picker("Previous button", selection: previousBehaviorBinding) {
                 ForEach(PreviousTrackBehavior.allCases) { behavior in
                     Text(behavior.title).tag(behavior)
                 }
             }
 
-            Picker("Seek Step", selection: seekIntervalBinding) {
+            Picker("Seek interval", selection: seekIntervalBinding) {
                 ForEach(SeekInterval.allCases) { interval in
                     Text(interval.title).tag(interval)
                 }
             }
 
-            Picker("Volume Step", selection: volumeAdjustmentStepBinding) {
+            Picker("Volume adjustment", selection: volumeAdjustmentStepBinding) {
                 ForEach(VolumeAdjustmentStep.allCases) { step in
                     Text(step.title).tag(step)
                 }
             }
 
-            Picker("Volume Normalization", selection: normalizationBinding) {
+            Picker("Volume normalization", selection: normalizationBinding) {
                 ForEach(VolumeNormalizationMode.allCases) { mode in
                     Text(mode.title).tag(mode)
                 }
@@ -81,19 +81,20 @@ struct SettingsPlaybackView: View {
             }
 
             SettingsToggleRow(
-                "Resume After Output Reconnects",
+                "Resume after audio output reconnects",
                 isOn: $resumesAfterRouteRecovery
             )
 
             SettingsToggleRow(
-                "Prevent Display Sleep While Playing",
+                "Keep display awake while playing",
                 isOn: $preventsDisplaySleep
             )
 
             Text(
                 """
-                A restored queue opens paused. Crossfade applies only between normally advancing tracks. \
-                Track ReplayGain is used only when the file provides it.
+                Restored queues open paused. Crossfade works between tracks \
+                played in order. Normalization uses ReplayGain when the file \
+                provides it.
                 """
             )
             .font(.caption)
@@ -118,20 +119,20 @@ struct SettingsPlaybackView: View {
 
     private var nowPlayingCard: some View {
         SettingsCard(title: "Now Playing", symbol: "music.note.list") {
-            Picker("Time Display", selection: timeDisplayBinding) {
+            Picker("Time display", selection: timeDisplayBinding) {
                 ForEach(PlaybackTimeDisplayMode.allCases) { mode in
                     Text(mode.title).tag(mode)
                 }
             }
 
-            Picker("Lyrics Text Size", selection: lyricsTextSizeBinding) {
+            Picker("Lyrics size", selection: lyricsTextSizeBinding) {
                 ForEach(LyricsTextSize.allCases) { size in
                     Text(size.title).tag(size)
                 }
             }
 
             SettingsToggleRow(
-                "Show Technical Audio Information",
+                "Show audio details",
                 isOn: $showsTechnicalInformation
             )
         }
@@ -144,22 +145,22 @@ struct SettingsPlaybackView: View {
                 isOn: $isCadenceModeEnabled
             )
             SettingsToggleRow(
-                "React to Bass",
+                "React to bass",
                 isOn: $cadenceModeReactsToBass
             )
             .disabled(!isCadenceModeEnabled)
             SettingsToggleRow(
-                "Show Synchronized Lyrics",
+                "Show synced lyrics",
                 isOn: $cadenceModeShowsLyrics
             )
             .disabled(!isCadenceModeEnabled)
             SettingsToggleRow(
-                "Show Track Information",
+                "Show track details",
                 isOn: $cadenceModeShowsTrackInformation
             )
             .disabled(!isCadenceModeEnabled)
             SettingsToggleRow(
-                "Stay in Cadence Mode",
+                "Stay open",
                 isOn: $staysInCadenceMode
             )
             .disabled(!isCadenceModeEnabled)
@@ -172,10 +173,10 @@ struct SettingsPlaybackView: View {
 
     private var cadenceModeHelpText: LocalizedStringKey {
         guard isCadenceModeEnabled else {
-            return "The Z + X shortcut, visual effects, and direct entry are disabled."
+            return "The Z + X shortcut and Cadence Mode effects are off."
         }
         return staysInCadenceMode
-            ? "Cadence Mode stays open until you leave it."
+            ? "Cadence Mode stays open until you close it."
             : "Cadence Mode closes after ten seconds without input."
     }
 

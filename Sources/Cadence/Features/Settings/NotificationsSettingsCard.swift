@@ -16,17 +16,17 @@ struct NotificationsSettingsCard: View {
             symbol: "bell.badge"
         ) {
             SettingsToggleRow(
-                "When Track Changes",
+                "New track",
                 isOn: trackNotificationsBinding
             )
 
             SettingsToggleRow(
-                "When Updates Are Available",
+                "New version available",
                 isOn: updateNotificationsBinding
             )
 
             SettingsToggleRow(
-                "Show Banners While Cadence Is Active",
+                "Show banners when Cadence is open",
                 isOn: $showsForegroundBanners
             )
 
@@ -39,14 +39,9 @@ struct NotificationsSettingsCard: View {
     @ViewBuilder
     private var notificationHelp: some View {
         if authorizationDenied {
-            Text("Notifications are disabled for Cadence in System Settings.")
+            Text("Allow Cadence notifications in System Settings to use these options.")
         } else {
-            Text(
-                """
-                Cadence asks for permission only when you enable an alert. \
-                Delivery follows macOS notification and Focus settings.
-                """
-            )
+            Text("macOS controls notification delivery and Focus filtering.")
         }
     }
 

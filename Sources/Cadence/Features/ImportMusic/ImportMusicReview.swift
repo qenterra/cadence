@@ -160,7 +160,7 @@ struct ImportMusicReview: View {
                 Text(selectionSummary)
                     .font(.callout.weight(.medium))
 
-                Text("Exact duplicates and unavailable files stay excluded.")
+                Text("Duplicates and unreadable files won’t be imported.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

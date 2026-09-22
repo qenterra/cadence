@@ -18,7 +18,7 @@ struct NowPlayingView: View {
                 ContentUnavailableView {
                     Label("Nothing Playing", systemImage: "music.note")
                 } description: {
-                    Text("Start a track to open Now Playing.")
+                    Text("Play a track to see it here.")
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }

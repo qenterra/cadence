@@ -157,15 +157,15 @@ struct SemanticLayoutTests {
         #expect(CadenceLayout.readableContentWidth == 760)
     }
 
-    @Test("Player content is optically centered above the bottom edge")
+    @Test("Player content is vertically centered in the bar")
     func playerBarContentFrame() {
         let frame = PlayerBarLayoutMetrics.contentFrame(
             availableWidth: 1200
         )
 
-        #expect(frame.minY == 16)
-        #expect(frame.midY == PlayerBarLayoutMetrics.height / 2 - 4)
-        #expect(frame.maxY == 72)
+        #expect(frame.minY == 20)
+        #expect(frame.midY == PlayerBarLayoutMetrics.height / 2)
+        #expect(frame.maxY == 76)
         #expect(frame.width == 1200)
     }
 

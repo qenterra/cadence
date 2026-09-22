@@ -1,6 +1,6 @@
 # Building from source
 
-Cadence 1.0.1 starts with an ad-hoc signed, non-notarized manual download.
+Cadence 1.0.2 starts with an ad-hoc signed, non-notarized manual download.
 See [installation](../README.md#install-cadence) for the DMG and Gatekeeper
 instructions. This page covers building and verifying the source.
 
@@ -93,7 +93,7 @@ CADENCE_RELEASE_MODE=local bash scripts/prepare_release.sh
 The local mode produces an ad-hoc signed DMG under `.build/releases/local` for
 layout and mount/copy/launch checks. It intentionally does not create a Sparkle
 archive, change `appcast.xml`, or constitute a verified public release.
-The 1.0.1 public distribution and the separate Developer ID/notarization
+The 1.0.2 public distribution and the separate Developer ID/notarization
 workflow are documented in [Software updates](UPDATES.md).
 
 GitHub Actions runs project generation, SwiftFormat, and SwiftLint. The hosted

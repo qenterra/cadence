@@ -12,9 +12,10 @@ enum CadenceSettingsTab: String, CaseIterable, Identifiable {
     case general
     case playback
     case library
-    case sidebar
+    case interface
     case shortcuts
     case updates
+    case advanced
     case about
 
     var id: Self {
@@ -26,9 +27,10 @@ enum CadenceSettingsTab: String, CaseIterable, Identifiable {
         case .general: String(localized: "General")
         case .playback: String(localized: "Playback")
         case .library: String(localized: "Library")
-        case .sidebar: String(localized: "Navigation")
+        case .interface: String(localized: "Interface")
         case .shortcuts: String(localized: "Shortcuts")
         case .updates: String(localized: "Updates")
+        case .advanced: String(localized: "Advanced")
         case .about: String(localized: "About")
         }
     }
@@ -38,9 +40,10 @@ enum CadenceSettingsTab: String, CaseIterable, Identifiable {
         case .general: "gearshape"
         case .playback: "play.circle"
         case .library: "externaldrive"
-        case .sidebar: "sidebar.left"
+        case .interface: "circle.lefthalf.filled"
         case .shortcuts: "keyboard"
         case .updates: "arrow.triangle.2.circlepath"
+        case .advanced: "gearshape.2"
         case .about: "info.circle"
         }
     }
@@ -100,7 +103,7 @@ struct ProductionSettingsView: View {
         }
         .toggleStyle(.switch)
         .alert(
-            "Couldn’t Move Library",
+            "Couldn’t move library",
             isPresented: Binding(
                 get: { model.libraryRelocationError != nil },
                 set: {
@@ -110,7 +113,7 @@ struct ProductionSettingsView: View {
                 }
             )
         ) {
-            Button("Dismiss", role: .cancel) {
+            Button("Done", role: .cancel) {
                 model.dismissLibraryRelocationError()
             }
         } message: {
@@ -124,7 +127,7 @@ struct ProductionSettingsView: View {
             )
         }
         .confirmationDialog(
-            "Cadence Folder Already Exists",
+            "A Cadence library is already here",
             isPresented: Binding(
                 get: { model.pendingLibraryConflictParent != nil },
                 set: {
@@ -142,7 +145,7 @@ struct ProductionSettingsView: View {
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("Cadence will never merge with or overwrite an existing library folder.")
+            Text("Open that library or choose another folder. Cadence will not merge or overwrite it.")
         }
     }
 
@@ -150,15 +153,12 @@ struct ProductionSettingsView: View {
     private var tabContent: some View {
         switch tab {
         case .general:
+            startupCard
             defaultAudioApplicationCard
-            appearanceCard
             if let notificationController {
                 NotificationsSettingsCard(
                     notificationController: notificationController
                 )
-            }
-            SettingsDataCard {
-                model.refreshPlaybackPreferences()
             }
         case .playback:
             SettingsPlaybackView(model: model)
@@ -167,9 +167,9 @@ struct ProductionSettingsView: View {
                 model: model,
                 openDestination: openDestination
             )
-            SettingsTrackListsCard()
             SettingsLibraryRetentionCard(model: model)
-        case .sidebar:
+        case .interface:
+            appearanceCard
             SettingsHomeSectionsCard(
                 orderRawValue: $homeSectionOrderRawValue,
                 hiddenRawValue: $hiddenHomeSectionsRawValue
@@ -178,6 +178,7 @@ struct ProductionSettingsView: View {
                 orderRawValue: $navigationOrderRawValue,
                 hiddenRawValue: $hiddenNavigationRawValue
             )
+            SettingsTrackListsCard()
         case .shortcuts:
             ShortcutsSettingsView()
         case .updates:
@@ -192,8 +193,25 @@ struct ProductionSettingsView: View {
                     )
                 )
             }
+        case .advanced:
+            SettingsDataCard {
+                model.refreshPlaybackPreferences()
+            }
         case .about:
             SettingsAboutSection()
+        }
+    }
+
+    private var startupCard: some View {
+        SettingsCard(
+            title: "Startup",
+            symbol: "power"
+        ) {
+            Picker("Open Cadence to", selection: startupPageBinding) {
+                ForEach(StartupPage.allCases) { page in
+                    Text(page.title).tag(page)
+                }
+            }
         }
     }
 
@@ -209,29 +227,20 @@ struct ProductionSettingsView: View {
             }
             .pickerStyle(.segmented)
 
-            Picker("Card Size", selection: catalogCardSizeBinding) {
+            Picker("Album and artist size", selection: catalogCardSizeBinding) {
                 ForEach(CatalogCardSize.allCases) { size in
                     Text(size.title).tag(size)
                 }
             }
 
-            Picker("Text Size", selection: interfaceTextSizeBinding) {
+            Picker("Text size", selection: interfaceTextSizeBinding) {
                 ForEach(InterfaceTextSize.allCases) { size in
                     Text(size.title).tag(size)
                 }
             }
 
-            Picker("Page at Launch", selection: startupPageBinding) {
-                ForEach(StartupPage.allCases) { page in
-                    Text(page.title).tag(page)
-                }
-            }
-
             Text(
-                """
-                Card size applies to albums, artists, playlists, smart collections, and Home. \
-                Text size applies throughout the app. Track-list layout has its own Library settings.
-                """
+                "Album and artist size also applies to playlists, smart collections, and Home."
             )
             .font(.caption)
             .foregroundStyle(.secondary)
@@ -240,21 +249,20 @@ struct ProductionSettingsView: View {
 
     private var defaultAudioApplicationCard: some View {
         SettingsCard(
-            title: "Audio Files",
+            title: "Audio files",
             symbol: "play.rectangle"
         ) {
             HStack(spacing: CadenceLayout.controlGap) {
                 VStack(alignment: .leading, spacing: CadenceLayout.textStack) {
                     Text(
                         defaultAudioApplication.isDefaultForAllSupportedAudio
-                            ? "Cadence is the default audio player"
-                            : "Open supported audio files with Cadence"
+                            ? "Cadence opens supported audio files by default"
+                            : "Default app for audio files"
                     )
                     .font(.callout.weight(.medium))
 
                     Text(
-                        "Opening a file plays it temporarily. Cadence adds it "
-                            + "to the library only when you choose Add to Library."
+                        "Files opened from Finder play without being added to your library."
                     )
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -265,7 +273,7 @@ struct ProductionSettingsView: View {
                 Button(
                     defaultAudioApplication.isDefaultForAllSupportedAudio
                         ? "Default"
-                        : "Use Cadence as Default"
+                        : "Set as Default"
                 ) {
                     Task {
                         await defaultAudioApplication.setCadenceAsDefault()
@@ -279,7 +287,7 @@ struct ProductionSettingsView: View {
             }
 
             if defaultAudioApplication.isChanging {
-                ProgressView("Updating file associations…")
+                ProgressView("Updating default app…")
                     .controlSize(.small)
             }
 

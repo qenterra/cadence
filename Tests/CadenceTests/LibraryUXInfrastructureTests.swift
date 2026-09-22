@@ -445,7 +445,11 @@ extension LibraryUXInfrastructureTests {
             "MIT License",
             "Third-Party Notices",
         ])
-        #expect(configuration.tagline == "Native music, kept focused.")
+        #expect(configuration.tagline == "Your music, on your Mac.")
+        #expect(
+            configuration.description
+                == "Play and organize a local music library without an account."
+        )
     }
 
     @Test("Action semantics map confirmation to blue and deletion to red")
