@@ -16,7 +16,7 @@ struct ImportMusicScanningState: View {
             OperationStateView(
                 state: .preparing(
                     title: title,
-                    message: "Reading metadata, checking duplicates, and matching LRC files…"
+                    message: "Reading tags, checking duplicates, and looking for LRC files…"
                 ),
                 symbolName: progress.totalCount == 0 && sampleCandidates == nil
                     ? nil

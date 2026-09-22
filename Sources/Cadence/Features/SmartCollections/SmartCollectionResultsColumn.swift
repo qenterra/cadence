@@ -36,7 +36,7 @@ struct SmartCollectionResultsColumn: View {
             }
 
             if model.smartCollectionDraft?.rule.children.isEmpty == true {
-                Text("All tracks · Add a rule to narrow the collection")
+                Text("All tracks · Add rules to narrow the results")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             } else if !model.smartCollectionValidation.isValid {

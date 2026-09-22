@@ -23,7 +23,7 @@ struct LyricsEditorView: View {
                 } description: {
                     Text(
                         model.lyricPersistenceError
-                            ?? "The managed lyric document is unavailable."
+                            ?? "These lyrics couldn’t be opened."
                     )
                 } actions: {
                     Button("Retry") {

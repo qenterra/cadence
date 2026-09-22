@@ -50,7 +50,7 @@ struct SmartCollectionListColumn: View {
         ContentUnavailableView {
             Label("No Smart Collections", systemImage: "sparkles.rectangle.stack")
         } description: {
-            Text("Build a live track view from tags and metadata.")
+            Text("Collections update when tracks match their rules.")
         } actions: {
             Button("New Collection") {
                 model.requestNewSmartCollection()

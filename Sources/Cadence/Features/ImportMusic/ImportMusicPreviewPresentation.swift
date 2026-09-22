@@ -4,13 +4,13 @@ struct ImportMusicPreviewHeaderControls: View {
     @Bindable var model: CadenceAppModel
 
     var body: some View {
-        Label("Design Preview · No files are copied", systemImage: "eye")
+        Label("Preview · Files aren’t copied", systemImage: "eye")
             .font(.caption.weight(.medium))
             .foregroundStyle(.secondary)
             .padding(.horizontal, 10)
             .padding(.vertical, 6)
             .background(CadenceTheme.subduedFill, in: Capsule())
-            .accessibilityLabel("Design preview. No files are copied.")
+            .accessibilityLabel("Preview. Files aren’t copied.")
 
         Menu {
             ForEach(ImportPreviewStage.allCases) { stage in
@@ -23,7 +23,7 @@ struct ImportMusicPreviewHeaderControls: View {
         }
         .menuStyle(.borderlessButton)
         .fixedSize()
-        .help("Inspect each mock import state")
+        .help("Choose a preview state")
     }
 }
 
@@ -35,17 +35,14 @@ struct ImportMusicPreviewStageContent: View {
             switch model.importPreviewStage {
             case .empty:
                 ImportMusicEmptyState(
-                    supportingText: """
-                    A future import will copy supported audio only after \
-                    you review the selection.
-                    """,
-                    footnote: "This build only previews the workflow.",
+                    supportingText: "Review supported audio before choosing what to import.",
+                    footnote: "Preview data only.",
                     startScanning: model.chooseImportFolder
                 )
             case .scanning:
                 ImportMusicScanningState(
                     sampleCandidates: model.importCandidates,
-                    title: "Scanning Demo Library",
+                    title: "Scanning Sample Library",
                     progress: model.importScanProgress,
                     displayedProgress: 0.62,
                     progressLabel: "62 of 100",
@@ -58,8 +55,8 @@ struct ImportMusicPreviewStageContent: View {
             case .complete:
                 ImportMusicCompleteState(
                     summary: model.importPreviewSummary,
-                    title: "Preview Import Complete",
-                    message: "No files were copied in this design build.",
+                    title: "Preview Complete",
+                    message: "No files were copied.",
                     sizeSummary: "\(model.importPreviewSummary.importedSizeText) selected",
                     importMore: model.importMorePreviewMusic,
                     viewImportedTracks: model.viewImportedPreviewTracks
@@ -75,8 +72,8 @@ struct ImportMusicPreviewStageContent: View {
         ImportMusicReview(
             model: model,
             isImporting: isImporting,
-            importingStatusLabel: "Preview import in progress",
-            importProgressText: "Simulating the managed-library copy…",
+            importingStatusLabel: "Previewing import",
+            importProgressText: "Previewing the library copy…",
             canCancelImport: true,
             cancelImport: model.importMorePreviewMusic
         )

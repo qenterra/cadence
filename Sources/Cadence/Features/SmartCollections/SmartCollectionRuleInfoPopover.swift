@@ -17,7 +17,7 @@ struct SmartCollectionRuleInfoPopover: View {
                 Text("Collection Rules")
                     .font(.headline)
 
-                Text("Read-only summary")
+                Text("Current rules")
                     .font(.caption)
                     .foregroundStyle(.tertiary)
             }

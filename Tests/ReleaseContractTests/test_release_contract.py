@@ -329,7 +329,7 @@ class ReleaseScriptContractTests(unittest.TestCase):
 
         self.assertIn('CadenceVisualRegression/update', script)
         self.assertIn('candidate_dir="${TMPDIR:?}', script)
-        self.assertIn('expected_candidate_count="88"', script)
+        self.assertIn('expected_candidate_count="91"', script)
         self.assertNotIn('qa-settings-remote', script)
         self.assertIn('-only-testing:CadenceTests/AllTracksVisualAcceptanceTests', script)
         self.assertIn('candidate_count', script)

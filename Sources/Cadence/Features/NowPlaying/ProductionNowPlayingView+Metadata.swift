@@ -106,7 +106,7 @@ extension ProductionNowPlayingView {
         VStack(alignment: .leading, spacing: 5) {
             Label("Playing external file", systemImage: "play.rectangle")
                 .font(.caption.weight(.semibold))
-            Text("This track is not in your library. Add it only if you want to keep it there.")
+            Text("This file is playing without being added to your library.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }

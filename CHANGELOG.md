@@ -5,6 +5,19 @@ uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.0.2] - 2026-09-22
+
+### Changed
+
+- Reorganized Settings into clearer General, Playback, Library, Interface,
+  Shortcuts, Updates, Advanced, and About sections.
+- Revised labels, empty states, import guidance, alerts, and supporting text
+  throughout the app for clearer, more direct language.
+
+### Fixed
+
+- Centered the controls vertically in the bottom player.
+
 ## [1.0.1] - 2026-09-20
 
 ### Fixed
@@ -46,6 +59,7 @@ instructions.
 - Cadence Mode with an artwork-colored animated background and keyboard effects.
 - System, light, and dark appearance, plus playback, library, notification,
   and interface settings.
-[Unreleased]: https://github.com/QenTerra/cadence/compare/v1.0.1...main
+[Unreleased]: https://github.com/QenTerra/cadence/compare/v1.0.2...main
+[1.0.2]: https://github.com/QenTerra/cadence/releases/tag/v1.0.2
 [1.0.1]: https://github.com/QenTerra/cadence/releases/tag/v1.0.1
 [1.0.0]: https://github.com/QenTerra/cadence/releases/tag/v1.0.0

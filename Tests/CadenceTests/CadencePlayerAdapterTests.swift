@@ -82,9 +82,9 @@ struct CadencePlayerAdapterTests {
             from: .empty(libraryTrackCount: 3)
         )
 
-        #expect(emptyLibrary.presentation.emptyTitle == "Open an audio file to listen")
+        #expect(emptyLibrary.presentation.emptyTitle == "Open a music file")
         #expect(emptyLibrary.presentation.emptySymbolName == "waveform")
-        #expect(populatedLibrary.presentation.emptyTitle == "Select a Track")
+        #expect(populatedLibrary.presentation.emptyTitle == "Choose a song to play")
         #expect(populatedLibrary.presentation.emptySymbolName == "music.note")
     }
 

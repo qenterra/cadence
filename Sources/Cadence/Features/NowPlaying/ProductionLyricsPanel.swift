@@ -50,7 +50,7 @@ struct ProductionLyricsPanel: View {
                     ContentUnavailableView {
                         Label("External File", systemImage: "play.rectangle")
                     } description: {
-                        Text("Lyrics editing is available after you add the track to your library.")
+                        Text("Add this track to your library before editing its lyrics.")
                     } actions: {
                         Button("Add to Library…") {
                             model.addCurrentExternalAudioToLibrary()
@@ -89,7 +89,7 @@ struct ProductionLyricsPanel: View {
                     ContentUnavailableView {
                         Label("No Lyrics", systemImage: "quote.bubble")
                     } description: {
-                        Text("No managed line-level LRC file is available.")
+                        Text("This track has no saved lyrics.")
                     } actions: {
                         Button("Add Lyrics") {
                             model.presentLyricsEditor()

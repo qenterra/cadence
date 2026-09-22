@@ -118,7 +118,7 @@ enum ShortcutCatalog {
 struct ShortcutsSettingsView: View {
     var body: some View {
         SettingsCard(
-            title: "Keyboard Reference",
+            title: "Keyboard shortcuts",
             symbol: "keyboard"
         ) {
             VStack(spacing: 0) {
@@ -138,7 +138,7 @@ struct ShortcutsSettingsView: View {
             .accessibilityElement(children: .contain)
 
             Text(
-                "Text fields, menus, sheets, and editors keep their local keyboard behavior."
+                "These shortcuts pause while you type or use a menu, sheet, or editor."
             )
             .font(.caption)
             .foregroundStyle(.secondary)

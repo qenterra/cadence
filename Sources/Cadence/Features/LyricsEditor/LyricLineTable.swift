@@ -385,7 +385,7 @@ private struct LyricsExportPreview: View {
             }
 
             Text(
-                "Preview only. Real file writing arrives with local-library integration."
+                "Review the generated LRC text before copying or saving it."
             )
             .font(.caption)
             .foregroundStyle(.secondary)

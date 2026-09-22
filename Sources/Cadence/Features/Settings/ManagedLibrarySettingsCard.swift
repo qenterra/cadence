@@ -21,7 +21,7 @@ struct ManagedLibrarySettingsCard: View {
 
     var body: some View {
         SettingsCard(
-            title: "Managed Library",
+            title: "Storage",
             symbol: "externaldrive"
         ) {
             libraryDetails
@@ -35,7 +35,7 @@ struct ManagedLibrarySettingsCard: View {
             )
         }
         .confirmationDialog(
-            "Delete Entire Library?",
+            "Delete your library?",
             isPresented: $isDeleteConfirmationPresented
         ) {
             Button("Delete Library", role: .destructive) {
@@ -45,12 +45,11 @@ struct ManagedLibrarySettingsCard: View {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text(
-                "Cadence will stop playback, replace the current library with an empty one, "
-                    + "and move the original Cadence folder to Trash."
+                "Playback will stop and the Cadence folder will move to Trash. You can recover it there."
             )
         }
         .alert(
-            "Library Reset",
+            "Library deleted",
             isPresented: Binding(
                 get: { model.libraryResetNotice != nil },
                 set: {
@@ -60,13 +59,13 @@ struct ManagedLibrarySettingsCard: View {
                 }
             )
         ) {
-            Button("Dismiss", role: .cancel) {
+            Button("Done", role: .cancel) {
                 model.dismissLibraryResetNotice()
             }
         } message: {
             Text(
                 model.libraryResetNotice
-                    ?? "Cadence finished the library reset operation."
+                    ?? "Your previous library is in Trash."
             )
         }
     }
@@ -78,13 +77,13 @@ struct ManagedLibrarySettingsCard: View {
                 .foregroundStyle(.secondary)
                 .textSelection(.enabled)
         }
-        LabeledContent("Available Tracks") {
+        LabeledContent("Tracks") {
             Text(store.catalogCounts.liveTrackCount.formatted())
         }
-        LabeledContent("Tracks in Trash") {
+        LabeledContent("In Trash") {
             Text(store.catalogCounts.trashedTrackCount.formatted())
         }
-        LabeledContent("Library Size") {
+        LabeledContent("Size on Disk") {
             Text(libraryStorageSize)
                 .monospacedDigit()
         }
@@ -95,7 +94,7 @@ struct ManagedLibrarySettingsCard: View {
             Button("Import Music…", systemImage: "folder.badge.plus") {
                 navigate(to: .importMusic)
             }
-            Button("Open Trash", systemImage: "trash") {
+            Button("View Trash", systemImage: "trash") {
                 navigate(to: .trash)
             }
             Button("Move Library…", systemImage: "externaldrive.badge.plus") {
@@ -115,7 +114,7 @@ struct ManagedLibrarySettingsCard: View {
     private var deletionAction: some View {
         VStack(alignment: .leading, spacing: 6) {
             Button(
-                "Delete Entire Library…",
+                "Delete Library…",
                 systemImage: "trash.slash",
                 role: .destructive
             ) {
@@ -128,7 +127,7 @@ struct ManagedLibrarySettingsCard: View {
                     || model.isResettingLibrary
             )
 
-            Text("The original folder is moved to the system Trash and can be recovered there.")
+            Text("Moves the Cadence folder to Trash without touching the files you originally imported.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }

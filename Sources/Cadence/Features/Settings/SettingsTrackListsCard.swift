@@ -7,29 +7,29 @@ struct SettingsTrackListsCard: View {
     private var showsTrackArtwork = true
 
     var body: some View {
-        SettingsCard(title: "Track Lists", symbol: "list.bullet.rectangle") {
-            Picker("Row Density", selection: densityBinding) {
+        SettingsCard(title: "Track lists", symbol: "list.bullet.rectangle") {
+            Picker("Row spacing", selection: densityBinding) {
                 ForEach(TrackTableDensity.allCases) { density in
                     Text(density.title).tag(density)
                 }
             }
 
             SettingsToggleRow(
-                "Show Artwork",
+                "Show artwork",
                 isOn: $showsTrackArtwork
             )
 
             HStack {
                 VStack(alignment: .leading, spacing: CadenceLayout.textStack) {
-                    Text("Table Layout")
-                    Text("Restores the default columns, sorting, density, and artwork layout in every track list.")
+                    Text("Default layout")
+                    Text("Restore columns, sorting, row spacing, and artwork in every track list.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
 
                 Spacer(minLength: CadenceLayout.contentGap)
 
-                Button("Reset Track Lists") {
+                Button("Restore Defaults") {
                     TrackTablePreferences.reset()
                     densityRawValue = TrackTableDensity.standard.rawValue
                     showsTrackArtwork = true

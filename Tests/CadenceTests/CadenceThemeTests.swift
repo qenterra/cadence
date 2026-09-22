@@ -43,9 +43,9 @@ struct CadenceThemeTests {
         let empty = PlayerBarEmptyPresentation(libraryTrackCount: 0)
         let populated = PlayerBarEmptyPresentation(libraryTrackCount: 12)
 
-        #expect(empty.title == "Open an audio file to listen")
+        #expect(empty.title == "Open a music file")
         #expect(empty.symbolName == "waveform")
-        #expect(populated.title == "Select a Track")
+        #expect(populated.title == "Choose a song to play")
         #expect(populated.symbolName == "music.note")
     }
 }

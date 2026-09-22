@@ -9,19 +9,19 @@ struct SettingsDataCard: View {
     @State private var notice: SettingsDataNotice?
 
     var body: some View {
-        SettingsCard(title: "Settings Data", symbol: "slider.horizontal.3") {
+        SettingsCard(title: "Settings backup", symbol: "externaldrive.badge.timemachine") {
             HStack {
-                Button("Export Settings…", systemImage: "square.and.arrow.up") {
+                Button("Export…", systemImage: "square.and.arrow.up") {
                     exportSettings()
                 }
-                Button("Import Settings…", systemImage: "square.and.arrow.down") {
+                Button("Import…", systemImage: "square.and.arrow.down") {
                     importSettings()
                 }
 
                 Spacer(minLength: CadenceLayout.contentGap)
 
                 Button(
-                    "Reset All Settings…",
+                    "Reset Settings…",
                     systemImage: "arrow.counterclockwise",
                     role: .destructive
                 ) {
@@ -31,28 +31,22 @@ struct SettingsDataCard: View {
             }
 
             Text(
-                """
-                Export includes interface and playback customization, but never the \
-                library, remote credentials, cache, or saved queue.
-                """
+                "Exports app preferences only. Your music, artwork, lyrics, Trash, and queue stay in Cadence."
             )
             .font(.caption)
             .foregroundStyle(.secondary)
         }
         .confirmationDialog(
-            "Reset All Settings?",
+            "Reset settings?",
             isPresented: $isResetConfirmationPresented
         ) {
             Button("Reset Settings", role: .destructive) {
                 CadenceSettingsProfileService().resetCustomization()
                 preferencesDidChange()
                 notice = SettingsDataNotice(
-                    title: String(localized: "Settings Reset"),
+                    title: String(localized: "Settings reset"),
                     message: String(
-                        localized: """
-                        Cadence restored its default settings. Your library, remote \
-                        connection, cache, and saved queue were not changed.
-                        """
+                        localized: "Default settings restored. Your library and queue were not changed."
                     )
                 )
             }
@@ -60,7 +54,7 @@ struct SettingsDataCard: View {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text(
-                "This resets customization only. Your music library and its files remain untouched."
+                "Your library, artwork, lyrics, Trash, and queue will not change."
             )
         }
         .alert(
@@ -74,7 +68,7 @@ struct SettingsDataCard: View {
                 }
             )
         ) {
-            Button("OK", role: .cancel) { notice = nil }
+            Button("Done", role: .cancel) { notice = nil }
         } message: {
             Text(notice?.message ?? "")
         }
@@ -92,7 +86,7 @@ struct SettingsDataCard: View {
             let data = try CadenceSettingsProfileService().exportData()
             try data.write(to: url, options: .atomic)
             notice = SettingsDataNotice(
-                title: String(localized: "Settings Exported"),
+                title: String(localized: "Settings exported"),
                 message: url.path
             )
         } catch {
@@ -113,8 +107,8 @@ struct SettingsDataCard: View {
             try CadenceSettingsProfileService().importData(data)
             preferencesDidChange()
             notice = SettingsDataNotice(
-                title: String(localized: "Settings Imported"),
-                message: String(localized: "Cadence applied the imported customization.")
+                title: String(localized: "Settings imported"),
+                message: String(localized: "Imported settings are now in use.")
             )
         } catch {
             showFailure(error)
@@ -123,7 +117,7 @@ struct SettingsDataCard: View {
 
     private func showFailure(_ error: Error) {
         notice = SettingsDataNotice(
-            title: String(localized: "Settings Couldn’t Be Changed"),
+            title: String(localized: "Couldn’t update settings"),
             message: error.localizedDescription
         )
     }

@@ -15,8 +15,8 @@ struct AllTracksView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if store.catalogCounts.liveTrackCount == 0 {
                 EmptyLibraryView(
-                    title: "No Tracks Yet",
-                    description: "Import music to build your library."
+                    title: "No Tracks",
+                    description: "Import music to start listening."
                 ) {
                     model.requestNavigationDestination(.importMusic)
                 }

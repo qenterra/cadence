@@ -65,8 +65,8 @@ struct ProductionAlbumsView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
             EmptyLibraryView(
-                title: "No Albums Yet",
-                description: "Albums will appear here after you import music."
+                title: "No Albums",
+                description: "Import music to see albums here."
             ) {
                 model.requestNavigationDestination(.importMusic)
             }

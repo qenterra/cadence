@@ -10,14 +10,14 @@ struct LibraryUnavailableView: View {
     var body: some View {
         ContentStateView(
             state: .unavailable(
-                title: "Cadence Library Unavailable",
+                title: "Library Unavailable",
                 message: summary
             ),
             symbolName: "exclamationmark.triangle",
             actions: actions,
             presentation: .nativeUnavailable
         ) {
-            DisclosureGroup("Technical Details") {
+            DisclosureGroup("Details") {
                 Text(failure.message)
                     .font(.caption)
                     .textSelection(.enabled)
@@ -31,9 +31,9 @@ struct LibraryUnavailableView: View {
     private var summary: String {
         switch failure.kind {
         case .locationUnavailable:
-            String(localized: "Cadence could not access the saved library location.")
+            String(localized: "Cadence can’t access the saved library location.")
         case .configurationUnavailable:
-            String(localized: "Cadence could not read the saved library location settings.")
+            String(localized: "Cadence can’t read the saved library location.")
         case .staleBookmark:
             String(localized: "Cadence needs permission to access the library again.")
         case .identityMismatch:
@@ -45,9 +45,9 @@ struct LibraryUnavailableView: View {
         case .unreadableIdentity:
             String(localized: "The Cadence folder has an unreadable identity record.")
         case .openFailed:
-            String(localized: "Cadence could not open the managed library.")
+            String(localized: "Cadence can’t open the library.")
         case .recoveryFailed:
-            String(localized: "Cadence could not finish recovering the managed library.")
+            String(localized: "Cadence couldn’t finish repairing the library.")
         }
     }
 

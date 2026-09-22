@@ -50,7 +50,7 @@ struct ImportMusicView: View {
             return .handled
         }
         .alert(
-            "Couldn’t Scan Music",
+            "Couldn’t scan music",
             isPresented: Binding(
                 get: { model.importScanError != nil },
                 set: { isPresented in
@@ -60,7 +60,7 @@ struct ImportMusicView: View {
                 }
             )
         ) {
-            Button("OK", role: .cancel) {
+            Button("Done", role: .cancel) {
                 model.clearImportScanError()
             }
         } message: {
@@ -74,7 +74,7 @@ struct ImportMusicView: View {
             )
         }
         .alert(
-            "Couldn’t Import Music",
+            "Couldn’t import music",
             isPresented: Binding(
                 get: { model.importOperationError != nil },
                 set: { isPresented in
@@ -84,7 +84,7 @@ struct ImportMusicView: View {
                 }
             )
         ) {
-            Button("OK", role: .cancel) {
+            Button("Done", role: .cancel) {
                 model.clearImportOperationError()
             }
         } message: {
@@ -148,7 +148,7 @@ struct ImportMusicView: View {
         switch model.importPreviewStage {
         case .empty:
             ImportMusicEmptyState(
-                supportingText: "Cadence copies included audio only after you review the selection.",
+                supportingText: "Review each file before adding it to your library.",
                 footnote: nil,
                 startScanning: model.chooseImportFolder
             )
@@ -169,7 +169,7 @@ struct ImportMusicView: View {
             ImportMusicCompleteState(
                 summary: model.importPreviewSummary,
                 title: "Import Complete",
-                message: "Your music is ready in Cadence.",
+                message: "Added music is ready to play.",
                 sizeSummary: "\(model.importPreviewSummary.importedSizeText) added",
                 importMore: model.importMorePreviewMusic,
                 viewImportedTracks: model.viewImportedPreviewTracks
@@ -218,13 +218,13 @@ struct ImportMusicView: View {
         case .empty:
             String(localized: "Add a folder or drop music into Cadence")
         case .scanning:
-            String(localized: "Reading metadata without changing the source")
+            String(localized: "Checking files without changing them")
         case .review:
-            String(localized: "Choose exactly what to import")
+            String(localized: "Choose what to add to your library")
         case .importing:
             String(localized: "Copying your approved selection")
         case .complete:
-            String(localized: "The import report is ready")
+            String(localized: "Review what was added")
         }
     }
 }

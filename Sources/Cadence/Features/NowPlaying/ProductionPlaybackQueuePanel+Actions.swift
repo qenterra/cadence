@@ -187,9 +187,9 @@ extension ProductionPlaybackQueuePanel {
     ) -> String {
         switch kind {
         case .current:
-            "No current track."
+            "Nothing is playing."
         case .upNext:
-            "The current track will finish without another item."
+            "Nothing is queued after this track."
         }
     }
 
@@ -198,21 +198,21 @@ extension ProductionPlaybackQueuePanel {
     ) -> String {
         switch source {
         case .album:
-            "Album snapshot"
+            "Album"
         case .artist:
-            "Artist snapshot"
+            "Artist"
         case .smartCollection:
-            "Smart Collection snapshot"
+            "Smart Collection"
         case .playlist:
-            "Playlist snapshot"
+            "Playlist"
         case .favorites:
-            "Favorites snapshot"
+            "Favorites"
         case .allTracks:
-            "Library snapshot"
+            "Library"
         case .externalFiles:
-            "External files"
+            "Files"
         case .adHoc:
-            "Manual queue"
+            "Queue"
         }
     }
 }

@@ -69,7 +69,7 @@ struct TapToSyncPanel: View {
                 model.stampActiveLyricLine(undoManager: undoManager)
                 ownsKeyboard = true
             } label: {
-                Label("Stamp Current Line", systemImage: "return")
+                Label("Sync Current Line", systemImage: "return")
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
@@ -103,8 +103,8 @@ struct TapToSyncPanel: View {
 
             Text(
                 ownsKeyboard
-                    ? "Keyboard capture active"
-                    : "Click this panel to enable sync shortcuts"
+                    ? "Shortcuts active"
+                    : "Click here to use sync shortcuts"
             )
             .font(.caption2)
             .foregroundStyle(.tertiary)

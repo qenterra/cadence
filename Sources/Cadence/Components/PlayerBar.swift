@@ -115,6 +115,16 @@ private extension PlayerBar {
                 audioOutputMenu
             }
         )
+        // The pinned shared player places its content 4 pt above the bar's midpoint.
+        .offset(y: PlayerBarLayoutMetrics.sharedContentOffset)
+        .background(playerChromeBackground)
+        .clipped()
+    }
+
+    var playerChromeBackground: some ShapeStyle {
+        reduceTransparency || usesStableSystemControls
+            ? AnyShapeStyle(Color(designToken: DesignTokens.Color.surfaceRaised))
+            : AnyShapeStyle(.bar)
     }
 
     var playerActions: PlayerBarActions {

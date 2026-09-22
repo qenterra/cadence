@@ -355,7 +355,8 @@
             "value" : "В будущей версии поддерживаемые аудиофайлы будут копироваться только после вашей проверки."
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "A managed library replacement is already in progress." : {
       "localizations" : {
@@ -375,7 +376,8 @@
             "value" : "Восстановленная очередь открывается на паузе. Кроссфейд применяется только при обычном переходе к следующему треку. ReplayGain трека используется только при наличии этих данных в файле."
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "A restored queue opens paused. Track ReplayGain is used only when the file provides it." : {
       "extractionState" : "stale",
@@ -788,7 +790,8 @@
             "value" : "Все треки · Добавьте правило, чтобы уточнить коллекцию"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Already Added" : {
       "localizations" : {
@@ -991,7 +994,8 @@
             "value" : "Доступные треки"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Back" : {
       "localizations" : {
@@ -1071,7 +1075,8 @@
             "value" : "Просмотреть все треки"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Browse artists, albums, and tracks" : {
       "localizations" : {
@@ -1091,7 +1096,8 @@
             "value" : "Создайте динамическую подборку из тегов и метаданных."
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Cadence" : {
       "localizations" : {
@@ -1111,7 +1117,8 @@
             "value" : "Cadence применила импортированные настройки."
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Cadence asks for permission only when you enable an alert. Delivery follows macOS notification and Focus settings." : {
       "localizations" : {
@@ -1121,7 +1128,8 @@
             "value" : "Cadence запрашивает разрешение только при включении уведомления. Доставка зависит от настроек уведомлений и режима «Фокусирование» в macOS."
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Cadence copies included audio only after you review the selection." : {
       "localizations" : {
@@ -1131,7 +1139,8 @@
             "value" : "Cadence копирует выбранные аудиофайлы только после вашей проверки."
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Cadence could not access the saved library location." : {
       "localizations" : {
@@ -1141,7 +1150,8 @@
             "value" : "Cadence не удалось получить доступ к сохранённому расположению медиатеки."
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Cadence could not complete the library operation." : {
       "localizations" : {
@@ -1161,7 +1171,8 @@
             "value" : "Cadence не удалось завершить восстановление медиатеки."
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Cadence could not move the library." : {
       "localizations" : {
@@ -1181,7 +1192,8 @@
             "value" : "Cadence не удалось открыть медиатеку."
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Cadence could not open the selected audio file." : {
       "localizations" : {
@@ -1201,7 +1213,8 @@
             "value" : "Cadence не удалось прочитать настройки расположения медиатеки."
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Cadence could not save these lyrics." : {
       "localizations" : {
@@ -1221,7 +1234,8 @@
             "value" : "Папка Cadence уже существует"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Cadence is playing audio" : {
       "localizations" : {
@@ -1241,7 +1255,8 @@
             "value" : "Cadence — аудиоплеер по умолчанию"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Cadence kept the last confirmed library state." : {
       "localizations" : {
@@ -1292,7 +1307,8 @@
             "value" : "Режим Cadence остаётся открытым, пока вы не выйдете из него."
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Cadence needs permission to access the library again." : {
       "localizations" : {
@@ -1322,7 +1338,8 @@
             "value" : "Cadence восстановила настройки по умолчанию. Медиатека, удалённое подключение, кэш и сохранённая очередь не изменены."
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Cadence Update Available" : {
       "localizations" : {
@@ -1342,7 +1359,8 @@
             "value" : "Cadence будет устанавливать только стабильные версии."
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Cadence will never merge with or overwrite an existing library folder." : {
       "localizations" : {
@@ -1352,7 +1370,8 @@
             "value" : "Cadence никогда не объединит и не перезапишет существующую папку медиатеки."
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Cadence will offer stable and beta releases. Beta builds may be less reliable." : {
       "localizations" : {
@@ -1362,7 +1381,8 @@
             "value" : "Cadence будет предлагать стабильные и бета-версии. Бета-сборки могут быть менее надёжными."
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Cadence will scan a preview before anything is imported." : {
       "extractionState" : "stale",
@@ -1393,7 +1413,8 @@
             "value" : "Размер карточек"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Card size applies to albums, artists, playlists, smart collections, and Home. Text size applies throughout the app. Track-list layout has its own Library settings." : {
       "localizations" : {
@@ -1403,7 +1424,8 @@
             "value" : "Размер карточек применяется к альбомам, артистам, плейлистам, смарт-коллекциям и странице «Главная». Размер текста применяется во всём приложении. Вид списков треков настраивается отдельно в разделе «Медиатека»."
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Channels" : {
       "localizations" : {
@@ -1473,7 +1495,8 @@
             "value" : "Выберите коллекцию или создайте новую в боковой панели."
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Choose a different image." : {
       "localizations" : {
@@ -1583,7 +1606,8 @@
             "value" : "Выберите, что именно импортировать"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Choose Folder" : {
       "localizations" : {
@@ -1673,7 +1697,8 @@
             "value" : "Нажмите на панель, чтобы включить клавиши синхронизации"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Close Tag Editor" : {
       "localizations" : {
@@ -1903,7 +1928,8 @@
             "value" : "Не удалось импортировать музыку"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Couldn’t Load Album" : {
       "localizations" : {
@@ -2073,7 +2099,8 @@
             "value" : "Не удалось переместить медиатеку"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Couldn’t Open Artwork" : {
       "localizations" : {
@@ -2153,7 +2180,8 @@
             "value" : "Не удалось просканировать музыку"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Couldn’t Search Library" : {
       "localizations" : {
@@ -2322,7 +2350,8 @@
             "value" : "Удалить всю медиатеку?"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Delete Entire Library…" : {
       "localizations" : {
@@ -2332,7 +2361,8 @@
             "value" : "Удалить всю медиатеку…"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Delete Library" : {
       "localizations" : {
@@ -2412,7 +2442,8 @@
             "value" : "Удалить этот объект безвозвратно?"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Descending" : {
       "localizations" : {
@@ -2432,7 +2463,8 @@
             "value" : "Предпросмотр дизайна · Файлы не копируются"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Design preview. No files are copied." : {
       "localizations" : {
@@ -2442,7 +2474,8 @@
             "value" : "Предпросмотр дизайна. Файлы не копируются."
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Direction" : {
       "localizations" : {
@@ -2532,7 +2565,8 @@
             "value" : "Автоматически загружать и устанавливать обновления"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Draft" : {
       "localizations" : {
@@ -2552,10 +2586,10 @@
             "value" : "Перетащите, чтобы изменить положение в боковой панели."
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Drag to reorder" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ru" : {
           "stringUnit" : {
@@ -2573,7 +2607,8 @@
             "value" : "Перетащите, чтобы изменить порядок"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Drop files or a folder anywhere in the workspace." : {
       "extractionState" : "stale",
@@ -2605,7 +2640,8 @@
             "value" : "Перетащите музыку для проверки. Файлы не будут импортированы сразу."
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Drop to Review Music" : {
       "extractionState" : "stale",
@@ -2767,7 +2803,8 @@
             "value" : "Очищать корзину автоматически"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Empty Trash Permanently?" : {
       "localizations" : {
@@ -2777,7 +2814,8 @@
             "value" : "Очистить корзину безвозвратно?"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Empty Trash…" : {
       "localizations" : {
@@ -2857,7 +2895,8 @@
             "value" : "Точные дубликаты и недоступные файлы останутся исключёнными."
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Expand" : {
       "localizations" : {
@@ -2897,7 +2936,8 @@
             "value" : "Экспорт включает настройки интерфейса и воспроизведения, но не медиатеку, учётные данные удалённого подключения, кэш или сохранённую очередь."
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Export Preview" : {
       "localizations" : {
@@ -2917,7 +2957,8 @@
             "value" : "Экспортировать настройки…"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "External File" : {
       "localizations" : {
@@ -3233,7 +3274,8 @@
             "value" : "Импортировать настройки…"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Import Unavailable" : {
       "extractionState" : "stale",
@@ -3284,7 +3326,8 @@
             "value" : "Получать бета-обновления"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Include Subtags" : {
       "localizations" : {
@@ -3324,7 +3367,8 @@
             "value" : "Просмотреть каждое тестовое состояние импорта"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Invalid LRC" : {
       "localizations" : {
@@ -3364,7 +3408,8 @@
             "value" : "Здесь появляются объекты, удалённые из медиатеки."
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Keep Listening History" : {
       "localizations" : {
@@ -3374,7 +3419,8 @@
             "value" : "Хранить историю прослушивания"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Keyboard capture active" : {
       "localizations" : {
@@ -3384,7 +3430,8 @@
             "value" : "Перехват клавиатуры включён"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Large" : {
       "localizations" : {
@@ -3454,7 +3501,8 @@
             "value" : "Сброс медиатеки"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Library Size" : {
       "localizations" : {
@@ -3464,7 +3512,8 @@
             "value" : "Размер медиатеки"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Light" : {
       "localizations" : {
@@ -3781,7 +3830,8 @@
             "value" : "Редактирование текста станет доступно после добавления трека в медиатеку."
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Lyrics Editor" : {
       "localizations" : {
@@ -3837,7 +3887,8 @@
             "value" : "Размер текста песен"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Lyrics Unavailable" : {
       "localizations" : {
@@ -3867,7 +3918,8 @@
             "value" : "Аудиофайлы, обложки и тексты в корзине нельзя будет восстановить."
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Match" : {
       "localizations" : {
@@ -4049,7 +4101,8 @@
             "value" : "Навигация"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Never" : {
       "localizations" : {
@@ -4190,7 +4243,8 @@
             "value" : "Построчный LRC-файл в медиатеке отсутствует."
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "No Matching Tracks" : {
       "localizations" : {
@@ -4220,7 +4274,8 @@
             "value" : "Смарт-коллекция не выбрана"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "No Smart Collections" : {
       "localizations" : {
@@ -4311,7 +4366,8 @@
             "value" : "Сейчас ничто не соответствует %@."
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Nothing Playing" : {
       "localizations" : {
@@ -4351,7 +4407,8 @@
             "value" : "Уведомления для Cadence отключены в Системных настройках."
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Now Playing" : {
       "localizations" : {
@@ -4458,7 +4515,8 @@
             "value" : "Открывать поддерживаемые аудиофайлы в Cadence"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Open Trash" : {
       "localizations" : {
@@ -4468,7 +4526,8 @@
             "value" : "Открыть корзину"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Opening Cadence Library…" : {
       "localizations" : {
@@ -4559,7 +4618,8 @@
             "value" : "Страница при запуске"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Partially Synchronized" : {
       "localizations" : {
@@ -4838,7 +4898,8 @@
             "value" : "Не выключать дисплей во время воспроизведения"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Preview Import Complete" : {
       "extractionState" : "stale",
@@ -4859,7 +4920,8 @@
             "value" : "Идёт тестовый импорт"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Preview only. Real file writing arrives with local-library integration." : {
       "localizations" : {
@@ -4869,7 +4931,8 @@
             "value" : "Только предпросмотр. Запись файлов появится после интеграции с локальной медиатекой."
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Preview paused at the last valid rule" : {
       "localizations" : {
@@ -4899,7 +4962,8 @@
             "value" : "Кнопка «Назад»"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Previous Line" : {
       "localizations" : {
@@ -4959,7 +5023,8 @@
             "value" : "Реагировать на бас"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Read-only summary" : {
       "localizations" : {
@@ -4969,7 +5034,8 @@
             "value" : "Сводка только для чтения"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Reading metadata without changing the source" : {
       "localizations" : {
@@ -4979,7 +5045,8 @@
             "value" : "Чтение метаданных без изменения исходных файлов"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Reading metadata, checking duplicates, and matching LRC files…" : {
       "extractionState" : "stale",
@@ -5030,7 +5097,8 @@
             "value" : "«Недавно прослушанные» всегда остаются первыми"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Recently Played always stays first. Choose which other sections appear and drag them into order." : {
       "localizations" : {
@@ -5040,7 +5108,8 @@
             "value" : "«Недавно прослушанные» всегда остаются первыми. Выберите остальные разделы и перетащите их в нужном порядке."
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Recently played music, favorites, and shortcuts will appear here." : {
       "localizations" : {
@@ -5050,7 +5119,8 @@
             "value" : "Здесь появятся недавно прослушанная музыка, избранное и быстрые действия."
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Release Year" : {
       "localizations" : {
@@ -5345,7 +5415,8 @@
             "value" : "Сбросить все настройки?"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Reset All Settings…" : {
       "localizations" : {
@@ -5355,7 +5426,8 @@
             "value" : "Сбросить все настройки…"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Reset Home" : {
       "localizations" : {
@@ -5365,7 +5437,8 @@
             "value" : "Сбросить главную"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Reset restores the default order and makes every destination visible." : {
       "localizations" : {
@@ -5375,7 +5448,8 @@
             "value" : "Сброс восстанавливает стандартный порядок и показывает все разделы."
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Reset Settings" : {
       "localizations" : {
@@ -5395,7 +5469,8 @@
             "value" : "Сбросить боковую панель"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Reset Track Lists" : {
       "localizations" : {
@@ -5405,7 +5480,8 @@
             "value" : "Сбросить вид списков треков"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Resize Columns" : {
       "localizations" : {
@@ -5445,7 +5521,8 @@
             "value" : "Восстанавливать очередь"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Restores the default columns, sorting, density, and artwork layout in every track list." : {
       "localizations" : {
@@ -5455,7 +5532,8 @@
             "value" : "Восстанавливает стандартные колонки, сортировку, плотность и расположение обложек во всех списках треков."
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Resume After Output Reconnects" : {
       "localizations" : {
@@ -5465,7 +5543,8 @@
             "value" : "Продолжать после восстановления аудиовыхода"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Retry" : {
       "localizations" : {
@@ -5576,7 +5655,8 @@
             "value" : "Плотность строк"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Save" : {
       "localizations" : {
@@ -5596,7 +5676,8 @@
             "value" : "Сохранить изменения текста песни?"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Save Changes?" : {
       "localizations" : {
@@ -5727,7 +5808,8 @@
             "value" : "Шаг перемотки"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Select All" : {
       "localizations" : {
@@ -5807,7 +5889,8 @@
             "value" : "Не удалось изменить настройки"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Settings Exported" : {
       "localizations" : {
@@ -5817,7 +5900,8 @@
             "value" : "Настройки экспортированы"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Settings format version %lld is not supported." : {
       "localizations" : {
@@ -5837,7 +5921,8 @@
             "value" : "Настройки импортированы"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Settings Reset" : {
       "localizations" : {
@@ -5847,7 +5932,8 @@
             "value" : "Настройки сброшены"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Shortcuts" : {
       "localizations" : {
@@ -5867,7 +5953,8 @@
             "value" : "Короткий срок хранения очищает старые даты прослушивания, не удаляя треки. Автоматическая очистка корзины безвозвратно удаляет просроченные элементы из управляемой медиатеки."
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Show Artwork" : {
       "localizations" : {
@@ -5877,7 +5964,8 @@
             "value" : "Показывать обложки"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Show Artwork in Track Lists" : {
       "extractionState" : "stale",
@@ -5908,7 +5996,8 @@
             "value" : "Показывать баннеры при активном окне Cadence"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Show collection rules" : {
       "localizations" : {
@@ -5966,7 +6055,8 @@
             "value" : "Показывать синхронизированный текст"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Show Technical Audio Information" : {
       "localizations" : {
@@ -5976,7 +6066,8 @@
             "value" : "Показывать техническую информацию об аудио"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Show Track Information" : {
       "localizations" : {
@@ -5986,7 +6077,8 @@
             "value" : "Показывать информацию о треке"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Shows format, renderer, and output details" : {
       "localizations" : {
@@ -6036,7 +6128,8 @@
             "value" : "Имитация копирования в медиатеку…"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Size" : {
       "localizations" : {
@@ -6158,7 +6251,8 @@
             "value" : "Отметить текущую строку"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Standalone" : {
       "localizations" : {
@@ -6198,7 +6292,8 @@
             "value" : "Воспроизведите трек, чтобы открыть экран воспроизведения."
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Start Listening" : {
       "localizations" : {
@@ -6208,7 +6303,8 @@
             "value" : "Начать слушать"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Static Lyrics" : {
       "localizations" : {
@@ -6248,7 +6344,8 @@
             "value" : "Не выходить из режима Cadence"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Stereo" : {
       "localizations" : {
@@ -6329,7 +6426,8 @@
             "value" : "Вид таблиц"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Tag" : {
       "localizations" : {
@@ -6389,7 +6487,8 @@
             "value" : "Технические сведения"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Text fields, menus, sheets, and editors keep their local keyboard behavior." : {
       "localizations" : {
@@ -6399,7 +6498,8 @@
             "value" : "Текстовые поля, меню, окна и редакторы сохраняют собственное управление клавиатурой."
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Text Size" : {
       "localizations" : {
@@ -6409,7 +6509,8 @@
             "value" : "Размер текста"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "The Cadence folder has an unreadable identity record." : {
       "localizations" : {
@@ -6469,7 +6570,8 @@
             "value" : "Отчёт об импорте готов"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "The managed library is unavailable. Import music or reopen the library, then try again." : {
       "localizations" : {
@@ -6489,7 +6591,8 @@
             "value" : "Исходная папка перемещается в системную корзину, откуда её можно восстановить."
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "The original library remains in place." : {
       "localizations" : {
@@ -6569,7 +6672,8 @@
             "value" : "Сочетание Z + X, визуальные эффекты и прямой вход отключены."
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "This album has no available tracks." : {
       "localizations" : {
@@ -6599,7 +6703,8 @@
             "value" : "Эта сборка показывает только будущий процесс."
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "This item is no longer in the library." : {
       "localizations" : {
@@ -6629,7 +6734,8 @@
             "value" : "Будут сброшены только пользовательские настройки. Медиатека и музыкальные файлы останутся без изменений."
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "This Smart Collection has unsaved changes." : {
       "localizations" : {
@@ -6659,7 +6765,8 @@
             "value" : "Этого трека нет в медиатеке. Добавьте его, только если хотите сохранить."
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Time" : {
       "localizations" : {
@@ -6689,7 +6796,8 @@
             "value" : "Отображение времени"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Time exceeds the track duration." : {
       "localizations" : {
@@ -6820,7 +6928,8 @@
             "value" : "Треки в корзине"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Tracks remain in your Cadence library." : {
       "localizations" : {
@@ -7061,7 +7170,8 @@
             "value" : "Обновление ассоциаций файлов…"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Use a standalone tag or one level such as mood/calm." : {
       "localizations" : {
@@ -7081,7 +7191,8 @@
             "value" : "Использовать Cadence по умолчанию"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Value" : {
       "localizations" : {
@@ -7194,7 +7305,8 @@
             "value" : "Нормализация громкости"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Volume Step" : {
       "localizations" : {
@@ -7204,7 +7316,8 @@
             "value" : "Шаг изменения громкости"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Volume Up" : {
       "localizations" : {
@@ -7224,7 +7337,8 @@
             "value" : "При смене трека"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "When Updates Are Available" : {
       "localizations" : {
@@ -7234,7 +7348,8 @@
             "value" : "Когда доступны обновления"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Year" : {
       "localizations" : {
@@ -7293,6 +7408,1177 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Несохранённый текст строк и изменения тайминга будут потеряны."
+          }
+        }
+      },
+      "extractionState" : "stale"
+    },
+    "A Cadence library is already here" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Здесь уже есть медиатека Cadence"
+          }
+        }
+      }
+    },
+    "Add this track to your library before editing its lyrics." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Добавьте трек в медиатеку, прежде чем редактировать его текст."
+          }
+        }
+      }
+    },
+    "Advanced" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Дополнительно"
+          }
+        }
+      }
+    },
+    "Album and artist size" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Размер альбомов и исполнителей"
+          }
+        }
+      }
+    },
+    "Album and artist size also applies to playlists, smart collections, and Home." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Этот размер также применяется к плейлистам, смарт-коллекциям и странице «Главная»."
+          }
+        }
+      }
+    },
+    "All tracks · Add rules to narrow the results" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Все треки · Добавьте правила, чтобы уточнить результаты"
+          }
+        }
+      }
+    },
+    "Allow Cadence notifications in System Settings to use these options." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Разрешите уведомления Cadence в Системных настройках, чтобы использовать эти параметры."
+          }
+        }
+      }
+    },
+    "Beta versions may contain unfinished changes." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Бета-версии могут содержать незавершённые изменения."
+          }
+        }
+      }
+    },
+    "Browse Tracks" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Просмотреть треки"
+          }
+        }
+      }
+    },
+    "Cadence Mode stays open until you close it." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Режим Cadence остаётся открытым, пока вы его не закроете."
+          }
+        }
+      }
+    },
+    "Cadence can’t access the saved library location." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cadence не удаётся получить доступ к сохранённому расположению медиатеки."
+          }
+        }
+      }
+    },
+    "Cadence can’t open the library." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cadence не удаётся открыть медиатеку."
+          }
+        }
+      }
+    },
+    "Cadence can’t read the saved library location." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cadence не удаётся прочитать сохранённое расположение медиатеки."
+          }
+        }
+      }
+    },
+    "Cadence couldn’t finish repairing the library." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cadence не удалось завершить восстановление медиатеки."
+          }
+        }
+      }
+    },
+    "Cadence opens supported audio files by default" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cadence открывает поддерживаемые аудиофайлы по умолчанию"
+          }
+        }
+      }
+    },
+    "Checking files without changing them" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Проверка файлов без внесения изменений"
+          }
+        }
+      }
+    },
+    "Choose a Smart Collection" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выберите смарт-коллекцию"
+          }
+        }
+      }
+    },
+    "Choose a preview state" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выберите состояние предпросмотра"
+          }
+        }
+      }
+    },
+    "Choose what appears in the sidebar and drag items into order." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выберите элементы боковой панели и перетащите их в нужном порядке."
+          }
+        }
+      }
+    },
+    "Choose what appears on Home and drag sections into order. Recently Played stays first." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выберите разделы страницы «Главная» и перетащите их в нужном порядке. «Недавно прослушанное» всегда остаётся первым."
+          }
+        }
+      }
+    },
+    "Choose what to add to your library" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выберите, что добавить в медиатеку"
+          }
+        }
+      }
+    },
+    "Click here to use sync shortcuts" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Нажмите здесь, чтобы использовать клавиши синхронизации"
+          }
+        }
+      }
+    },
+    "Collections update when tracks match their rules." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Коллекции обновляются, когда треки соответствуют их правилам."
+          }
+        }
+      }
+    },
+    "Couldn’t import music" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось импортировать музыку"
+          }
+        }
+      }
+    },
+    "Couldn’t move library" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось переместить медиатеку"
+          }
+        }
+      }
+    },
+    "Couldn’t scan music" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось проверить музыку"
+          }
+        }
+      }
+    },
+    "Couldn’t update settings" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось изменить настройки"
+          }
+        }
+      }
+    },
+    "Current rules" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Текущие правила"
+          }
+        }
+      }
+    },
+    "Default app for audio files" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Приложение по умолчанию для аудиофайлов"
+          }
+        }
+      }
+    },
+    "Default layout" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вид по умолчанию"
+          }
+        }
+      }
+    },
+    "Default settings restored. Your library and queue were not changed." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Настройки по умолчанию восстановлены. Медиатека и очередь не изменились."
+          }
+        }
+      }
+    },
+    "Delete Library…" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Удалить медиатеку…"
+          }
+        }
+      }
+    },
+    "Delete This Item?" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Удалить этот объект?"
+          }
+        }
+      }
+    },
+    "Delete your library?" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Удалить медиатеку?"
+          }
+        }
+      }
+    },
+    "Details" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Подробнее"
+          }
+        }
+      }
+    },
+    "Download and install automatically" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Загружать и устанавливать автоматически"
+          }
+        }
+      }
+    },
+    "Drag to change its sidebar position." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перетащите, чтобы изменить положение в боковой панели."
+          }
+        }
+      }
+    },
+    "Drop music to review before importing." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перетащите музыку, чтобы проверить её перед импортом."
+          }
+        }
+      }
+    },
+    "Duplicates and unreadable files won’t be imported." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Дубликаты и нечитаемые файлы не будут импортированы."
+          }
+        }
+      }
+    },
+    "Empty Trash automatically" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Очищать Корзину автоматически"
+          }
+        }
+      }
+    },
+    "Empty Trash?" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Очистить Корзину?"
+          }
+        }
+      }
+    },
+    "Exports app preferences only. Your music, artwork, lyrics, Trash, and queue stay in Cadence." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Экспортируются только настройки приложения. Музыка, обложки, тексты, Корзина и очередь остаются в Cadence."
+          }
+        }
+      }
+    },
+    "Export…" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Экспортировать…"
+          }
+        }
+      }
+    },
+    "Files opened from Finder play without being added to your library." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Файлы из Finder воспроизводятся без добавления в медиатеку."
+          }
+        }
+      }
+    },
+    "Imported settings are now in use." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Импортированные настройки применены."
+          }
+        }
+      }
+    },
+    "Import…" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Импортировать…"
+          }
+        }
+      }
+    },
+    "In Trash" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "В Корзине"
+          }
+        }
+      }
+    },
+    "Include beta versions" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Включать бета-версии"
+          }
+        }
+      }
+    },
+    "Interface" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Интерфейс"
+          }
+        }
+      }
+    },
+    "Keep display awake while playing" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не выключать дисплей во время воспроизведения"
+          }
+        }
+      }
+    },
+    "Keep listening history" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Хранить историю прослушивания"
+          }
+        }
+      }
+    },
+    "Library deleted" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Медиатека удалена"
+          }
+        }
+      }
+    },
+    "Listening history never removes tracks. Items emptied from Trash are deleted permanently." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Очистка истории прослушивания не удаляет треки. Объекты, удалённые из Корзины, нельзя восстановить."
+          }
+        }
+      }
+    },
+    "Lyrics size" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Размер текста песен"
+          }
+        }
+      }
+    },
+    "Moves the Cadence folder to Trash without touching the files you originally imported." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Папка Cadence перемещается в Корзину. Исходные импортированные файлы не изменяются."
+          }
+        }
+      }
+    },
+    "New track" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Новый трек"
+          }
+        }
+      }
+    },
+    "New version available" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Доступна новая версия"
+          }
+        }
+      }
+    },
+    "No tracks match %@." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Нет треков с тегом %@."
+          }
+        }
+      }
+    },
+    "Nothing Here Yet" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Здесь пока ничего нет"
+          }
+        }
+      }
+    },
+    "Only stable versions are shown." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показываются только стабильные версии."
+          }
+        }
+      }
+    },
+    "Open Cadence to" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "При запуске открывать"
+          }
+        }
+      }
+    },
+    "Open that library or choose another folder. Cadence will not merge or overwrite it." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Откройте эту медиатеку или выберите другую папку. Cadence не будет объединять или перезаписывать её."
+          }
+        }
+      }
+    },
+    "Play a track to see it here." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Включите трек, чтобы увидеть его здесь."
+          }
+        }
+      }
+    },
+    "Playback will stop and the Cadence folder will move to Trash. You can recover it there." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Воспроизведение остановится, а папка Cadence переместится в Корзину. Её можно будет восстановить оттуда."
+          }
+        }
+      }
+    },
+    "Preview data only." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Только данные предпросмотра."
+          }
+        }
+      }
+    },
+    "Preview · Files aren’t copied" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Предпросмотр · Файлы не копируются"
+          }
+        }
+      }
+    },
+    "Preview. Files aren’t copied." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Предпросмотр. Файлы не копируются."
+          }
+        }
+      }
+    },
+    "Previewing import" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Предпросмотр импорта"
+          }
+        }
+      }
+    },
+    "Previewing the library copy…" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Предпросмотр копирования в медиатеку…"
+          }
+        }
+      }
+    },
+    "Previous button" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Кнопка «Назад»"
+          }
+        }
+      }
+    },
+    "React to bass" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Реагировать на бас"
+          }
+        }
+      }
+    },
+    "Recently Played stays first" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "«Недавно прослушанное» всегда остаётся первым"
+          }
+        }
+      }
+    },
+    "Recently played tracks and favorites appear here." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Здесь появятся недавно прослушанные и избранные треки."
+          }
+        }
+      }
+    },
+    "Reset Settings…" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сбросить настройки…"
+          }
+        }
+      }
+    },
+    "Reset settings?" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сбросить настройки?"
+          }
+        }
+      }
+    },
+    "Restore Defaults" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Восстановить значения по умолчанию"
+          }
+        }
+      }
+    },
+    "Restore columns, sorting, row spacing, and artwork in every track list." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Восстанавливает столбцы, сортировку, интервалы строк и обложки во всех списках треков."
+          }
+        }
+      }
+    },
+    "Restore queue on launch" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Восстанавливать очередь при запуске"
+          }
+        }
+      }
+    },
+    "Restored queues open paused. Crossfade works between tracks played in order. Normalization uses ReplayGain when the file provides it." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Восстановленная очередь открывается на паузе. Кроссфейд работает между треками, воспроизводимыми по порядку. Нормализация использует ReplayGain, если он есть в файле."
+          }
+        }
+      }
+    },
+    "Restoring defaults shows every item in its original position." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "При восстановлении настроек все элементы возвращаются на исходные места."
+          }
+        }
+      }
+    },
+    "Resume after audio output reconnects" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Продолжать после повторного подключения аудиовыхода"
+          }
+        }
+      }
+    },
+    "Review each file before adding it to your library." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Проверьте каждый файл перед добавлением в медиатеку."
+          }
+        }
+      }
+    },
+    "Review supported audio before choosing what to import." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Проверьте поддерживаемые аудиофайлы перед импортом."
+          }
+        }
+      }
+    },
+    "Review the generated LRC text before copying or saving it." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Проверьте созданный текст LRC перед копированием или сохранением."
+          }
+        }
+      }
+    },
+    "Review what was added" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Проверьте добавленные файлы"
+          }
+        }
+      }
+    },
+    "Row spacing" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Интервал строк"
+          }
+        }
+      }
+    },
+    "Save changes to lyrics?" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сохранить изменения текста?"
+          }
+        }
+      }
+    },
+    "Seek interval" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Интервал перемотки"
+          }
+        }
+      }
+    },
+    "Select a collection in the sidebar or create a new one." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выберите коллекцию в боковой панели или создайте новую."
+          }
+        }
+      }
+    },
+    "Set as Default" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Назначить по умолчанию"
+          }
+        }
+      }
+    },
+    "Settings exported" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Настройки экспортированы"
+          }
+        }
+      }
+    },
+    "Settings imported" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Настройки импортированы"
+          }
+        }
+      }
+    },
+    "Settings reset" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Настройки сброшены"
+          }
+        }
+      }
+    },
+    "Shortcuts active" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Клавиши активны"
+          }
+        }
+      }
+    },
+    "Show artwork" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показывать обложки"
+          }
+        }
+      }
+    },
+    "Show audio details" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показывать сведения об аудио"
+          }
+        }
+      }
+    },
+    "Show banners when Cadence is open" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показывать баннеры, когда Cadence открыта"
+          }
+        }
+      }
+    },
+    "Show synced lyrics" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показывать синхронизированный текст"
+          }
+        }
+      }
+    },
+    "Show track details" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показывать сведения о треке"
+          }
+        }
+      }
+    },
+    "Size on Disk" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Размер на диске"
+          }
+        }
+      }
+    },
+    "Stay open" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Оставлять открытым"
+          }
+        }
+      }
+    },
+    "Sync Current Line" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Синхронизировать текущую строку"
+          }
+        }
+      }
+    },
+    "Text size" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Размер текста"
+          }
+        }
+      }
+    },
+    "The Z + X shortcut and Cadence Mode effects are off." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сочетание Z + X и эффекты режима Cadence выключены."
+          }
+        }
+      }
+    },
+    "These shortcuts pause while you type or use a menu, sheet, or editor." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Эти клавиши не действуют во время ввода текста и при работе с меню, окнами и редакторами."
+          }
+        }
+      }
+    },
+    "This file is playing without being added to your library." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Этот файл воспроизводится без добавления в медиатеку."
+          }
+        }
+      }
+    },
+    "This permanently deletes %lld tracks and their files." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Это навсегда удалит треки (%lld) и их файлы."
+          }
+        }
+      }
+    },
+    "This permanently deletes the music, artwork, and lyrics in Trash." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Музыка, обложки и тексты в Корзине будут удалены навсегда."
+          }
+        }
+      }
+    },
+    "Time display" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отображение времени"
+          }
+        }
+      }
+    },
+    "Tracks, albums, and artists you remove appear here." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Здесь появляются удалённые треки, альбомы и исполнители."
+          }
+        }
+      }
+    },
+    "Updating default app…" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Изменение приложения по умолчанию…"
+          }
+        }
+      }
+    },
+    "View Trash" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Открыть Корзину"
+          }
+        }
+      }
+    },
+    "Volume adjustment" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Шаг громкости"
+          }
+        }
+      }
+    },
+    "Volume normalization" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Нормализация громкости"
+          }
+        }
+      }
+    },
+    "Your library, artwork, lyrics, Trash, and queue will not change." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Медиатека, обложки, тексты, Корзина и очередь не изменятся."
+          }
+        }
+      }
+    },
+    "Your unsaved lyrics and timing changes will be lost." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Несохранённые изменения текста и времени будут потеряны."
+          }
+        }
+      }
+    },
+    "macOS controls notification delivery and Focus filtering." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Доставкой уведомлений и фильтрацией режима «Фокусирование» управляет macOS."
           }
         }
       }

@@ -125,8 +125,8 @@ struct ProductionHomeView: View {
                 CadencePageHeader("Home", subtitle: "0 tracks")
                     .padding(CadenceLayout.pageInset)
                 EmptyLibraryView(
-                    title: "No Music Yet",
-                    description: "Import music to start building your library."
+                    title: "Your Library Is Empty",
+                    description: "Import music to start listening."
                 ) {
                     model.requestNavigationDestination(.importMusic)
                 }
@@ -185,11 +185,11 @@ struct ProductionHomeView: View {
            store.favoriteAlbums.isEmpty,
            store.favoriteArtists.isEmpty {
             ContentUnavailableView {
-                Label("Start Listening", systemImage: "waveform")
+                Label("Nothing Here Yet", systemImage: "waveform")
             } description: {
-                Text("Recently played music, favorites, and shortcuts will appear here.")
+                Text("Recently played tracks and favorites appear here.")
             } actions: {
-                Button("Browse All Tracks") {
+                Button("Browse Tracks") {
                     model.requestNavigationDestination(.allTracks)
                 }
                 .buttonStyle(.borderedProminent)

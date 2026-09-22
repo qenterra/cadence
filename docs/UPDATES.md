@@ -1,6 +1,6 @@
 # Software updates
 
-Cadence 1.0.1 is the current public release, available as a DMG or
+Cadence 1.0.2 is the current public release, available as a DMG or
 ZIP for Apple silicon Macs running macOS 26 or later. The app is ad-hoc signed,
 not Developer ID signed, and **not notarized**. See
 [installation](../README.md#install-cadence) for the download and Gatekeeper
@@ -8,7 +8,7 @@ instructions.
 
 Cadence uses Sparkle 2 for EdDSA-signed in-app updates. Users can choose
 **Cadence > Check for Updates…**; stable checks are enabled by default and beta
-releases are opt-in under **Settings > Updates**. Cadence 1.0.1 is published in
+releases are opt-in under **Settings > Updates**. Cadence 1.0.2 is published in
 the stable feed for existing installations. A first installation still starts
 from the official DMG or ZIP and may encounter Gatekeeper because the app is
 not Developer ID signed or notarized.
@@ -26,7 +26,7 @@ not Developer ID signed or notarized.
 - The Developer ID distribution profile requires notarization and stapling.
   Sparkle EdDSA protects update archives in transit; it does not substitute
   for platform signing and notarization.
-- The 1.0.1 distribution profile uses the exact contract values
+- The 1.0.2 distribution profile uses the exact contract values
   `signing: ad-hoc`, `notarized: false`, and `gatekeeperDisclosure: true`.
   It produces downloadable artifacts without Developer ID or Apple
   notarization and separately signs the update ZIP with Sparkle EdDSA. Platform
@@ -42,12 +42,12 @@ not Developer ID signed or notarized.
 ## Preparing a release
 
 `release-contract.json` is the canonical release source. The current contract is
-**Cadence 1.0.1**, tag `v1.0.1`, Apple silicon, macOS 26 or
+**Cadence 1.0.2**, tag `v1.0.2`, Apple silicon, macOS 26 or
 later. It produces exactly:
 
-- `Cadence-1.0.1-arm64.dmg`
-- `Cadence-1.0.1-arm64.zip` (Sparkle update archive and manual alternative)
-- `Cadence-1.0.1-SHA256SUMS.txt`
+- `Cadence-1.0.2-arm64.dmg`
+- `Cadence-1.0.2-arm64.zip` (Sparkle update archive and manual alternative)
+- `Cadence-1.0.2-SHA256SUMS.txt`
 
 1. Update the release contract and every release surface, commit the candidate,
    and use a dedicated clean checkout or worktree. The intended new manifest
@@ -67,7 +67,7 @@ later. It produces exactly:
    path directly with the index and tagged commit blobs; repository-defined Git
    filters are not part of that comparison. Release input roots also reject
    ignored files, cache directories, symlinks, and hard links.
-4. Select the distribution profile in the committed contract. For 1.0.1,
+4. Select the distribution profile in the committed contract. For 1.0.2,
    use the disclosed ad-hoc profile; no Developer ID or notary credentials are
    required. Every public profile still requires the Sparkle private key in the
    maintainer Keychain under the contract's `keyAccount`. For a Developer ID release, store notarization
@@ -108,7 +108,7 @@ later. It produces exactly:
    output, and checksums.
 7. Push the already verified tag and create the GitHub Release only with
    publication authority. Match the prerelease flag to the contract channel;
-   1.0.1 is stable. Upload the three named assets without renaming them.
+   1.0.2 is stable. Upload the three named assets without renaming them.
 8. Read the release body, flags, target, asset names, and checksums back from
    GitHub. Publish the generated appcast for every public release, then verify
    its public enclosure URL, archive length, EdDSA signature, version, and

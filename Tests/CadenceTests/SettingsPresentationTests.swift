@@ -3,6 +3,22 @@ import Foundation
 import Testing
 
 struct SettingsPresentationTests {
+    @Test("Settings tabs group choices by user intent")
+    func settingsTabTaxonomy() {
+        #expect(
+            CadenceSettingsTab.allCases.map(\.title) == [
+                "General",
+                "Playback",
+                "Library",
+                "Interface",
+                "Shortcuts",
+                "Updates",
+                "Advanced",
+                "About",
+            ]
+        )
+    }
+
     @Test("Cadence Mode options have stable product defaults")
     func cadenceModeOptionDefaults() {
         #expect(CadenceModeOptions.default == CadenceModeOptions(
