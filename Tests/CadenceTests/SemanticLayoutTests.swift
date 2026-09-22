@@ -167,6 +167,11 @@ struct SemanticLayoutTests {
         #expect(frame.midY == PlayerBarLayoutMetrics.height / 2)
         #expect(frame.maxY == 76)
         #expect(frame.width == 1200)
+        #expect(
+            (PlayerBarLayoutMetrics.height - PlayerBarLayoutMetrics.contentHeight) / 2
+                - CGFloat(DesignProductMetrics.cadence.textStack)
+                + PlayerBarLayoutMetrics.sharedContentOffset == frame.minY
+        )
     }
 
     @Test("An internal track exposes its favorite action in transport")

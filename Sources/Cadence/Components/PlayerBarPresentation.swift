@@ -1,4 +1,5 @@
 import Foundation
+import QenTerraDesignTokens
 
 enum PlayerBarLayoutMetrics {
     static let height: CGFloat = 96
@@ -7,6 +8,7 @@ enum PlayerBarLayoutMetrics {
     static let metadataMinimumWidth: CGFloat = 244
     static let metadataMaximumWidth: CGFloat = 380
     static let outputWidth: CGFloat = 244
+    static let sharedContentOffset = CGFloat(DesignProductMetrics.cadence.textStack)
 
     static func contentFrame(availableWidth: CGFloat) -> CGRect {
         CGRect(
