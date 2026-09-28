@@ -765,10 +765,7 @@ private struct CadenceModeRecordsOnlyCapture {
         pngData.count
     }
 
-    func hasSamePixels(
-        as other: Self,
-        maximumChannelDelta: UInt8 = 0
-    ) -> Bool {
+    func hasSamePixels(as other: Self, maximumChannelDelta: UInt8 = 0) -> Bool {
         guard rgbaPixels.count == other.rgbaPixels.count else {
             return false
         }
