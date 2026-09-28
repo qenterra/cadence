@@ -7,18 +7,52 @@ enum CadenceOperationErrorSurface {
 }
 
 extension CadenceAppModel {
-    func renameProductionTrack(
-        id: UUID,
-        title: String
-    ) async -> LibraryTrackProjection? {
+    func presentTrackMetadataEditor(_ track: LibraryTrackProjection) {
+        guard runtimeMode == .production else {
+            return
+        }
+        pendingTrackMetadataEdit = TrackMetadataEditPresentation(track: track)
+    }
+
+    func presentTrackMetadataEditor(_ track: PlaybackTrack) {
+        guard runtimeMode == .production, !isCurrentPlaybackExternal else {
+            return
+        }
+        pendingTrackMetadataEdit = TrackMetadataEditPresentation(track: track)
+    }
+
+    func dismissTrackMetadataEditor() {
+        pendingTrackMetadataEdit = nil
+    }
+
+    @discardableResult
+    func saveTrackMetadata(
+        _ edit: ManagedAudioMetadataEdit,
+        for presentation: TrackMetadataEditPresentation
+    ) async -> Bool {
+        guard
+            pendingTrackMetadataEdit?.id == presentation.id,
+            let location = librarySession.location
+        else {
+            return false
+        }
         do {
-            return try await librarySession.store.renameTrack(
-                id: id,
-                title: title
+            let updated = try await librarySession.store.editManagedTrackMetadata(
+                trackID: presentation.id,
+                relativeMediaPath: presentation.relativeMediaPath,
+                edit: edit,
+                location: location
             )
+            await playbackCoordinator?.refreshManagedTrackMetadata(
+                trackID: updated.id
+            )
+            if pendingTrackMetadataEdit?.id == presentation.id {
+                pendingTrackMetadataEdit = nil
+            }
+            return true
         } catch {
             libraryOperationError = error.localizedDescription
-            return nil
+            return false
         }
     }
 
@@ -37,14 +71,16 @@ extension CadenceAppModel {
         }
     }
 
-    func renameProductionArtist(
+    func updateProductionArtist(
         id: UUID,
-        name: String
+        name: String,
+        userDescription: String?
     ) async -> LibraryArtistProjection? {
         do {
-            return try await librarySession.store.renameArtist(
+            return try await librarySession.store.updateArtist(
                 id: id,
-                name: name
+                name: name,
+                userDescription: userDescription
             )
         } catch {
             libraryOperationError = error.localizedDescription

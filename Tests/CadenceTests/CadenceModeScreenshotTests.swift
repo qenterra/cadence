@@ -26,7 +26,10 @@ struct CadenceModeScreenshotTests {
         try await fixture.cleanup()
     }
 
-    @Test("Render Cadence Mode, its entry, and the inactive hint")
+    @Test(
+        "Render Cadence Mode, its entry, and the inactive hint",
+        .appKitExclusive
+    )
     func renderCadenceModeScreenshots() async throws {
         guard FileManager.default.fileExists(atPath: Self.updateMarker.path) else {
             return
@@ -532,10 +535,9 @@ struct CadenceModeBassVisualTests {
                     \.rhythmPulseVisualQAState,
                     visualQAState(document: document)
                 )
-                .defaultAppStorage(
-                    DocumentationScreenshotDefaults.userDefaults
-                )
+                .defaultAppStorage(DocumentationScreenshotDefaults.userDefaults)
                 .environment(\.visualRegressionHidesPreviewChrome, true)
+                .environment(\.visualRegressionPreservesFixtureState, true)
                 .tint(CadenceTheme.primaryAccent)
             let hostingView = NSHostingView(rootView: rootView)
             let window = NSWindow(
@@ -866,6 +868,7 @@ private enum CadenceModeRecordsOnlyRenderer {
         )
         .environment(\.visualRegressionUsesStableSystemControls, true)
         .environment(\.visualRegressionFreezesHighlights, true)
+        .environment(\.visualRegressionPreservesFixtureState, true)
         .environment(\.controlActiveState, .key)
         .defaultAppStorage(DocumentationScreenshotDefaults.userDefaults)
         .environment(\.visualRegressionHidesPreviewChrome, true)
@@ -887,10 +890,7 @@ private enum CadenceModeRecordsOnlyRenderer {
         window.contentMaxSize = contentSize
         window.setContentSize(contentSize)
         window.makeKeyAndOrderFront(nil)
-        defer {
-            window.orderOut(nil)
-            window.close()
-        }
+        defer { window.close() }
 
         hostingView.layoutSubtreeIfNeeded()
         hostingView.displayIfNeeded()

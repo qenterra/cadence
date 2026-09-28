@@ -723,6 +723,8 @@ extension TrackTableCore.Coordinator {
             parent.model.addToProductionQueue(actionTrackIDs)
         }
 
+        menu.addItem(.separator())
+
         if actionTrackIDs.count == 1 {
             appendMenuItem(
                 to: menu,
@@ -735,19 +737,17 @@ extension TrackTableCore.Coordinator {
             }
             appendMenuItem(
                 to: menu,
-                title: String(localized: "Edit Tags…"),
-                symbol: "tag.badge.plus"
+                title: String(localized: "Edit Information…"),
+                symbol: "pencil"
             ) { [weak self] in
-                self?.parent.model.openProductionTagEditor(trackID: trackID)
+                self?.parent.model.presentTrackMetadataEditor(track)
             }
         }
 
+        menu.addItem(.separator())
+
         appendTagMenu(to: menu, trackIDs: actionTrackIDs)
         appendPlaylistMenu(to: menu, trackIDs: actionTrackIDs)
-        if actionTrackIDs.count == 1 {
-            appendArtworkItems(to: menu, trackID: trackID)
-        }
-
         menu.addItem(.separator())
         appendMenuItem(
             to: menu,
@@ -845,32 +845,6 @@ extension TrackTableCore.Coordinator {
             title: String(localized: "Add to Playlist"),
             symbol: "text.badge.plus"
         )
-    }
-
-    private func appendArtworkItems(
-        to menu: NSMenu,
-        trackID: UUID
-    ) {
-        let target = ArtworkTarget.managedTrack(trackID)
-        let hasArtwork = parent.model.hasCustomArtwork(for: target)
-        appendMenuItem(
-            to: menu,
-            title: hasArtwork
-                ? String(localized: "Replace Track Artwork")
-                : String(localized: "Choose Track Artwork"),
-            symbol: "photo"
-        ) { [weak self] in
-            self?.parent.model.requestArtworkImport(for: target)
-        }
-        if hasArtwork {
-            appendMenuItem(
-                to: menu,
-                title: String(localized: "Remove Track Artwork"),
-                symbol: "trash"
-            ) { [weak self] in
-                self?.parent.model.removeCustomArtwork(for: target)
-            }
-        }
     }
 
     private func appendSubmenu(

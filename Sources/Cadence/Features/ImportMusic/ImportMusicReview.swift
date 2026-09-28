@@ -169,10 +169,11 @@ struct ImportMusicReview: View {
 
             if isImporting {
                 if canCancelImport {
-                    Button("Cancel") {
+                    Button("Cancel Import") {
                         cancelImport()
                     }
                     .buttonStyle(.bordered)
+                    .keyboardShortcut(.cancelAction)
                 }
                 if let progress = determinateImportProgress {
                     ProgressView(

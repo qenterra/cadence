@@ -5,6 +5,10 @@ import SwiftData
 import SwiftUI
 import Testing
 
+// Readiness is an exhaustive scene matrix; keeping it in one switch makes any
+// missing screenshot state fail visibly instead of falling through silently.
+// swiftlint:disable cyclomatic_complexity function_body_length
+
 @MainActor
 extension DocumentationScreenshotFixture {
     var inferredScene: DocumentationScreenshotScene {
@@ -14,6 +18,16 @@ extension DocumentationScreenshotFixture {
         if model.selectedDestination == .albums,
            let albumID = model.selectedProductionAlbumID {
             return .album(albumID)
+        }
+        if model.selectedDestination == .artists,
+           let artistID = model.selectedProductionArtistID {
+            return .artist(artistID)
+        }
+        if model.selectedDestination == .smartCollections,
+           model.smartCollectionsPresentationMode == .editing {
+            return .smartCollectionEditor(
+                isValid: model.smartCollectionValidation.isValid
+            )
         }
         switch model.selectedDestination {
         case .home:
@@ -41,6 +55,12 @@ extension DocumentationScreenshotFixture {
                 model.librarySession.store.browserAlbumsState == .ready
                     && model.librarySession.store.browserTracksState == .ready
                     && model.librarySession.store.browserAlbumID != nil
+            } else if destination == .playlists {
+                model.librarySession.store.playlistListState == .ready
+                    && model.librarySession.store.selectedPlaylistTracksState
+                    == .ready
+            } else if destination == .smartCollections {
+                smartCollectionListeningIsReady()
             } else {
                 true
             }
@@ -50,12 +70,31 @@ extension DocumentationScreenshotFixture {
         case let .album(albumID):
             return model.selectedProductionAlbumID == albumID
                 && readinessTracker.isAlbumReady(albumID)
+        case let .artist(artistID):
+            return model.selectedProductionArtistID == artistID
+                && readinessTracker.isArtistReady(artistID)
         case .nowPlaying:
             guard let trackID = model.currentPlaybackTrack?.id else {
                 return false
             }
             return model.playbackWorkspace == .nowPlaying
                 && readinessTracker.isNowPlayingReady(trackID)
+        case .nowPlayingTagEntry:
+            guard let trackID = model.currentPlaybackTrack?.id else {
+                return false
+            }
+            return model.playbackWorkspace == .nowPlaying
+                && readinessTracker.isNowPlayingReady(trackID)
+        case let .smartCollectionEditor(isValid):
+            let editorIsReady = model.selectedDestination == .smartCollections
+                && model.smartCollectionsPresentationMode == .editing
+                && model.smartCollectionDraft != nil
+                && model.smartCollectionValidation.isValid == isValid
+            guard editorIsReady, isValid else {
+                return editorIsReady
+            }
+            return model.productionSmartCollectionLiveSummary.isEmpty
+                || model.productionSmartCollectionLiveTrackSource != nil
         case .importReview:
             return model.selectedDestination == .importMusic
                 && model.importPreviewStage == .review
@@ -63,6 +102,19 @@ extension DocumentationScreenshotFixture {
         case .settings:
             return true
         }
+    }
+
+    private func smartCollectionListeningIsReady() -> Bool {
+        guard let rule = model.selectedSmartCollection?.rule else {
+            return false
+        }
+        let expectedRules = Set(model.smartCollections.map(\.rule))
+        let loadedRules = Set(
+            model.librarySession.store.smartCollectionSummaries.keys
+        )
+        return model.librarySession.store.smartCollectionTrackSource(
+            for: rule
+        ) != nil && expectedRules.isSubset(of: loadedRules)
     }
 
     func readinessDiagnostic(
@@ -75,6 +127,15 @@ extension DocumentationScreenshotFixture {
         case let .album(albumID):
             "selected=\(String(describing: model.selectedProductionAlbumID)), "
                 + readinessTracker.albumDiagnostic(albumID)
+        case let .artist(artistID):
+            "selected=\(String(describing: model.selectedProductionArtistID)), "
+                + readinessTracker.artistDiagnostic(artistID)
+        case .nowPlayingTagEntry:
+            "workspace=\(model.playbackWorkspace), track="
+                + "\(String(describing: model.currentPlaybackTrack?.id))"
+        case let .smartCollectionEditor(isValid):
+            "mode=\(model.smartCollectionsPresentationMode), expectedValid="
+                + "\(isValid), actualValid=\(model.smartCollectionValidation.isValid)"
         case .library(.allTracks):
             "destination=\(model.selectedDestination), firstPage="
                 + "\(String(describing: model.librarySession.store.allTracksWindow?.firstPageState))"
@@ -83,6 +144,15 @@ extension DocumentationScreenshotFixture {
                 + "\(model.librarySession.store.browserAlbumsState), tracks="
                 + "\(model.librarySession.store.browserTracksState), albumID="
                 + "\(String(describing: model.librarySession.store.browserAlbumID))"
+        case .library(.playlists):
+            "destination=\(model.selectedDestination), playlists="
+                + "\(model.librarySession.store.playlistListState), tracks="
+                + "\(model.librarySession.store.selectedPlaylistTracksState)"
+        case .library(.smartCollections):
+            "destination=\(model.selectedDestination), selected="
+                + "\(String(describing: model.selectedSmartCollectionID)), "
+                + "tracksLoaded=\(model.selectedSmartCollectionTrackSource != nil), "
+                + "summaries=\(model.librarySession.store.smartCollectionSummaries.count)"
         default:
             "destination=\(model.selectedDestination), workspace=\(model.playbackWorkspace)"
         }
@@ -94,7 +164,11 @@ extension DocumentationScreenshotFixture {
     ) -> LibraryCatalogLookupClient {
         let base = LibraryCatalogLookupClient(repository: repository)
         return LibraryCatalogLookupClient(
-            artist: base.artist,
+            artist: { id in
+                let artist = try await base.artist(id)
+                await readinessTracker.didLoadArtist(id)
+                return artist
+            },
             album: { id in
                 let album = try await base.album(id)
                 await readinessTracker.didLoadAlbum(id)
@@ -105,7 +179,11 @@ extension DocumentationScreenshotFixture {
                 await readinessTracker.didLoadAlbumTracks(id)
                 return tracks
             },
-            artistTracks: base.artistTracks,
+            artistTracks: { id in
+                let tracks = try await base.artistTracks(id)
+                await readinessTracker.didLoadArtistTracks(id)
+                return tracks
+            },
             artistAlbums: base.artistAlbums,
             artistReleases: base.artistReleases,
             tagTracks: base.tagTracks,
@@ -181,3 +259,5 @@ extension DocumentationScreenshotFixture {
         )
     }
 }
+
+// swiftlint:enable cyclomatic_complexity function_body_length

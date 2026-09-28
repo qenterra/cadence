@@ -9,6 +9,7 @@ final class PlaylistRecord {
     @Attribute(.unique) var id: UUID
     var name: String
     var normalizedName: String
+    var userDescription: String?
     var createdAt: Date
     var modifiedAt: Date
     var customArtworkID: UUID?
@@ -16,6 +17,7 @@ final class PlaylistRecord {
     init(
         id: UUID = UUID(),
         name: String,
+        userDescription: String? = nil,
         createdAt: Date = .now,
         modifiedAt: Date = .now,
         customArtworkID: UUID? = nil
@@ -23,6 +25,7 @@ final class PlaylistRecord {
         self.id = id
         self.name = name
         normalizedName = SearchNormalizer.normalize(name)
+        self.userDescription = userDescription
         self.createdAt = createdAt
         self.modifiedAt = modifiedAt
         self.customArtworkID = customArtworkID

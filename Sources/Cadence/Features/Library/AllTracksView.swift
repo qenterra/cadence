@@ -6,40 +6,24 @@ struct AllTracksView: View {
     @State private var selection: Set<UUID> = []
 
     var body: some View {
-        VStack(spacing: 0) {
-            header
-
-            if store.availability == .loading,
+        Group {
+            if store.availability != .loading,
                store.catalogCounts.liveTrackCount == 0 {
-                ProgressView("Loading Tracks")
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else if store.catalogCounts.liveTrackCount == 0 {
-                EmptyLibraryView(
-                    title: "No Tracks",
-                    description: "Import music to start listening."
-                ) {
-                    model.requestNavigationDestination(.importMusic)
-                }
-            } else if let window = store.allTracksWindow {
-                windowContent(window)
-            } else {
-                ProductionTrackList(
-                    model: model,
-                    tracks: store.tracks,
-                    contentVersion: store.tracksVersion,
-                    queueSource: .allTracks,
-                    onReachEnd: {
-                        await store.loadNextTracks()
-                    },
-                    repositorySortAction: { sort in
-                        await store.sortTracks(sort)
-                    },
-                    selection: $selection,
-                    refreshAction: {
-                        await store.refresh(.allTracks)
+                WindowCenteredContentStatePage {
+                    EmptyLibraryView(
+                        title: "No Tracks",
+                        description: "Import music to start listening."
+                    ) {
+                        model.requestNavigationDestination(.importMusic)
                     }
-                )
-                .padding(.bottom, CadenceLayout.pageInset)
+                } header: {
+                    header
+                }
+            } else {
+                VStack(spacing: 0) {
+                    header
+                    tracksContent
+                }
             }
         }
         .frame(
@@ -54,6 +38,35 @@ struct AllTracksView: View {
                 query: store.trackQuery,
                 contentVersion: store.allTracksWindowContentVersion
             )
+        }
+    }
+
+    @ViewBuilder
+    private var tracksContent: some View {
+        if store.availability == .loading,
+           store.catalogCounts.liveTrackCount == 0 {
+            ProgressView("Loading Tracks")
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else if let window = store.allTracksWindow {
+            windowContent(window)
+        } else {
+            ProductionTrackList(
+                model: model,
+                tracks: store.tracks,
+                contentVersion: store.tracksVersion,
+                queueSource: .allTracks,
+                onReachEnd: {
+                    await store.loadNextTracks()
+                },
+                repositorySortAction: { sort in
+                    await store.sortTracks(sort)
+                },
+                selection: $selection,
+                refreshAction: {
+                    await store.refresh(.allTracks)
+                }
+            )
+            .padding(.bottom, CadenceLayout.pageInset)
         }
     }
 

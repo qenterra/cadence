@@ -329,11 +329,13 @@ class ReleaseScriptContractTests(unittest.TestCase):
 
         self.assertIn('CadenceVisualRegression/update', script)
         self.assertIn('candidate_dir="${TMPDIR:?}', script)
-        self.assertIn('expected_candidate_count="91"', script)
+        self.assertIn('documentation-screenshot-manifest.json', script)
+        self.assertIn('expected_candidate_count="$(wc -l < "$expected_list"', script)
         self.assertNotIn('qa-settings-remote', script)
         self.assertIn('-only-testing:CadenceTests/AllTracksVisualAcceptanceTests', script)
         self.assertIn('candidate_count', script)
-        self.assertIn('cp -f "$candidate_dir"/*.png', script)
+        self.assertIn('cmp -s "$expected_list" "$actual_list"', script)
+        self.assertIn('cp -f "$candidate_dir/$filename"', script)
 
 if __name__ == "__main__":
     unittest.main()

@@ -179,8 +179,7 @@ struct LibraryUXInfrastructureTests {
         let sections = HomePinnedSectionKind.visibleKinds(
             albumCount: 1,
             artistCount: 2,
-            playlistCount: 1,
-            smartCollectionCount: 0
+            playlistCount: 1
         )
 
         #expect(sections == [.albums, .artists, .playlists])

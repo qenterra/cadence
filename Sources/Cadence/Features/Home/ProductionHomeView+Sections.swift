@@ -1,39 +1,61 @@
+import QenTerraComponents
 import SwiftUI
 
 extension ProductionHomeView {
+    private var homeCatalogCardWidth: CGFloat {
+        CatalogCardLayoutMetrics.preferredShelfWidth(
+            for: CatalogCardSize(rawValue: homeCatalogCardSizeRawValue)
+                ?? .automatic
+        )
+    }
+
+    @ViewBuilder
+    var tags: some View {
+        if !store.tags.isEmpty {
+            HomeShelf(title: String(localized: "Tags")) {
+                DesignFlowLayout(horizontalSpacing: 8, verticalSpacing: 8) {
+                    ForEach(store.tags) { tag in
+                        CadenceTagPill(title: tag.displayPath) {
+                            model.requestOpenProductionTagContextually(id: tag.id)
+                        }
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+    }
+
     @ViewBuilder
     var favorites: some View {
         let candidateTracks = HomeListeningSelection.favoriteItems(
-            store.favoriteTracks,
+            HomeFavoriteRecencyStore.orderedTracks(store.favoriteTracks),
             limit: store.favoriteTracks.count
         )
         let candidateAlbums = HomeListeningSelection.items(
-            store.favoriteAlbums,
+            store.favoriteAlbums.sorted {
+                ($0.favoriteDate ?? .distantPast) > ($1.favoriteDate ?? .distantPast)
+            },
             excludingIDs: Set(pinnedAlbums.map(\.id)),
             limit: store.favoriteAlbums.count
         )
         let candidateArtists = HomeListeningSelection.items(
-            store.favoriteArtists,
+            store.favoriteArtists.sorted {
+                ($0.favoriteDate ?? .distantPast) > ($1.favoriteDate ?? .distantPast)
+            },
             excludingIDs: Set(pinnedArtists.map(\.id)),
             limit: store.favoriteArtists.count
         )
-        let budget = HomeFavoritesPreviewBudget.resolve(
-            trackCount: candidateTracks.count,
-            albumCount: candidateAlbums.count,
-            artistCount: candidateArtists.count,
-            limit: 6
-        )
         let tracks = HomeListeningSelection.items(
             candidateTracks,
-            limit: budget.trackLimit
+            limit: 5
         )
         let albums = HomeListeningSelection.items(
             candidateAlbums,
-            limit: budget.albumLimit
+            limit: 10
         )
         let artists = HomeListeningSelection.items(
             candidateArtists,
-            limit: budget.artistLimit
+            limit: 10
         )
 
         if !tracks.isEmpty {
@@ -51,14 +73,15 @@ extension ProductionHomeView {
         HomeShelf(title: String(localized: "Favorite Tracks"), actionTitle: "See All", action: {
             openFavorites(.songs)
         }, content: {
-            HomeCompactGrid {
-                ForEach(tracks) { track in
-                    HomeTrackTile(
-                        model: model, track: track,
-                        queue: store.favoriteTracks, queueSource: .favorites
-                    )
-                }
-            }
+            ProductionTrackList(
+                model: model,
+                tracks: tracks,
+                contentVersion: store.favoriteTracksVersion,
+                showsHeader: false,
+                compact: true,
+                queueSource: .favorites,
+                scrollOwnership: .page
+            )
         })
     }
 
@@ -66,12 +89,13 @@ extension ProductionHomeView {
         HomeShelf(title: String(localized: "Favorite Albums"), actionTitle: "See All", action: {
             openFavorites(.albums)
         }, content: {
-            HomeCompactGrid {
+            HomeHorizontalShelf {
                 ForEach(albums) { album in
                     ProductionAlbumTile(
                         model: model, store: store, album: album,
                         orderedTargets: albums.map { CatalogActivationTarget(kind: .album, id: $0.id) }
                     )
+                    .frame(width: homeCatalogCardWidth)
                 }
             }
         })
@@ -81,12 +105,13 @@ extension ProductionHomeView {
         HomeShelf(title: String(localized: "Favorite Artists"), actionTitle: "See All", action: {
             openFavorites(.artists)
         }, content: {
-            HomeCompactGrid {
+            HomeHorizontalShelf {
                 ForEach(artists) { artist in
                     ProductionArtistTile(
                         model: model, store: store, artist: artist,
                         orderedTargets: artists.map { CatalogActivationTarget(kind: .artist, id: $0.id) }
                     )
+                    .frame(width: homeCatalogCardWidth)
                 }
             }
         })
@@ -102,7 +127,6 @@ extension ProductionHomeView {
         let albums = pinnedAlbums
         let artists = pinnedArtists
         let playlists = pinnedPlaylists
-        let smartCollections = pinnedSmartCollections
 
         if !albums.isEmpty {
             HomeShelf(title: HomePinnedSectionKind.albums.title) {
@@ -166,29 +190,6 @@ extension ProductionHomeView {
                 }
             }
         }
-
-        if !smartCollections.isEmpty {
-            HomeShelf(title: HomePinnedSectionKind.smartCollections.title) {
-                HomeCompactGrid {
-                    ForEach(smartCollections) { collection in
-                        HomeDestinationTile(
-                            model: model,
-                            title: collection.name,
-                            subtitle: "Smart Collection",
-                            artworkID: collection.customArtworkID,
-                            placeholder: .smartCollection,
-                            activationTarget: CatalogActivationTarget(
-                                kind: .smartCollection,
-                                id: collection.id
-                            )
-                        ) {
-                            model.requestNavigationDestination(.smartCollections)
-                            model.requestSelectSmartCollection(collection.id)
-                        }
-                    }
-                }
-            }
-        }
     }
 
     private var pinnedAlbums: [LibraryAlbumProjection] {
@@ -203,18 +204,10 @@ extension ProductionHomeView {
         orderedPinnedItems(kind: .playlist, source: store.playlists)
     }
 
-    private var pinnedSmartCollections: [SmartCollectionPreview] {
-        orderedPinnedItems(
-            kind: .smartCollection,
-            source: model.smartCollections
-        )
-    }
-
     var hasPinnedItems: Bool {
         !pinnedAlbums.isEmpty
             || !pinnedArtists.isEmpty
             || !pinnedPlaylists.isEmpty
-            || !pinnedSmartCollections.isEmpty
     }
 
     private func orderedPinnedItems<Item: Identifiable>(

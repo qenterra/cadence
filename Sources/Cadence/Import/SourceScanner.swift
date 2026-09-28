@@ -12,44 +12,75 @@ enum SourceScannerError: Error, LocalizedError, Sendable {
 }
 
 struct SourceScanner: Sendable {
+    struct UnsupportedFile: Equatable, Sendable {
+        let url: URL
+        let relativePath: String
+    }
+
+    struct Result: Equatable, Sendable {
+        let files: [ScannedSourceFile]
+        let unsupportedFiles: [UnsupportedFile]
+    }
+
     func scan(
         source: ImportSource
     ) async throws -> [ScannedSourceFile] {
+        try await scanResult(source: source).files
+    }
+
+    func scanResult(source: ImportSource) async throws -> Result {
         try Task.checkCancellation()
 
         var files: [ScannedSourceFile] = []
+        var unsupportedFiles: [UnsupportedFile] = []
         for root in source.urls.sorted(by: urlComesBefore) {
             try Task.checkCancellation()
-            try files.append(contentsOf: scan(root: root))
+            let result = try scan(root: root)
+            files.append(contentsOf: result.files)
+            unsupportedFiles.append(contentsOf: result.unsupportedFiles)
         }
 
-        return files.sorted {
+        files.sort {
             if $0.relativePath != $1.relativePath {
                 return $0.relativePath < $1.relativePath
             }
             return $0.url.path < $1.url.path
         }
+        unsupportedFiles.sort {
+            if $0.relativePath != $1.relativePath {
+                return $0.relativePath < $1.relativePath
+            }
+            return $0.url.path < $1.url.path
+        }
+        return Result(files: files, unsupportedFiles: unsupportedFiles)
     }
 
     private func scan(
         root: URL
-    ) throws -> [ScannedSourceFile] {
+    ) throws -> Result {
         let values = try root.resourceValues(
             forKeys: resourceKeys
         )
         guard values.isSymbolicLink != true else {
-            return []
+            return Result(files: [], unsupportedFiles: [])
         }
 
         if values.isRegularFile == true {
-            return candidate(
+            let relativePath = root.lastPathComponent
+            if let candidate = candidate(
                 url: root,
-                relativePath: root.lastPathComponent
-            ).map { [$0] } ?? []
+                relativePath: relativePath
+            ) {
+                return Result(files: [candidate], unsupportedFiles: [])
+            }
+            return Result(
+                files: [],
+                unsupportedFiles: unsupportedFile(url: root, relativePath: relativePath).map { [$0] } ?? []
+            )
         }
 
         guard values.isDirectory == true else {
-            return []
+            return Result(files: [], unsupportedFiles: [])
         }
 
         return try scanDirectory(root)
@@ -57,7 +88,7 @@ struct SourceScanner: Sendable {
 
     private func scanDirectory(
         _ root: URL
-    ) throws -> [ScannedSourceFile] {
+    ) throws -> Result {
         var enumerationError: Error?
         guard let enumerator = FileManager.default.enumerator(
             at: root,
@@ -72,11 +103,10 @@ struct SourceScanner: Sendable {
         }
 
         var files: [ScannedSourceFile] = []
+        var unsupportedFiles: [UnsupportedFile] = []
         while let url = enumerator.nextObject() as? URL {
             try Task.checkCancellation()
-            let values = try url.resourceValues(
-                forKeys: resourceKeys
-            )
+            let values = try url.resourceValues(forKeys: resourceKeys)
 
             if shouldSkip(
                 url: url,
@@ -99,6 +129,11 @@ struct SourceScanner: Sendable {
                 relativePath: relativePath
             ) {
                 files.append(candidate)
+            } else if let unsupported = unsupportedFile(
+                url: url,
+                relativePath: relativePath
+            ) {
+                unsupportedFiles.append(unsupported)
             }
         }
 
@@ -107,7 +142,7 @@ struct SourceScanner: Sendable {
                 "\(root.path): \(enumerationError.localizedDescription)"
             )
         }
-        return files
+        return Result(files: files, unsupportedFiles: unsupportedFiles)
     }
 
     private func shouldSkip(
@@ -155,6 +190,21 @@ struct SourceScanner: Sendable {
             relativePath: relativePath,
             kind: .audio(format)
         )
+    }
+
+    private func unsupportedFile(
+        url: URL,
+        relativePath: String
+    ) -> UnsupportedFile? {
+        let pathExtension = url.pathExtension.lowercased()
+        guard !pathExtension.isEmpty, !ignoredSidecarExtensions.contains(pathExtension) else {
+            return nil
+        }
+        return UnsupportedFile(url: url, relativePath: relativePath)
+    }
+
+    private var ignoredSidecarExtensions: Set<String> {
+        ["jpg", "jpeg", "png", "webp", "gif", "heic", "txt", "pdf", "cue", "nfo", "m3u", "m3u8"]
     }
 
     private func relativePath(

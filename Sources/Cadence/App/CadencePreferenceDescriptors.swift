@@ -13,6 +13,11 @@ extension CadencePreferences {
             allowed: Set(CatalogCardSize.allCases.map(\.rawValue))
         ),
         .string(
+            Keys.homeRecentlyPlayedCardSize,
+            default: CatalogCardSize.automatic.rawValue,
+            allowed: Set(CatalogCardSize.allCases.map(\.rawValue))
+        ),
+        .string(
             Keys.interfaceTextSize,
             default: InterfaceTextSize.standard.rawValue,
             allowed: Set(InterfaceTextSize.allCases.map(\.rawValue))
@@ -39,7 +44,10 @@ extension CadencePreferences {
             default: PlaybackTimeDisplayMode.elapsed.rawValue,
             allowed: Set(PlaybackTimeDisplayMode.allCases.map(\.rawValue))
         ),
-        .string(Keys.homeSectionOrder, default: "pinned,favorites"),
+        .string(
+            Keys.homeSectionOrder,
+            default: HomeSectionConfiguration.defaultOrderRawValue
+        ),
         .string(Keys.hiddenHomeSections, default: ""),
         .bool(Keys.restoresQueue, default: true),
         .string(
@@ -130,10 +138,15 @@ extension CadencePreferences {
             "trackTable.sortDirection",
             default: TrackTableSortDirection.ascending.rawValue
         ),
-        .double("playlists.sidebarWidth", default: 270, range: 160 ... 720),
-        .double("tags.sidebarWidth", default: 300, range: 160 ... 720),
+        .double(Keys.collectionListWidth, default: 270, range: 160 ... 720),
+        .string(
+            Keys.collectionListWidthMode,
+            default: CollectionListWidthMode.shared.rawValue
+        ),
+        .double(Keys.playlistListWidth, default: 270, range: 160 ... 720),
+        .double(Keys.smartCollectionListWidth, default: 270, range: 160 ... 720),
+        .double(Keys.tagListWidth, default: 300, range: 160 ... 720),
         .double("tags.inspectorWidth", default: 330, range: 160 ... 720),
-        .double("smartCollections.listWidth", default: 270, range: 160 ... 720),
         .double(
             "smartCollections.builderWidth",
             default: 430,

@@ -5,14 +5,18 @@ extension ProductionSearchResultsView {
     func artistActions(
         _ artist: LibraryArtistProjection
     ) -> some View {
+        FavoriteContextMenuItem(isFavorite: artist.isFavorite) {
+            Task {
+                await model.setProductionArtistFavorite(
+                    artist,
+                    isFavorite: !artist.isFavorite
+                )
+            }
+        }
+        Divider()
         AddArtistToPlaylistMenuItems(
             store: store,
             artistID: artist.id
-        )
-        ArtworkMenuItems(
-            model: model,
-            target: .managedArtist(artist.id),
-            label: "Artist Image"
         )
         Divider()
         Button(
@@ -32,6 +36,15 @@ extension ProductionSearchResultsView {
     func albumActions(
         _ album: LibraryAlbumProjection
     ) -> some View {
+        FavoriteContextMenuItem(isFavorite: album.isFavorite) {
+            Task {
+                await model.setProductionAlbumFavorite(
+                    album,
+                    isFavorite: !album.isFavorite
+                )
+            }
+        }
+        Divider()
         QuickAlbumTagMenuItems(
             store: store,
             albumID: album.id
@@ -39,11 +52,6 @@ extension ProductionSearchResultsView {
         AddAlbumToPlaylistMenuItems(
             store: store,
             albumID: album.id
-        )
-        ArtworkMenuItems(
-            model: model,
-            target: .managedAlbum(album.id),
-            label: "Album Artwork"
         )
         Divider()
         Button(

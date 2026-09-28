@@ -3,6 +3,7 @@ import Foundation
 struct SmartCollectionPreview: Identifiable, Hashable, Sendable {
     let id: UUID
     var name: String
+    var userDescription: String?
     var rule: SmartCollectionRuleGroup
     var modifiedAt: Date
     var customArtworkID: UUID?
@@ -10,12 +11,14 @@ struct SmartCollectionPreview: Identifiable, Hashable, Sendable {
     init(
         id: UUID = UUID(),
         name: String,
+        userDescription: String? = nil,
         rule: SmartCollectionRuleGroup,
         modifiedAt: Date,
         customArtworkID: UUID? = nil
     ) {
         self.id = id
         self.name = name
+        self.userDescription = userDescription
         self.rule = rule
         self.modifiedAt = modifiedAt
         self.customArtworkID = customArtworkID

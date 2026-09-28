@@ -955,6 +955,7 @@ extension PlaybackCoordinatorTests {
             #expect(setup.coordinator.state.currentTrack == nil)
             #expect(setup.coordinator.state.queue?.currentTrackID == setup.first.track.id)
             #expect(setup.coordinator.state.transport == .idle)
+            #expect(setup.coordinator.playbackIndicator == .idle)
         }
     }
 

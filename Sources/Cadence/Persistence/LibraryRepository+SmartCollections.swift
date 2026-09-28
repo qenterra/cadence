@@ -56,6 +56,7 @@ extension LibraryRepository {
             return SmartCollectionPreview(
                 id: record.id,
                 name: record.name,
+                userDescription: record.userDescription,
                 rule: archive.root,
                 modifiedAt: record.modifiedAt,
                 customArtworkID: artworkIDs[record.id]
@@ -80,6 +81,9 @@ extension LibraryRepository {
 
         if let record = try modelContext.fetch(descriptor).first {
             record.rename(to: collection.name)
+            record.userDescription = CatalogDescriptionPolicy.normalized(
+                collection.userDescription
+            )
             record.ruleData = ruleData
             record.modifiedAt = collection.modifiedAt
         } else {
@@ -87,6 +91,9 @@ extension LibraryRepository {
                 SmartCollectionRecord(
                     id: collection.id,
                     name: collection.name,
+                    userDescription: CatalogDescriptionPolicy.normalized(
+                        collection.userDescription
+                    ),
                     ruleData: ruleData,
                     sortDescriptorRawValue: "canonical:ascending",
                     playbackPreferenceRawValue: "ordered",

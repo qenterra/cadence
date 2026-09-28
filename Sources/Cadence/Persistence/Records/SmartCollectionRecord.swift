@@ -9,6 +9,7 @@ final class SmartCollectionRecord {
     @Attribute(.unique) var id: UUID
     var name: String
     var normalizedName: String
+    var userDescription: String?
     var ruleData: Data
     var sortDescriptorRawValue: String
     var playbackPreferenceRawValue: String
@@ -17,6 +18,7 @@ final class SmartCollectionRecord {
     init(
         id: UUID = UUID(),
         name: String,
+        userDescription: String? = nil,
         ruleData: Data,
         sortDescriptorRawValue: String,
         playbackPreferenceRawValue: String,
@@ -25,6 +27,7 @@ final class SmartCollectionRecord {
         self.id = id
         self.name = name
         normalizedName = SearchNormalizer.normalize(name)
+        self.userDescription = userDescription
         self.ruleData = ruleData
         self.sortDescriptorRawValue = sortDescriptorRawValue
         self.playbackPreferenceRawValue = playbackPreferenceRawValue

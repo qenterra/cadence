@@ -33,6 +33,28 @@ struct ImportPreviewAppModelTests {
         #expect(model.selectedImportCandidateIDs.isEmpty)
     }
 
+    @Test("Unsupported import notice survives beside review and can be dismissed")
+    func unsupportedNotice() {
+        let model = CadenceAppModel.testFixture()
+        model.applyImportCoordinatorState(
+            .review(
+                [],
+                unsupportedFiles: [
+                    SourceScanner.UnsupportedFile(
+                        url: URL(fileURLWithPath: "/tmp/demo.xyz"),
+                        relativePath: "demo.xyz"
+                    ),
+                ]
+            )
+        )
+
+        #expect(model.importPreviewStage == .review)
+        #expect(model.unsupportedImportMessage?.contains("demo.xyz") == true)
+
+        model.clearUnsupportedImportNotice()
+        #expect(model.unsupportedImportMessage == nil)
+    }
+
     @Test("Review tabs expose their own canonical candidates")
     func reviewTabs() {
         let model = CadenceAppModel.testFixture()

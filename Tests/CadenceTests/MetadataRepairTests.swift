@@ -107,6 +107,74 @@ struct MetadataRepairTests {
         #expect(tracks.map(\.id) == [trackID])
     }
 
+    @Test("Metadata repair updates and clears an existing album year")
+    func updatesAndClearsExistingAlbumYear() async throws {
+        let (container, trackID) = try makeLegacyStore()
+        let repository = LibraryRepository(modelContainer: container)
+
+        for year in [2020, nil] as [Int?] {
+            let metadata = ManagedImportManifest.Metadata(
+                title: "Legacy",
+                artist: "Unknown Artist",
+                album: "Unknown Album",
+                year: year,
+                trackNumber: nil,
+                discNumber: nil,
+                duration: 120,
+                codec: "FLAC",
+                container: "FLAC",
+                sampleRate: 44100,
+                channelCount: 2,
+                bitrate: nil,
+                bitDepth: 24,
+                spatialFormat: .stereo
+            )
+            _ = try await repository.applyMetadataRepairs([
+                ManagedMetadataRepair(
+                    trackID: trackID,
+                    metadata: metadata,
+                    sourceMetadata: JSONEncoder().encode(metadata)
+                ),
+            ])
+            let albums = try await repository.albumsPage()
+            #expect(albums.items.first?.year == year)
+        }
+    }
+
+    @Test("Missing repair targets do not create orphan artists or albums")
+    func missingTrackDoesNotCreateOrphans() async throws {
+        let container = try LibraryContainerFactory.inMemory()
+        let repository = LibraryRepository(modelContainer: container)
+        let metadata = ManagedImportManifest.Metadata(
+            title: "Missing",
+            artist: "Nobody",
+            album: "Nowhere",
+            year: 2026,
+            trackNumber: nil,
+            discNumber: nil,
+            duration: 1,
+            codec: "FLAC",
+            container: "FLAC",
+            sampleRate: 44100,
+            channelCount: 2,
+            bitrate: nil,
+            bitDepth: 24,
+            spatialFormat: .stereo
+        )
+
+        await #expect(throws: CatalogRenameError.self) {
+            _ = try await repository.applyMetadataRepairs([
+                ManagedMetadataRepair(
+                    trackID: UUID(),
+                    metadata: metadata,
+                    sourceMetadata: JSONEncoder().encode(metadata)
+                ),
+            ])
+        }
+        #expect(try await repository.artistsPage().items.isEmpty)
+        #expect(try await repository.albumsPage().items.isEmpty)
+    }
+
     @Test("A successful repair refreshes every active resident track source")
     func successfulRepairRefreshesActiveResidentSources() async throws {
         let (container, trackID) = try makeLegacyStore()

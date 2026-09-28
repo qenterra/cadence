@@ -5,10 +5,19 @@ import SwiftUI
 
 struct CadenceModeBackground: View {
     let palette: RhythmAccentPalette
+    let maximumFramesPerSecond: Int
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.cadenceModeVisualQABackgroundReduceMotionOverride)
     private var visualQAReduceMotionOverride
+
+    init(
+        palette: RhythmAccentPalette,
+        maximumFramesPerSecond: Int = 60
+    ) {
+        self.palette = palette
+        self.maximumFramesPerSecond = maximumFramesPerSecond
+    }
 
     var body: some View {
         GeometryReader { geometry in
@@ -23,7 +32,8 @@ struct CadenceModeBackground: View {
             } else {
                 TerrainSurface(
                     palette: palette,
-                    reduceMotion: reduceMotion
+                    reduceMotion: reduceMotion,
+                    maximumFramesPerSecond: maximumFramesPerSecond
                 )
             }
         }
@@ -44,7 +54,8 @@ struct CadenceModeBackground: View {
             appearance: CadenceAccentGradientAdapter.appearance(
                 palette: palette,
                 hasLiveEffects: false,
-                reduceMotion: true
+                reduceMotion: true,
+                maximumFramesPerSecond: maximumFramesPerSecond
             )
         )
         let pixelSize = CGSize(
@@ -59,6 +70,7 @@ struct CadenceModeBackground: View {
     private struct TerrainSurface: NSViewRepresentable {
         let palette: RhythmAccentPalette
         let reduceMotion: Bool
+        let maximumFramesPerSecond: Int
 
         func makeNSView(context _: Context) -> ArtworkAccentGradientView {
             let view = ArtworkAccentGradientView(
@@ -78,7 +90,8 @@ struct CadenceModeBackground: View {
                 appearance: CadenceAccentGradientAdapter.appearance(
                     palette: palette,
                     hasLiveEffects: false,
-                    reduceMotion: reduceMotion
+                    reduceMotion: reduceMotion,
+                    maximumFramesPerSecond: maximumFramesPerSecond
                 )
             )
         }

@@ -37,7 +37,10 @@ enum DocumentationScreenshotScene: Equatable {
     case home
     case library(NavigationDestination)
     case album(UUID)
+    case artist(UUID)
     case nowPlaying
+    case nowPlayingTagEntry
+    case smartCollectionEditor(isValid: Bool)
     case importReview
     case settings(CadenceSettingsTab)
 
@@ -46,7 +49,11 @@ enum DocumentationScreenshotScene: Equatable {
         case .home: "Home"
         case let .library(destination): "Library (\(destination))"
         case .album: "Album"
+        case .artist: "Artist"
         case .nowPlaying: "Now Playing"
+        case .nowPlayingTagEntry: "Now Playing Tag Entry"
+        case let .smartCollectionEditor(isValid):
+            isValid ? "Smart Collection Editor" : "Invalid Smart Collection Editor"
         case .importReview: "Import Review"
         case .settings: "Settings"
         }
@@ -58,6 +65,9 @@ final class DocumentationScreenshotReadinessTracker {
     private var loadedAlbumIDs: Set<UUID> = []
     private var loadedAlbumTrackIDs: Set<UUID> = []
     private var renderedAlbumIDs: Set<UUID> = []
+    private var loadedArtistIDs: Set<UUID> = []
+    private var loadedArtistTrackIDs: Set<UUID> = []
+    private var renderedArtistIDs: Set<UUID> = []
     private var renderedNowPlayingTrackIDs: Set<UUID> = []
 
     func didLoadAlbum(_ id: UUID) {
@@ -72,6 +82,18 @@ final class DocumentationScreenshotReadinessTracker {
         renderedAlbumIDs.insert(id)
     }
 
+    func didLoadArtist(_ id: UUID) {
+        loadedArtistIDs.insert(id)
+    }
+
+    func didLoadArtistTracks(_ id: UUID) {
+        loadedArtistTrackIDs.insert(id)
+    }
+
+    func didRenderArtist(_ id: UUID) {
+        renderedArtistIDs.insert(id)
+    }
+
     func didRenderNowPlaying(_ id: UUID) {
         renderedNowPlayingTrackIDs.insert(id)
     }
@@ -80,7 +102,13 @@ final class DocumentationScreenshotReadinessTracker {
         if case let .album(id) = scene {
             renderedAlbumIDs.remove(id)
         }
+        if case let .artist(id) = scene {
+            renderedArtistIDs.remove(id)
+        }
         if case .nowPlaying = scene {
+            renderedNowPlayingTrackIDs.removeAll()
+        }
+        if case .nowPlayingTagEntry = scene {
             renderedNowPlayingTrackIDs.removeAll()
         }
     }
@@ -95,14 +123,37 @@ final class DocumentationScreenshotReadinessTracker {
         renderedNowPlayingTrackIDs.contains(id)
     }
 
+    func isArtistReady(_ id: UUID) -> Bool {
+        loadedArtistIDs.contains(id)
+            && loadedArtistTrackIDs.contains(id)
+            && renderedArtistIDs.contains(id)
+    }
+
     func albumDiagnostic(_ id: UUID) -> String {
         "album=\(loadedAlbumIDs.contains(id)), "
             + "tracks=\(loadedAlbumTrackIDs.contains(id)), "
             + "rendered=\(renderedAlbumIDs.contains(id))"
     }
+
+    func artistDiagnostic(_ id: UUID) -> String {
+        "artist=\(loadedArtistIDs.contains(id)), "
+            + "tracks=\(loadedArtistTrackIDs.contains(id)), "
+            + "rendered=\(renderedArtistIDs.contains(id))"
+    }
 }
 
 enum DocumentationScreenshotComparator {
+    /// AppKit owns and redraws the traffic-light controls independently of
+    /// the captured product content. Their inactive tint can change between
+    /// otherwise identical test windows, so pixel comparison excludes only
+    /// that fixed system-chrome region.
+    static func ignoresUnstableSystemChromePixel(
+        column: Int,
+        row: Int
+    ) -> Bool {
+        column >= 0 && column < 160 && row >= 0 && row < 64
+    }
+
     static func assertMatch(
         actual: URL,
         baseline: URL,
@@ -210,16 +261,17 @@ private extension DocumentationScreenshotComparator {
         let tolerance = Int(channelTolerance)
         var offset = 0
         while offset < actual.bytes.count {
-            if pixelDiffers(
-                actual.bytes,
-                baseline.bytes,
-                at: offset,
-                tolerance: tolerance
-            ) {
+            let pixel = offset / 4
+            let column = pixel % actual.width
+            let row = pixel / actual.width
+            if !ignoresUnstableSystemChromePixel(column: column, row: row),
+               pixelDiffers(
+                   actual.bytes,
+                   baseline.bytes,
+                   at: offset,
+                   tolerance: tolerance
+               ) {
                 mismatchedPixels += 1
-                let pixel = offset / 4
-                let column = pixel % actual.width
-                let row = pixel / actual.width
                 minimumX = min(minimumX, column)
                 minimumY = min(minimumY, row)
                 maximumX = max(maximumX, column)
@@ -247,12 +299,16 @@ private extension DocumentationScreenshotComparator {
         let tolerance = Int(channelTolerance)
         var offset = 0
         while offset < actual.bytes.count {
-            if pixelDiffers(
-                actual.bytes,
-                baseline.bytes,
-                at: offset,
-                tolerance: tolerance
-            ) {
+            let pixel = offset / 4
+            let column = pixel % actual.width
+            let row = pixel / actual.width
+            if !ignoresUnstableSystemChromePixel(column: column, row: row),
+               pixelDiffers(
+                   actual.bytes,
+                   baseline.bytes,
+                   at: offset,
+                   tolerance: tolerance
+               ) {
                 diff[offset] = 255
                 diff[offset + 1] = 0
                 diff[offset + 2] = 255

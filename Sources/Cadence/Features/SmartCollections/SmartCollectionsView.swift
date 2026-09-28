@@ -19,10 +19,8 @@ struct SmartCollectionsView: View {
     @Bindable var model: CadenceAppModel
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @AppStorage("smartCollections.listWidth")
-    private var listWidth = Double(
-        SmartCollectionsPaneConstraints.list.ideal
-    )
+    @CollectionListWidthPreference(page: .smartCollections)
+    private var listWidth
     @AppStorage("smartCollections.builderWidth")
     private var builderWidth = Double(
         SmartCollectionsPaneConstraints.builder.ideal
@@ -31,7 +29,7 @@ struct SmartCollectionsView: View {
     var body: some View {
         CadenceResizableSplitView(
             fixedPane: .leading,
-            fixedWidth: $listWidth,
+            fixedWidth: listWidth,
             fixedMinimum: SmartCollectionsPaneConstraints.list.minimum,
             fixedMaximum: SmartCollectionsPaneConstraints.list.maximum,
             flexibleMinimum: 560
@@ -155,11 +153,7 @@ struct SmartCollectionsView: View {
     private var pendingSwitchBinding: Binding<Bool> {
         Binding(
             get: { model.pendingSmartCollectionTransition != nil },
-            set: { isPresented in
-                if !isPresented, model.pendingSmartCollectionTransition != nil {
-                    model.resolvePendingSmartCollectionTransition(.cancel)
-                }
-            }
+            set: { _ in }
         )
     }
 

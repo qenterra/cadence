@@ -5,6 +5,37 @@ uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.0.3] - 2026-09-28
+
+### Added
+
+- Added a reorderable tag section to Home.
+- Added managed-file metadata editing for track title, artist, album, and year.
+- Added descriptions and unified editors for artists, playlists, smart
+  collections, albums, tracks, and tags.
+
+### Changed
+
+- Enlarged the import drop target and redesigned the track picker shared by
+  playlists and tags.
+- Simplified Home by removing the generated Smart Collection card shelf while
+  keeping Smart Collections available in their dedicated browser and detail
+  pages.
+- Reused the standard track list for Favorite Tracks on Home and presented
+  favorite albums and artists in horizontal shelves.
+- Added a preference for Playlists, Smart Collections, and tags to share one
+  saved list width or keep individual widths.
+- Standardized catalog context menus and detail-page edit actions.
+
+### Fixed
+
+- Kept empty-library placeholders centered across library pages.
+- Fixed deferred navigation after saving Smart Collection edits, AirPlay route
+  selection opening Search, stale list metadata after edits, and playback
+  indicators remaining active after the queue ends.
+- Prevented single-track Shuffle from producing duplicate queue identities and
+  crashing the app.
+
 ## [1.0.2] - 2026-09-22
 
 ### Changed
@@ -59,7 +90,8 @@ instructions.
 - Cadence Mode with an artwork-colored animated background and keyboard effects.
 - System, light, and dark appearance, plus playback, library, notification,
   and interface settings.
-[Unreleased]: https://github.com/QenTerra/cadence/compare/v1.0.2...main
+[Unreleased]: https://github.com/QenTerra/cadence/compare/v1.0.3...main
+[1.0.3]: https://github.com/QenTerra/cadence/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/QenTerra/cadence/releases/tag/v1.0.2
 [1.0.1]: https://github.com/QenTerra/cadence/releases/tag/v1.0.1
 [1.0.0]: https://github.com/QenTerra/cadence/releases/tag/v1.0.0

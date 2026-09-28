@@ -12,6 +12,7 @@ struct CadencePreferencesTests {
         CadencePreferences.registerDefaults(in: defaults)
 
         #expect(CadencePreferences.catalogCardSize(in: defaults) == .automatic)
+        #expect(CadencePreferences.homeRecentlyPlayedCardSize(in: defaults) == .automatic)
         #expect(defaults.bool(forKey: CadencePreferences.Keys.showsTrackArtwork))
         #expect(CadencePreferences.playbackTimeDisplay(in: defaults) == .elapsed)
         #expect(CadencePreferences.previousTrackBehavior(in: defaults) == .restartCurrent)
@@ -42,6 +43,48 @@ struct CadencePreferencesTests {
             defaults.integer(forKey: CadencePreferences.Keys.seekInterval)
                 == SeekInterval.seconds15.rawValue
         )
+    }
+
+    @Test("Collection browser lists share one persisted width by default")
+    func sharedCollectionListWidth() throws {
+        let (defaults, suite) = try isolatedDefaults()
+        defer { defaults.removePersistentDomain(forName: suite) }
+
+        defaults.set(384.0, forKey: "smartCollections.listWidth")
+        CadencePreferences.registerDefaults(in: defaults)
+
+        #expect(defaults.double(forKey: "workspace.collectionListWidth") == 384)
+        #expect(
+            defaults.string(
+                forKey: CadencePreferences.Keys.collectionListWidthMode
+            ) == CollectionListWidthMode.shared.rawValue
+        )
+        #expect(defaults.object(forKey: "playlists.sidebarWidth") == nil)
+        #expect(defaults.object(forKey: "smartCollections.listWidth") == nil)
+        #expect(
+            CadencePreferences.descriptors
+                .map(\.key)
+                .filter {
+                    $0 == "workspace.collectionListWidth"
+                        || $0 == "playlists.sidebarWidth"
+                        || $0 == "smartCollections.listWidth"
+                } == ["workspace.collectionListWidth"]
+        )
+    }
+
+    @Test("Legacy tag width migrates to the individual tag width")
+    func legacyTagWidthMigration() throws {
+        let (defaults, suite) = try isolatedDefaults()
+        defer { defaults.removePersistentDomain(forName: suite) }
+
+        defaults.set(412.0, forKey: "tags.sidebarWidth")
+        CadencePreferences.registerDefaults(in: defaults)
+
+        #expect(
+            defaults.double(forKey: CadencePreferences.Keys.tagListWidth)
+                == 412
+        )
+        #expect(defaults.object(forKey: "tags.sidebarWidth") == nil)
     }
 
     @Test("Portable profile includes customization but excludes private runtime state")
@@ -162,6 +205,34 @@ struct CadencePreferencesTests {
         #expect(automatic == 164 ... 196)
         #expect(automatic.upperBound < medium.upperBound)
         #expect(medium.upperBound < large.upperBound)
+        #expect(CatalogCardLayoutMetrics.preferredShelfWidth(for: .small) == 146)
+        #expect(CatalogCardLayoutMetrics.preferredShelfWidth(for: .automatic) == 180)
+        #expect(CatalogCardLayoutMetrics.preferredShelfWidth(for: .medium) == 202)
+        #expect(CatalogCardLayoutMetrics.preferredShelfWidth(for: .large) == 248)
+    }
+
+    @Test("Recently Played card size is independent and repairs invalid values")
+    func recentlyPlayedCardSize() throws {
+        let (defaults, suite) = try isolatedDefaults()
+        defer { defaults.removePersistentDomain(forName: suite) }
+
+        defaults.set(
+            CatalogCardSize.large.rawValue,
+            forKey: CadencePreferences.Keys.catalogCardSize
+        )
+        defaults.set(
+            CatalogCardSize.small.rawValue,
+            forKey: CadencePreferences.Keys.homeRecentlyPlayedCardSize
+        )
+
+        #expect(CadencePreferences.catalogCardSize(in: defaults) == .large)
+        #expect(CadencePreferences.homeRecentlyPlayedCardSize(in: defaults) == .small)
+
+        defaults.set(
+            "enormous",
+            forKey: CadencePreferences.Keys.homeRecentlyPlayedCardSize
+        )
+        #expect(CadencePreferences.homeRecentlyPlayedCardSize(in: defaults) == .automatic)
     }
 
     @Test("Track artwork visibility reclaims the complete artwork slot")
@@ -215,18 +286,35 @@ struct CadencePreferencesTests {
         #expect(LyricsTextSize.standard.pointSize == 24)
     }
 
-    @Test("Home configuration keeps Recently Played first and repairs stored order")
+    @Test("Home configuration drops retired sections and keeps tags first")
     func homeSectionConfiguration() {
         #expect(
             HomeSectionConfiguration.orderedConfigurableSections(
-                from: "favorites,unknown,favorites"
-            ) == [.favorites, .pinned]
+                from: "smartCollections,favorites,unknown,favorites"
+            ) == [
+                .tags,
+                .favorites,
+                .recentlyPlayed,
+                .pinned,
+            ]
         )
         #expect(
             HomeSectionConfiguration.visibleSections(
-                orderRawValue: "favorites,pinned",
+                orderRawValue: "smartCollections,tags,favorites,pinned,recentlyPlayed",
                 hiddenRawValue: "pinned"
-            ) == [.recentlyPlayed, .favorites]
+            ) == [.tags, .favorites, .recentlyPlayed]
+        )
+        #expect(
+            HomeSectionConfiguration.moving(
+                .tags,
+                to: .favorites,
+                in: HomeContentSection.personalizedOrder
+            ) == [
+                .recentlyPlayed,
+                .pinned,
+                .favorites,
+                .tags,
+            ]
         )
     }
 

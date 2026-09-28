@@ -321,6 +321,128 @@
   ],
   "components": [
     {
+      "path": "Components/CadenceTagPill.swift",
+      "symbol": "CadenceTagPill",
+      "kind": "View",
+      "line": 23,
+      "classification": "product-shell",
+      "resolution": "cadence-owned",
+      "ownershipReason": "CadenceTagPill composes Cadence-owned action and title into a product route or feature surface; shared primitives remain package-owned.",
+      "sharedTarget": null,
+      "remainingCadenceSymbol": "Cadence.CadenceTagPill",
+      "consumers": [],
+      "dependencies": {
+        "data": [
+          {
+            "symbol": "title",
+            "role": "data"
+          },
+          {
+            "symbol": "removeAccessibilityLabel",
+            "role": "data"
+          }
+        ],
+        "actions": [
+          {
+            "symbol": "action",
+            "role": "actions"
+          },
+          {
+            "symbol": "removeAction",
+            "role": "actions"
+          }
+        ]
+      },
+      "states": {
+        "appearance": [
+          "system",
+          "light",
+          "dark"
+        ],
+        "motion": [
+          "static"
+        ],
+        "accessibility": [
+          "native-semantics",
+          "keyboard-focus"
+        ],
+        "interaction": [
+          "default",
+          "hover",
+          "pressed",
+          "disabled"
+        ]
+      },
+      "wave": "wave-7-product",
+      "evidence": {
+        "status": "verified",
+        "detail": "CadenceTagPill is exercised by the focused Home semantic layout contract.",
+        "references": [
+          "Tests/CadenceTests/SemanticLayoutTests.swift"
+        ]
+      }
+    },
+    {
+      "path": "Features/Library/TrackMetadataEditorSheet.swift",
+      "symbol": "TrackMetadataEditorSheet",
+      "kind": "View",
+      "line": 3,
+      "classification": "product-shell",
+      "resolution": "cadence-owned",
+      "ownershipReason": "TrackMetadataEditorSheet composes Cadence-owned model, presentation, and managed-file save actions into a product route or feature surface; shared primitives remain package-owned.",
+      "sharedTarget": null,
+      "remainingCadenceSymbol": "Cadence.TrackMetadataEditorSheet",
+      "consumers": [],
+      "dependencies": {
+        "data": [
+          {
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "presentation",
+            "role": "data"
+          }
+        ],
+        "actions": [
+          {
+            "symbol": "model.dismissTrackMetadataEditor",
+            "role": "actions"
+          },
+          {
+            "symbol": "model.saveTrackMetadata",
+            "role": "actions"
+          }
+        ]
+      },
+      "states": {
+        "appearance": [
+          "system",
+          "light",
+          "dark"
+        ],
+        "motion": [
+          "static"
+        ],
+        "accessibility": [
+          "native-semantics",
+          "keyboard-focus"
+        ],
+        "interaction": [
+          "default",
+          "disabled"
+        ]
+      },
+      "wave": "wave-7-product",
+      "evidence": {
+        "status": "verified",
+        "detail": "TrackMetadataEditorSheet is backed by managed-file metadata transaction regressions.",
+        "references": [
+          "Tests/CadenceTests/ManagedAudioMetadataEditorTests.swift"
+        ]
+      }
+    },
+    {
       "path": "App/AppPlaybackKeyboardCapture.swift",
       "symbol": "AppPlaybackKeyboardCapture",
       "kind": "NSViewRepresentable",
@@ -435,16 +557,12 @@
     {
       "path": "Components/AirPlayRoutePicker.swift",
       "symbol": "AirPlayRoutePicker",
-      "kind": "View",
-      "line": 5,
-      "classification": "cadence-adapter",
+      "kind": "NSViewRepresentable",
+      "line": 16,
+      "classification": "product-only-behaviour",
       "resolution": "cadence-owned",
-      "ownershipReason": "AirPlayRoutePicker maps Cadence-owned player into AirPlayRoutePicker; the package retains reusable presentation.",
-      "sharedTarget": {
-        "componentID": "airplay-route-picker",
-        "deliveryProduct": "QenTerraMediaComponents",
-        "publicSymbol": "AirPlayRoutePicker"
-      },
+      "ownershipReason": "AirPlayRoutePicker retains Cadence-specific AVKit routing and first-responder handling so dismissing the route popover cannot activate library search.",
+      "sharedTarget": null,
       "remainingCadenceSymbol": "Cadence.AirPlayRoutePicker",
       "consumers": [],
       "dependencies": {
@@ -477,9 +595,9 @@
       "wave": "wave-6-adapters",
       "evidence": {
         "status": "verified",
-        "detail": "AirPlayRoutePicker is exercised by the focused family contract in AccessibilityContractTests.swift.",
+        "detail": "AirPlayRoutePicker is covered by source wiring and AppKit first-responder regression tests.",
         "references": [
-          "Tests/CadenceTests/AccessibilityContractTests.swift"
+          "Tests/CadenceTests/ReportedUIRegressionTests.swift"
         ]
       }
     },
@@ -717,9 +835,60 @@
     },
     {
       "path": "Components/CadencePageHeader.swift",
+      "symbol": "CatalogDetailEyebrow",
+      "kind": "View",
+      "line": 8,
+      "classification": "product-shell",
+      "resolution": "cadence-owned",
+      "ownershipReason": "CatalogDetailEyebrow keeps Cadence catalog-detail entity labels visually consistent while shared typography primitives remain package-owned.",
+      "sharedTarget": null,
+      "remainingCadenceSymbol": "Cadence.CatalogDetailEyebrow",
+      "consumers": [
+        "Sources/Cadence/Features/Albums/ProductionAlbumDetailView.swift",
+        "Sources/Cadence/Features/Artists/ProductionArtistDetailView.swift",
+        "Sources/Cadence/Features/Playlists/PlaylistsView.swift",
+        "Sources/Cadence/Features/SmartCollections/SmartCollectionListeningHeader.swift"
+      ],
+      "dependencies": {
+        "data": [
+          {
+            "symbol": "title",
+            "role": "data"
+          }
+        ],
+        "actions": []
+      },
+      "states": {
+        "appearance": [
+          "system",
+          "light",
+          "dark"
+        ],
+        "motion": [
+          "static"
+        ],
+        "accessibility": [
+          "native-semantics"
+        ],
+        "interaction": [
+          "default"
+        ]
+      },
+      "wave": "wave-2-core",
+      "evidence": {
+        "status": "verified",
+        "detail": "CatalogDetailEyebrow is covered by reported UI regression contracts and production detail-page screenshots.",
+        "references": [
+          "Tests/CadenceTests/ReportedUIRegressionTests.swift",
+          "Tests/CadenceTests/DocumentationScreenshotTests.swift"
+        ]
+      }
+    },
+    {
+      "path": "Components/CadencePageHeader.swift",
       "symbol": "CadencePageHeader",
       "kind": "View",
-      "line": 4,
+      "line": 22,
       "classification": "product-shell",
       "resolution": "cadence-owned",
       "ownershipReason": "CadencePageHeader composes Cadence-owned actions, subtitle, title into a product route or feature surface; shared primitives remain package-owned.",
@@ -1015,9 +1184,100 @@
     },
     {
       "path": "Components/EmptyLibraryView.swift",
+      "symbol": "WindowCenteredContentStateLayout",
+      "kind": "Layout",
+      "line": 4,
+      "classification": "product-shell",
+      "resolution": "cadence-owned",
+      "ownershipReason": "WindowCenteredContentStateLayout keeps Cadence empty states centered against the complete workspace; shared primitives remain package-owned.",
+      "sharedTarget": null,
+      "remainingCadenceSymbol": "Cadence.WindowCenteredContentStateLayout",
+      "consumers": [],
+      "dependencies": {
+        "data": [],
+        "actions": []
+      },
+      "states": {
+        "appearance": [
+          "system",
+          "light",
+          "dark"
+        ],
+        "motion": [
+          "static"
+        ],
+        "accessibility": [
+          "native-semantics",
+          "keyboard-focus"
+        ],
+        "interaction": [
+          "default"
+        ]
+      },
+      "wave": "wave-7-product",
+      "evidence": {
+        "status": "verified",
+        "detail": "WindowCenteredContentStateLayout is exercised by the focused family contract in SemanticLayoutTests.swift.",
+        "references": [
+          "Tests/CadenceTests/SemanticLayoutTests.swift"
+        ]
+      }
+    },
+    {
+      "path": "Components/EmptyLibraryView.swift",
+      "symbol": "WindowCenteredContentStatePage",
+      "kind": "View",
+      "line": 38,
+      "classification": "product-shell",
+      "resolution": "cadence-owned",
+      "ownershipReason": "WindowCenteredContentStatePage composes Cadence-owned content and header into a full-workspace empty-state surface; shared primitives remain package-owned.",
+      "sharedTarget": null,
+      "remainingCadenceSymbol": "Cadence.WindowCenteredContentStatePage",
+      "consumers": [],
+      "dependencies": {
+        "data": [
+          {
+            "symbol": "content",
+            "role": "data"
+          },
+          {
+            "symbol": "header",
+            "role": "data"
+          }
+        ],
+        "actions": []
+      },
+      "states": {
+        "appearance": [
+          "system",
+          "light",
+          "dark"
+        ],
+        "motion": [
+          "static"
+        ],
+        "accessibility": [
+          "native-semantics",
+          "keyboard-focus"
+        ],
+        "interaction": [
+          "default"
+        ]
+      },
+      "wave": "wave-7-product",
+      "evidence": {
+        "status": "verified",
+        "detail": "WindowCenteredContentStatePage is exercised by the focused family contract in SemanticLayoutTests.swift.",
+        "references": [
+          "Tests/CadenceTests/SemanticLayoutTests.swift"
+        ]
+      }
+    },
+    {
+      "path": "Components/EmptyLibraryView.swift",
       "symbol": "EmptyLibraryView",
       "kind": "View",
-      "line": 4,
+      "line": 70,
       "classification": "product-shell",
       "resolution": "cadence-owned",
       "ownershipReason": "EmptyLibraryView composes Cadence-owned description, importAction, title into a product route or feature surface; shared primitives remain package-owned.",
@@ -1138,6 +1398,59 @@
         "detail": "FavoriteButton is exercised by the focused family contract in AccessibilityContractTests.swift.",
         "references": [
           "Tests/CadenceTests/AccessibilityContractTests.swift"
+        ]
+      }
+    },
+    {
+      "path": "Components/FavoriteButton.swift",
+      "symbol": "FavoriteContextMenuItem",
+      "kind": "View",
+      "line": 154,
+      "classification": "product-shell",
+      "resolution": "cadence-owned",
+      "ownershipReason": "FavoriteContextMenuItem centralizes Cadence-owned favorite menu copy and icon semantics for catalog context menus.",
+      "sharedTarget": null,
+      "remainingCadenceSymbol": "Cadence.FavoriteContextMenuItem",
+      "consumers": [],
+      "dependencies": {
+        "data": [
+          {
+            "symbol": "isFavorite",
+            "role": "data"
+          }
+        ],
+        "actions": [
+          {
+            "symbol": "action",
+            "role": "actions"
+          }
+        ]
+      },
+      "states": {
+        "appearance": [
+          "system",
+          "light",
+          "dark"
+        ],
+        "motion": [
+          "static"
+        ],
+        "accessibility": [
+          "native-semantics",
+          "keyboard-focus"
+        ],
+        "interaction": [
+          "default",
+          "hover",
+          "pressed"
+        ]
+      },
+      "wave": "wave-7-product",
+      "evidence": {
+        "status": "verified",
+        "detail": "FavoriteContextMenuItem is covered by the reported UI regression source contract.",
+        "references": [
+          "Tests/CadenceTests/ReportedUIRegressionTests.swift"
         ]
       }
     },
@@ -1266,7 +1579,7 @@
       "path": "Components/NavigationRail.swift",
       "symbol": "NavigationRail",
       "kind": "View",
-      "line": 45,
+      "line": 70,
       "classification": "cadence-adapter",
       "resolution": "cadence-owned",
       "ownershipReason": "NavigationRail maps Cadence-owned freezesVisualRegressionHighlights, hiddenRawValue, isExpanded, orderRawValue, selection, suppressesSelection into NavigationRail; the package retains reusable presentation.",
@@ -1313,7 +1626,8 @@
           "dark"
         ],
         "motion": [
-          "static"
+          "animated",
+          "reduced-motion"
         ],
         "accessibility": [
           "native-semantics",
@@ -1485,6 +1799,10 @@
           },
           {
             "symbol": "cornerRadius",
+            "role": "data"
+          },
+          {
+            "symbol": "fillsAvailableSpace",
             "role": "data"
           },
           {
@@ -1786,7 +2104,7 @@
       "line": 149,
       "classification": "product-shell",
       "resolution": "cadence-owned",
-      "ownershipReason": "ProductionAlbumTile composes Cadence-owned album, model, model.handleCatalogSelection, model.setProductionAlbumFavorite, orderedTargets, store into a product route or feature surface; shared primitives remain package-owned.",
+      "ownershipReason": "ProductionAlbumTile composes Cadence-owned album, model, model.handleCatalogSelection, orderedTargets, store into a product route or feature surface; shared primitives remain package-owned.",
       "sharedTarget": null,
       "remainingCadenceSymbol": "Cadence.ProductionAlbumTile",
       "consumers": [],
@@ -1958,7 +2276,7 @@
       "path": "Features/Artists/ProductionArtistDetailView.swift",
       "symbol": "ProductionArtistDetailView",
       "kind": "View",
-      "line": 3,
+      "line": 7,
       "classification": "product-shell",
       "resolution": "cadence-owned",
       "ownershipReason": "ProductionArtistDetailView composes Cadence-owned artistID, catalogCardSize, model, store into a product route or feature surface; shared primitives remain package-owned.",
@@ -1980,11 +2298,20 @@
             "role": "data"
           },
           {
+            "symbol": "readinessObserver",
+            "role": "data"
+          },
+          {
             "symbol": "store",
             "role": "data"
           }
         ],
-        "actions": []
+        "actions": [
+          {
+            "symbol": "model.updateProductionArtist",
+            "role": "actions"
+          }
+        ]
       },
       "states": {
         "appearance": [
@@ -2019,7 +2346,7 @@
       "line": 155,
       "classification": "product-shell",
       "resolution": "cadence-owned",
-      "ownershipReason": "ProductionArtistTile composes Cadence-owned artist, model, model.handleCatalogSelection, model.setProductionArtistFavorite, orderedTargets, store into a product route or feature surface; shared primitives remain package-owned.",
+      "ownershipReason": "ProductionArtistTile composes Cadence-owned artist, model, model.handleCatalogSelection, orderedTargets, store into a product route or feature surface; shared primitives remain package-owned.",
       "sharedTarget": null,
       "remainingCadenceSymbol": "Cadence.ProductionArtistTile",
       "consumers": [],
@@ -2253,14 +2580,14 @@
     },
     {
       "path": "Features/Artwork/ArtworkMenuItems.swift",
-      "symbol": "ArtworkMenuItems",
+      "symbol": "ArtworkActionButtons",
       "kind": "View",
       "line": 3,
       "classification": "product-shell",
       "resolution": "cadence-owned",
-      "ownershipReason": "ArtworkMenuItems composes Cadence-owned label, model, model.removeCustomArtwork, target into a product route or feature surface; shared primitives remain package-owned.",
+      "ownershipReason": "ArtworkActionButtons composes Cadence-owned label, model, model.removeCustomArtwork, target into direct artwork editing controls; shared primitives remain package-owned.",
       "sharedTarget": null,
-      "remainingCadenceSymbol": "Cadence.ArtworkMenuItems",
+      "remainingCadenceSymbol": "Cadence.ArtworkActionButtons",
       "consumers": [],
       "dependencies": {
         "data": [
@@ -2298,15 +2625,17 @@
           "keyboard-focus"
         ],
         "interaction": [
-          "default"
+          "default",
+          "pressed",
+          "disabled"
         ]
       },
       "wave": "wave-7-product",
       "evidence": {
         "status": "verified",
-        "detail": "ArtworkMenuItems is exercised by the focused family contract in MediaArtworkTests.swift.",
+        "detail": "ArtworkActionButtons is exercised by the focused reported UI regression contract.",
         "references": [
-          "Tests/CadenceTests/MediaArtworkTests.swift"
+          "Tests/CadenceTests/ReportedUIRegressionTests.swift"
         ]
       }
     },
@@ -2596,7 +2925,7 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "catalogCardSize",
+            "symbol": "cardSize",
             "role": "data"
           },
           {
@@ -2713,7 +3042,7 @@
       "path": "Features/Home/ProductionHomeView.swift",
       "symbol": "ProductionHomeView",
       "kind": "View",
-      "line": 107,
+      "line": 109,
       "classification": "product-shell",
       "resolution": "cadence-owned",
       "ownershipReason": "ProductionHomeView composes Cadence-owned hiddenHomeSectionsRawValue, homeSectionOrderRawValue, model, pinRevision, store into a product route or feature surface; shared primitives remain package-owned.",
@@ -2731,11 +3060,19 @@
             "role": "data"
           },
           {
+            "symbol": "homeCatalogCardSizeRawValue",
+            "role": "data"
+          },
+          {
             "symbol": "model",
             "role": "data"
           },
           {
             "symbol": "pinRevision",
+            "role": "data"
+          },
+          {
+            "symbol": "recentlyPlayedCardSizeRawValue",
             "role": "data"
           },
           {
@@ -2842,7 +3179,7 @@
       "path": "Features/ImportMusic/ImportMusicDropOverlay.swift",
       "symbol": "ImportMusicDropOverlay",
       "kind": "View",
-      "line": 4,
+      "line": 10,
       "classification": "product-shell",
       "resolution": "cadence-owned",
       "ownershipReason": "ImportMusicDropOverlay composes Cadence-owned Cadence route and feature composition into a product route or feature surface; shared primitives remain package-owned.",
@@ -3035,7 +3372,7 @@
       "path": "Features/ImportMusic/ImportMusicReview.swift",
       "symbol": "ImportMusicCandidateRow",
       "kind": "View",
-      "line": 231,
+      "line": 232,
       "classification": "product-shell",
       "resolution": "cadence-owned",
       "ownershipReason": "ImportMusicCandidateRow composes Cadence-owned candidate, isDisabled, layoutMode, model, model.toggleImportCandidateInclusion, model.updateImportCandidateSelection into a product route or feature surface; shared primitives remain package-owned.",
@@ -5392,6 +5729,10 @@
           {
             "symbol": "track",
             "role": "data"
+          },
+          {
+            "symbol": "visualRegressionShowsTagEntry",
+            "role": "data"
           }
         ],
         "actions": [
@@ -5779,7 +6120,7 @@
       "line": 4,
       "classification": "product-shell",
       "resolution": "cadence-owned",
-      "ownershipReason": "PlaylistsView composes Cadence-owned model, sidebarWidth, store, store.deleteSelectedPlaylist into a product route or feature surface; shared primitives remain package-owned.",
+      "ownershipReason": "PlaylistsView composes Cadence-owned model, store, playlist selection, and deletion into a product route; shared primitives remain package-owned.",
       "sharedTarget": null,
       "remainingCadenceSymbol": "Cadence.PlaylistsView",
       "consumers": [],
@@ -5790,10 +6131,6 @@
             "role": "data"
           },
           {
-            "symbol": "sidebarWidth",
-            "role": "data"
-          },
-          {
             "symbol": "store",
             "role": "data"
           }
@@ -5801,6 +6138,14 @@
         "actions": [
           {
             "symbol": "store.deleteSelectedPlaylist",
+            "role": "actions"
+          },
+          {
+            "symbol": "store.selectPlaylist",
+            "role": "actions"
+          },
+          {
+            "symbol": "store.updateSelectedPlaylist",
             "role": "actions"
           }
         ]
@@ -5838,7 +6183,7 @@
       "line": 6,
       "classification": "cadence-adapter",
       "resolution": "cadence-owned",
-      "ownershipReason": "CadenceModeBackground maps Cadence-owned hasLiveEffects, palette, reduceMotion, visualQAReduceMotionOverride into ArtworkAccentGradientView; the package retains reusable presentation.",
+      "ownershipReason": "CadenceModeBackground maps Cadence-owned palette, frame-rate, reduced-motion, and visual-QA state into ArtworkAccentGradientView; the package retains reusable presentation.",
       "sharedTarget": {
         "componentID": "artwork-accent-gradient",
         "deliveryProduct": "QenTerraMediaComponents",
@@ -5849,11 +6194,11 @@
       "dependencies": {
         "data": [
           {
-            "symbol": "hasLiveEffects",
+            "symbol": "palette",
             "role": "data"
           },
           {
-            "symbol": "palette",
+            "symbol": "maximumFramesPerSecond",
             "role": "data"
           },
           {
@@ -5900,7 +6245,7 @@
       "path": "Features/Rhythm/CadenceModeBackground.swift",
       "symbol": "CadenceModeBackground.TerrainSurface",
       "kind": "NSViewRepresentable",
-      "line": 59,
+      "line": 70,
       "classification": "cadence-adapter",
       "resolution": "cadence-owned",
       "ownershipReason": "CadenceModeBackground.TerrainSurface maps Cadence-owned palette and reduced-motion state into ArtworkAccentGradientView while the package retains the reusable presentation.",
@@ -5915,6 +6260,10 @@
         "data": [
           {
             "symbol": "palette",
+            "role": "data"
+          },
+          {
+            "symbol": "maximumFramesPerSecond",
             "role": "data"
           },
           {
@@ -6117,7 +6466,7 @@
       "line": 411,
       "classification": "product-shell",
       "resolution": "cadence-owned",
-      "ownershipReason": "CadenceModeLyricStack composes Cadence-owned activeLineID, document, seek, slotHeight, systemReduceMotion, visualQAReduceMotionOverride into a product route or feature surface; shared primitives remain package-owned.",
+      "ownershipReason": "CadenceModeLyricStack composes Cadence-owned activeLineID, document, freezesAnimatedContent, seek, slotHeight, systemReduceMotion, visualQAReduceMotionOverride into a product route or feature surface; shared primitives remain package-owned.",
       "sharedTarget": null,
       "remainingCadenceSymbol": "Cadence.CadenceModeLyricStack",
       "consumers": [],
@@ -6129,6 +6478,10 @@
           },
           {
             "symbol": "document",
+            "role": "data"
+          },
+          {
+            "symbol": "freezesAnimatedContent",
             "role": "data"
           },
           {
@@ -6783,6 +7136,10 @@
             "role": "data"
           },
           {
+            "symbol": "recentlyPlayedCardSizeRawValue",
+            "role": "data"
+          },
+          {
             "symbol": "startupPageRawValue",
             "role": "data"
           },
@@ -6844,7 +7201,7 @@
       "path": "Features/Settings/ProductionSettingsView.swift",
       "symbol": "SettingsCard",
       "kind": "View",
-      "line": 348,
+      "line": 368,
       "classification": "product-shell",
       "resolution": "cadence-owned",
       "ownershipReason": "SettingsCard composes Cadence-owned content, symbol, title into a product route or feature surface; shared primitives remain package-owned.",
@@ -6995,7 +7352,7 @@
       "line": 4,
       "classification": "product-shell",
       "resolution": "cadence-owned",
-      "ownershipReason": "SettingsHomeSectionsCard composes Cadence-owned hiddenRawValue, orderRawValue into a product route or feature surface; shared primitives remain package-owned.",
+      "ownershipReason": "SettingsHomeSectionsCard composes Cadence-owned Home visibility and ordering preferences while consuming shared settings primitives.",
       "sharedTarget": null,
       "remainingCadenceSymbol": "Cadence.SettingsHomeSectionsCard",
       "consumers": [],
@@ -7042,7 +7399,7 @@
       "path": "Features/Settings/SettingsHomeSectionsCard.swift",
       "symbol": "SettingsRowSeparator",
       "kind": "View",
-      "line": 167,
+      "line": 141,
       "classification": "product-shell",
       "resolution": "cadence-owned",
       "ownershipReason": "SettingsRowSeparator composes Cadence-owned Cadence route and feature composition into a product route or feature surface; shared primitives remain package-owned.",
@@ -7540,7 +7897,7 @@
       "line": 3,
       "classification": "product-shell",
       "resolution": "cadence-owned",
-      "ownershipReason": "SettingsTrackListsCard composes Cadence-owned densityRawValue, showsTrackArtwork into a product route or feature surface; shared primitives remain package-owned.",
+      "ownershipReason": "SettingsTrackListsCard composes Cadence-owned density, artwork, and shared-or-individual browser width preferences; shared primitives remain package-owned.",
       "sharedTarget": null,
       "remainingCadenceSymbol": "Cadence.SettingsTrackListsCard",
       "consumers": [],
@@ -7551,7 +7908,27 @@
             "role": "data"
           },
           {
+            "symbol": "listWidthModeRawValue",
+            "role": "data"
+          },
+          {
+            "symbol": "playlistListWidth",
+            "role": "data"
+          },
+          {
+            "symbol": "sharedListWidth",
+            "role": "data"
+          },
+          {
             "symbol": "showsTrackArtwork",
+            "role": "data"
+          },
+          {
+            "symbol": "smartCollectionListWidth",
+            "role": "data"
+          },
+          {
+            "symbol": "tagListWidth",
             "role": "data"
           }
         ],
@@ -7812,6 +8189,10 @@
             "role": "data"
           },
           {
+            "symbol": "cadenceModeSession",
+            "role": "data"
+          },
+          {
             "symbol": "cadenceModeShowsLyrics",
             "role": "data"
           },
@@ -7837,6 +8218,10 @@
           },
           {
             "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "preservesVisualRegressionFixtureState",
             "role": "data"
           },
           {
@@ -7886,7 +8271,8 @@
           "dark"
         ],
         "motion": [
-          "static"
+          "animated",
+          "reduced-motion"
         ],
         "accessibility": [
           "native-semantics",
@@ -8821,7 +9207,7 @@
       "line": 3,
       "classification": "product-shell",
       "resolution": "cadence-owned",
-      "ownershipReason": "ProductionTagsView composes Cadence-owned inspectorWidth, model, sidebarWidth, store into a product route or feature surface; shared primitives remain package-owned.",
+      "ownershipReason": "ProductionTagsView composes Cadence-owned inspector width, model, store, and shared list-width policy into a product route; shared primitives remain package-owned.",
       "sharedTarget": null,
       "remainingCadenceSymbol": "Cadence.ProductionTagsView",
       "consumers": [],
@@ -8833,10 +9219,6 @@
           },
           {
             "symbol": "model",
-            "role": "data"
-          },
-          {
-            "symbol": "sidebarWidth",
             "role": "data"
           },
           {
@@ -8976,10 +9358,10 @@
       "path": "Features/Tags/TagTrackPickerSheet.swift",
       "symbol": "TagTrackPickerSheet",
       "kind": "View",
-      "line": 4,
+      "line": 29,
       "classification": "product-shell",
       "resolution": "cadence-owned",
-      "ownershipReason": "TagTrackPickerSheet composes Cadence-owned dismiss, model, store, tag into a product route or feature surface; shared primitives remain package-owned.",
+      "ownershipReason": "TagTrackPickerSheet composes Cadence-owned dismiss, model, store, target into a product route or feature surface; shared primitives remain package-owned.",
       "sharedTarget": null,
       "remainingCadenceSymbol": "Cadence.TagTrackPickerSheet",
       "consumers": [],
@@ -8998,7 +9380,7 @@
             "role": "data"
           },
           {
-            "symbol": "tag",
+            "symbol": "target",
             "role": "data"
           }
         ],
@@ -9073,6 +9455,297 @@
         "detail": "TagsView is exercised by the focused family contract in TagEditingNavigationTests.swift.",
         "references": [
           "Tests/CadenceTests/TagEditingNavigationTests.swift"
+        ]
+      }
+    },
+    {
+      "path": "Components/CatalogEntityEditorSheet.swift",
+      "symbol": "CatalogEntityEditorSheet",
+      "kind": "View",
+      "line": 3,
+      "classification": "product-shell",
+      "resolution": "cadence-owned",
+      "ownershipReason": "CatalogEntityEditorSheet binds Cadence catalog data, artwork routing, dismissal, and save behaviour into one product editor surface.",
+      "sharedTarget": null,
+      "remainingCadenceSymbol": "Cadence.CatalogEntityEditorSheet",
+      "consumers": [],
+      "dependencies": {
+        "data": [
+          {
+            "symbol": "artworkLabel",
+            "role": "data"
+          },
+          {
+            "symbol": "artworkTarget",
+            "role": "data"
+          },
+          {
+            "symbol": "dismiss",
+            "role": "data"
+          },
+          {
+            "symbol": "descriptionFieldLabel",
+            "role": "data"
+          },
+          {
+            "symbol": "fieldLabel",
+            "role": "data"
+          },
+          {
+            "symbol": "model",
+            "role": "data"
+          },
+          {
+            "symbol": "maximumLength",
+            "role": "data"
+          },
+          {
+            "symbol": "normalizeValue",
+            "role": "data"
+          },
+          {
+            "symbol": "save",
+            "role": "data"
+          },
+          {
+            "symbol": "title",
+            "role": "data"
+          },
+          {
+            "symbol": "validationMessage",
+            "role": "data"
+          }
+        ],
+        "actions": []
+      },
+      "states": {
+        "appearance": [
+          "system",
+          "light",
+          "dark"
+        ],
+        "motion": [
+          "static"
+        ],
+        "accessibility": [
+          "native-semantics",
+          "keyboard-focus"
+        ],
+        "interaction": [
+          "default",
+          "pressed",
+          "disabled"
+        ]
+      },
+      "wave": "wave-7-product",
+      "evidence": {
+        "status": "verified",
+        "detail": "CatalogEntityEditorSheet is covered by the production screenshot and entity-editing navigation contracts.",
+        "references": [
+          "Tests/CadenceTests/DocumentationScreenshotTests.swift",
+          "Tests/CadenceTests/TagEditingNavigationTests.swift"
+        ]
+      }
+    },
+    {
+      "path": "Components/NavigationRail.swift",
+      "symbol": "CommandModifierObserver",
+      "kind": "NSViewRepresentable",
+      "line": 227,
+      "classification": "product-only-behaviour",
+      "resolution": "cadence-owned",
+      "ownershipReason": "CommandModifierObserver translates the macOS Command modifier into Cadence navigation-reordering state.",
+      "sharedTarget": null,
+      "remainingCadenceSymbol": "Cadence.CommandModifierObserver",
+      "consumers": [],
+      "dependencies": {
+        "data": [
+          {
+            "symbol": "state",
+            "role": "data"
+          }
+        ],
+        "actions": []
+      },
+      "states": {
+        "appearance": [
+          "not-applicable"
+        ],
+        "motion": [
+          "static"
+        ],
+        "accessibility": [
+          "keyboard-focus"
+        ],
+        "interaction": [
+          "default"
+        ]
+      },
+      "wave": "wave-7-product",
+      "evidence": {
+        "status": "verified",
+        "detail": "CommandModifierObserver participates in the focused navigation ordering contract.",
+        "references": [
+          "Tests/CadenceTests/NavigationRailTests.swift"
+        ]
+      }
+    },
+    {
+      "path": "Components/NavigationRail.swift",
+      "symbol": "NavigationRailCommandReorderOverlay",
+      "kind": "View",
+      "line": 154,
+      "classification": "product-only-behaviour",
+      "resolution": "cadence-owned",
+      "ownershipReason": "NavigationRailCommandReorderOverlay provides the Cadence-only Command-drag targets over the shared navigation presentation.",
+      "sharedTarget": null,
+      "remainingCadenceSymbol": "Cadence.NavigationRailCommandReorderOverlay",
+      "consumers": [],
+      "dependencies": {
+        "data": [
+          {
+            "symbol": "destinations",
+            "role": "data"
+          },
+          {
+            "symbol": "dropTarget",
+            "role": "data"
+          },
+          {
+            "symbol": "isExpanded",
+            "role": "data"
+          },
+          {
+            "symbol": "selection",
+            "role": "data"
+          }
+        ],
+        "actions": [
+          {
+            "symbol": "reorder",
+            "role": "actions"
+          },
+          {
+            "symbol": "finishInteraction",
+            "role": "actions"
+          }
+        ]
+      },
+      "states": {
+        "appearance": [
+          "system",
+          "light",
+          "dark"
+        ],
+        "motion": [
+          "animated",
+          "reduced-motion"
+        ],
+        "accessibility": [
+          "keyboard-focus"
+        ],
+        "interaction": [
+          "drag",
+          "drop"
+        ]
+      },
+      "wave": "wave-7-product",
+      "evidence": {
+        "status": "verified",
+        "detail": "NavigationRailCommandReorderOverlay is exercised by the focused navigation ordering contract.",
+        "references": [
+          "Tests/CadenceTests/NavigationRailTests.swift"
+        ]
+      }
+    },
+    {
+      "path": "Features/Home/ProductionHomeShelfSupport.swift",
+      "symbol": "HomeHorizontalShelf",
+      "kind": "View",
+      "line": 25,
+      "classification": "product-shell",
+      "resolution": "cadence-owned",
+      "ownershipReason": "HomeHorizontalShelf owns Cadence Home overflow measurement, scrolling, and edge-arrow navigation around supplied content.",
+      "sharedTarget": null,
+      "remainingCadenceSymbol": "Cadence.HomeHorizontalShelf",
+      "consumers": [],
+      "dependencies": {
+        "data": [
+          {
+            "symbol": "content",
+            "role": "data"
+          }
+        ],
+        "actions": []
+      },
+      "states": {
+        "appearance": [
+          "system",
+          "light",
+          "dark"
+        ],
+        "motion": [
+          "animated",
+          "reduced-motion"
+        ],
+        "accessibility": [
+          "native-semantics",
+          "keyboard-focus"
+        ],
+        "interaction": [
+          "default",
+          "hover",
+          "pressed",
+          "disabled"
+        ]
+      },
+      "wave": "wave-7-product",
+      "evidence": {
+        "status": "verified",
+        "detail": "HomeHorizontalShelf is covered by the production Home screenshot matrix and semantic layout contract.",
+        "references": [
+          "Tests/CadenceTests/DocumentationScreenshotTests.swift",
+          "Tests/CadenceTests/SemanticLayoutTests.swift"
+        ]
+      }
+    },
+    {
+      "path": "Features/Library/NativeTrackTableCell.swift",
+      "symbol": "NativeTrackHoverArtworkOverlay",
+      "kind": "NSView",
+      "line": 277,
+      "classification": "product-only-behaviour",
+      "resolution": "cadence-owned",
+      "ownershipReason": "NativeTrackHoverArtworkOverlay implements Cadence-specific native table artwork dimming and a white play glyph on hover.",
+      "sharedTarget": null,
+      "remainingCadenceSymbol": "Cadence.NativeTrackHoverArtworkOverlay",
+      "consumers": [],
+      "dependencies": {
+        "data": [],
+        "actions": []
+      },
+      "states": {
+        "appearance": [
+          "system",
+          "light",
+          "dark"
+        ],
+        "motion": [
+          "static"
+        ],
+        "accessibility": [
+          "not-applicable"
+        ],
+        "interaction": [
+          "hover"
+        ]
+      },
+      "wave": "wave-7-product",
+      "evidence": {
+        "status": "verified",
+        "detail": "NativeTrackHoverArtworkOverlay is covered by native track-table presentation and performance tests.",
+        "references": [
+          "Tests/CadenceTests/AllTracksPerformanceAppKitTests.swift"
         ]
       }
     }

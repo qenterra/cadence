@@ -1,6 +1,37 @@
 import QenTerraComponents
 import SwiftUI
 
+struct NowPlayingTagEntryState: Equatable, Sendable {
+    private(set) var isEditing = false
+
+    var presentation: NowPlayingTagEntryPresentation {
+        NowPlayingTagEntryPresentation(
+            showsAddButton: !isEditing,
+            showsTextField: isEditing,
+            requestsFocus: isEditing
+        )
+    }
+
+    mutating func beginEditing() {
+        isEditing = true
+    }
+
+    mutating func cancelEditing() {
+        isEditing = false
+    }
+
+    func submission(from value: String) -> String? {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
+    }
+}
+
+struct NowPlayingTagEntryPresentation: Equatable, Sendable {
+    let showsAddButton: Bool
+    let showsTextField: Bool
+    let requestsFocus: Bool
+}
+
 extension ProductionNowPlayingView {
     var trackTags: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -11,50 +42,49 @@ extension ProductionNowPlayingView {
                         .frame(height: 24)
 
                     DesignFlowLayout(horizontalSpacing: 6, verticalSpacing: 6) {
-                        ForEach(tagStates.prefix(3)) { state in
-                            Button {
-                                model.requestOpenProductionTagContextually(
-                                    id: state.tag.id
-                                )
-                            } label: {
-                                Text(state.tag.displayPath)
-                                    .font(.caption.weight(.medium))
-                                    .padding(.horizontal, 8)
-                                    .frame(height: 24)
-                                    .background(
-                                        CadenceTheme.subduedFill,
-                                        in: Capsule()
-                                    )
+                        ForEach(tagStates) { state in
+                            CadenceTagPill(
+                                title: state.tag.displayPath,
+                                removeAction: {
+                                    removeTag(state)
+                                },
+                                removeAccessibilityLabel: "Remove "
+                                    + state.tag.displayPath
+                                    + " from Track",
+                                action: {
+                                    tagBeingEdited = state.tag
+                                }
+                            )
+                            .help("Edit " + state.tag.displayPath)
+                        }
+
+                        if tagEntryState.presentation.showsTextField {
+                            TextField("Tag name", text: $newTagPath)
+                                .textFieldStyle(.plain)
+                                .font(.caption)
+                                .frame(width: 110, height: 24)
+                                .focused($isTagEntryFocused)
+                                .onSubmit(addTag)
+                                .onExitCommand(perform: cancelTagEntry)
+                                .disabled(isAddingTag)
+                                .accessibilityLabel("Tag Name")
+                        } else {
+                            Button(action: beginTagEntry) {
+                                Image(systemName: "plus")
+                                    .font(.system(size: 14, weight: .medium))
+                                    .frame(width: 22, height: 22)
+                                    .contentShape(Rectangle())
                             }
                             .buttonStyle(.plain)
-                            .help("Show tracks tagged " + state.tag.displayPath)
+                            .frame(
+                                width: 26,
+                                height: CadenceTagPillMetrics.height
+                            )
+                            .help("Add Tag")
+                            .accessibilityLabel("Add Tag")
                         }
-
-                        if tagStates.count > 3 {
-                            Text("+\(tagStates.count - 3)")
-                                .font(.caption.monospacedDigit())
-                                .foregroundStyle(.secondary)
-                                .frame(height: 24)
-                        }
-
-                        TextField("Add a tag", text: $newTagPath)
-                            .textFieldStyle(.plain)
-                            .font(.caption)
-                            .frame(width: 110, height: 24)
-                            .onSubmit(addTag)
-                            .disabled(isAddingTag)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
-
-                    if !trimmedTagPath.isEmpty {
-                        Button(action: addTag) {
-                            Image(systemName: "plus")
-                                .frame(width: 22, height: 22)
-                        }
-                        .buttonStyle(.plain)
-                        .disabled(isAddingTag)
-                        .help("Assign Tag")
-                    }
                 }
                 .padding(.horizontal, 10)
                 .padding(.vertical, 6)
@@ -75,10 +105,11 @@ extension ProductionNowPlayingView {
                 }
 
                 Button {
-                    model.openProductionTagEditor(trackID: track.id)
+                    model.presentTrackMetadataEditor(track)
                 } label: {
-                    Image(systemName: "pencil")
-                        .frame(width: 34, height: 34)
+                    Label("Edit", systemImage: "pencil")
+                        .frame(minHeight: 34)
+                        .padding(.horizontal, 10)
                         .background(
                             CadenceTheme.subduedFill,
                             in: RoundedRectangle(
@@ -88,8 +119,8 @@ extension ProductionNowPlayingView {
                         )
                 }
                 .buttonStyle(.plain)
-                .help("Edit Tags")
-                .accessibilityLabel("Edit Tags for \(displayedTrackTitle)")
+                .help("Edit Information")
+                .accessibilityLabel("Edit Information for \(displayedTrackTitle)")
             }
 
             if let tagError {
@@ -121,7 +152,26 @@ extension ProductionNowPlayingView {
     }
 
     var trimmedTagPath: String {
-        newTagPath.trimmingCharacters(in: .whitespacesAndNewlines)
+        tagEntryState.submission(from: newTagPath) ?? ""
+    }
+
+    func beginTagEntry() {
+        tagEntryState.beginEditing()
+        tagError = nil
+        Task { @MainActor in
+            await Task.yield()
+            isTagEntryFocused = true
+        }
+    }
+
+    func cancelTagEntry() {
+        guard !isAddingTag else {
+            return
+        }
+        newTagPath = ""
+        tagError = nil
+        isTagEntryFocused = false
+        tagEntryState.cancelEditing()
     }
 
     func addTag() {
@@ -142,9 +192,50 @@ extension ProductionNowPlayingView {
                 tagStates = try await model.librarySession.store.tagStates(
                     trackID: track.id
                 )
+                isTagEntryFocused = false
+                tagEntryState.cancelEditing()
+            } catch {
+                tagError = error.localizedDescription
+                isTagEntryFocused = true
+            }
+        }
+    }
+
+    func removeTag(_ state: ProductionTrackTagState) {
+        Task { @MainActor in
+            do {
+                try await model.librarySession.store.setTag(
+                    state.tag.id,
+                    assigned: false,
+                    trackID: track.id
+                )
+                tagStates = try await model.librarySession.store.tagStates(
+                    trackID: track.id
+                )
+                tagError = nil
             } catch {
                 tagError = error.localizedDescription
             }
+        }
+    }
+
+    func renameTag(
+        _ tag: LibraryTagProjection,
+        displayPath: String
+    ) async -> Bool {
+        do {
+            _ = try await model.librarySession.store.renameTag(
+                id: tag.id,
+                displayPath: displayPath
+            )
+            tagStates = try await model.librarySession.store.tagStates(
+                trackID: track.id
+            )
+            tagError = nil
+            return true
+        } catch {
+            tagError = error.localizedDescription
+            return false
         }
     }
 }

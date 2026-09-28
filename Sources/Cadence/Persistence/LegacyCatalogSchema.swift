@@ -4,6 +4,63 @@ import SwiftData
 
 enum CadenceLegacySchemaModels {
     @Model
+    final class PlaylistRecord {
+        #Index<PlaylistRecord>([\.normalizedName], [\.modifiedAt])
+
+        @Attribute(.unique) var id: UUID
+        var name: String
+        var normalizedName: String
+        var createdAt: Date
+        var modifiedAt: Date
+        var customArtworkID: UUID?
+
+        init(
+            id: UUID = UUID(),
+            name: String,
+            createdAt: Date = .now,
+            modifiedAt: Date = .now,
+            customArtworkID: UUID? = nil
+        ) {
+            self.id = id
+            self.name = name
+            normalizedName = SearchNormalizer.normalize(name)
+            self.createdAt = createdAt
+            self.modifiedAt = modifiedAt
+            self.customArtworkID = customArtworkID
+        }
+    }
+
+    @Model
+    final class SmartCollectionRecord {
+        #Index<SmartCollectionRecord>([\.normalizedName], [\.modifiedAt])
+
+        @Attribute(.unique) var id: UUID
+        var name: String
+        var normalizedName: String
+        var ruleData: Data
+        var sortDescriptorRawValue: String
+        var playbackPreferenceRawValue: String
+        var modifiedAt: Date
+
+        init(
+            id: UUID = UUID(),
+            name: String,
+            ruleData: Data,
+            sortDescriptorRawValue: String,
+            playbackPreferenceRawValue: String,
+            modifiedAt: Date = .now
+        ) {
+            self.id = id
+            self.name = name
+            normalizedName = SearchNormalizer.normalize(name)
+            self.ruleData = ruleData
+            self.sortDescriptorRawValue = sortDescriptorRawValue
+            self.playbackPreferenceRawValue = playbackPreferenceRawValue
+            self.modifiedAt = modifiedAt
+        }
+    }
+
+    @Model
     final class ArtistRecord {
         #Index<ArtistRecord>(
             [\.normalizedName],

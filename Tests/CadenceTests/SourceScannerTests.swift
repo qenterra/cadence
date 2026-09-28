@@ -40,6 +40,22 @@ struct SourceScannerTests {
         }
     }
 
+    @Test("Scan keeps unsupported evidence without treating artwork sidecars as errors")
+    func unsupportedEvidence() async throws {
+        try await withTemporaryDirectory { root in
+            try write("audio", to: root.appending(path: "Song.flac"))
+            try write("unknown", to: root.appending(path: "Song.xyz"))
+            try write("cover", to: root.appending(path: "cover.jpg"))
+
+            let result = try await SourceScanner().scanResult(
+                source: ImportSource(urls: [root])
+            )
+
+            #expect(result.files.map(\.relativePath) == ["Song.flac"])
+            #expect(result.unsupportedFiles.map(\.relativePath) == ["Song.xyz"])
+        }
+    }
+
     @Test("Scanner skips symlink traversal and nested Cadence libraries")
     func skipsUnsafeDescendants() async throws {
         try await withTemporaryDirectory { root in

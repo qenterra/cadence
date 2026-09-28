@@ -44,10 +44,6 @@ extension CadenceAppModel {
         requestContextualNavigation(.productionTag(id))
     }
 
-    func openProductionTagEditor(trackID: UUID) {
-        requestContextualNavigation(.productionTagEditor(trackID))
-    }
-
     func requestContextualBack() {
         guard let entry = contextualNavigationHistory.popLast() else {
             return

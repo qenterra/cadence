@@ -157,8 +157,6 @@ struct ProductionArtistTile: View {
     @Bindable var store: LibraryStore
     let artist: LibraryArtistProjection
     let orderedTargets: [CatalogActivationTarget]
-    @State private var isRenamePresented = false
-    @State private var renameDraft = ""
 
     var body: some View {
         MediaTile(
@@ -172,7 +170,16 @@ struct ProductionArtistTile: View {
                 )
             ),
             accessibilityLabel: "Open \(artist.name)",
-            presentation: .cadenceCatalog(metadataStyle: .secondary)
+            presentation: MediaTilePresentation(
+                horizontalAlignment: .center,
+                padding: 10,
+                contentSpacing: 10,
+                textSpacing: 4,
+                titleLineLimit: 1,
+                accessoryPlacement: .labelTrailing,
+                titleAccessoryInset: 0,
+                metadataStyle: .secondary
+            )
         ) {
             ProductionArtworkView(
                 model: model,
@@ -187,56 +194,25 @@ struct ProductionArtistTile: View {
                 Circle()
                     .strokeBorder(CadenceTheme.separator, lineWidth: 0.5)
             }
-        } trailingAccessory: { context in
-            FavoriteButton(
-                itemID: artist.id,
-                isFavorite: artist.isFavorite,
-                itemName: artist.name,
-                controlSize: CatalogTileFavoriteLayout.controlSize,
-                isRevealed: false,
-                interactionContext: context
-            ) { requestedValue in
-                await model.setProductionArtistFavorite(
-                    artist,
-                    isFavorite: requestedValue
-                ) != nil
-            }
+        } trailingAccessory: {
+            EmptyView()
         } action: {
             openArtist()
         }
         .contextMenu {
             artistActions
         }
-        .catalogRenameAlert(
-            "Rename Artist",
-            prompt: "Artist Name",
-            isPresented: $isRenamePresented,
-            draft: $renameDraft
-        ) { name in
-            Task {
-                _ = await model.renameProductionArtist(
-                    id: artist.id,
-                    name: name
-                )
-            }
-        }
     }
 
     @ViewBuilder
     private var artistActions: some View {
-        Button(
-            artist.isFavorite ? "Remove from Favorites" : "Add to Favorites",
-            systemImage: artist.isFavorite ? "heart.slash" : "heart"
-        ) {
+        FavoriteContextMenuItem(isFavorite: artist.isFavorite) {
             Task {
                 await model.setProductionArtistFavorite(
                     artist,
                     isFavorite: !artist.isFavorite
                 )
             }
-        }
-        Button("Rename", systemImage: "pencil") {
-            beginRename()
         }
         Button(
             HomePinStore.contains(artist.id, in: .artist)
@@ -248,15 +224,12 @@ struct ProductionArtistTile: View {
         ) {
             HomePinStore.toggle(artist.id, in: .artist)
         }
+        Divider()
         AddArtistToPlaylistMenuItems(
             store: store,
             artistID: artist.id
         )
-        ArtworkMenuItems(
-            model: model,
-            target: .managedArtist(artist.id),
-            label: "Artist Image"
-        )
+        Divider()
         Button(
             "Move Artist to Trash…",
             systemImage: "trash",
@@ -268,11 +241,6 @@ struct ProductionArtistTile: View {
                 title: artist.name
             )
         }
-    }
-
-    private func beginRename() {
-        renameDraft = artist.name
-        isRenamePresented = true
     }
 
     private func openArtist() {

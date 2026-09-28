@@ -5,6 +5,28 @@ import SwiftUI
 import Testing
 
 struct SemanticLayoutTests {
+    @Test("Empty playlists keep playback controls disabled")
+    func emptyPlaylistPlaybackControlsStayDisabled() {
+        #expect(
+            !PlaylistPlaybackPresentation.isEnabled(
+                ownsLoadedTracks: true,
+                trackCount: 0
+            )
+        )
+        #expect(
+            PlaylistPlaybackPresentation.isEnabled(
+                ownsLoadedTracks: true,
+                trackCount: 1
+            )
+        )
+        #expect(
+            !PlaylistPlaybackPresentation.isEnabled(
+                ownsLoadedTracks: false,
+                trackCount: 4
+            )
+        )
+    }
+
     @Test("Product spacing aliases follow the four-point rhythm")
     func semanticSpacingRhythm() {
         let values = [
@@ -42,6 +64,16 @@ struct SemanticLayoutTests {
         #expect(WorkspaceLayout.rowHeight == CadenceLayout.rowHeight)
         #expect(TrackTableColumnPolicy.horizontalInset == CadenceLayout.pageInset)
         #expect(TrackTableColumnPolicy.columnSpacing == CadenceLayout.controlGap)
+    }
+
+    @Test("Empty library placeholders stay centered in the whole workspace")
+    func emptyLibraryWindowCenter() {
+        let bounds = CGRect(x: 40, y: 80, width: 1200, height: 900)
+
+        #expect(
+            WindowCenteredContentStateLayout.center(in: bounds)
+                == CGPoint(x: 640, y: 530)
+        )
     }
 
     @Test("Home uses one artwork-card presentation even without custom artwork")
@@ -196,12 +228,15 @@ struct SemanticLayoutTests {
         )
     }
 
-    @Test("Home puts Recently Played before personalized pinned shelves")
+    @Test("Home puts tags above listening shelves by default")
     func homeSectionOrder() {
         #expect(HomeContentSection.personalizedOrder == [
+            .tags,
             .recentlyPlayed,
             .pinned,
             .favorites,
         ])
+        #expect(ImportMusicDropOverlayMetrics.minimumWidth >= 640)
+        #expect(ImportMusicDropOverlayMetrics.minimumHeight >= 420)
     }
 }

@@ -1,6 +1,18 @@
 import Foundation
 
 extension LibraryStore {
+    @discardableResult
+    func renameTag(
+        id: UUID,
+        displayPath: String
+    ) async throws -> LibraryTagProjection {
+        let repository = try requireRepository()
+        let tag = try await repository.renameTag(id: id, displayPath: displayPath)
+        tagRevision &+= 1
+        await refreshTags()
+        return tag
+    }
+
     func loadNextTags() async {
         guard
             !isLoadingNextTags,

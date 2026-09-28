@@ -21,6 +21,11 @@ struct ImportDuplicateLookup: Sendable {
 }
 
 struct ImportInspectionService: Sendable {
+    struct Result: Equatable, Sendable {
+        let candidates: [ImportInspectionCandidate]
+        let unsupportedFiles: [SourceScanner.UnsupportedFile]
+    }
+
     static let defaultMaximumConcurrentFiles = 4
 
     private let scanner: SourceScanner
@@ -52,7 +57,17 @@ struct ImportInspectionService: Sendable {
             ImportInspectionProgress
         ) async -> Void = { _ in }
     ) async throws -> [ImportInspectionCandidate] {
-        let files = try await scanner.scan(source: source)
+        try await inspectResult(source: source, progress: progress).candidates
+    }
+
+    func inspectResult(
+        source: ImportSource,
+        progress: @escaping @Sendable (
+            ImportInspectionProgress
+        ) async -> Void = { _ in }
+    ) async throws -> Result {
+        let scanResult = try await scanner.scanResult(source: source)
+        let files = scanResult.files
         let audioFiles = files.filter {
             if case .audio = $0.kind {
                 return true
@@ -74,7 +89,10 @@ struct ImportInspectionService: Sendable {
         )
         let probes = drafts.compactMap(\.duplicateProbe)
         let evidence = try await duplicateLookup.evidence(for: probes)
-        return classifier.classify(drafts, evidence: evidence)
+        return Result(
+            candidates: classifier.classify(drafts, evidence: evidence),
+            unsupportedFiles: scanResult.unsupportedFiles
+        )
     }
 
     private func inspect(

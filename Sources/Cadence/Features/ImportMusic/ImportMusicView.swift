@@ -49,6 +49,26 @@ struct ImportMusicView: View {
             model.toggleSelectedImportCandidateInclusion()
             return .handled
         }
+        .onExitCommand {
+            model.cancelActiveImportIfPossible()
+        }
+        .alert(
+            "Unsupported Files Skipped",
+            isPresented: Binding(
+                get: { model.unsupportedImportMessage != nil },
+                set: {
+                    if !$0 {
+                        model.clearUnsupportedImportNotice()
+                    }
+                }
+            )
+        ) {
+            Button("Done", role: .cancel) {
+                model.clearUnsupportedImportNotice()
+            }
+        } message: {
+            Text(model.unsupportedImportMessage ?? "")
+        }
         .alert(
             "Couldn’t scan music",
             isPresented: Binding(

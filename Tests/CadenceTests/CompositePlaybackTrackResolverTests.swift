@@ -58,4 +58,24 @@ struct CompositePlaybackTrackResolverTests {
         #expect(resolved.isEmpty)
         #expect(managed.requests == [[missingID]])
     }
+
+    @Test("Duplicate IDs resolve once without trapping")
+    func duplicateIDsResolveOnce() async throws {
+        let managedResolved = playbackTestTrack(
+            id: UUID(),
+            title: "Single Track Album"
+        )
+        let managed = PlaybackTestResolver(tracks: [managedResolved])
+        let resolver = CompositePlaybackTrackResolver(
+            external: ExternalAudioSession(),
+            managed: managed
+        )
+
+        let resolved = try await resolver.resolve(
+            trackIDs: [managedResolved.track.id, managedResolved.track.id]
+        )
+
+        #expect(resolved.map(\.track.id) == [managedResolved.track.id])
+        #expect(managed.requests == [[managedResolved.track.id]])
+    }
 }

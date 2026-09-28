@@ -222,6 +222,27 @@ extension ProductionCatalogTests {
         )
     }
 
+    @Test("Artist updates normalize and clear the optional profile description")
+    func artistDescriptionMutation() async throws {
+        let fixture = try makeCatalogFixture()
+        let repository = LibraryRepository(modelContainer: fixture.container)
+
+        let updated = try await repository.updateArtist(
+            id: fixture.artistID,
+            name: "  Northern Assembly  ",
+            userDescription: "  Nocturnal electronic duo.  "
+        )
+        #expect(updated.name == "Northern Assembly")
+        #expect(updated.userDescription == "Nocturnal electronic duo.")
+
+        let cleared = try await repository.updateArtist(
+            id: fixture.artistID,
+            name: updated.name,
+            userDescription: "  \n "
+        )
+        #expect(cleared.userDescription == nil)
+    }
+
     private func makeCatalogFixture() throws -> CatalogFixture {
         let container = try LibraryContainerFactory.inMemory()
         let context = ModelContext(container)

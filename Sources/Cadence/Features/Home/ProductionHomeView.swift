@@ -1,6 +1,7 @@
 import SwiftUI
 
 enum HomeContentSection: String, Hashable, Identifiable, Sendable {
+    case tags
     case recentlyPlayed
     case pinned
     case favorites
@@ -11,6 +12,7 @@ enum HomeContentSection: String, Hashable, Identifiable, Sendable {
 
     var title: String {
         switch self {
+        case .tags: String(localized: "Tags")
         case .recentlyPlayed: String(localized: "Recently Played")
         case .pinned: String(localized: "Pinned")
         case .favorites: String(localized: "Favorites")
@@ -19,6 +21,7 @@ enum HomeContentSection: String, Hashable, Identifiable, Sendable {
 
     var symbolName: String {
         switch self {
+        case .tags: "tag"
         case .recentlyPlayed: "clock.arrow.circlepath"
         case .pinned: "pin"
         case .favorites: "heart"
@@ -26,6 +29,7 @@ enum HomeContentSection: String, Hashable, Identifiable, Sendable {
     }
 
     static let personalizedOrder: [HomeContentSection] = [
+        .tags,
         .recentlyPlayed,
         .pinned,
         .favorites,
@@ -33,10 +37,7 @@ enum HomeContentSection: String, Hashable, Identifiable, Sendable {
 }
 
 enum HomeSectionConfiguration {
-    static let configurableSections: [HomeContentSection] = [
-        .pinned,
-        .favorites,
-    ]
+    static let configurableSections = HomeContentSection.personalizedOrder
 
     static var defaultOrderRawValue: String {
         encode(configurableSections)
@@ -52,7 +53,10 @@ enum HomeSectionConfiguration {
             .filter(allowed.contains)
         var seen = Set<HomeContentSection>()
         let unique = decoded.filter { seen.insert($0).inserted }
-        return unique + configurableSections.filter { !seen.contains($0) }
+        let missing = configurableSections.filter { !seen.contains($0) }
+        let discovery = missing.filter { $0 == .tags }
+        let remaining = missing.filter { $0 != .tags }
+        return discovery + unique + remaining
     }
 
     static func hiddenSections(
@@ -72,7 +76,7 @@ enum HomeSectionConfiguration {
         hiddenRawValue: String
     ) -> [HomeContentSection] {
         let hidden = hiddenSections(from: hiddenRawValue)
-        return [.recentlyPlayed] + orderedConfigurableSections(
+        return orderedConfigurableSections(
             from: orderRawValue
         ).filter { !hidden.contains($0) }
     }
@@ -84,8 +88,6 @@ enum HomeSectionConfiguration {
     ) -> [HomeContentSection] {
         guard
             source != target,
-            source != .recentlyPlayed,
-            target != .recentlyPlayed,
             let sourceIndex = sections.firstIndex(of: source),
             let targetIndex = sections.firstIndex(of: target)
         else {
@@ -113,6 +115,10 @@ struct ProductionHomeView: View {
         HomeSectionConfiguration.defaultOrderRawValue
     @AppStorage(CadencePreferences.Keys.hiddenHomeSections)
     private var hiddenHomeSectionsRawValue = ""
+    @AppStorage(CadencePreferences.Keys.homeRecentlyPlayedCardSize)
+    private var recentlyPlayedCardSizeRawValue = CatalogCardSize.automatic.rawValue
+    @AppStorage(CadencePreferences.Keys.catalogCardSize)
+    var homeCatalogCardSizeRawValue = CatalogCardSize.automatic.rawValue
 
     var body: some View {
         if store.availability == .loading,
@@ -122,7 +128,7 @@ struct ProductionHomeView: View {
                 .background(CadenceTheme.contentBackground)
         } else if store.catalogCounts.liveTrackCount == 0 {
             VStack(spacing: 0) {
-                CadencePageHeader("Home", subtitle: "0 tracks")
+                CadencePageHeader("Home")
                     .padding(CadenceLayout.pageInset)
                 EmptyLibraryView(
                     title: "Your Library Is Empty",
@@ -139,13 +145,12 @@ struct ProductionHomeView: View {
                     await store.refresh(.home)
                 },
                 content: {
-                    CadencePageHeader(
-                        "Home",
-                        subtitle: "\(store.catalogCounts.liveTrackCount) tracks"
-                    )
+                    CadencePageHeader("Home")
 
                     ForEach(visibleSections) { section in
                         switch section {
+                        case .tags:
+                            tags
                         case .recentlyPlayed:
                             recentlyPlayed
                         case .pinned:
@@ -171,7 +176,9 @@ struct ProductionHomeView: View {
                 HomeTrackGrid(
                     model: model,
                     tracks: tracks,
-                    queueSource: .adHoc
+                    queueSource: .adHoc,
+                    cardSize: CatalogCardSize(rawValue: recentlyPlayedCardSizeRawValue)
+                        ?? .automatic
                 )
             }
         }

@@ -37,11 +37,13 @@ struct ProductionLibraryView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             case .empty, .ready, .loading:
                 if store.tracks.isEmpty {
-                    EmptyLibraryView(
-                        title: "Your Library Is Empty",
-                        description: "Import a folder to start building your Cadence library."
-                    ) {
-                        model.requestNavigationDestination(.importMusic)
+                    WindowCenteredContentStatePage {
+                        EmptyLibraryView(
+                            title: "Your Library Is Empty",
+                            description: "Import a folder to start building your Cadence library."
+                        ) {
+                            model.requestNavigationDestination(.importMusic)
+                        }
                     }
                 } else {
                     columns
@@ -366,22 +368,23 @@ private extension ProductionLibraryView {
             .frame(width: 1)
     }
 
-    func artworkMenu(
-        _ target: ArtworkTarget,
-        label: String
-    ) -> some View {
-        ArtworkMenuItems(model: model, target: target, label: label)
-    }
-
     @ViewBuilder
     func artistActions(
         _ artist: LibraryArtistProjection
     ) -> some View {
+        FavoriteContextMenuItem(isFavorite: artist.isFavorite) {
+            Task {
+                await model.setProductionArtistFavorite(
+                    artist,
+                    isFavorite: !artist.isFavorite
+                )
+            }
+        }
+        Divider()
         AddArtistToPlaylistMenuItems(
             store: store,
             artistID: artist.id
         )
-        artworkMenu(.managedArtist(artist.id), label: "Artist Image")
         Divider()
         Button(
             "Move Artist to Trash…",
@@ -400,6 +403,15 @@ private extension ProductionLibraryView {
     func albumActions(
         _ album: LibraryAlbumProjection
     ) -> some View {
+        FavoriteContextMenuItem(isFavorite: album.isFavorite) {
+            Task {
+                await model.setProductionAlbumFavorite(
+                    album,
+                    isFavorite: !album.isFavorite
+                )
+            }
+        }
+        Divider()
         QuickAlbumTagMenuItems(
             store: store,
             albumID: album.id
@@ -408,7 +420,6 @@ private extension ProductionLibraryView {
             store: store,
             albumID: album.id
         )
-        artworkMenu(.managedAlbum(album.id), label: "Album Artwork")
         Divider()
         Button(
             "Move Album to Trash…",

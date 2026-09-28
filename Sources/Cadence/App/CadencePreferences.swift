@@ -1,4 +1,14 @@
 import Foundation
+
+enum CollectionListWidthMode: String, CaseIterable, Identifiable, Sendable {
+    case shared
+    case individual
+
+    var id: Self {
+        self
+    }
+}
+
 import SwiftUI
 
 enum CatalogCardSize: String, CaseIterable, Codable, Identifiable, Sendable {
@@ -126,6 +136,7 @@ enum CadencePreferences {
     enum Keys {
         static let appearance = "appearance"
         static let catalogCardSize = "catalog.cardSize"
+        static let homeRecentlyPlayedCardSize = "home.recentlyPlayed.cardSize"
         static let interfaceTextSize = "interface.textSize"
         static let startupPage = "navigation.startupPage"
         static let lastNavigationDestination = "navigation.lastDestination"
@@ -134,6 +145,11 @@ enum CadencePreferences {
         static let playbackTimeDisplay = "playback.timeDisplay"
         static let homeSectionOrder = "home.sectionOrder"
         static let hiddenHomeSections = "home.hiddenSections"
+        static let collectionListWidth = "workspace.collectionListWidth"
+        static let collectionListWidthMode = "workspace.collectionListWidthMode"
+        static let playlistListWidth = "workspace.playlists.listWidth"
+        static let smartCollectionListWidth = "workspace.smartCollections.listWidth"
+        static let tagListWidth = "workspace.tags.listWidth"
         static let restoresQueue = "playback.restoresQueue"
         static let previousTrackBehavior = "playback.previousBehavior"
         static let seekInterval = "playback.seekInterval"
@@ -153,11 +169,39 @@ enum CadencePreferences {
     static func registerDefaults(
         in defaults: UserDefaults = .standard
     ) {
+        migrateCollectionListWidth(in: defaults)
         defaults.register(defaults: Dictionary(
             uniqueKeysWithValues: descriptors.map {
                 ($0.key, $0.defaultValue.propertyListValue)
             }
         ))
+    }
+
+    private static func migrateCollectionListWidth(in defaults: UserDefaults) {
+        let legacyKeys = [
+            "playlists.sidebarWidth",
+            "smartCollections.listWidth",
+        ]
+
+        if let legacyWidth = legacyKeys.lazy.compactMap({ key in
+            (defaults.object(forKey: key) as? NSNumber)?.doubleValue
+        }).first {
+            defaults.set(
+                min(max(legacyWidth, 160), 720),
+                forKey: Keys.collectionListWidth
+            )
+        }
+
+        if let legacyTagWidth = defaults.object(forKey: "tags.sidebarWidth")
+            as? NSNumber {
+            defaults.set(
+                min(max(legacyTagWidth.doubleValue, 160), 720),
+                forKey: Keys.tagListWidth
+            )
+        }
+
+        legacyKeys.forEach(defaults.removeObject(forKey:))
+        defaults.removeObject(forKey: "tags.sidebarWidth")
     }
 
     static func catalogCardSize(
@@ -166,6 +210,17 @@ enum CadencePreferences {
         repairedStringEnum(
             CatalogCardSize.self,
             key: Keys.catalogCardSize,
+            fallback: .automatic,
+            defaults: defaults
+        )
+    }
+
+    static func homeRecentlyPlayedCardSize(
+        in defaults: UserDefaults = .standard
+    ) -> CatalogCardSize {
+        repairedStringEnum(
+            CatalogCardSize.self,
+            key: Keys.homeRecentlyPlayedCardSize,
             fallback: .automatic,
             defaults: defaults
         )

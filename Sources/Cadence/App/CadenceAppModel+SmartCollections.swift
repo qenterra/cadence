@@ -90,7 +90,7 @@ extension CadenceAppModel {
         )
     }
 
-    var selectedProductionSmartCollectionTrackSource:
+    var selectedSmartCollectionTrackSource:
         ProductionTrackTableSource? {
         guard
             librarySession.availability != .preview,
@@ -132,19 +132,10 @@ extension CadenceAppModel {
         }
     }
 
-    func requestEditSmartCollection(
-        _ collectionID: SmartCollectionPreview.ID
-    ) {
-        if smartCollectionsPresentationMode == .editing {
-            requestSelectSmartCollection(collectionID)
-            return
+    func updateSmartCollectionDraftDescription(_ description: String) {
+        mutateSmartCollectionDraft {
+            $0.userDescription = description
         }
-
-        requestSelectSmartCollection(collectionID)
-        guard selectedSmartCollectionID == collectionID else {
-            return
-        }
-        requestEditSelectedSmartCollection()
     }
 
     @discardableResult
@@ -200,8 +191,12 @@ extension CadenceAppModel {
         return SmartCollectionPreview(
             id: draft.sourceID ?? draft.id,
             name: draft.name.trimmingCharacters(in: .whitespacesAndNewlines),
+            userDescription: CatalogDescriptionPolicy.normalized(
+                draft.userDescription
+            ),
             rule: draft.rule,
-            modifiedAt: modifiedAt
+            modifiedAt: modifiedAt,
+            customArtworkID: selectedSmartCollection?.customArtworkID
         )
     }
 

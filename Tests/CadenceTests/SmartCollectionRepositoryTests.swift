@@ -22,7 +22,11 @@ struct SmartCollectionRepositoryTests {
         )
         try package.bootstrapForConfirmedImport()
         let id = UUID()
-        let original = collection(id: id, name: "Favorites")
+        let original = collection(
+            id: id,
+            name: "Favorites",
+            userDescription: "The tracks I keep coming back to."
+        )
 
         do {
             let container = try LibraryContainerFactory.persistent(
@@ -61,11 +65,13 @@ struct SmartCollectionRepositoryTests {
 
     private func collection(
         id: UUID,
-        name: String
+        name: String,
+        userDescription: String? = nil
     ) -> SmartCollectionPreview {
         SmartCollectionPreview(
             id: id,
             name: name,
+            userDescription: userDescription,
             rule: SmartCollectionRuleGroup(
                 combinator: .all,
                 children: [

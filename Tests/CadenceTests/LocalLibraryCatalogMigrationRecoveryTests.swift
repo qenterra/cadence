@@ -50,27 +50,31 @@ extension LocalLibraryCatalogMigrationTests {
         let race = FactoryOpenRace()
         defer { race.releaseOwner.signal() }
 
-        DispatchQueue.global(qos: .userInitiated).async {
-            do {
-                _ = try LibraryContainerFactory.persistentLocal(
-                    package: fixture.package,
-                    applicationSupportDirectory: fixture.applicationSupportDirectory,
-                    openStore: { _ in
-                        let container = try LibraryContainerFactory.inMemory()
-                        race.ownerOpened.signal()
-                        guard race.releaseOwner.wait(timeout: .now() + 10) == .success else {
-                            throw CatalogMigrationTestInterruption.injected
+        let ownerThread = Thread {
+            autoreleasepool {
+                do {
+                    _ = try LibraryContainerFactory.persistentLocal(
+                        package: fixture.package,
+                        applicationSupportDirectory: fixture.applicationSupportDirectory,
+                        openStore: { _ in
+                            let container = try LibraryContainerFactory.inMemory()
+                            race.ownerOpened.signal()
+                            guard race.releaseOwner.wait(timeout: .now() + 30) == .success else {
+                                throw CatalogMigrationTestInterruption.injected
+                            }
+                            return container
                         }
-                        return container
-                    }
-                )
-            } catch {
-                race.recordOwnerFailure(error)
+                    )
+                } catch {
+                    race.recordOwnerFailure(error)
+                }
+                race.ownerFinished.signal()
             }
-            race.ownerFinished.signal()
         }
+        ownerThread.qualityOfService = .userInitiated
+        ownerThread.start()
 
-        try #require(race.ownerOpened.wait(timeout: .now() + 10) == .success)
+        try #require(race.ownerOpened.wait(timeout: .now() + 30) == .success)
         #expect(throws: (any Error).self) {
             _ = try LibraryContainerFactory.persistentLocal(
                 package: fixture.package,
@@ -86,7 +90,7 @@ extension LocalLibraryCatalogMigrationTests {
         #expect(FileManager.default.fileExists(atPath: fixture.localCatalog.storeURL.path))
 
         race.releaseOwner.signal()
-        try #require(race.ownerFinished.wait(timeout: .now() + 10) == .success)
+        try #require(race.ownerFinished.wait(timeout: .now() + 30) == .success)
         #expect(race.ownerFailure == nil)
         #expect(try fixture.manifest().phase == .complete)
         withExtendedLifetime(sourceContainer) {}

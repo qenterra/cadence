@@ -40,6 +40,11 @@ enum CatalogCardLayoutMetrics {
         }
     }
 
+    static func preferredShelfWidth(for size: CatalogCardSize) -> CGFloat {
+        let range = widthRange(for: size)
+        return (range.lowerBound + range.upperBound) / 2
+    }
+
     static func columns(
         availableWidth: CGFloat,
         spacing: CGFloat

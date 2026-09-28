@@ -25,7 +25,8 @@ extension CadenceAppModel {
         case let .scanning(progress):
             importPreviewStage = .scanning
             importScanProgress = progress
-        case let .review(candidates):
+        case let .review(candidates, unsupportedFiles):
+            unsupportedImportFiles = unsupportedFiles
             applyReviewedCandidates(candidates)
         case let .importing(progress):
             managedImportProgress = progress
@@ -152,6 +153,12 @@ extension CadenceAppModel {
         try librarySession.requireTransitionOwnership(transition)
         _ = try await importRecovery.recover()
         try librarySession.requireTransitionOwnership(transition)
+        if let location = librarySession.location {
+            _ = try await ManagedTrackMetadataTransaction(
+                package: ManagedLibraryPackage(location: location)
+            ).recover(repository: repository)
+        }
+        try librarySession.requireTransitionOwnership(transition)
         _ = try await librarySession.store.recoverLyricsEdits()
         try librarySession.requireTransitionOwnership(transition)
         let artworkRecovery = if let managedArtworkRecoveryOperation {
@@ -184,6 +191,7 @@ extension CadenceAppModel {
             return
         }
         importScanError = nil
+        unsupportedImportFiles = []
         importCandidates = []
         includedImportCandidateIDs.removeAll()
         selectedImportCandidateIDs.removeAll()
@@ -199,6 +207,7 @@ extension CadenceAppModel {
         includedImportCandidateIDs.removeAll()
         selectedImportCandidateIDs.removeAll()
         importSelectionAnchorID = nil
+        unsupportedImportFiles = []
     }
 
     private func applyReviewedCandidates(

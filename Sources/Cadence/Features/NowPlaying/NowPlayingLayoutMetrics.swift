@@ -38,16 +38,30 @@ struct NowPlayingLayoutMetrics: Hashable, Sendable {
 }
 
 struct NowPlayingContextOverflowPolicy: Hashable, Sendable {
-    private static let topContentInset: CGFloat = 42
+    let usesVerticalScrolling = false
+    let bottomContentInset: CGFloat = 28
+    let minimumContentHeight: CGFloat = 0
 
-    let usesVerticalScrolling = true
-    let bottomContentInset: CGFloat = 72
-    let minimumContentHeight: CGFloat
+    init(height _: CGFloat) {}
+}
 
-    init(height: CGFloat) {
-        minimumContentHeight = max(
-            height - Self.topContentInset - bottomContentInset,
-            0
+struct NowPlayingContextLayout: Hashable, Sendable {
+    static let minimumArtworkSize = CGFloat(180)
+    static let horizontalInset = CGFloat(36)
+    static let verticalInset = CGFloat(28)
+    static let sectionSpacing = CGFloat(16)
+
+    let artworkSize: CGFloat
+
+    init(
+        height: CGFloat,
+        preferredArtworkSize: CGFloat,
+        showsCadenceModeHint: Bool
+    ) {
+        let reservedHeight: CGFloat = showsCadenceModeHint ? 306 : 252
+        artworkSize = min(
+            preferredArtworkSize,
+            max(Self.minimumArtworkSize, height - reservedHeight)
         )
     }
 }

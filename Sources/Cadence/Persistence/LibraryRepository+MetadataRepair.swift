@@ -16,6 +16,19 @@ struct ManagedMetadataRepair: Sendable {
     let trackID: UUID
     let metadata: ManagedImportManifest.Metadata
     let sourceMetadata: Data
+    let contentHash: String?
+
+    init(
+        trackID: UUID,
+        metadata: ManagedImportManifest.Metadata,
+        sourceMetadata: Data,
+        contentHash: String? = nil
+    ) {
+        self.trackID = trackID
+        self.metadata = metadata
+        self.sourceMetadata = sourceMetadata
+        self.contentHash = contentHash
+    }
 }
 
 private struct MetadataRepairAffectedRecords {
@@ -92,6 +105,9 @@ extension LibraryRepository {
         let tracks = try modelContext.fetch(
             FetchDescriptor(predicate: trackPredicate)
         )
+        guard tracks.count == repairsByID.count else {
+            throw CatalogRenameError.itemUnavailable
+        }
         var context = try metadataRepairContext(
             repairs: repairs,
             trackIDs: trackIDs
@@ -112,7 +128,12 @@ extension LibraryRepository {
             artists: context.affected.artists,
             albums: context.affected.albums
         )
-        try modelContext.save()
+        do {
+            try modelContext.save()
+        } catch {
+            modelContext.rollback()
+            throw error
+        }
         return tracks.count
     }
 
@@ -172,7 +193,7 @@ extension LibraryRepository {
             context.affected.artists[artist.id] = artist
         }
         if let album {
-            album.year = album.year ?? metadata.year
+            album.year = metadata.year
             context.affected.albums[album.id] = album
         }
     }
@@ -196,6 +217,9 @@ extension LibraryRepository {
         track.bitDepth = metadata.bitDepth
         track.spatialFormat = metadata.spatialFormat
         track.sourceMetadata = repair.sourceMetadata
+        if let contentHash = repair.contentHash {
+            track.contentHash = contentHash
+        }
         track.artist = artist
         track.album = album
     }

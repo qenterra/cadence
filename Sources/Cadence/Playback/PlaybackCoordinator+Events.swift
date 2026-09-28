@@ -194,6 +194,21 @@ extension PlaybackCoordinator {
         publishState(reanchorPresentationClock: false)
     }
 
+    func refreshManagedTrackMetadata(trackID: UUID) async {
+        guard state.queue?.source != .externalFiles else {
+            return
+        }
+        guard let refreshed = await (try? resolver.resolve(trackIDs: [trackID]))?.first else {
+            return
+        }
+        resolvedTracks[trackID] = refreshed
+        guard state.currentTrack?.id == trackID else {
+            return
+        }
+        state.currentTrack = refreshed.track
+        publishState(reanchorPresentationClock: false)
+    }
+
     func failCurrent(with error: Error) {
         invalidateBassState()
         invalidateRouteFailureAuthority()

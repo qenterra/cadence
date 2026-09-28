@@ -311,13 +311,14 @@ extension CadenceAppModel {
             smartCollectionDraft = SmartCollectionDraft(
                 id: draftID,
                 sourceID: nil,
-                name: "Untitled Collection",
+                name: "",
                 rule: SmartCollectionRuleGroup(
                     id: rootID,
                     combinator: .all,
                     children: []
                 )
             )
+            smartCollectionNameFocusRequest = UUID()
             lastValidSmartCollectionResultIDs = tracks.map(\.id)
         case .listening:
             enterSmartCollectionsListening()

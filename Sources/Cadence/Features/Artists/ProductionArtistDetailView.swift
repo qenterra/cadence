@@ -1,9 +1,14 @@
 import SwiftUI
 
+// The detail surface keeps its loading, header, release, and action states in one
+// cohesive view so their contextual navigation state cannot drift apart.
+// swiftlint:disable file_length
+
 struct ProductionArtistDetailView: View {
     @Bindable var model: CadenceAppModel
     @Bindable var store: LibraryStore
     @Environment(\.catalogCardSize) private var catalogCardSize
+    @Environment(\.artistDetailReadinessObserver) private var readinessObserver
     let artistID: UUID
     @State private var artist: LibraryArtistProjection?
     @State private var releases = ArtistReleaseSections.empty
@@ -12,8 +17,7 @@ struct ProductionArtistDetailView: View {
     @State private var isLoading = true
     @State private var loadFailure: String?
     @State private var loadGeneration = 0
-    @State private var isRenamePresented = false
-    @State private var renameDraft = ""
+    @State private var isEditorPresented = false
 
     var body: some View {
         Group {
@@ -90,19 +94,31 @@ struct ProductionArtistDetailView: View {
                 loadFailure = error.localizedDescription
             }
             isLoading = false
+            if loadFailure == nil {
+                readinessObserver?.notify(artistID)
+            }
         }
-        .catalogRenameAlert(
-            "Rename Artist",
-            prompt: "Artist Name",
-            isPresented: $isRenamePresented,
-            draft: $renameDraft
-        ) { name in
-            Task {
-                if let renamed = await model.renameProductionArtist(
-                    id: artistID,
-                    name: name
-                ) {
-                    artist = renamed
+        .sheet(isPresented: $isEditorPresented) {
+            if let artist {
+                CatalogEntityEditorSheet(
+                    model: model,
+                    title: "Edit Artist",
+                    fieldLabel: "Artist Name",
+                    initialValue: artist.name,
+                    descriptionFieldLabel: "Artist Description",
+                    initialDescription: artist.userDescription,
+                    artworkTarget: .managedArtist(artist.id),
+                    artworkLabel: "Artist Image"
+                ) { name, userDescription in
+                    guard let updated = await model.updateProductionArtist(
+                        id: artist.id,
+                        name: name,
+                        userDescription: userDescription
+                    ) else {
+                        return false
+                    }
+                    self.artist = updated
+                    return true
                 }
             }
         }
@@ -258,38 +274,82 @@ private extension ProductionArtistDetailView {
             )
             .frame(width: 190, height: 190)
             .clipShape(Circle())
-            .contextMenu {
-                ArtworkMenuItems(
-                    model: model,
-                    target: .managedArtist(artist.id),
-                    label: "Artist Image"
-                )
-            }
 
             VStack(alignment: .leading, spacing: 8) {
-                Text("ARTIST")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.secondary)
-                Text(artist.name)
-                    .font(.largeTitle.bold())
-                    .onTapGesture(count: 2) {
-                        beginRename(artist)
-                    }
+                VStack(
+                    alignment: .leading,
+                    spacing: CatalogDetailHeaderMetrics.eyebrowTitleSpacing
+                ) {
+                    CatalogDetailEyebrow("ARTIST")
+                    Text(artist.name)
+                        .font(.largeTitle.bold())
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.72)
+                }
+                .fixedSize(horizontal: false, vertical: true)
+                if let userDescription = artist.userDescription {
+                    Text(userDescription)
+                        .font(.callout)
+                        .fontWeight(.regular)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(3)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
                 Text(
                     "\(artist.albumCount) albums · \(artist.trackCount) tracks"
                 )
                 .foregroundStyle(.secondary)
-                playbackActions(artist)
+                HStack(spacing: 10) {
+                    playbackActions(artist)
+                    artistFavoriteButton(artist)
+                    Spacer(minLength: 16)
+                    editButton
+                    actionsMenu(artist)
+                }
+                .padding(.top, 4)
             }
-            Spacer()
-            Menu {
-                artistActions(artist)
-            } label: {
-                Image(systemName: "ellipsis.circle")
-            }
-            .menuIndicator(.hidden)
-            .help("Artist Actions")
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
+    }
+
+    private var editButton: some View {
+        Button("Edit", systemImage: "pencil") {
+            isEditorPresented = true
+        }
+        .buttonStyle(.bordered)
+    }
+
+    private func actionsMenu(
+        _ artist: LibraryArtistProjection
+    ) -> some View {
+        Menu {
+            artistActions(artist)
+        } label: {
+            Image(systemName: "ellipsis.circle")
+        }
+        .menuIndicator(.hidden)
+        .help("Artist Actions")
+    }
+
+    private func artistFavoriteButton(
+        _ artist: LibraryArtistProjection
+    ) -> some View {
+        FavoriteButton(
+            itemID: artist.id,
+            isFavorite: artist.isFavorite,
+            itemName: artist.name,
+            controlSize: 34
+        ) { requestedValue in
+            guard let updated = await model.setProductionArtistFavorite(
+                artist,
+                isFavorite: requestedValue
+            ) else {
+                return false
+            }
+            self.artist = updated
+            return true
+        }
+        .imageScale(.large)
     }
 
     private func playbackActions(
@@ -311,31 +371,23 @@ private extension ProductionArtistDetailView {
             }
             .buttonStyle(.bordered)
             .disabled(tracks.isEmpty)
-
-            Button(
-                artist.isFavorite ? "Unfavorite" : "Favorite",
-                systemImage: artist.isFavorite ? "heart.fill" : "heart"
-            ) {
-                Task {
-                    if let updated = await model.setProductionArtistFavorite(
-                        artist,
-                        isFavorite: !artist.isFavorite
-                    ) {
-                        self.artist = updated
-                    }
-                }
-            }
-            .buttonStyle(.bordered)
         }
-        .padding(.top, 4)
     }
 
     @ViewBuilder
     private func artistActions(
         _ artist: LibraryArtistProjection
     ) -> some View {
-        Button("Rename", systemImage: "pencil") {
-            beginRename(artist)
+        FavoriteContextMenuItem(isFavorite: artist.isFavorite) {
+            Task {
+                guard let updated = await model.setProductionArtistFavorite(
+                    artist,
+                    isFavorite: !artist.isFavorite
+                ) else {
+                    return
+                }
+                self.artist = updated
+            }
         }
         Button(
             HomePinStore.contains(artist.id, in: .artist)
@@ -351,11 +403,6 @@ private extension ProductionArtistDetailView {
             store: store,
             artistID: artist.id
         )
-        ArtworkMenuItems(
-            model: model,
-            target: .managedArtist(artist.id),
-            label: "Artist Image"
-        )
         Divider()
         Button(
             "Move Artist to Trash…",
@@ -368,11 +415,6 @@ private extension ProductionArtistDetailView {
                 title: artist.name
             )
         }
-    }
-
-    private func beginRename(_ artist: LibraryArtistProjection) {
-        renameDraft = artist.name
-        isRenamePresented = true
     }
 
     private func unavailableContent(
@@ -390,6 +432,22 @@ private extension ProductionArtistDetailView {
     private func albumActions(
         _ album: LibraryAlbumProjection
     ) -> some View {
+        FavoriteContextMenuItem(isFavorite: album.isFavorite) {
+            Task {
+                guard await model.setProductionAlbumFavorite(
+                    album,
+                    isFavorite: !album.isFavorite
+                ) != nil else {
+                    return
+                }
+                if let updated = try? await store.artistReleaseSections(
+                    artistID: artistID
+                ) {
+                    releases = updated
+                }
+            }
+        }
+        Divider()
         QuickAlbumTagMenuItems(
             store: store,
             albumID: album.id
@@ -397,11 +455,6 @@ private extension ProductionArtistDetailView {
         AddAlbumToPlaylistMenuItems(
             store: store,
             albumID: album.id
-        )
-        ArtworkMenuItems(
-            model: model,
-            target: .managedAlbum(album.id),
-            label: "Album Artwork"
         )
         Divider()
         Button(
@@ -417,3 +470,5 @@ private extension ProductionArtistDetailView {
         }
     }
 }
+
+// swiftlint:enable file_length
