@@ -620,12 +620,7 @@ struct CadenceModeBassVisualTests {
         #expect(highBass.artworkScale > 1)
         #expect(highBass.artworkScale <= 1.05)
         #expect(reduced.artworkScale == 1)
-        #expect(
-            silence.hasSamePixels(
-                as: reduced,
-                maximumChannelDelta: 1
-            )
-        )
+        #expect(silence.hasSamePixels(as: reduced, maximumChannelDelta: 1))
         try assertArtworkOnlyDifference(silence: silence, highBass: highBass)
     }
 
