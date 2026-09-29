@@ -136,6 +136,17 @@ extension CadenceAppModel {
         importCoordinator?.cancel()
     }
 
+    func cancelActiveImportIfPossible() {
+        switch importPreviewStage {
+        case .scanning:
+            cancelImportPreviewScan()
+        case .importing where managedImportProgress?.isCommitting == false:
+            cancelManagedImport()
+        case .empty, .review, .importing, .complete:
+            break
+        }
+    }
+
     func completeImportPreviewScan() {
         guard importPreviewStage == .scanning else {
             return

@@ -164,6 +164,7 @@ extension ProductionTrackTableRow {
             model.addToProductionQueue(actionTrackIDs)
         }
         .disabled(!ownsPlaylistContext)
+        Divider()
         if actionTrackIDs.count == 1 {
             Button(
                 track.isFavorite ? "Remove from Favorites" : "Add to Favorites",
@@ -176,10 +177,11 @@ extension ProductionTrackTableRow {
                     )
                 }
             }
-            Button("Edit Tags…", systemImage: "tag.badge.plus") {
-                model.openProductionTagEditor(trackID: track.id)
+            Button("Edit Information…", systemImage: "pencil") {
+                model.presentTrackMetadataEditor(track)
             }
         }
+        Divider()
         QuickTrackTagMenuItems(
             store: model.librarySession.store,
             trackIDs: actionTrackIDs
@@ -189,13 +191,6 @@ extension ProductionTrackTableRow {
             store: model.librarySession.store,
             trackIDs: actionTrackIDs
         )
-        if actionTrackIDs.count == 1 {
-            ArtworkMenuItems(
-                model: model,
-                target: .managedTrack(track.id),
-                label: "Track Artwork"
-            )
-        }
         Divider()
         Button(
             "Move to Trash…",

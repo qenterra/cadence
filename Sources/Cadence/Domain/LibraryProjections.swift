@@ -168,6 +168,7 @@ struct LibraryArtistProjection: Identifiable, Hashable, Sendable {
     let isFavorite: Bool
     let favoriteDate: Date?
     let customArtworkID: UUID?
+    let userDescription: String?
 }
 
 struct LibraryAlbumProjection: Identifiable, Hashable, Sendable {
@@ -193,6 +194,7 @@ struct LibraryTagProjection: Identifiable, Hashable, Sendable {
 struct LibraryPlaylistProjection: Identifiable, Hashable, Sendable {
     let id: UUID
     let name: String
+    let userDescription: String?
     let trackCount: Int
     let totalDuration: TimeInterval
     let modifiedAt: Date

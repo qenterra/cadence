@@ -11,15 +11,12 @@ struct SettingsHomeSectionsCard: View {
     var body: some View {
         SettingsCard(title: "Home", symbol: "house") {
             Text(
-                "Choose what appears on Home and drag sections into order. Recently Played stays first."
+                "Choose what appears on Home and drag sections into order."
             )
             .font(.caption)
             .foregroundStyle(.secondary)
 
             VStack(spacing: 0) {
-                fixedRecentlyPlayedRow
-                SettingsRowSeparator()
-
                 ForEach(orderedSections) { section in
                     configurableRow(section)
                     if section != orderedSections.last {
@@ -46,29 +43,6 @@ struct SettingsHomeSectionsCard: View {
                 }
             }
         }
-    }
-
-    private var fixedRecentlyPlayedRow: some View {
-        HStack(spacing: CadenceLayout.controlGap) {
-            Toggle(isOn: .constant(true)) {
-                Label(
-                    HomeContentSection.recentlyPlayed.title,
-                    systemImage: HomeContentSection.recentlyPlayed.symbolName
-                )
-            }
-            .toggleStyle(.checkbox)
-            .disabled(true)
-
-            Spacer(minLength: CadenceLayout.compactGap)
-
-            Image(systemName: "lock.fill")
-                .font(.caption)
-                .foregroundStyle(.tertiary)
-                .frame(width: 24, height: 24)
-                .help("Recently Played stays first")
-        }
-        .padding(.horizontal, CadenceLayout.controlGap)
-        .frame(minHeight: CadenceLayout.rowHeight)
     }
 
     private var orderedSections: [HomeContentSection] {

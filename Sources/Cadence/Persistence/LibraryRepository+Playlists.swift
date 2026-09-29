@@ -1,14 +1,95 @@
 import Foundation
+import QenTerraFoundation
 import SwiftData
 
 enum PlaylistRepositoryError: Error, Equatable, LocalizedError, Sendable {
     case playlistNotFound(UUID)
+    case playlistNameEmpty
+    case playlistNameTooLong(maximumLength: Int)
+    case duplicatePlaylistName
 
     var errorDescription: String? {
         switch self {
         case .playlistNotFound:
             "The playlist is no longer in the library."
+        case .playlistNameEmpty:
+            "Enter a playlist name."
+        case let .playlistNameTooLong(maximumLength):
+            "Playlist names can contain up to \(maximumLength) characters."
+        case .duplicatePlaylistName:
+            "A playlist with this name already exists."
         }
+    }
+}
+
+enum PlaylistNameValidation: Equatable, Sendable {
+    case valid(String)
+    case empty
+    case tooLong(maximumLength: Int)
+    case duplicate
+
+    var normalizedName: String? {
+        guard case let .valid(name) = self else {
+            return nil
+        }
+        return name
+    }
+
+    var errorMessage: String? {
+        switch self {
+        case .valid:
+            nil
+        case .empty:
+            String(localized: "Enter a playlist name.")
+        case let .tooLong(maximumLength):
+            String(
+                localized: "Playlist names can contain up to \(maximumLength) characters."
+            )
+        case .duplicate:
+            String(localized: "A playlist with this name already exists.")
+        }
+    }
+}
+
+enum PlaylistNamePolicy {
+    static let maximumLength = 80
+
+    static func normalizedName(_ requestedName: String) -> String {
+        requestedName
+            .split(whereSeparator: \.isWhitespace)
+            .joined(separator: " ")
+    }
+
+    static func validation(
+        _ requestedName: String,
+        existingPlaylists: [(id: UUID, name: String)],
+        excludingID: UUID? = nil
+    ) -> PlaylistNameValidation {
+        let name = normalizedName(requestedName)
+        guard !name.isEmpty else {
+            return .empty
+        }
+        guard name.count <= maximumLength else {
+            return .tooLong(maximumLength: maximumLength)
+        }
+
+        let normalizedSearchName = SearchNormalizer.normalize(name)
+        let isDuplicate = existingPlaylists.contains { playlist in
+            playlist.id != excludingID
+                && SearchNormalizer.normalize(playlist.name) == normalizedSearchName
+        }
+        guard !isDuplicate else {
+            return .duplicate
+        }
+        return .valid(name)
+    }
+}
+
+enum CatalogDescriptionPolicy {
+    static func normalized(_ value: String?) -> String? {
+        guard let value else { return nil }
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
     }
 }
 
@@ -40,6 +121,7 @@ extension LibraryRepository {
             return LibraryPlaylistProjection(
                 id: record.id,
                 name: record.name,
+                userDescription: record.userDescription,
                 trackCount: playlistEntries.count,
                 totalDuration: playlistEntries.reduce(0) {
                     $0 + (durations[$1.trackID] ?? 0)
@@ -76,13 +158,14 @@ extension LibraryRepository {
     func createPlaylist(
         name requestedName: String
     ) throws -> LibraryPlaylistProjection {
-        let name = validatedPlaylistName(requestedName)
+        let name = try validatedPlaylistName(requestedName)
         let record = PlaylistRecord(name: name)
         modelContext.insert(record)
         try modelContext.save()
         return LibraryPlaylistProjection(
             id: record.id,
             name: record.name,
+            userDescription: record.userDescription,
             trackCount: 0,
             totalDuration: 0,
             modifiedAt: record.modifiedAt,
@@ -95,7 +178,28 @@ extension LibraryRepository {
         name requestedName: String
     ) throws {
         let playlist = try requiredPlaylistRecord(id: id)
-        playlist.rename(to: validatedPlaylistName(requestedName))
+        try updatePlaylist(
+            id: id,
+            name: requestedName,
+            userDescription: playlist.userDescription
+        )
+    }
+
+    func updatePlaylist(
+        id: UUID,
+        name requestedName: String,
+        userDescription: String?
+    ) throws {
+        let playlist = try requiredPlaylistRecord(id: id)
+        try playlist.rename(
+            to: validatedPlaylistName(
+                requestedName,
+                excludingID: id
+            )
+        )
+        playlist.userDescription = CatalogDescriptionPolicy.normalized(
+            userDescription
+        )
         try modelContext.save()
     }
 
@@ -284,11 +388,28 @@ private extension LibraryRepository {
     }
 
     func validatedPlaylistName(
-        _ requestedName: String
-    ) -> String {
-        let trimmed = requestedName.trimmingCharacters(
-            in: .whitespacesAndNewlines
+        _ requestedName: String,
+        excludingID: UUID? = nil
+    ) throws -> String {
+        let records = try modelContext.fetch(
+            FetchDescriptor<PlaylistRecord>()
         )
-        return trimmed.isEmpty ? "Untitled Playlist" : trimmed
+        let validation = PlaylistNamePolicy.validation(
+            requestedName,
+            existingPlaylists: records.map { ($0.id, $0.name) },
+            excludingID: excludingID
+        )
+        switch validation {
+        case let .valid(name):
+            return name
+        case .empty:
+            throw PlaylistRepositoryError.playlistNameEmpty
+        case let .tooLong(maximumLength):
+            throw PlaylistRepositoryError.playlistNameTooLong(
+                maximumLength: maximumLength
+            )
+        case .duplicate:
+            throw PlaylistRepositoryError.duplicatePlaylistName
+        }
     }
 }

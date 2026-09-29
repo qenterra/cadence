@@ -4,7 +4,6 @@ enum HomePinKind: String, CaseIterable, Sendable {
     case album
     case artist
     case playlist
-    case smartCollection
 
     var storageKey: String {
         "home.pins.\(rawValue)"
@@ -15,28 +14,24 @@ enum HomePinnedSectionKind: Equatable, Sendable {
     case albums
     case artists
     case playlists
-    case smartCollections
 
     var title: String {
         switch self {
         case .albums: "Pinned Albums"
         case .artists: "Pinned Artists"
         case .playlists: "Pinned Playlists"
-        case .smartCollections: "Pinned Smart Collections"
         }
     }
 
     static func visibleKinds(
         albumCount: Int,
         artistCount: Int,
-        playlistCount: Int,
-        smartCollectionCount: Int
+        playlistCount: Int
     ) -> [HomePinnedSectionKind] {
         [
             albumCount > 0 ? .albums : nil,
             artistCount > 0 ? .artists : nil,
             playlistCount > 0 ? .playlists : nil,
-            smartCollectionCount > 0 ? .smartCollections : nil,
         ].compactMap(\.self)
     }
 }
@@ -94,5 +89,45 @@ enum HomePinStore {
             UserDefaults.standard.integer(forKey: "home.pins.revision") + 1,
             forKey: "home.pins.revision"
         )
+    }
+}
+
+enum HomeFavoriteRecencyStore {
+    private static let trackKey = "home.favoriteTrackRecency"
+
+    static func recordTrack(
+        _ id: UUID,
+        isFavorite: Bool,
+        defaults: UserDefaults = .standard
+    ) {
+        var ids = orderedTrackIDs(defaults: defaults).filter { $0 != id }
+        if isFavorite {
+            ids.insert(id, at: 0)
+        }
+        defaults.set(ids.map(\.uuidString), forKey: trackKey)
+    }
+
+    static func orderedTracks(
+        _ tracks: [LibraryTrackProjection],
+        defaults: UserDefaults = .standard
+    ) -> [LibraryTrackProjection] {
+        let rank = Dictionary(
+            uniqueKeysWithValues: orderedTrackIDs(defaults: defaults).enumerated().map {
+                ($0.element, $0.offset)
+            }
+        )
+        return tracks.enumerated().sorted { lhs, rhs in
+            let lhsRank = rank[lhs.element.id] ?? Int.max
+            let rhsRank = rank[rhs.element.id] ?? Int.max
+            if lhsRank != rhsRank {
+                return lhsRank < rhsRank
+            }
+            return lhs.offset < rhs.offset
+        }.map(\.element)
+    }
+
+    private static func orderedTrackIDs(defaults: UserDefaults) -> [UUID] {
+        defaults.stringArray(forKey: trackKey)?
+            .compactMap(UUID.init(uuidString:)) ?? []
     }
 }

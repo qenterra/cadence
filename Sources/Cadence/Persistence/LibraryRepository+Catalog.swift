@@ -73,19 +73,6 @@ extension LibraryRepository {
         return try albumProjection(album)
     }
 
-    func renameArtist(
-        id: UUID,
-        name: String
-    ) throws -> LibraryArtistProjection {
-        let name = try validatedCatalogName(name)
-        guard let artist = try artistRecord(id: id) else {
-            throw CatalogRenameError.itemUnavailable
-        }
-        artist.rename(to: name)
-        try saveCatalogRename()
-        return try artistProjection(artist)
-    }
-
     func catalogCounts() throws -> LibraryCatalogCounts {
         let trashRecords = try modelContext.fetch(
             FetchDescriptor<TrashOperationRecord>()
@@ -324,13 +311,6 @@ private extension LibraryRepository {
 
     func albumRecord(id: UUID) throws -> AlbumRecord? {
         let predicate = #Predicate<AlbumRecord> { $0.id == id }
-        var descriptor = FetchDescriptor(predicate: predicate)
-        descriptor.fetchLimit = 1
-        return try modelContext.fetch(descriptor).first
-    }
-
-    func artistRecord(id: UUID) throws -> ArtistRecord? {
-        let predicate = #Predicate<ArtistRecord> { $0.id == id }
         var descriptor = FetchDescriptor(predicate: predicate)
         descriptor.fetchLimit = 1
         return try modelContext.fetch(descriptor).first

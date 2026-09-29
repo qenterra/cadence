@@ -6,6 +6,7 @@ struct LibraryPlaylistClient: Sendable {
     let playlistTracks: @Sendable (UUID) async throws -> [LibraryTrackProjection]
     let create: @Sendable (String) async throws -> LibraryPlaylistProjection
     let rename: @Sendable (UUID, String) async throws -> Void
+    let updateMetadata: @Sendable (UUID, String, String?) async throws -> Void
     let delete: @Sendable (UUID) async throws -> Void
     let add: @Sendable (UUID, [UUID]) async throws -> Void
     let remove: @Sendable (UUID, [UUID]) async throws -> Void
@@ -18,6 +19,7 @@ struct LibraryPlaylistClient: Sendable {
         playlistTracks: @escaping @Sendable (UUID) async throws -> [LibraryTrackProjection],
         create: @escaping @Sendable (String) async throws -> LibraryPlaylistProjection,
         rename: @escaping @Sendable (UUID, String) async throws -> Void,
+        updateMetadata: (@Sendable (UUID, String, String?) async throws -> Void)? = nil,
         delete: @escaping @Sendable (UUID) async throws -> Void,
         add: @escaping @Sendable (UUID, [UUID]) async throws -> Void,
         remove: @escaping @Sendable (UUID, [UUID]) async throws -> Void,
@@ -29,6 +31,9 @@ struct LibraryPlaylistClient: Sendable {
         self.playlistTracks = playlistTracks
         self.create = create
         self.rename = rename
+        self.updateMetadata = updateMetadata ?? { id, name, _ in
+            try await rename(id, name)
+        }
         self.delete = delete
         self.add = add
         self.remove = remove
@@ -42,6 +47,13 @@ struct LibraryPlaylistClient: Sendable {
         playlistTracks = { try await repository.playlistTracks(playlistID: $0) }
         create = { try await repository.createPlaylist(name: $0) }
         rename = { try await repository.renamePlaylist(id: $0, name: $1) }
+        updateMetadata = {
+            try await repository.updatePlaylist(
+                id: $0,
+                name: $1,
+                userDescription: $2
+            )
+        }
         delete = { try await repository.deletePlaylist(id: $0) }
         add = { try await repository.addToPlaylist(playlistID: $0, trackIDs: $1) }
         remove = {
@@ -131,26 +143,46 @@ extension LibraryStore {
         }
     }
 
-    func renameSelectedPlaylist(to name: String) async {
+    @discardableResult
+    func renameSelectedPlaylist(to name: String) async -> Bool {
+        let description = playlists.first { $0.id == selectedPlaylistID }?
+            .userDescription
+        return await updateSelectedPlaylist(
+            name: name,
+            userDescription: description
+        )
+    }
+
+    @discardableResult
+    func updateSelectedPlaylist(
+        name: String,
+        userDescription: String?
+    ) async -> Bool {
         let context = captureLibraryContext()
         guard
             let playlistClient,
             let selectedPlaylistID,
             ownsPlaylistLoad(context, client: playlistClient)
         else {
-            return
+            return false
         }
         do {
-            try await playlistClient.rename(selectedPlaylistID, name)
+            try await playlistClient.updateMetadata(
+                selectedPlaylistID,
+                name,
+                userDescription
+            )
             guard ownsPlaylistLoad(context, client: playlistClient) else {
-                return
+                return false
             }
             await loadPlaylists()
+            return true
         } catch {
             guard ownsPlaylistLoad(context, client: playlistClient) else {
-                return
+                return false
             }
             recordOperationFailure(.playlistRename, error: error)
+            return false
         }
     }
 
@@ -205,6 +237,32 @@ extension LibraryStore {
                 return
             }
             recordOperationFailure(.playlistAdd, error: error)
+        }
+    }
+
+    func addToPlaylistConfirmingPersistence(
+        playlistID: UUID,
+        trackIDs: [UUID]
+    ) async throws {
+        let context = captureLibraryContext()
+        guard
+            let playlistClient,
+            ownsPlaylistLoad(context, client: playlistClient)
+        else {
+            throw CancellationError()
+        }
+        do {
+            try await playlistClient.add(playlistID, trackIDs)
+            guard ownsPlaylistLoad(context, client: playlistClient) else {
+                throw CancellationError()
+            }
+            await loadPlaylists()
+        } catch {
+            guard ownsPlaylistLoad(context, client: playlistClient) else {
+                throw CancellationError()
+            }
+            recordOperationFailure(.playlistAdd, error: error)
+            throw error
         }
     }
 

@@ -12,7 +12,7 @@ enum CadenceSchemaV1: VersionedSchema {
         ArtworkRecord.self,
         ImportSessionRecord.self,
         CadenceLegacySchemaModels.LyricRecord.self,
-        SmartCollectionRecord.self,
+        CadenceLegacySchemaModels.SmartCollectionRecord.self,
         TagAssignmentRecord.self,
         TagExclusionRecord.self,
         TagRecord.self,
@@ -29,7 +29,7 @@ enum CadenceSchemaV2: VersionedSchema {
         ArtworkRecord.self,
         ImportSessionRecord.self,
         CadenceLegacySchemaModels.LyricRecord.self,
-        SmartCollectionRecord.self,
+        CadenceLegacySchemaModels.SmartCollectionRecord.self,
         TagAssignmentRecord.self,
         TagExclusionRecord.self,
         TagRecord.self,
@@ -48,8 +48,8 @@ enum CadenceSchemaV3: VersionedSchema {
         ImportSessionRecord.self,
         CadenceLegacySchemaModels.LyricRecord.self,
         CadenceLegacySchemaModels.PlaylistEntryRecord.self,
-        PlaylistRecord.self,
-        SmartCollectionRecord.self,
+        CadenceLegacySchemaModels.PlaylistRecord.self,
+        CadenceLegacySchemaModels.SmartCollectionRecord.self,
         TagAssignmentRecord.self,
         TagExclusionRecord.self,
         TagRecord.self,
@@ -68,8 +68,8 @@ enum CadenceSchemaV4: VersionedSchema {
         ImportSessionRecord.self,
         CadenceLegacySchemaModels.LyricRecord.self,
         CadenceLegacySchemaModels.PlaylistEntryRecord.self,
-        PlaylistRecord.self,
-        SmartCollectionRecord.self,
+        CadenceLegacySchemaModels.PlaylistRecord.self,
+        CadenceLegacySchemaModels.SmartCollectionRecord.self,
         TagAssignmentRecord.self,
         TagExclusionRecord.self,
         TagRecord.self,
@@ -85,6 +85,49 @@ enum CadenceSchemaV5: VersionedSchema {
     static let models: [any PersistentModel.Type] = [
         AlbumRecord.self,
         ArtistRecord.self,
+        ArtworkRecord.self,
+        ImportSessionRecord.self,
+        LyricRecord.self,
+        PlaylistEntryRecord.self,
+        CadenceLegacySchemaModels.PlaylistRecord.self,
+        CadenceLegacySchemaModels.SmartCollectionRecord.self,
+        TagAssignmentRecord.self,
+        TagExclusionRecord.self,
+        TagRecord.self,
+        TrackArtistCreditRecord.self,
+        TrackRecord.self,
+        TrashOperationRecord.self,
+    ]
+}
+
+enum CadenceSchemaV6: VersionedSchema {
+    static let versionIdentifier = Schema.Version(6, 0, 0)
+
+    static let models: [any PersistentModel.Type] = [
+        AlbumRecord.self,
+        ArtistRecord.self,
+        ArtworkRecord.self,
+        ImportSessionRecord.self,
+        LyricRecord.self,
+        PlaylistEntryRecord.self,
+        PlaylistRecord.self,
+        SmartCollectionRecord.self,
+        TagAssignmentRecord.self,
+        TagExclusionRecord.self,
+        TagRecord.self,
+        TrackArtistCreditRecord.self,
+        TrackRecord.self,
+        TrashOperationRecord.self,
+    ]
+}
+
+enum CadenceSchemaV7: VersionedSchema {
+    static let versionIdentifier = Schema.Version(7, 0, 0)
+
+    static let models: [any PersistentModel.Type] = [
+        AlbumRecord.self,
+        ArtistRecord.self,
+        ArtistDescriptionRecord.self,
         ArtworkRecord.self,
         ImportSessionRecord.self,
         LyricRecord.self,
@@ -109,6 +152,8 @@ enum CadenceMigrationPlan: SchemaMigrationPlan {
         CadenceSchemaV3.self,
         CadenceSchemaV4.self,
         CadenceSchemaV5.self,
+        CadenceSchemaV6.self,
+        CadenceSchemaV7.self,
     ]
 
     static let stages: [MigrationStage] = [
@@ -127,6 +172,14 @@ enum CadenceMigrationPlan: SchemaMigrationPlan {
         .lightweight(
             fromVersion: CadenceSchemaV4.self,
             toVersion: CadenceSchemaV5.self
+        ),
+        .lightweight(
+            fromVersion: CadenceSchemaV5.self,
+            toVersion: CadenceSchemaV6.self
+        ),
+        .lightweight(
+            fromVersion: CadenceSchemaV6.self,
+            toVersion: CadenceSchemaV7.self
         ),
     ]
 }

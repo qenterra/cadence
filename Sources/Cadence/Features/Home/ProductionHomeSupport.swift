@@ -118,10 +118,10 @@ struct HomeTrackGrid: View {
     @Bindable var model: CadenceAppModel
     let tracks: [LibraryTrackProjection]
     let queueSource: PlaybackQueueSource
-    @Environment(\.catalogCardSize) private var catalogCardSize
+    let cardSize: CatalogCardSize
 
     var body: some View {
-        let range = CatalogCardLayoutMetrics.widthRange(for: catalogCardSize)
+        let range = CatalogCardLayoutMetrics.widthRange(for: cardSize)
         MediaGrid(
             minimumWidth: range.lowerBound,
             maximumWidth: range.upperBound,

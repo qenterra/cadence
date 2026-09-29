@@ -76,7 +76,8 @@ extension LibraryRepository {
             artist,
             albumCount: participatingAlbumIDs(
                 artistID: artist.id
-            ).count
+            ).count,
+            userDescription: artistDescription(artistID: artist.id)
         )
     }
 
@@ -84,6 +85,9 @@ extension LibraryRepository {
         _ artists: [ArtistRecord]
     ) throws -> [LibraryArtistProjection] {
         let artistIDs = artists.map(\.id)
+        let descriptionsByArtistID = try artistDescriptions(
+            artistIDs: artistIDs
+        )
         var albumIDsByArtistID = Dictionary(
             uniqueKeysWithValues: artists.map { artist in
                 (
@@ -126,9 +130,37 @@ extension LibraryRepository {
         return artists.map {
             LibraryProjectionFactory.artist(
                 $0,
-                albumCount: albumIDsByArtistID[$0.id]?.count ?? 0
+                albumCount: albumIDsByArtistID[$0.id]?.count ?? 0,
+                userDescription: descriptionsByArtistID[$0.id]
             )
         }
+    }
+
+    func artistDescription(artistID: UUID) throws -> String? {
+        let predicate = #Predicate<ArtistDescriptionRecord> {
+            $0.artistID == artistID
+        }
+        var descriptor = FetchDescriptor(predicate: predicate)
+        descriptor.fetchLimit = 1
+        return try modelContext.fetch(descriptor).first?.userDescription
+    }
+
+    func artistDescriptions(
+        artistIDs: [UUID]
+    ) throws -> [UUID: String] {
+        guard !artistIDs.isEmpty else { return [:] }
+        var result: [UUID: String] = [:]
+        for chunk in projectionChunks(artistIDs) {
+            let predicate = #Predicate<ArtistDescriptionRecord> {
+                chunk.contains($0.artistID)
+            }
+            for record in try modelContext.fetch(
+                FetchDescriptor(predicate: predicate)
+            ) {
+                result[record.artistID] = record.userDescription
+            }
+        }
+        return result
     }
 
     func trackPage(

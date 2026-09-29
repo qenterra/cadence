@@ -13,7 +13,7 @@ struct LibraryContainerMigrationRollbackError: Error, LocalizedError, Sendable {
 
 enum LibraryContainerFactory {
     static func inMemory() throws -> ModelContainer {
-        let schema = Schema(versionedSchema: CadenceSchemaV5.self)
+        let schema = Schema(versionedSchema: CadenceSchemaV7.self)
         let configuration = ModelConfiguration(
             "CadenceInMemory",
             schema: schema,
@@ -105,7 +105,7 @@ enum LibraryContainerFactory {
     private static func persistent(
         storeURL: URL
     ) throws -> ModelContainer {
-        let schema = Schema(versionedSchema: CadenceSchemaV5.self)
+        let schema = Schema(versionedSchema: CadenceSchemaV7.self)
         let configuration = ModelConfiguration(
             "CadenceLibrary",
             schema: schema,

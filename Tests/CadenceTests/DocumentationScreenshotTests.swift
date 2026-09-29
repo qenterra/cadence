@@ -6,6 +6,79 @@ import Testing
 
 @MainActor
 struct DocumentationScreenshotTests {
+    @Test("Render every top-level application page", .appKitExclusive)
+    func renderEveryTopLevelPage() async throws {
+        let navigation = NavigationScreenshotPreferences()
+        navigation.install()
+        defer { navigation.restore() }
+
+        let fixture = try await DocumentationScreenshotFixture.make()
+        let homePreferences = HomeScreenshotPreferences(fixture: fixture)
+        homePreferences.install()
+        defer { homePreferences.restore() }
+
+        for destination in NavigationDestination.allCases {
+            fixture.model.requestNavigationDestination(destination)
+            if destination == .importMusic {
+                fixture.model.showImportPreviewStage(.review)
+            }
+            try await fixture.capture(
+                "qa-page-\(destination.rawValue)-ideal-dark.png",
+                contentSize: .ideal
+            )
+        }
+        fixture.model.requestNavigationDestination(.smartCollections)
+        await fixture.model.loadPersistedSmartCollections()
+        #expect(fixture.model.requestEditSelectedSmartCollection())
+        try await fixture.capture(
+            "qa-smart-collection-editor-valid-ideal-dark.png",
+            contentSize: .ideal
+        )
+        await fixture.model.loadPersistedSmartCollections()
+        #expect(fixture.model.requestEditSelectedSmartCollection())
+        let draftRootID = try #require(
+            fixture.model.smartCollectionDraft?.rule.id
+        )
+        fixture.model.addSmartCollectionCondition(
+            SmartCollectionRuleCondition(
+                field: .tag,
+                operator: .is,
+                value: .tag(id: nil, scope: .exact)
+            ),
+            to: draftRootID
+        )
+        #expect(!fixture.model.smartCollectionValidation.isValid)
+        try await fixture.capture(
+            "qa-smart-collection-editor-invalid-ideal-dark.png",
+            contentSize: .ideal
+        )
+        await fixture.model.loadPersistedSmartCollections()
+
+        fixture.model.requestNavigationDestination(.playlists)
+        await fixture.model.librarySession.store.selectPlaylist(
+            fixture.emptyPlaylistID
+        )
+        try await fixture.capture(
+            "qa-page-playlists-empty-ideal-dark.png",
+            contentSize: .ideal
+        )
+        fixture.model.requestNavigationDestination(.artists)
+        fixture.model.requestOpenProductionArtistContextually(
+            id: fixture.artistID
+        )
+        try await fixture.capture(
+            "qa-detail-artist-ideal-dark.png",
+            contentSize: .ideal
+        )
+        fixture.model.presentNowPlaying()
+        try await fixture.capture(
+            "qa-now-playing-tag-entry-ideal-dark.png",
+            contentSize: .ideal,
+            showsNowPlayingTagEntry: true
+        )
+        try await fixture.cleanup()
+    }
+
     @Test("Render the requested UI corrections", .appKitExclusive)
     func captureRequestedUICorrections() async throws {
         let fixture = try await DocumentationScreenshotFixture.make()
@@ -84,6 +157,22 @@ struct DocumentationScreenshotTests {
             )
         }
         #expect(FileManager.default.fileExists(atPath: diff.path))
+    }
+
+    @Test("Screenshot comparison excludes only AppKit window controls")
+    func screenshotComparisonExcludesOnlySystemWindowControls() {
+        #expect(
+            DocumentationScreenshotComparator
+                .ignoresUnstableSystemChromePixel(column: 18, row: 18)
+        )
+        #expect(
+            !DocumentationScreenshotComparator
+                .ignoresUnstableSystemChromePixel(column: 160, row: 64)
+        )
+        #expect(
+            !DocumentationScreenshotComparator
+                .ignoresUnstableSystemChromePixel(column: 320, row: 128)
+        )
     }
 
     @Test(

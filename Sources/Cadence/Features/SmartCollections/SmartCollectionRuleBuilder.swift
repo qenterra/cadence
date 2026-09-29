@@ -54,7 +54,7 @@ struct SmartCollectionRuleBuilder: View {
                 TextField(
                     "Collection Name",
                     text: Binding(
-                        get: { draft.name },
+                        get: { model.smartCollectionDraft?.name ?? "" },
                         set: model.renameSmartCollectionDraft
                     )
                 )
@@ -72,12 +72,35 @@ struct SmartCollectionRuleBuilder: View {
 
                 Spacer(minLength: 8)
 
+                if let collectionID = draft.sourceID {
+                    ArtworkActionButtons(
+                        model: model,
+                        target: .managedSmartCollection(collectionID),
+                        label: "Collection Artwork"
+                    )
+                    .controlSize(.small)
+                }
+
                 Button("Done") {
                     model.requestFinishSmartCollectionEditing()
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.small)
             }
+
+            TextField(
+                "Description",
+                text: Binding(
+                    get: {
+                        model.smartCollectionDraft?.userDescription ?? ""
+                    },
+                    set: model.updateSmartCollectionDraftDescription
+                ),
+                axis: .vertical
+            )
+            .textFieldStyle(.roundedBorder)
+            .lineLimit(2 ... 4)
+            .accessibilityLabel("Smart Collection description")
 
             HStack(spacing: 8) {
                 editorStatus

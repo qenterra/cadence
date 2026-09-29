@@ -1,10 +1,35 @@
 import QenTerraFoundation
 import SwiftUI
 
+enum TrackPickerTarget: Hashable {
+    case playlist(LibraryPlaylistProjection)
+    case tag(LibraryTagProjection)
+
+    var subtitle: String {
+        switch self {
+        case let .playlist(playlist): playlist.name
+        case let .tag(tag): tag.displayPath
+        }
+    }
+
+    var noun: String {
+        switch self {
+        case .playlist: String(localized: "playlist")
+        case .tag: String(localized: "tag")
+        }
+    }
+}
+
+enum TrackPickerLayoutMetrics {
+    static let minimumWidth = CGFloat(760)
+    static let idealWidth = CGFloat(880)
+    static let minimumHeight = CGFloat(560)
+}
+
 struct TagTrackPickerSheet: View {
     @Bindable var model: CadenceAppModel
     @Bindable var store: LibraryStore
-    let tag: LibraryTagProjection
+    let target: TrackPickerTarget
 
     @Environment(\.dismiss) private var dismiss
     @State private var tracks: [LibraryTrackProjection] = []
@@ -34,13 +59,12 @@ struct TagTrackPickerSheet: View {
 
             footer
         }
-        .frame(minWidth: 720, idealWidth: 820, minHeight: 520)
-        .background(CadenceTheme.contentBackground)
-        .searchable(
-            text: $searchQuery,
-            placement: .toolbar,
-            prompt: "Search Tracks"
+        .frame(
+            minWidth: TrackPickerLayoutMetrics.minimumWidth,
+            idealWidth: TrackPickerLayoutMetrics.idealWidth,
+            minHeight: TrackPickerLayoutMetrics.minimumHeight
         )
+        .background(CadenceTheme.opaqueSurface)
         .task(id: SearchNormalizer.normalize(searchQuery)) {
             await loadFirstPage()
         }
@@ -57,7 +81,7 @@ struct TagTrackPickerSheet: View {
         } message: {
             Text(
                 errorMessage
-                    ?? "Cadence could not update this tag. Your library was not changed."
+                    ?? "Cadence could not update this \(target.noun). Your library was not changed."
             )
         }
     }
@@ -65,16 +89,44 @@ struct TagTrackPickerSheet: View {
 
 private extension TagTrackPickerSheet {
     var header: some View {
-        VStack(alignment: .leading, spacing: 5) {
-            Text("Add Tracks")
-                .font(.title2.bold())
-            Text(tag.displayPath)
-                .font(.callout)
-                .foregroundStyle(.secondary)
+        HStack(alignment: .center, spacing: 24) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Add Tracks")
+                    .font(.title2.bold())
+                Text(target.subtitle)
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            }
+
+            Spacer(minLength: 20)
+
+            HStack(spacing: 8) {
+                Image(systemName: "magnifyingglass")
+                    .foregroundStyle(.secondary)
+                TextField("Search Tracks", text: $searchQuery)
+                    .textFieldStyle(.plain)
+            }
+            .padding(.horizontal, 12)
+            .frame(width: 280, height: 34)
+            .background(CadenceTheme.subduedFill)
+            .clipShape(
+                RoundedRectangle(
+                    cornerRadius: CadenceTheme.radiusControl,
+                    style: .continuous
+                )
+            )
+            .overlay {
+                RoundedRectangle(
+                    cornerRadius: CadenceTheme.radiusControl,
+                    style: .continuous
+                )
+                .strokeBorder(CadenceTheme.separator, lineWidth: 0.5)
+            }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 22)
-        .frame(height: 76)
+        .padding(.horizontal, 24)
+        .frame(height: 84)
+        .background(CadenceTheme.secondarySurface)
     }
 
     @ViewBuilder
@@ -86,26 +138,31 @@ private extension TagTrackPickerSheet {
             ContentUnavailableView(
                 "No Tracks Yet",
                 systemImage: "music.note",
-                description: Text("Import music before assigning this tag.")
+                description: Text("Import music before adding tracks.")
             )
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else if visibleTracks.isEmpty {
             ContentUnavailableView.search(text: searchQuery)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
-            List(selection: $selectedIDs) {
-                if !alreadyAssignedTracks.isEmpty {
-                    Section("Already Added") {
+            ScrollView(.vertical) {
+                LazyVStack(alignment: .leading, spacing: 6) {
+                    if !alreadyAssignedTracks.isEmpty {
+                        Text("Already Added")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.secondary)
+                            .padding(.top, 8)
                         ForEach(alreadyAssignedTracks) { track in
-                            trackLabel(track, isAlreadyAssigned: true)
+                            trackRow(track, isAlreadyAssigned: true)
                         }
                     }
-                }
 
-                Section("Library") {
+                    Text("Library")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                        .padding(.top, alreadyAssignedTracks.isEmpty ? 8 : 18)
                     ForEach(availableTracks) { track in
-                        trackLabel(track, isAlreadyAssigned: false)
-                            .tag(track.id)
+                        trackRow(track, isAlreadyAssigned: false)
                             .task {
                                 guard track.id == availableTracks.last?.id else {
                                     return
@@ -120,7 +177,8 @@ private extension TagTrackPickerSheet {
                     }
                 }
             }
-            .listStyle(.inset)
+            .contentMargins(.horizontal, 20, for: .scrollContent)
+            .contentMargins(.vertical, 12, for: .scrollContent)
         }
     }
 
@@ -154,40 +212,76 @@ private extension TagTrackPickerSheet {
         }
         .padding(.horizontal, 22)
         .frame(height: 64)
+        .background(CadenceTheme.secondarySurface)
     }
 
-    func trackLabel(
+    func trackRow(
         _ track: LibraryTrackProjection,
         isAlreadyAssigned: Bool
     ) -> some View {
-        HStack(spacing: 11) {
-            ProductionArtworkView(
-                model: model,
-                artworkID: track.artworkID,
-                title: track.title,
-                placeholder: .track,
-                cornerRadius: CadenceTheme.radiusControl
+        Button {
+            guard !isAlreadyAssigned else { return }
+            if selectedIDs.contains(track.id) {
+                selectedIDs.remove(track.id)
+            } else {
+                selectedIDs.insert(track.id)
+            }
+        } label: {
+            HStack(spacing: 11) {
+                ProductionArtworkView(
+                    model: model,
+                    artworkID: track.artworkID,
+                    title: track.title,
+                    placeholder: .track,
+                    cornerRadius: CadenceTheme.radiusControl
+                )
+                .frame(width: 38, height: 38)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(track.title)
+                        .lineLimit(1)
+                    Text("\(track.artist) · \(track.album)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+
+                Spacer()
+
+                if isAlreadyAssigned {
+                    Text("Added")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                Image(
+                    systemName: isAlreadyAssigned || selectedIDs.contains(track.id)
+                        ? "checkmark.circle.fill"
+                        : "circle"
+                )
+                .font(.title3)
+                .foregroundStyle(
+                    isAlreadyAssigned
+                        ? Color.secondary
+                        : selectedIDs.contains(track.id)
+                        ? Color.accentColor
+                        : Color.secondary.opacity(0.6)
+                )
+            }
+            .padding(.horizontal, 12)
+            .frame(height: 54)
+            .background(
+                selectedIDs.contains(track.id)
+                    ? CadenceTheme.selectionFill
+                    : CadenceTheme.subduedFill.opacity(0.45),
+                in: RoundedRectangle(
+                    cornerRadius: CadenceTheme.radiusControl,
+                    style: .continuous
+                )
             )
-            .frame(width: 36, height: 36)
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(track.title)
-                    .lineLimit(1)
-                Text("\(track.artist) · \(track.album)")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-            }
-
-            Spacer()
-
-            if isAlreadyAssigned {
-                Label("Added", systemImage: "checkmark")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
+            .contentShape(Rectangle())
         }
-        .padding(.vertical, 3)
+        .buttonStyle(.plain)
+        .disabled(isAlreadyAssigned || isSaving)
     }
 
     var visibleTracks: [LibraryTrackProjection] {
@@ -231,9 +325,7 @@ private extension TagTrackPickerSheet {
             async let loadedPage = store.tracksForTagPicker(
                 search: searchQuery
             )
-            async let loadedAssigned = store.directlyAssignedTrackIDs(
-                tagID: tag.id
-            )
+            async let loadedAssigned = assignedTrackIDs()
             let (page, assignedIDs) = try await (
                 loadedPage,
                 loadedAssigned
@@ -299,12 +391,32 @@ private extension TagTrackPickerSheet {
         isSaving = true
         Task {
             do {
-                try await store.assignTag(tag.id, trackIDs: trackIDs)
+                switch target {
+                case let .tag(tag):
+                    try await store.assignTag(tag.id, trackIDs: trackIDs)
+                case let .playlist(playlist):
+                    try await store.addToPlaylistConfirmingPersistence(
+                        playlistID: playlist.id,
+                        trackIDs: trackIDs
+                    )
+                }
                 dismiss()
             } catch {
                 isSaving = false
                 errorMessage = error.localizedDescription
             }
+        }
+    }
+
+    func assignedTrackIDs() async throws -> Set<UUID> {
+        switch target {
+        case let .tag(tag):
+            try await store.directlyAssignedTrackIDs(tagID: tag.id)
+        case let .playlist(playlist):
+            Set(
+                store.selectedPlaylistTrackSource(for: playlist.id)?
+                    .tracks.map(\.id) ?? []
+            )
         }
     }
 

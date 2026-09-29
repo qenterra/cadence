@@ -37,7 +37,8 @@ enum LibraryProjectionFactory {
 
     static func artist(
         _ artist: ArtistRecord,
-        albumCount: Int? = nil
+        albumCount: Int? = nil,
+        userDescription: String? = nil
     ) -> LibraryArtistProjection {
         LibraryArtistProjection(
             id: artist.id,
@@ -46,7 +47,8 @@ enum LibraryProjectionFactory {
             trackCount: artist.trackCount,
             isFavorite: artist.isFavorite,
             favoriteDate: artist.favoriteDate,
-            customArtworkID: artist.customArtworkID
+            customArtworkID: artist.customArtworkID,
+            userDescription: userDescription
         )
     }
 

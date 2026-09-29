@@ -99,6 +99,7 @@ struct ImportWorkspaceState {
     var operationError: String?
     var progress: ManagedImportProgress?
     var completion: ManagedImportCompletion?
+    var unsupportedFiles: [SourceScanner.UnsupportedFile] = []
     let initialCandidates: [ImportCandidatePreview]
 }
 
@@ -136,6 +137,33 @@ struct PendingLibraryDeletion: Equatable, Sendable {
 
     var id: UUID? {
         ids.first
+    }
+}
+
+struct TrackMetadataEditPresentation: Identifiable, Equatable, Sendable {
+    let id: UUID
+    let title: String
+    let artist: String
+    let album: String
+    let year: Int?
+    let relativeMediaPath: String
+
+    init(track: LibraryTrackProjection) {
+        id = track.id
+        title = track.title
+        artist = track.artist
+        album = track.album
+        year = track.year
+        relativeMediaPath = track.relativeMediaPath
+    }
+
+    init(track: PlaybackTrack) {
+        id = track.id
+        title = track.title
+        artist = track.artist
+        album = track.album
+        year = track.year
+        relativeMediaPath = track.relativeMediaPath
     }
 }
 
@@ -230,6 +258,7 @@ final class CadenceAppModel {
     var importWorkspaceState: ImportWorkspaceState
     var pendingLibraryDeletion: PendingLibraryDeletion?
     var pendingPlaylistCreation: PendingPlaylistCreation?
+    var pendingTrackMetadataEdit: TrackMetadataEditPresentation?
     var libraryOperationError: String?
     var libraryRelocationState = LibraryRelocationWorkspaceState()
     var isResettingLibrary = false

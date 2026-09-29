@@ -9,11 +9,14 @@ enum CadenceAccentGradientAdapter {
     }
 
     static func appearance(
-        palette: RhythmAccentPalette, hasLiveEffects: Bool, reduceMotion: Bool
+        palette: RhythmAccentPalette,
+        hasLiveEffects: Bool,
+        reduceMotion: Bool,
+        maximumFramesPerSecond: Int = 60
     ) -> ArtworkAccentGradientAppearance {
         ArtworkAccentGradientAppearance(
             isAnimated: !reduceMotion,
-            maximumFramesPerSecond: 60,
+            maximumFramesPerSecond: maximumFramesPerSecond,
             tint: .resolve(
                 palette: self.palette(from: palette),
                 isEffectActive: hasLiveEffects,

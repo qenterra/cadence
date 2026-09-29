@@ -4,6 +4,97 @@ import SwiftData
 import Testing
 
 struct PlaylistRepositoryTests {
+    @Test("Playlist creation starts without an app-supplied name")
+    func playlistCreationStartsBlank() {
+        #expect(PlaylistNameOperation.create.initialName.isEmpty)
+        #expect(PlaylistNameOperation.rename.initialName.isEmpty)
+    }
+
+    @Test("Playlist names collapse whitespace before persistence")
+    func playlistNamesCollapseWhitespace() async throws {
+        let container = try makeContainer(titles: [])
+        let repository = LibraryRepository(modelContainer: container)
+
+        let playlist = try await repository.createPlaylist(
+            name: "  Late\n\tNight   Drive  "
+        )
+
+        #expect(playlist.name == "Late Night Drive")
+    }
+
+    @Test("Playlist descriptions persist, trim their edges, and clear when blank")
+    func playlistDescriptionsPersistAndClear() async throws {
+        let container = try makeContainer(titles: [])
+        let repository = LibraryRepository(modelContainer: container)
+        let playlist = try await repository.createPlaylist(name: "Night Drive")
+
+        try await repository.updatePlaylist(
+            id: playlist.id,
+            name: "Night Drive",
+            userDescription: "  For the road after midnight.\n  "
+        )
+        var updated = try #require(try await repository.playlists().first)
+        #expect(updated.userDescription == "For the road after midnight.")
+
+        try await repository.updatePlaylist(
+            id: playlist.id,
+            name: "Night Drive",
+            userDescription: " \n\t "
+        )
+        updated = try #require(try await repository.playlists().first)
+        #expect(updated.userDescription == nil)
+    }
+
+    @Test("Blank and overlong playlist names are rejected")
+    func invalidPlaylistNamesAreRejected() async throws {
+        let container = try makeContainer(titles: [])
+        let repository = LibraryRepository(modelContainer: container)
+
+        await #expect(throws: PlaylistRepositoryError.playlistNameEmpty) {
+            _ = try await repository.createPlaylist(name: " \n\t ")
+        }
+        await #expect(
+            throws: PlaylistRepositoryError.playlistNameTooLong(
+                maximumLength: PlaylistNamePolicy.maximumLength
+            )
+        ) {
+            _ = try await repository.createPlaylist(
+                name: String(repeating: "🎵", count: 81)
+            )
+        }
+        let maximumLengthPlaylist = try await repository.createPlaylist(
+            name: String(repeating: "a", count: 80)
+        )
+        #expect(maximumLengthPlaylist.name.count == 80)
+    }
+
+    @Test("Playlist names are unique without case or diacritics")
+    func duplicatePlaylistNamesAreRejected() async throws {
+        let container = try makeContainer(titles: [])
+        let repository = LibraryRepository(modelContainer: container)
+        let first = try await repository.createPlaylist(name: "Café Nights")
+        let second = try await repository.createPlaylist(name: "Morning")
+
+        await #expect(throws: PlaylistRepositoryError.duplicatePlaylistName) {
+            _ = try await repository.createPlaylist(name: "  CAFE   NIGHTS ")
+        }
+        try await repository.renamePlaylist(
+            id: first.id,
+            name: "  Café   Nights "
+        )
+        await #expect(throws: PlaylistRepositoryError.duplicatePlaylistName) {
+            try await repository.renamePlaylist(
+                id: second.id,
+                name: "cafe nights"
+            )
+        }
+
+        #expect(
+            try await repository.playlists().map(\.name)
+                == ["Café Nights", "Morning"]
+        )
+    }
+
     @Test("Manual playlists preserve order and reject duplicate tracks")
     func manualPlaylistLifecycle() async throws {
         let container = try makeContainer(

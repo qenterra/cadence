@@ -10,6 +10,66 @@ import SwiftUI
 import Testing
 
 extension AllTracksPerformanceTests {
+    @Test("Native artwork hover is driven by the wrapper tracking area")
+    func nativeArtworkHoverUsesRealTrackingEvents() throws {
+        let host = NSView(frame: NSRect(x: 0, y: 0, width: 900, height: 58))
+        let cell = NativeTrackTableCell(frame: host.bounds)
+        host.addSubview(cell)
+        configureInteractionCell(
+            cell,
+            projection: nativeInteractionProjection(index: 12, hasArtwork: true)
+        )
+        cell.updateTrackingAreas()
+
+        let trackingArea = try #require(
+            cell.trackingAreas.first { $0.owner === cell }
+        )
+        #expect(trackingArea.options.contains(.activeInActiveApp))
+        #expect(trackingArea.options.contains(.inVisibleRect))
+        #expect(trackingArea.options.contains(.mouseEnteredAndExited))
+
+        let event = try #require(
+            NSEvent.mouseEvent(
+                with: .mouseMoved,
+                location: NSPoint(x: 32, y: 29),
+                modifierFlags: [],
+                timestamp: 0,
+                windowNumber: 0,
+                context: nil,
+                eventNumber: 1,
+                clickCount: 0,
+                pressure: 0
+            )
+        )
+        cell.mouseEntered(with: event)
+        #expect(cell.isHoverArtworkOverlayVisible)
+
+        cell.mouseExited(with: event)
+        #expect(!cell.isHoverArtworkOverlayVisible)
+
+        configureInteractionCell(
+            cell,
+            projection: nativeInteractionProjection(
+                index: 13,
+                hasArtwork: true,
+                isCurrentTrack: true,
+                isPlaying: true
+            )
+        )
+        cell.mouseEntered(with: event)
+        #expect(!cell.isHoverArtworkOverlayVisible)
+
+        configureInteractionCell(
+            cell,
+            projection: nativeInteractionProjection(index: 14)
+        )
+        cell.mouseEntered(with: event)
+        #expect(!cell.isHoverArtworkOverlayVisible)
+
+        cell.removeFromSuperview()
+        #expect(!cell.isHoverArtworkOverlayVisible)
+    }
+
     @Test("Track display values are immutable and preformatted")
     func trackDisplayProjectionIsPreformatted() {
         let track = LibraryTrackProjection(
@@ -347,7 +407,10 @@ extension AllTracksPerformanceTests {
     }
 
     private func nativeInteractionProjection(
-        index: UInt8
+        index: UInt8,
+        hasArtwork: Bool = false,
+        isCurrentTrack: Bool = false,
+        isPlaying: Bool = false
     ) -> TrackRowDisplayProjection {
         TrackRowDisplayProjection(
             track: LibraryTrackProjection(
@@ -366,13 +429,13 @@ extension AllTracksPerformanceTests {
                 isFavorite: false,
                 isExplicit: false,
                 customArtworkID: nil,
-                artworkID: nil,
+                artworkID: hasArtwork ? deterministicUUID(93000 + Int(index)) : nil,
                 relativeMediaPath: "fixture-\(index).flac",
                 lastPlayedAt: nil,
                 hasSynchronizedLyrics: true
             ),
-            isCurrentTrack: false,
-            isPlaying: false
+            isCurrentTrack: isCurrentTrack,
+            isPlaying: isPlaying
         )
     }
 

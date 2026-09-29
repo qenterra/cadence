@@ -16,9 +16,10 @@ final class ManagedPlaybackTrackResolver: PlaybackTrackResolving {
     func resolve(
         trackIDs: [UUID]
     ) async throws -> [ResolvedPlaybackTrack] {
+        let requestedIDs = PlaybackTrackResolution.orderedUniqueIDs(trackIDs)
         guard let location = librarySession.location else {
             throw PlaybackFailure(
-                trackID: trackIDs.first,
+                trackID: requestedIDs.first,
                 message: "The Cadence library is not available."
             )
         }
@@ -27,12 +28,12 @@ final class ManagedPlaybackTrackResolver: PlaybackTrackResolving {
             repository = try librarySession.store.requireRepository()
         } catch {
             throw PlaybackFailure(
-                trackID: trackIDs.first,
+                trackID: requestedIDs.first,
                 message: error.localizedDescription
             )
         }
 
-        let tracks = try await repository.playbackTracks(ids: trackIDs)
+        let tracks = try await repository.playbackTracks(ids: requestedIDs)
         var resolved: [ResolvedPlaybackTrack] = []
         for track in tracks {
             if let url = try? location.resolve(
@@ -45,9 +46,7 @@ final class ManagedPlaybackTrackResolver: PlaybackTrackResolving {
                 )
             }
         }
-        let byID = Dictionary(
-            uniqueKeysWithValues: resolved.map { ($0.track.id, $0) }
-        )
-        return trackIDs.compactMap { byID[$0] }
+        let byID = PlaybackTrackResolution.index(resolved)
+        return requestedIDs.compactMap { byID[$0] }
     }
 }

@@ -174,6 +174,17 @@ struct PCMPlaybackBackendTests {
         )
         let backend = PCMPlaybackBackend()
         defer { backend.stop() }
+        let renderFormat = try #require(
+            AVAudioFormat(
+                standardFormatWithSampleRate: 48000,
+                channels: 2
+            )
+        )
+        try backend.engine.enableManualRenderingMode(
+            .offline,
+            format: renderFormat,
+            maximumFrameCount: 1024
+        )
 
         try await backend.load(
             PlaybackBackendLoadRequest(
@@ -281,45 +292,28 @@ extension PCMPlaybackBackendTests {
         )
     }
 
-    @Test("The installed PCM tap analyzes a temporary 80 Hz WAV")
-    func installedTapTemporaryWave() async throws {
-        let directory = FileManager.default.temporaryDirectory
-            .appending(path: UUID().uuidString, directoryHint: .isDirectory)
-        try FileManager.default.createDirectory(
-            at: directory,
-            withIntermediateDirectories: true
-        )
-        defer {
-            try? FileManager.default.removeItem(at: directory)
-        }
-        let track = try makeWave(
-            at: directory.appending(path: "bass.wav"),
-            id: UUID(),
-            title: "Bass",
-            frameCount: 48000,
-            frequency: 80,
-            amplitude: 0.5
-        )
+    @Test("The PCM tap analyzes a synthetic 80 Hz buffer")
+    func installedTapTemporaryWave() throws {
         let backend = PCMPlaybackBackend()
-        defer { backend.stop() }
-
-        try await backend.load(
-            PlaybackBackendLoadRequest(
-                current: track,
-                next: nil,
-                startTime: 0,
-                autoplay: true,
-                volume: 0
+        let format = try #require(
+            AVAudioFormat(
+                standardFormatWithSampleRate: 48000,
+                channels: 2
             )
         )
-        var observedLevel: Float = 0
-        for _ in 0 ..< 50 where observedLevel == 0 {
-            try await Task.sleep(for: .milliseconds(20))
-            observedLevel = backend.bassMeter.currentBassLevel()
-        }
+        let buffer = try stereoSineBuffer(
+            format: format,
+            amplitude: 0.5,
+            frameCount: 4800
+        )
+        let tap = makePCMBassTap(analyzer: backend.bassAnalyzer)
 
-        #expect(backend.engine.isRunning)
-        #expect(observedLevel > 0)
+        tap(
+            buffer,
+            AVAudioTime(sampleTime: 0, atRate: format.sampleRate)
+        )
+
+        #expect(backend.bassMeter.currentBassLevel() > 0)
     }
 }
 

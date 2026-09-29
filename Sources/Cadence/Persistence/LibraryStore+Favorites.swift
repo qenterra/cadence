@@ -41,6 +41,10 @@ extension LibraryStore {
         guard isCurrentLibraryContext(context) else {
             return projection
         }
+        HomeFavoriteRecencyStore.recordTrack(
+            projection.id,
+            isFavorite: projection.isFavorite
+        )
         publishTrackProjection(
             projection,
             updatesResidentFavorite: false

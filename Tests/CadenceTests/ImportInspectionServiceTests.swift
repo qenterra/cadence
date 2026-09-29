@@ -40,6 +40,26 @@ struct ImportInspectionServiceTests {
         }.sorted())
     }
 
+    @Test("Inspection returns supported candidates and unsupported files together")
+    func mixedInspectionResult() async throws {
+        let root = FileManager.default.temporaryDirectory.appending(
+            path: "Cadence-Mixed-Inspection-\(UUID().uuidString)",
+            directoryHint: .isDirectory
+        )
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        try Data([0]).write(to: root.appending(path: "Song.wav"))
+        try Data([0]).write(to: root.appending(path: "Archive.xyz"))
+
+        let result = try await ImportInspectionService(
+            inspector: ConcurrencyRecordingInspector(),
+            duplicateLookup: ImportDuplicateLookup { _ in .empty }
+        ).inspectResult(source: ImportSource(urls: [root]))
+
+        #expect(result.candidates.count == 1)
+        #expect(result.unsupportedFiles.map(\.relativePath) == ["Archive.xyz"])
+    }
+
     @Test("Progress starts at zero and reaches the exact candidate total")
     func realProgress() async throws {
         let root = FileManager.default.temporaryDirectory.appending(

@@ -1,6 +1,36 @@
 import SwiftUI
 
+enum PlaylistPlaybackPresentation {
+    static func isEnabled(
+        ownsLoadedTracks: Bool,
+        trackCount: Int
+    ) -> Bool {
+        ownsLoadedTracks && trackCount > 0
+    }
+}
+
 extension PlaylistsView {
+    var playlistNameValidation: PlaylistNameValidation {
+        PlaylistNamePolicy.validation(
+            playlistName,
+            existingPlaylists: store.playlists.map { ($0.id, $0.name) },
+            excludingID: playlistNameOperation == .rename
+                ? store.selectedPlaylistID
+                : nil
+        )
+    }
+
+    var playlistNameValidationMessage: String {
+        let count = PlaylistNamePolicy.normalizedName(playlistName).count
+        let counter = String(
+            localized: "\(count) of \(PlaylistNamePolicy.maximumLength) characters"
+        )
+        guard let errorMessage = playlistNameValidation.errorMessage else {
+            return counter
+        }
+        return "\(errorMessage)\n\(counter)"
+    }
+
     func playlistPlaybackButtons(
         _ playlist: LibraryPlaylistProjection
     ) -> some View {
@@ -14,7 +44,14 @@ extension PlaylistsView {
                 playPlaylist(playlist, shuffled: true)
             }
         }
-        .disabled(!store.ownsSelectedPlaylistTracks(for: playlist.id))
+        .disabled(
+            !PlaylistPlaybackPresentation.isEnabled(
+                ownsLoadedTracks: store.ownsSelectedPlaylistTracks(
+                    for: playlist.id
+                ),
+                trackCount: playlist.trackCount
+            )
+        )
     }
 
     func playPlaylist(
@@ -62,7 +99,7 @@ extension PlaylistsView {
     }
 }
 
-enum PlaylistNameOperation {
+enum PlaylistNameOperation: Equatable {
     case create
     case rename
 
@@ -82,5 +119,9 @@ enum PlaylistNameOperation {
         case .rename:
             String(localized: "Rename")
         }
+    }
+
+    var initialName: String {
+        ""
     }
 }

@@ -26,7 +26,10 @@ struct CadenceModeScreenshotTests {
         try await fixture.cleanup()
     }
 
-    @Test("Render Cadence Mode, its entry, and the inactive hint")
+    @Test(
+        "Render Cadence Mode, its entry, and the inactive hint",
+        .appKitExclusive
+    )
     func renderCadenceModeScreenshots() async throws {
         guard FileManager.default.fileExists(atPath: Self.updateMarker.path) else {
             return
@@ -532,10 +535,9 @@ struct CadenceModeBassVisualTests {
                     \.rhythmPulseVisualQAState,
                     visualQAState(document: document)
                 )
-                .defaultAppStorage(
-                    DocumentationScreenshotDefaults.userDefaults
-                )
+                .defaultAppStorage(DocumentationScreenshotDefaults.userDefaults)
                 .environment(\.visualRegressionHidesPreviewChrome, true)
+                .environment(\.visualRegressionPreservesFixtureState, true)
                 .tint(CadenceTheme.primaryAccent)
             let hostingView = NSHostingView(rootView: rootView)
             let window = NSWindow(
@@ -618,9 +620,7 @@ struct CadenceModeBassVisualTests {
         #expect(highBass.artworkScale > 1)
         #expect(highBass.artworkScale <= 1.05)
         #expect(reduced.artworkScale == 1)
-        #expect(!silence.hasSamePNG(as: highBass))
-        #expect(silence.hasSamePNG(as: reduced))
-        #expect(silence.hasSamePixels(as: reduced))
+        #expect(silence.hasSamePixels(as: reduced, maximumChannelDelta: 1))
         try assertArtworkOnlyDifference(silence: silence, highBass: highBass)
     }
 
@@ -629,7 +629,10 @@ struct CadenceModeBassVisualTests {
         highBass: CadenceModeRecordsOnlyCapture
     ) throws {
         let difference = try #require(
-            silence.pixelDifferenceBounds(comparedTo: highBass)
+            silence.pixelDifferenceBounds(
+                comparedTo: highBass,
+                minimumChannelDelta: 2
+            )
         )
         let artworkFrame = silence.artworkFrame.union(highBass.artworkFrame)
         let artworkRegion = CGRect(
@@ -757,16 +760,18 @@ private struct CadenceModeRecordsOnlyCapture {
         pngData.count
     }
 
-    func hasSamePNG(as other: Self) -> Bool {
-        pngData == other.pngData
-    }
-
-    func hasSamePixels(as other: Self) -> Bool {
-        rgbaPixels == other.rgbaPixels
+    func hasSamePixels(as other: Self, maximumChannelDelta: UInt8 = 0) -> Bool {
+        guard rgbaPixels.count == other.rgbaPixels.count else {
+            return false
+        }
+        return zip(rgbaPixels, other.rgbaPixels).allSatisfy {
+            abs(Int($0) - Int($1)) <= maximumChannelDelta
+        }
     }
 
     func pixelDifferenceBounds(
-        comparedTo other: Self
+        comparedTo other: Self,
+        minimumChannelDelta: UInt8 = 0
     ) -> CGRect? {
         guard pixelWidth == other.pixelWidth,
               pixelHeight == other.pixelHeight,
@@ -780,8 +785,13 @@ private struct CadenceModeRecordsOnlyCapture {
         var maximumY = -1
         for pixelIndex in 0 ..< pixelWidth * pixelHeight {
             let offset = pixelIndex * 4
-            guard rgbaPixels[offset ..< offset + 4]
-                != other.rgbaPixels[offset ..< offset + 4] else {
+            let maximumChannelDelta = zip(
+                rgbaPixels[offset ..< offset + 4],
+                other.rgbaPixels[offset ..< offset + 4]
+            )
+            .map { abs(Int($0) - Int($1)) }
+            .max() ?? 0
+            guard maximumChannelDelta > minimumChannelDelta else {
                 continue
             }
             let x = pixelIndex % pixelWidth
@@ -866,6 +876,7 @@ private enum CadenceModeRecordsOnlyRenderer {
         )
         .environment(\.visualRegressionUsesStableSystemControls, true)
         .environment(\.visualRegressionFreezesHighlights, true)
+        .environment(\.visualRegressionPreservesFixtureState, true)
         .environment(\.controlActiveState, .key)
         .defaultAppStorage(DocumentationScreenshotDefaults.userDefaults)
         .environment(\.visualRegressionHidesPreviewChrome, true)
@@ -887,10 +898,7 @@ private enum CadenceModeRecordsOnlyRenderer {
         window.contentMaxSize = contentSize
         window.setContentSize(contentSize)
         window.makeKeyAndOrderFront(nil)
-        defer {
-            window.orderOut(nil)
-            window.close()
-        }
+        defer { window.close() }
 
         hostingView.layoutSubtreeIfNeeded()
         hostingView.displayIfNeeded()

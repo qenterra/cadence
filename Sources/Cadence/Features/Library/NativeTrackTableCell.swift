@@ -5,14 +5,19 @@ import QenTerraMediaComponents
 @MainActor
 final class NativeTrackTableCell: NSTableCellView {
     let presentationView = NativeMediaTableCell()
+    private let hoverArtworkOverlay = NativeTrackHoverArtworkOverlay()
     private let probe: TrackTableWorkProbe?
     private var artworkTask: Task<Void, Never>?
     private var artworkRequest: ProductionArtworkRequest?
+    private var hoverTrackingArea: NSTrackingArea?
     var onAction: ((UUID, NativeTrackTableAction) -> Void)?
     var onActionsMenu: ((UUID, NSButton) -> Void)?
     var onContextMenu: ((UUID, NSEvent) -> NSMenu?)?
     var artworkLoader: NativeTrackArtworkLoader?
     private(set) var publishedArtworkRequest: ProductionArtworkRequest?
+    private var showsArtwork = true
+    private var allowsHoverArtworkOverlay = true
+    private var tableGeometry = MediaTableGeometry(density: .standard)
 
     var representedTrackID: UUID? {
         presentationView.representedItemID?.base as? UUID
@@ -26,6 +31,10 @@ final class NativeTrackTableCell: NSTableCellView {
         [ObjectIdentifier(presentationView)] + presentationView.renderHierarchyIdentity
     }
 
+    var isHoverArtworkOverlayVisible: Bool {
+        !hoverArtworkOverlay.isHidden
+    }
+
     init(frame frameRect: NSRect = .zero, probe: TrackTableWorkProbe? = nil) {
         self.probe = probe
         super.init(frame: frameRect)
@@ -34,6 +43,7 @@ final class NativeTrackTableCell: NSTableCellView {
         presentationView.frame = bounds
         presentationView.autoresizingMask = [.width, .height]
         addSubview(presentationView)
+        addSubview(hoverArtworkOverlay)
         setAccessibilityElement(false)
         probe?.recordNativeCellCreation()
     }
@@ -68,6 +78,11 @@ final class NativeTrackTableCell: NSTableCellView {
             self.artworkLoader = artworkLoader
         }
         let environment = CadenceTrackTableAdapter.environment(for: self, density: density, reduceMotion: reduceMotion)
+        self.showsArtwork = showsArtwork
+        tableGeometry = MediaTableGeometry(
+            density: environment.density,
+            favoriteControlWidth: TrackTableColumnPolicy.favoriteControlWidth
+        )
         let state = MediaTableCellState(
             isSelected: isSelected, isFocused: isFocused, isLiveScrolling: isLiveScrolling,
             showsArtwork: showsArtwork, density: environment.density,
@@ -79,6 +94,7 @@ final class NativeTrackTableCell: NSTableCellView {
         let update: MediaTableCellUpdate
         switch content {
         case .placeholder:
+            allowsHoverArtworkOverlay = false
             cancelArtwork()
             update = presentationView.configurePlaceholder(
                 label: String(localized: "Loading…"), accessibilityLabel: String(localized: "Loading track"),
@@ -86,6 +102,12 @@ final class NativeTrackTableCell: NSTableCellView {
                 widths: CadenceTrackTableAdapter.widths(widths)
             )
         case let .track(row):
+            if previousID != nil, previousID != row.id {
+                presentationView.resetPointerHover()
+            }
+            allowsHoverArtworkOverlay = !row.isCurrentTrack
+                && showsArtwork
+                && row.artworkRequest.artworkID != nil
             let request = showsArtwork ? row.artworkRequest : nil
             if artworkRequest != request || previousID != row.id {
                 cancelArtwork()
@@ -98,6 +120,7 @@ final class NativeTrackTableCell: NSTableCellView {
                 actions: actions(for: row)
             )
         }
+        updateHoverArtworkOverlay()
         if previousID != nil, previousID != representedTrackID {
             probe?.recordNativeTrackIdentityChange()
         }
@@ -144,10 +167,38 @@ final class NativeTrackTableCell: NSTableCellView {
         super.layout()
         presentationView.frame = bounds
         presentationView.layoutSubtreeIfNeeded()
+        let side = tableGeometry.artworkSize
+        hoverArtworkOverlay.frame = CGRect(
+            x: tableGeometry.horizontalInset
+                + tableGeometry.favoriteControlWidth
+                + tableGeometry.columnSpacing,
+            y: (bounds.height - side) / 2,
+            width: side,
+            height: side
+        )
     }
 
     override func menu(for event: NSEvent) -> NSMenu? {
         presentationView.menu(for: event)
+    }
+
+    override func updateTrackingAreas() {
+        if let hoverTrackingArea {
+            removeTrackingArea(hoverTrackingArea)
+        }
+        let trackingArea = NSTrackingArea(
+            rect: .zero,
+            options: [
+                .activeInActiveApp,
+                .inVisibleRect,
+                .mouseEnteredAndExited,
+            ],
+            owner: self,
+            userInfo: nil
+        )
+        addTrackingArea(trackingArea)
+        hoverTrackingArea = trackingArea
+        super.updateTrackingAreas()
     }
 
     override func mouseEntered(with _: NSEvent) {
@@ -160,14 +211,17 @@ final class NativeTrackTableCell: NSTableCellView {
 
     func updatePointerHover(isHovered: Bool) {
         presentationView.setPointerHovered(isHovered)
+        updateHoverArtworkOverlay()
     }
 
     func resetPointerHover() {
         presentationView.resetPointerHover()
+        updateHoverArtworkOverlay()
     }
 
     func reconcilePointerHover(at point: NSPoint) {
         presentationView.reconcilePointerHover(at: point)
+        updateHoverArtworkOverlay()
     }
 
     func performAction(_ action: NativeTrackTableAction) {
@@ -177,6 +231,7 @@ final class NativeTrackTableCell: NSTableCellView {
     override func viewWillMove(toSuperview newSuperview: NSView?) {
         super.viewWillMove(toSuperview: newSuperview)
         if newSuperview == nil {
+            resetPointerHover()
             cancelArtwork()
             presentationView.prepareForReuse()
         }
@@ -210,5 +265,45 @@ final class NativeTrackTableCell: NSTableCellView {
         artworkTask = nil
         artworkRequest = nil
         publishedArtworkRequest = nil
+    }
+
+    private func updateHoverArtworkOverlay() {
+        hoverArtworkOverlay.isHidden = !showsArtwork
+            || !allowsHoverArtworkOverlay
+            || !presentationView.isPointerHovered
+    }
+}
+
+private final class NativeTrackHoverArtworkOverlay: NSView {
+    private let symbolView = NSImageView()
+
+    override init(frame frameRect: NSRect) {
+        super.init(frame: frameRect)
+        wantsLayer = true
+        layer?.backgroundColor = NSColor.black.withAlphaComponent(0.42).cgColor
+        layer?.cornerRadius = CadenceTheme.radiusControl
+        layer?.masksToBounds = true
+        symbolView.image = NSImage(
+            systemSymbolName: "play.fill",
+            accessibilityDescription: nil
+        )
+        symbolView.contentTintColor = .white
+        symbolView.imageScaling = .scaleProportionallyDown
+        addSubview(symbolView)
+        isHidden = true
+    }
+
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
+        nil
+    }
+
+    override func layout() {
+        super.layout()
+        symbolView.frame = bounds.insetBy(dx: bounds.width * 0.30, dy: bounds.height * 0.30)
+    }
+
+    override func hitTest(_: NSPoint) -> NSView? {
+        nil
     }
 }

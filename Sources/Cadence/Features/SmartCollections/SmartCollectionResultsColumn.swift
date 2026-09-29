@@ -11,6 +11,8 @@ struct SmartCollectionResultsColumn: View {
                 noSelection
             } else if model.librarySession.store.catalogCounts.liveTrackCount == 0 {
                 emptyLibrary
+            } else if !model.smartCollectionValidation.isValid {
+                invalidPreview
             } else if model.productionSmartCollectionLiveSummary.isEmpty {
                 noMatches
             } else {
@@ -96,6 +98,17 @@ struct SmartCollectionResultsColumn: View {
             "No Matching Tracks",
             systemImage: "line.3.horizontal.decrease.circle",
             description: Text("No tracks match the current rules.")
+        )
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private var invalidPreview: some View {
+        ContentUnavailableView(
+            "Preview Paused",
+            systemImage: "exclamationmark.circle",
+            description: Text(
+                "Fix the highlighted rule to update matching tracks."
+            )
         )
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }

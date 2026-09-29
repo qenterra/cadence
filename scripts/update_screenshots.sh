@@ -31,16 +31,24 @@ xcodegen generate --spec project.yml
 marker="$project_root/.build/update-screenshots"
 cadence_mode_marker="$project_root/.build/update-cadence-mode-screenshots"
 candidate_dir="${TMPDIR:?}/CadenceVisualRegression/update"
-expected_candidate_count="91"
+manifest="$project_root/scripts/documentation-screenshot-manifest.json"
+expected_list="$(mktemp "${TMPDIR:?}/cadence-screenshot-expected.XXXXXX")"
+actual_list="$(mktemp "${TMPDIR:?}/cadence-screenshot-actual.XXXXXX")"
 mkdir -p "$project_root/.build"
 mkdir -p "$candidate_dir"
 find "$candidate_dir" -maxdepth 1 -type f -name '*.png' -delete
 touch "$marker"
 touch "$cadence_mode_marker"
 
+python3 -c 'import json, sys; data=json.load(open(sys.argv[1])); print("\n".join(data["files"]))' \
+    "$manifest" | sort > "$expected_list"
+expected_candidate_count="$(wc -l < "$expected_list" | tr -d ' ')"
+
 cleanup_markers() {
     unlink "$marker" 2>/dev/null || true
     unlink "$cadence_mode_marker" 2>/dev/null || true
+    unlink "$expected_list" 2>/dev/null || true
+    unlink "$actual_list" 2>/dev/null || true
 }
 
 trap cleanup_markers EXIT
@@ -83,7 +91,19 @@ fi
 for obsolete_settings_image in "$project_root"/docs/images/qa-settings-sidebar-{system,light,dark}.png; do
     unlink "$obsolete_settings_image" 2>/dev/null || true
 done
-cp -f "$candidate_dir"/*.png "$project_root/docs/images/"
+find "$candidate_dir" -maxdepth 1 -type f -name '*.png' -exec basename {} \; | sort > "$actual_list"
+if ! cmp -s "$expected_list" "$actual_list"; then
+    echo "Documentation screenshot candidates do not match the manifest:" >&2
+    diff -u "$expected_list" "$actual_list" >&2 || true
+    exit 71
+fi
+if [[ "${CADENCE_SCREENSHOT_PROMOTE:-1}" != "1" ]]; then
+    echo "Verified $candidate_count screenshot candidates in $candidate_dir; promotion skipped."
+    exit 0
+fi
+while IFS= read -r filename; do
+    cp -f "$candidate_dir/$filename" "$project_root/docs/images/$filename"
+done < "$expected_list"
 
 for image in "$project_root"/docs/images/cadence-{library,now-playing,tags}.png; do
     [[ -f "$image" ]]

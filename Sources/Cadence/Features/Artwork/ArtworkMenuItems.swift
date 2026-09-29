@@ -1,23 +1,22 @@
 import SwiftUI
 
-struct ArtworkMenuItems: View {
+struct ArtworkActionButtons: View {
     @Bindable var model: CadenceAppModel
 
     let target: ArtworkTarget
     let label: String
 
     var body: some View {
-        Button(
-            model.hasCustomArtwork(for: target)
-                ? "Replace \(label)"
-                : "Choose \(label)",
-            systemImage: "photo"
-        ) {
-            model.requestArtworkImport(for: target)
-        }
-
-        if model.hasCustomArtwork(for: target) {
-            Divider()
+        HStack(spacing: CadenceLayout.controlGap) {
+            Button(
+                model.hasCustomArtwork(for: target)
+                    ? "Replace \(label)"
+                    : "Choose \(label)",
+                systemImage: "photo"
+            ) {
+                model.requestArtworkImport(for: target)
+            }
+            .buttonStyle(.bordered)
 
             Button(
                 "Remove \(label)",
@@ -26,6 +25,8 @@ struct ArtworkMenuItems: View {
             ) {
                 model.removeCustomArtwork(for: target)
             }
+            .buttonStyle(.bordered)
+            .disabled(!model.hasCustomArtwork(for: target))
         }
     }
 }

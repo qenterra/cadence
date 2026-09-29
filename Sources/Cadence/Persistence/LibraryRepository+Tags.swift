@@ -1,4 +1,5 @@
 import Foundation
+import QenTerraFoundation
 import SwiftData
 
 enum ProductionTagAssignmentSource: String, Sendable {
@@ -17,6 +18,7 @@ struct ProductionTrackTagState: Identifiable, Sendable {
 
 enum ProductionTagEditError: Error, LocalizedError, Sendable {
     case invalidPath
+    case duplicatePath
     case missingTag
     case missingTrack
     case missingTracks
@@ -25,6 +27,8 @@ enum ProductionTagEditError: Error, LocalizedError, Sendable {
         switch self {
         case .invalidPath:
             "Enter a tag such as mood/sad or childhood."
+        case .duplicatePath:
+            "A tag with this name already exists."
         case .missingTag:
             "The tag no longer exists."
         case .missingTrack:
@@ -36,6 +40,40 @@ enum ProductionTagEditError: Error, LocalizedError, Sendable {
 }
 
 extension LibraryRepository {
+    func renameTag(
+        id: UUID,
+        displayPath: String
+    ) throws -> LibraryTagProjection {
+        let normalized = SearchNormalizer.normalize(displayPath)
+        let components = displayPath
+            .split(separator: "/", omittingEmptySubsequences: false)
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+        guard
+            !normalized.isEmpty,
+            components.count <= 2,
+            components.allSatisfy({ !$0.isEmpty })
+        else {
+            throw ProductionTagEditError.invalidPath
+        }
+        guard let record = try tagRecord(id: id) else {
+            throw ProductionTagEditError.missingTag
+        }
+        let duplicatePredicate = #Predicate<TagRecord> {
+            $0.normalizedPath == normalized && $0.id != id
+        }
+        var duplicateDescriptor = FetchDescriptor(predicate: duplicatePredicate)
+        duplicateDescriptor.fetchLimit = 1
+        guard try modelContext.fetch(duplicateDescriptor).isEmpty else {
+            throw ProductionTagEditError.duplicatePath
+        }
+
+        record.displayPath = components.joined(separator: " / ")
+        record.normalizedPath = normalized
+        record.groupPath = components.count == 2 ? components[0] : nil
+        try modelContext.save()
+        return LibraryProjectionFactory.tag(record)
+    }
+
     func tags(
         albumID: UUID
     ) throws -> [LibraryTagProjection] {

@@ -4,6 +4,10 @@ import Foundation
 import SwiftData
 import SwiftUI
 import Testing
+
+// The screenshot harness is intentionally one stateful fixture: splitting its
+// setup stages would make window lifetime and deterministic seed ownership vague.
+// swiftlint:disable type_body_length function_body_length
 import UniformTypeIdentifiers
 
 @MainActor
@@ -12,6 +16,7 @@ final class DocumentationScreenshotFixture {
     let albumID: UUID
     let artistID: UUID
     let tagID: UUID
+    let emptyPlaylistID: UUID
     let readinessTracker: DocumentationScreenshotReadinessTracker
     private let temporaryMusicDirectory: URL
 
@@ -20,6 +25,7 @@ final class DocumentationScreenshotFixture {
         albumID: UUID,
         artistID: UUID,
         tagID: UUID,
+        emptyPlaylistID: UUID,
         readinessTracker: DocumentationScreenshotReadinessTracker,
         temporaryMusicDirectory: URL
     ) {
@@ -27,13 +33,14 @@ final class DocumentationScreenshotFixture {
         self.albumID = albumID
         self.artistID = artistID
         self.tagID = tagID
+        self.emptyPlaylistID = emptyPlaylistID
         self.readinessTracker = readinessTracker
         self.temporaryMusicDirectory = temporaryMusicDirectory
     }
 
     static func make() async throws -> DocumentationScreenshotFixture {
         let container = try LibraryContainerFactory.inMemory()
-        let seeded = try seed(container)
+        let seeded = try await seed(container)
         let repository = LibraryRepository(modelContainer: container)
         let library = try await DocumentationScreenshotLibrary.make(
             repository: repository
@@ -58,6 +65,7 @@ final class DocumentationScreenshotFixture {
         let model = CadenceAppModel(
             runtimeEnvironment: .preview(
                 CadencePreviewFixture(
+                    smartCollections: DocumentationScreenshotFixture.smartCollections,
                     importCandidates: .mockImportCandidates
                 )
             ),
@@ -79,6 +87,7 @@ final class DocumentationScreenshotFixture {
             albumID: seeded.albumID,
             artistID: seeded.artistID,
             tagID: seeded.tagID,
+            emptyPlaylistID: seeded.emptyPlaylistID,
             readinessTracker: readinessTracker,
             temporaryMusicDirectory: library.temporaryMusicDirectory
         )
@@ -106,6 +115,7 @@ final class DocumentationScreenshotFixture {
             albumID: UUID(),
             artistID: UUID(),
             tagID: UUID(),
+            emptyPlaylistID: UUID(),
             readinessTracker: readinessTracker,
             temporaryMusicDirectory: library.temporaryMusicDirectory
         )
@@ -116,6 +126,7 @@ final class DocumentationScreenshotFixture {
         contentSize: NSSize = .minimum,
         appearance: DocumentationScreenshotAppearance = .dark,
         rhythmPulseVisualQAState: RhythmPulseVisualQAState? = nil,
+        showsNowPlayingTagEntry: Bool = false,
         recordsOnly: Bool = false
     ) async throws {
         let cadenceModeSession = CadenceModeSession(automatesTiming: false)
@@ -132,8 +143,9 @@ final class DocumentationScreenshotFixture {
             ),
             contentSize: contentSize,
             appearance: appearance,
-            scene: inferredScene,
+            scene: showsNowPlayingTagEntry ? .nowPlayingTagEntry : inferredScene,
             rhythmPulseVisualQAState: rhythmPulseVisualQAState,
+            showsNowPlayingTagEntry: showsNowPlayingTagEntry,
             recordsOnly: recordsOnly
         )
     }
@@ -166,7 +178,7 @@ final class DocumentationScreenshotFixture {
 
     func waitUntilReady(
         for scene: DocumentationScreenshotScene,
-        timeout: Duration = .seconds(3)
+        timeout: Duration = .seconds(10)
     ) async throws {
         let clock = ContinuousClock()
         let deadline = clock.now.advanced(by: timeout)
@@ -188,6 +200,7 @@ final class DocumentationScreenshotFixture {
         appearance: DocumentationScreenshotAppearance,
         scene: DocumentationScreenshotScene,
         rhythmPulseVisualQAState: RhythmPulseVisualQAState? = nil,
+        showsNowPlayingTagEntry: Bool = false,
         recordsOnly: Bool = false
     ) async throws {
         let defaults = DocumentationScreenshotDefaults.userDefaults
@@ -209,7 +222,8 @@ final class DocumentationScreenshotFixture {
             rootView,
             contentSize: contentSize,
             appearance: appearance.cadenceAppearance,
-            rhythmPulseVisualQAState: rhythmPulseVisualQAState
+            rhythmPulseVisualQAState: rhythmPulseVisualQAState,
+            showsNowPlayingTagEntry: showsNowPlayingTagEntry
         )
 
         let hostingView = NSHostingView(rootView: rootView)
@@ -224,6 +238,11 @@ final class DocumentationScreenshotFixture {
         hostingView.layoutSubtreeIfNeeded()
         hostingView.displayIfNeeded()
         try await waitUntilReady(for: scene)
+        // SwiftUI can publish the final data state one run-loop turn before
+        // AppKit finishes configuring every visible reused table cell. Give
+        // the native bridge a short, bounded settle window so screenshots do
+        // not mix current headers with stale per-row column geometry.
+        try await Task.sleep(for: .milliseconds(100))
         // The hosted Cadence app can apply its own global appearance while a
         // screenshot window is mounting. Restore the capture-owned override
         // immediately before rasterization so the frame cannot record a
@@ -283,7 +302,8 @@ final class DocumentationScreenshotFixture {
         _ rootView: some View,
         contentSize: NSSize,
         appearance: CadenceAppearance,
-        rhythmPulseVisualQAState: RhythmPulseVisualQAState?
+        rhythmPulseVisualQAState: RhythmPulseVisualQAState?,
+        showsNowPlayingTagEntry: Bool = false
     ) -> some View {
         rootView
             .frame(width: contentSize.width, height: contentSize.height)
@@ -309,6 +329,12 @@ final class DocumentationScreenshotFixture {
                 )
             )
             .environment(
+                \.artistDetailReadinessObserver,
+                ArtistDetailReadinessObserver(
+                    notify: readinessTracker.didRenderArtist
+                )
+            )
+            .environment(
                 \.nowPlayingReadinessObserver,
                 NowPlayingReadinessObserver(
                     notify: readinessTracker.didRenderNowPlaying
@@ -320,6 +346,18 @@ final class DocumentationScreenshotFixture {
             )
             .environment(
                 \.visualRegressionFreezesHighlights,
+                true
+            )
+            .environment(
+                \.visualRegressionShowsNowPlayingTagEntry,
+                showsNowPlayingTagEntry
+            )
+            .environment(
+                \.visualRegressionPreservesFixtureState,
+                true
+            )
+            .environment(
+                \.visualRegressionFreezesAnimatedContent,
                 true
             )
             .environment(\.controlActiveState, .key)
@@ -369,6 +407,8 @@ final class DocumentationScreenshotFixture {
         return previous
     }
 }
+
+// swiftlint:enable type_body_length function_body_length
 
 @MainActor
 private final class DocumentationDefaultAudioWorkspace:

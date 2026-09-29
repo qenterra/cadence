@@ -14,8 +14,7 @@ struct ProductionAlbumDetailView: View {
     @State private var isLoading = true
     @State private var loadFailure: String?
     @State private var loadGeneration = 0
-    @State private var isRenamePresented = false
-    @State private var renameDraft = ""
+    @State private var isEditorPresented = false
 
     var body: some View {
         Group {
@@ -72,18 +71,24 @@ struct ProductionAlbumDetailView: View {
             alignment: .topLeading
         )
         .background(CadenceTheme.contentBackground)
-        .catalogRenameAlert(
-            "Rename Album",
-            prompt: "Album Name",
-            isPresented: $isRenamePresented,
-            draft: $renameDraft
-        ) { title in
-            Task {
-                if let renamed = await model.renameProductionAlbum(
-                    id: albumID,
-                    title: title
-                ) {
-                    album = renamed
+        .sheet(isPresented: $isEditorPresented) {
+            if let album {
+                CatalogEntityEditorSheet(
+                    model: model,
+                    title: "Edit Album",
+                    fieldLabel: "Album Name",
+                    initialValue: album.title,
+                    artworkTarget: .managedAlbum(album.id),
+                    artworkLabel: "Album Artwork"
+                ) { title in
+                    guard let renamed = await model.renameProductionAlbum(
+                        id: album.id,
+                        title: title
+                    ) else {
+                        return false
+                    }
+                    self.album = renamed
+                    return true
                 }
             }
         }
@@ -97,6 +102,51 @@ struct ProductionAlbumDetailView: View {
         }
     }
 
+    private func albumFavoriteButton(
+        _ album: LibraryAlbumProjection
+    ) -> some View {
+        FavoriteButton(
+            itemID: album.id,
+            isFavorite: album.isFavorite,
+            itemName: album.title,
+            controlSize: 34
+        ) { requestedValue in
+            guard let updated = await model.setProductionAlbumFavorite(
+                album,
+                isFavorite: requestedValue
+            ) else {
+                return false
+            }
+            self.album = updated
+            return true
+        }
+        .imageScale(.large)
+    }
+
+    private func playbackActions(
+        _ album: LibraryAlbumProjection
+    ) -> some View {
+        HStack(spacing: 10) {
+            Button("Play", systemImage: "play.fill") {
+                model.playProductionAlbum(album, tracks: tracks)
+            }
+            .buttonStyle(.borderedProminent)
+            .disabled(tracks.isEmpty)
+
+            Button("Shuffle", systemImage: "shuffle") {
+                model.playProductionAlbum(
+                    album,
+                    tracks: tracks,
+                    shuffled: true
+                )
+            }
+            .buttonStyle(.bordered)
+            .disabled(tracks.isEmpty)
+        }
+    }
+}
+
+private extension ProductionAlbumDetailView {
     private var backButton: some View {
         Button {
             model.requestContextualBack()
@@ -120,19 +170,15 @@ struct ProductionAlbumDetailView: View {
                 cornerRadius: CadenceTheme.radiusPanel
             )
             .frame(width: 210, height: 210)
-            .contextMenu {
-                ArtworkMenuItems(
-                    model: model,
-                    target: .managedAlbum(album.id),
-                    label: "Album Artwork"
-                )
-            }
 
             VStack(alignment: .leading, spacing: 8) {
-                Text("ALBUM")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.secondary)
-                albumTitle(album)
+                VStack(
+                    alignment: .leading,
+                    spacing: CatalogDetailHeaderMetrics.eyebrowTitleSpacing
+                ) {
+                    CatalogDetailEyebrow("ALBUM")
+                    albumTitle(album)
+                }
                 Button {
                     guard let artistID = album.artistID else {
                         return
@@ -148,56 +194,37 @@ struct ProductionAlbumDetailView: View {
                     .font(.callout)
                     .foregroundStyle(.tertiary)
 
-                playbackActions(album)
+                HStack(spacing: 10) {
+                    playbackActions(album)
+                    albumFavoriteButton(album)
+                    Spacer(minLength: 16)
+                    editButton
+                    actionsMenu(album)
+                }
+                .padding(.top, 4)
                 albumTagChips
             }
-            Spacer()
-            Menu {
-                albumActions(album)
-            } label: {
-                Image(systemName: "ellipsis.circle")
-            }
-            .menuIndicator(.hidden)
-            .help("Album Actions")
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 
-    private func playbackActions(
+    private var editButton: some View {
+        Button("Edit", systemImage: "pencil") {
+            isEditorPresented = true
+        }
+        .buttonStyle(.bordered)
+    }
+
+    private func actionsMenu(
         _ album: LibraryAlbumProjection
     ) -> some View {
-        HStack(spacing: 10) {
-            Button("Play", systemImage: "play.fill") {
-                model.playProductionAlbum(album, tracks: tracks)
-            }
-            .buttonStyle(.borderedProminent)
-            .disabled(tracks.isEmpty)
-
-            Button("Shuffle", systemImage: "shuffle") {
-                model.playProductionAlbum(
-                    album,
-                    tracks: tracks,
-                    shuffled: true
-                )
-            }
-            .buttonStyle(.bordered)
-            .disabled(tracks.isEmpty)
-
-            Button(
-                album.isFavorite ? "Unfavorite" : "Favorite",
-                systemImage: album.isFavorite ? "heart.fill" : "heart"
-            ) {
-                Task {
-                    if let updated = await model.setProductionAlbumFavorite(
-                        album,
-                        isFavorite: !album.isFavorite
-                    ) {
-                        self.album = updated
-                    }
-                }
-            }
-            .buttonStyle(.bordered)
+        Menu {
+            albumActions(album)
+        } label: {
+            Image(systemName: "ellipsis.circle")
         }
-        .padding(.top, 4)
+        .menuIndicator(.hidden)
+        .help("Album Actions")
     }
 
     @ViewBuilder
@@ -230,9 +257,18 @@ struct ProductionAlbumDetailView: View {
     private func albumActions(
         _ album: LibraryAlbumProjection
     ) -> some View {
-        Button("Rename", systemImage: "pencil") {
-            beginRename(album)
+        FavoriteContextMenuItem(isFavorite: album.isFavorite) {
+            Task {
+                guard let updated = await model.setProductionAlbumFavorite(
+                    album,
+                    isFavorite: !album.isFavorite
+                ) else {
+                    return
+                }
+                self.album = updated
+            }
         }
+        Divider()
         QuickAlbumTagMenuItems(
             store: store,
             albumID: album.id
@@ -240,11 +276,6 @@ struct ProductionAlbumDetailView: View {
         AddAlbumToPlaylistMenuItems(
             store: store,
             albumID: album.id
-        )
-        ArtworkMenuItems(
-            model: model,
-            target: .managedAlbum(album.id),
-            label: "Album Artwork"
         )
         Divider()
         Button(
@@ -260,13 +291,6 @@ struct ProductionAlbumDetailView: View {
         }
     }
 
-    private func beginRename(_ album: LibraryAlbumProjection) {
-        renameDraft = album.title
-        isRenamePresented = true
-    }
-}
-
-private extension ProductionAlbumDetailView {
     @ViewBuilder
     var refreshFailureNotice: some View {
         if let loadFailure {
@@ -312,9 +336,6 @@ private extension ProductionAlbumDetailView {
     func albumTitle(_ album: LibraryAlbumProjection) -> some View {
         Text(album.title)
             .font(.largeTitle.bold())
-            .onTapGesture(count: 2) {
-                beginRename(album)
-            }
     }
 
     func albumMetadata(_ album: LibraryAlbumProjection) -> String {

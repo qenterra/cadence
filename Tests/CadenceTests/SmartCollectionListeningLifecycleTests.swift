@@ -71,7 +71,7 @@ struct SmartCollectionListeningLifecycleTests {
 
     @Test("A new transient draft opens editing and Discard restores prior selection")
     func newDraft() {
-        let saved = collection(id: testID(30), name: "Saved")
+        let saved = collection(id: testID(30), name: "Untitled Collection")
         let model = CadenceAppModel.testFixture(smartCollections: [saved])
         let draftID = testID(31)
 
@@ -83,7 +83,15 @@ struct SmartCollectionListeningLifecycleTests {
         #expect(model.smartCollectionsPresentationMode == .editing)
         #expect(model.selectedSmartCollectionID == nil)
         #expect(model.smartCollectionDraft?.id == draftID)
+        #expect(model.smartCollectionDraft?.name == "")
+        #expect(model.smartCollectionValidation.nameIssue?.kind == .emptyName)
+        #expect(model.smartCollectionNameFocusRequest != nil)
         #expect(model.smartCollectionListItems.last?.isTransient == true)
+
+        model.renameSmartCollectionDraft("Road Trip")
+
+        #expect(model.smartCollectionValidation.nameIssue == nil)
+        #expect(model.canSaveSmartCollectionDraft)
 
         model.requestFinishSmartCollectionEditing()
         #expect(model.pendingSmartCollectionTransition == .listening)

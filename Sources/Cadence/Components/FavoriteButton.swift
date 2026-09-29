@@ -150,3 +150,16 @@ struct FavoriteButton: View {
         }
     }
 }
+
+struct FavoriteContextMenuItem: View {
+    let isFavorite: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(
+            isFavorite ? "Remove from Favorites" : "Add to Favorites",
+            systemImage: isFavorite ? "heart.slash" : "heart",
+            action: action
+        )
+    }
+}

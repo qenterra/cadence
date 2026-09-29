@@ -1,6 +1,24 @@
 import QenTerraComponents
 import SwiftUI
 
+enum CatalogDetailHeaderMetrics {
+    static let eyebrowTitleSpacing: CGFloat = 3
+}
+
+struct CatalogDetailEyebrow: View {
+    let title: LocalizedStringKey
+
+    init(_ title: LocalizedStringKey) {
+        self.title = title
+    }
+
+    var body: some View {
+        Text(title)
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(.secondary)
+    }
+}
+
 struct CadencePageHeader<Actions: View>: View {
     let title: String
     let subtitle: String?

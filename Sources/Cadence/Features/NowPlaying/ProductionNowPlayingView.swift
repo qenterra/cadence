@@ -35,13 +35,15 @@ struct ProductionNowPlayingView: View {
     @Environment(\.nowPlayingReadinessObserver) private var readinessObserver
     @Environment(\.rhythmPulseVisualQAState)
     private var rhythmPulseVisualQAState
+    @Environment(\.visualRegressionShowsNowPlayingTagEntry)
+    private var visualRegressionShowsTagEntry
     @State var tagStates: [ProductionTrackTagState] = []
     @State var newTagPath = ""
     @State var tagError: String?
+    @State var tagEntryState = NowPlayingTagEntryState()
+    @State var tagBeingEdited: LibraryTagProjection?
     @State var isAddingTag = false
-    @State private var renamedTrackTitle: String?
-    @State private var isRenamePresented = false
-    @State private var renameDraft = ""
+    @FocusState var isTagEntryFocused: Bool
     @State var isAudioDetailsPresented = false
     @State var nowPlayingLyricDocument: LyricDocument?
     @AppStorage(CadencePreferences.Keys.showsTechnicalInformation)
@@ -180,6 +182,21 @@ struct ProductionNowPlayingView: View {
             )
         }
         .background(CadenceTheme.contentBackground)
+        .onAppear {
+            if visualRegressionShowsTagEntry {
+                beginTagEntry()
+            }
+        }
+        .sheet(item: $tagBeingEdited) { tag in
+            CatalogEntityEditorSheet(
+                model: model,
+                title: "Edit Tag",
+                fieldLabel: "Tag Name",
+                initialValue: tag.displayPath
+            ) { displayPath in
+                await renameTag(tag, displayPath: displayPath)
+            }
+        }
         .task(id: "\(track.id)-\(model.librarySession.store.tagRevision)") {
             guard !model.isCurrentPlaybackExternal else {
                 tagStates = []
@@ -221,21 +238,6 @@ struct ProductionNowPlayingView: View {
             }
             nowPlayingLyricDocument = loadedDocument
         }
-        .catalogRenameAlert(
-            "Rename Track",
-            prompt: "Track Name",
-            isPresented: $isRenamePresented,
-            draft: $renameDraft
-        ) { title in
-            Task {
-                if let renamed = await model.renameProductionTrack(
-                    id: track.id,
-                    title: title
-                ) {
-                    renamedTrackTitle = renamed.title
-                }
-            }
-        }
     }
 }
 
@@ -262,42 +264,39 @@ extension ProductionNowPlayingView {
 
     private func trackContext(artworkSize: CGFloat) -> some View {
         GeometryReader { geometry in
-            let overflow = NowPlayingContextOverflowPolicy(
-                height: geometry.size.height
+            let contextLayout = NowPlayingContextLayout(
+                height: geometry.size.height,
+                preferredArtworkSize: artworkSize,
+                showsCadenceModeHint: cadenceModeOptions.isEnabled
             )
 
-            ScrollView(.vertical) {
-                VStack(alignment: .leading, spacing: 22) {
-                    trackArtwork(size: artworkSize)
-                    trackIdentity
+            VStack(alignment: .leading, spacing: NowPlayingContextLayout.sectionSpacing) {
+                trackArtwork(size: contextLayout.artworkSize)
+                trackIdentity
 
-                    if model.isCurrentPlaybackExternal {
-                        externalFileNotice
-                    } else {
-                        trackTags
-                    }
-                    audioQuality
-                    playbackFailure
-                    Spacer(minLength: 8)
-                    if cadenceModeOptions.isEnabled {
-                        CadenceModeHint {
-                            cadenceModeSession.requestActivation(
-                                canActivate: model.hasCurrentPlaybackItem
-                            )
-                        }
+                if model.isCurrentPlaybackExternal {
+                    externalFileNotice
+                } else {
+                    trackTags
+                }
+                audioQuality
+                playbackFailure
+                Spacer(minLength: 0)
+                if cadenceModeOptions.isEnabled {
+                    CadenceModeHint {
+                        cadenceModeSession.requestActivation(
+                            canActivate: model.hasCurrentPlaybackItem
+                        )
                     }
                 }
-                .frame(
-                    maxWidth: .infinity,
-                    minHeight: overflow.minimumContentHeight,
-                    alignment: .topLeading
-                )
-                .padding(.horizontal, 42)
-                .padding(.top, 42)
-                .padding(.bottom, overflow.bottomContentInset)
             }
-            .scrollIndicators(.hidden)
-            .scrollBounceBehavior(.basedOnSize)
+            .padding(.horizontal, NowPlayingContextLayout.horizontalInset)
+            .padding(.vertical, NowPlayingContextLayout.verticalInset)
+            .frame(
+                maxWidth: .infinity,
+                maxHeight: .infinity,
+                alignment: .topLeading
+            )
             .background(alignment: .topLeading) {
                 ProductionArtworkHaze(
                     model: model,
@@ -324,15 +323,6 @@ extension ProductionNowPlayingView {
             in: cadenceModeNamespace
         )
         .frame(width: size, height: size)
-        .contextMenu {
-            if !model.isCurrentPlaybackExternal {
-                ArtworkMenuItems(
-                    model: model,
-                    target: .managedTrack(track.id),
-                    label: "Track Artwork"
-                )
-            }
-        }
     }
 
     private var cadenceModeBackButton: some View {
@@ -370,10 +360,22 @@ extension ProductionNowPlayingView {
             Text(displayedTrackTitle)
                 .font(.largeTitle.weight(.bold))
                 .lineLimit(2)
+                .layoutPriority(1)
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .contextMenu {
                     if !model.isCurrentPlaybackExternal {
-                        Button("Rename", systemImage: "pencil") {
-                            beginRename()
+                        FavoriteContextMenuItem(
+                            isFavorite: model.currentProductionTrackIsFavorite
+                        ) {
+                            Task {
+                                await model.setProductionPlaybackTrackFavorite(
+                                    id: track.id,
+                                    isFavorite: !model.currentProductionTrackIsFavorite
+                                )
+                            }
+                        }
+                        Button("Edit Information…", systemImage: "pencil") {
+                            model.presentTrackMetadataEditor(track)
                         }
                     }
                 }
@@ -387,18 +389,6 @@ extension ProductionNowPlayingView {
                 }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.small)
-            } else {
-                FavoriteButton(
-                    itemID: track.id,
-                    isFavorite: model.currentProductionTrackIsFavorite,
-                    itemName: displayedTrackTitle
-                ) { requestedValue in
-                    await model.setProductionPlaybackTrackFavorite(
-                        id: track.id,
-                        isFavorite: requestedValue
-                    )
-                }
-                .padding(.top, 2)
             }
         }
     }
@@ -459,7 +449,7 @@ extension ProductionNowPlayingView {
     }
 
     var displayedTrackTitle: String {
-        renamedTrackTitle ?? track.title
+        track.title
     }
 
     var displayedLyricDocument: LyricDocument? {
@@ -498,10 +488,5 @@ extension ProductionNowPlayingView {
             return base
         }
         return base + "-qa-\(rhythmPulseVisualQAState.seed)"
-    }
-
-    private func beginRename() {
-        renameDraft = displayedTrackTitle
-        isRenamePresented = true
     }
 }

@@ -98,9 +98,42 @@ extension LibraryStore {
     ) async throws -> LibraryTrackProjection {
         let repository = try requireRepository()
         let renamed = try await repository.renameTrack(id: id, title: title)
-        advanceAllTracksWindowContentVersion()
-        await loadInitialLibrary()
+        await refreshAfterSemanticTrackMutation()
         return renamed
+    }
+
+    func editManagedTrackMetadata(
+        trackID: UUID,
+        relativeMediaPath: String,
+        edit: ManagedAudioMetadataEdit,
+        location: ManagedLibraryLocation
+    ) async throws -> LibraryTrackProjection {
+        let context = captureLibraryContext()
+        let repository = try requireRepository()
+        let fileURL = try location.resolve(
+            relativePath: relativeMediaPath,
+            directoryHint: .notDirectory
+        )
+
+        _ = try await ManagedTrackMetadataTransaction(
+            package: ManagedLibraryPackage(location: location)
+        ).perform(
+            trackID: trackID,
+            fileURL: fileURL,
+            relativeMediaPath: relativeMediaPath,
+            edit: edit
+        ) { repair in
+            let count = try await repository.applyMetadataRepairs([repair])
+            guard count == 1 else {
+                throw CatalogRenameError.itemUnavailable
+            }
+        }
+
+        guard let projection = try await repository.track(id: trackID) else {
+            throw CatalogRenameError.itemUnavailable
+        }
+        await refreshAfterSemanticTrackMutation(context: context)
+        return projection
     }
 
     func renameAlbum(
@@ -114,15 +147,20 @@ extension LibraryStore {
         return renamed
     }
 
-    func renameArtist(
+    func updateArtist(
         id: UUID,
-        name: String
+        name: String,
+        userDescription: String?
     ) async throws -> LibraryArtistProjection {
         let repository = try requireRepository()
-        let renamed = try await repository.renameArtist(id: id, name: name)
+        let updated = try await repository.updateArtist(
+            id: id,
+            name: name,
+            userDescription: userDescription
+        )
         advanceAllTracksWindowContentVersion()
         await loadInitialLibrary()
-        return renamed
+        return updated
     }
 
     func artist(id: UUID) async throws -> LibraryArtistProjection? {

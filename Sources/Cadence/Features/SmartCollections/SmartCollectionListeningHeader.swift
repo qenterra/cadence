@@ -15,29 +15,34 @@ struct SmartCollectionListeningHeader: View {
                     artworkID: collection.customArtworkID
                 )
                 .frame(width: 168)
-                .contextMenu {
-                    collectionArtworkMenu(collection.id)
-                }
 
                 VStack(alignment: .leading, spacing: 0) {
-                    Text("SMART COLLECTION")
-                        .font(.caption2.weight(.semibold))
-                        .tracking(0.8)
-                        .foregroundStyle(.tertiary)
+                    VStack(
+                        alignment: .leading,
+                        spacing: CatalogDetailHeaderMetrics.eyebrowTitleSpacing
+                    ) {
+                        CatalogDetailEyebrow("SMART COLLECTION")
+                        Text(collection.name)
+                            .font(.system(size: 24, weight: .bold))
+                            .lineLimit(2)
+                    }
 
-                    Text(collection.name)
-                        .font(.system(size: 30, weight: .bold))
-                        .lineLimit(2)
-                        .padding(.top, 6)
+                    if let description = collection.userDescription {
+                        Text(description)
+                            .font(.callout)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(2)
+                            .padding(.top, 6)
+                    }
 
                     Text(metadata)
                         .font(.callout)
                         .foregroundStyle(.secondary)
                         .monospacedDigit()
-                        .padding(.top, 7)
+                        .padding(.top, 6)
 
                     controls
-                        .padding(.top, 20)
+                        .padding(.top, 16)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
@@ -90,7 +95,7 @@ struct SmartCollectionListeningHeader: View {
 
             Spacer(minLength: 8)
 
-            Button("Edit Rules", systemImage: "slider.horizontal.3") {
+            Button("Edit", systemImage: "pencil") {
                 model.requestEditSelectedSmartCollection()
             }
             .buttonStyle(.bordered)
@@ -103,18 +108,6 @@ struct SmartCollectionListeningHeader: View {
     private var collectionMenu: some View {
         Menu {
             if let collectionID = model.selectedSmartCollectionID {
-                Button("Rename", systemImage: "pencil") {
-                    model.requestRenameSmartCollection(collectionID)
-                }
-
-                ArtworkMenuItems(
-                    model: model,
-                    target: .managedSmartCollection(collectionID),
-                    label: "Collection Artwork"
-                )
-
-                Divider()
-
                 Button("Delete", systemImage: "trash", role: .destructive) {
                     model.requestDeleteSmartCollection(collectionID)
                 }
@@ -127,16 +120,6 @@ struct SmartCollectionListeningHeader: View {
         .frame(width: 30)
         .help("More collection actions")
         .accessibilityLabel("More collection actions")
-    }
-
-    private func collectionArtworkMenu(
-        _ collectionID: UUID
-    ) -> some View {
-        ArtworkMenuItems(
-            model: model,
-            target: .managedSmartCollection(collectionID),
-            label: "Collection Artwork"
-        )
     }
 
     private var smartCollectionTagTitles: [String: String] {

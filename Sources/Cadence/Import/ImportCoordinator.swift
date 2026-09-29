@@ -4,7 +4,10 @@ import Observation
 enum ImportCoordinatorState: Equatable, Sendable {
     case empty
     case scanning(ImportInspectionProgress)
-    case review([ImportInspectionCandidate])
+    case review(
+        [ImportInspectionCandidate],
+        unsupportedFiles: [SourceScanner.UnsupportedFile]
+    )
     case importing(ManagedImportProgress)
     case complete(ManagedImportCompletion)
     case importFailed(String)
@@ -28,6 +31,9 @@ final class ImportCoordinator {
 
     @ObservationIgnored
     private var reviewedCandidates: [ImportInspectionCandidate] = []
+
+    @ObservationIgnored
+    private var unsupportedFiles: [SourceScanner.UnsupportedFile] = []
 
     @ObservationIgnored
     private var sourceDisplayName = "Selected Music"
@@ -62,6 +68,7 @@ final class ImportCoordinator {
         sourceAccess = SecurityScopedSourceAccess(urls: source.urls)
         sourceDisplayName = Self.displayName(for: source)
         reviewedCandidates = []
+        unsupportedFiles = []
         scanProgressPolicy = ImportProgressPublicationPolicy()
         state = .scanning(.empty)
 
@@ -71,7 +78,7 @@ final class ImportCoordinator {
                 return
             }
             do {
-                let candidates = try await service.inspect(
+                let result = try await service.inspectResult(
                     source: source
                 ) { progress in
                     await coordinator.report(
@@ -83,8 +90,12 @@ final class ImportCoordinator {
                 guard coordinator.activeScanID == scanID else {
                     return
                 }
-                coordinator.reviewedCandidates = candidates
-                coordinator.state = .review(candidates)
+                coordinator.reviewedCandidates = result.candidates
+                coordinator.unsupportedFiles = result.unsupportedFiles
+                coordinator.state = .review(
+                    result.candidates,
+                    unsupportedFiles: result.unsupportedFiles
+                )
             } catch is CancellationError {
                 return
             } catch {
@@ -109,7 +120,10 @@ final class ImportCoordinator {
         if case .importing = state {
             scanTask?.cancel()
             scanTask = nil
-            state = .review(reviewedCandidates)
+            state = .review(
+                reviewedCandidates,
+                unsupportedFiles: unsupportedFiles
+            )
             return
         }
         scanTask?.cancel()
@@ -154,7 +168,10 @@ final class ImportCoordinator {
                 coordinator.releaseSourceAccess()
                 coordinator.state = .complete(completion)
             } catch is CancellationError {
-                coordinator.state = .review(candidates)
+                coordinator.state = .review(
+                    candidates,
+                    unsupportedFiles: coordinator.unsupportedFiles
+                )
             } catch {
                 coordinator.state = .importFailed(
                     error.localizedDescription

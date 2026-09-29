@@ -12,8 +12,9 @@ struct ProductionTagsView: View {
     @State private var tagDialog: ProductionTagDialog?
     @State private var newTagPath = ""
     @State private var isTrackPickerPresented = false
-    @AppStorage("tags.sidebarWidth")
-    private var sidebarWidth = 300.0
+    @State private var isEditorPresented = false
+    @CollectionListWidthPreference(page: .tags)
+    private var listWidth
     @AppStorage("tags.inspectorWidth")
     private var inspectorWidth = 330.0
 
@@ -54,8 +55,29 @@ struct ProductionTagsView: View {
                 TagTrackPickerSheet(
                     model: model,
                     store: store,
-                    tag: selectedTag
+                    target: .tag(selectedTag)
                 )
+            }
+        }
+        .sheet(isPresented: $isEditorPresented) {
+            if let selectedTag {
+                CatalogEntityEditorSheet(
+                    model: model,
+                    title: "Edit Tag",
+                    fieldLabel: "Tag Name",
+                    initialValue: selectedTag.displayPath
+                ) { name in
+                    do {
+                        _ = try await store.renameTag(
+                            id: selectedTag.id,
+                            displayPath: name
+                        )
+                        return true
+                    } catch {
+                        tagDialog = .error(error.localizedDescription)
+                        return false
+                    }
+                }
             }
         }
         .task(
@@ -136,7 +158,7 @@ private extension ProductionTagsView {
     private var workspace: some View {
         CadenceResizableSplitView(
             fixedPane: .leading,
-            fixedWidth: $sidebarWidth,
+            fixedWidth: listWidth,
             fixedMinimum: WorkspaceLayout.paneMinimumWidth,
             fixedMaximum: WorkspaceLayout.paneMaximumWidth,
             flexibleMinimum: 360
@@ -290,6 +312,10 @@ private extension ProductionTagsView {
                 subtitle: "\(taggedTracks.count) tracks"
             ) {
                 if selectedTag != nil {
+                    Button("Edit", systemImage: "pencil") {
+                        isEditorPresented = true
+                    }
+
                     Button("Add Tracks", systemImage: "plus") {
                         isTrackPickerPresented = true
                     }

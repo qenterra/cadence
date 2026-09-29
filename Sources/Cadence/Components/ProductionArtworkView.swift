@@ -80,6 +80,7 @@ struct ProductionArtworkView: View {
     var variant: ArtworkAssetVariant = .thumbnail
     var cornerRadius: CGFloat = 8
     var showsBorder = true
+    var fillsAvailableSpace = false
     var onReady: (@MainActor @Sendable () -> Void)?
     var artworkLoader: ProductionArtworkLoader?
     var workProbe: ProductionArtworkWorkProbe?
@@ -96,7 +97,8 @@ struct ProductionArtworkView: View {
             title: title,
             placeholder: placeholder,
             cornerRadius: cornerRadius,
-            showsBorder: showsBorder
+            showsBorder: showsBorder,
+            fillsAvailableSpace: fillsAvailableSpace
         )
 
         if let artworkID {

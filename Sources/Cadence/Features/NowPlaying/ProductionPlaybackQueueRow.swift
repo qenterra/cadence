@@ -104,18 +104,23 @@ private extension ProductionPlaybackQueueRow {
         if let track = item.track {
             Button("Play Now", systemImage: "play.fill", action: play)
             if !model.isCurrentPlaybackExternal {
-                Button("Edit Tags…", systemImage: "tag.badge.plus") {
-                    model.openProductionTagEditor(trackID: track.id)
+                Divider()
+                FavoriteContextMenuItem(isFavorite: track.isFavorite) {
+                    Task {
+                        await model.setProductionTrackFavorite(
+                            track,
+                            isFavorite: !track.isFavorite
+                        )
+                    }
                 }
+                Button("Edit Information…", systemImage: "pencil") {
+                    model.presentTrackMetadataEditor(track)
+                }
+                Divider()
                 AddToPlaylistMenuItems(
                     model: model,
                     store: model.librarySession.store,
                     trackIDs: [track.id]
-                )
-                ArtworkMenuItems(
-                    model: model,
-                    target: .managedTrack(track.id),
-                    label: "Track Artwork"
                 )
             }
         }

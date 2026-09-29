@@ -1,5 +1,22 @@
 import Foundation
 
+enum PlaybackTrackResolution {
+    static func orderedUniqueIDs(_ trackIDs: [UUID]) -> [UUID] {
+        var seenIDs: Set<UUID> = []
+        return trackIDs.filter { seenIDs.insert($0).inserted }
+    }
+
+    static func index(
+        _ tracks: [ResolvedPlaybackTrack]
+    ) -> [UUID: ResolvedPlaybackTrack] {
+        tracks.reduce(into: [:]) { result, track in
+            if result[track.track.id] == nil {
+                result[track.track.id] = track
+            }
+        }
+    }
+}
+
 @MainActor
 final class CompositePlaybackTrackResolver: PlaybackTrackResolving {
     private let external: ExternalAudioSession
@@ -16,19 +33,18 @@ final class CompositePlaybackTrackResolver: PlaybackTrackResolving {
     func resolve(
         trackIDs: [UUID]
     ) async throws -> [ResolvedPlaybackTrack] {
-        let externalTracks = external.resolvedTracks(ids: trackIDs)
+        let requestedIDs = PlaybackTrackResolution.orderedUniqueIDs(trackIDs)
+        let externalTracks = external.resolvedTracks(ids: requestedIDs)
         let externalIDs = Set(externalTracks.map(\.track.id))
-        let managedIDs = trackIDs.filter { !externalIDs.contains($0) }
+        let managedIDs = requestedIDs.filter { !externalIDs.contains($0) }
         let managedTracks: [ResolvedPlaybackTrack] = if managedIDs.isEmpty {
             []
         } else {
             try await managed.resolve(trackIDs: managedIDs)
         }
-        let tracksByID = Dictionary(
-            uniqueKeysWithValues: (externalTracks + managedTracks).map {
-                ($0.track.id, $0)
-            }
+        let tracksByID = PlaybackTrackResolution.index(
+            externalTracks + managedTracks
         )
-        return trackIDs.compactMap { tracksByID[$0] }
+        return requestedIDs.compactMap { tracksByID[$0] }
     }
 }

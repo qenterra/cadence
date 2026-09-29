@@ -138,11 +138,12 @@ struct ExternalAudioAppModelTests {
         #expect(await inspector.inspectedURLs() == [files.urls[0]])
         #expect(harness.model.isCurrentPlaybackExternal)
         #expect(harness.model.librarySession.store.catalogCounts == .empty)
-        guard case let .review(candidates) = coordinator.state else {
+        guard case let .review(candidates, unsupportedFiles) = coordinator.state else {
             Issue.record("Expected exact-file import review")
             return
         }
         #expect(candidates.map(\.sourceFile.url) == [files.urls[0]])
+        #expect(unsupportedFiles.isEmpty)
     }
 }
 

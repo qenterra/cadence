@@ -354,7 +354,12 @@ extension PlaybackCoordinator {
         if queue.orderedTrackIDs.indices.contains(nextIndex) {
             return queue.orderedTrackIDs[nextIndex]
         }
-        return repeatMode == .all ? queue.orderedTrackIDs.first : nil
+        guard repeatMode == .all,
+              let wrappedID = queue.orderedTrackIDs.first,
+              wrappedID != queue.currentTrackID else {
+            return nil
+        }
+        return wrappedID
     }
 
     func routeBackend(

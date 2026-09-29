@@ -66,7 +66,7 @@ private extension PersistentRelationshipSortFixture {
     }
 
     static func makeContainer(root: URL) throws -> ModelContainer {
-        let schema = Schema(versionedSchema: CadenceSchemaV5.self)
+        let schema = Schema(versionedSchema: CadenceSchemaV7.self)
         let configuration = ModelConfiguration(
             "CadenceRelationshipSort",
             schema: schema,

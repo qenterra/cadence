@@ -5,7 +5,6 @@ enum CatalogActivationKind: Hashable, Sendable {
     case album
     case artist
     case playlist
-    case smartCollection
     case tag
 }
 

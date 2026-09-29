@@ -10,14 +10,10 @@ struct SmartCollectionListeningPage: View {
             } else {
                 SmartCollectionListeningHeader(model: model)
 
-                Rectangle()
-                    .fill(CadenceTheme.separator)
-                    .frame(height: 1)
-
                 if model.selectedProductionSmartCollectionSummary.isEmpty {
                     noMatches
                 } else if let source = model
-                    .selectedProductionSmartCollectionTrackSource {
+                    .selectedSmartCollectionTrackSource {
                     ProductionTrackList(
                         model: model,
                         tracks: source.tracks,

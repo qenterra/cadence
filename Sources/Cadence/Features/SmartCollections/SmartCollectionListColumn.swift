@@ -126,34 +126,6 @@ private struct SmartCollectionListRow: View {
         )
         .contextMenu {
             if !item.isTransient {
-                Button("Edit Rules", systemImage: "slider.horizontal.3") {
-                    model.requestEditSmartCollection(item.id)
-                }
-
-                Button("Rename", systemImage: "pencil") {
-                    model.requestRenameSmartCollection(item.id)
-                }
-
-                Button(
-                    HomePinStore.contains(item.id, in: .smartCollection)
-                        ? "Unpin from Home"
-                        : "Pin to Home",
-                    systemImage: HomePinStore.contains(
-                        item.id,
-                        in: .smartCollection
-                    ) ? "pin.slash" : "pin"
-                ) {
-                    HomePinStore.toggle(item.id, in: .smartCollection)
-                }
-
-                ArtworkMenuItems(
-                    model: model,
-                    target: .managedSmartCollection(item.id),
-                    label: "Collection Artwork"
-                )
-
-                Divider()
-
                 Button("Delete", systemImage: "trash", role: .destructive) {
                     model.requestDeleteSmartCollection(item.id)
                 }
@@ -168,7 +140,7 @@ private struct SmartCollectionListRow: View {
 
     private var displayName: String {
         item.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            ? "Untitled Collection"
+            ? "New Collection"
             : item.name
     }
 

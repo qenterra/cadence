@@ -321,6 +321,7 @@ final class PlaybackCoordinator {
         state.failure = nil
         lastTimelinePublication = nil
         resolvedTracks = [:]
+        playbackIndicator = .idle
         if resetQueue {
             state.queue = nil
             canonicalOrder = []

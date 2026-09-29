@@ -9,11 +9,12 @@ struct LibrarySchemaTests {
         let container = try LibraryContainerFactory.inMemory()
         let entityNames = Set(container.schema.entities.map(\.name))
 
-        #expect(CadenceSchemaV5.versionIdentifier == Schema.Version(5, 0, 0))
+        #expect(CadenceSchemaV7.versionIdentifier == Schema.Version(7, 0, 0))
         #expect(
             entityNames == [
                 "AlbumRecord",
                 "ArtistRecord",
+                "ArtistDescriptionRecord",
                 "ArtworkRecord",
                 "ImportSessionRecord",
                 "LyricRecord",
@@ -280,7 +281,7 @@ private func createVersionOneStore(
 }
 
 private func openMigratedStore(at storeURL: URL) throws -> ModelContainer {
-    let schema = Schema(versionedSchema: CadenceSchemaV5.self)
+    let schema = Schema(versionedSchema: CadenceSchemaV7.self)
     let configuration = ModelConfiguration(
         "CadenceMigrationFixture",
         schema: schema,

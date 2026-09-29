@@ -4,6 +4,71 @@ import Foundation
 import Testing
 
 struct NavigationRailTests {
+    @MainActor
+    @Test("Command state clears after application or window focus loss")
+    func commandStateClearsOnDeactivation() {
+        let state = NavigationRailCommandState()
+
+        state.update(modifierFlags: [.command])
+        #expect(state.isPressed)
+
+        state.reset()
+        state.reset()
+        #expect(!state.isPressed)
+    }
+
+    @MainActor
+    @Test(
+        "Command observer resets on both app and window deactivation",
+        .appKitExclusive
+    )
+    func commandObserverHandlesFocusLossNotifications() async {
+        let center = NotificationCenter()
+        let applicationDidResignActive = Notification.Name(
+            "CadenceTests.applicationDidResignActive"
+        )
+        let windowDidResignKey = Notification.Name(
+            "CadenceTests.windowDidResignKey"
+        )
+        let state = NavigationRailCommandState()
+        let coordinator = CommandModifierObserver.Coordinator(
+            state: state,
+            notificationCenter: center,
+            focusLossNotifications: [
+                applicationDidResignActive,
+                windowDidResignKey,
+            ]
+        )
+        coordinator.start()
+        defer { coordinator.stop() }
+
+        state.update(modifierFlags: [.command])
+        center.post(name: applicationDidResignActive, object: nil)
+        await Task.yield()
+        #expect(!state.isPressed)
+
+        state.update(modifierFlags: [.command])
+        center.post(name: windowDidResignKey, object: nil)
+        await Task.yield()
+        #expect(!state.isPressed)
+    }
+
+    @MainActor
+    @Test("Command overlay activation preserves every destination route")
+    func commandOverlayActivatesEveryDestination() {
+        let destinations = NavigationRailConfiguration.configurableDestinations
+            + [.trash]
+        var selection = NavigationDestination.home
+
+        for destination in destinations {
+            NavigationRailCommandInteraction.activate(
+                destination,
+                selection: &selection
+            )
+            #expect(selection == destination)
+        }
+    }
+
     @Test("Navigation rows keep selection surfaces visually separate")
     func navigationRowSpacing() {
         #expect(NavigationRailMetrics.rowSpacing == 2)

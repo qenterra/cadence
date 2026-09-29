@@ -151,8 +151,6 @@ struct ProductionAlbumTile: View {
     @Bindable var store: LibraryStore
     let album: LibraryAlbumProjection
     let orderedTargets: [CatalogActivationTarget]
-    @State private var isRenamePresented = false
-    @State private var renameDraft = ""
 
     var body: some View {
         MediaTile(
@@ -166,7 +164,15 @@ struct ProductionAlbumTile: View {
                 )
             ),
             accessibilityLabel: "Open \(album.title), \(album.artist)",
-            presentation: .cadenceCatalog(contentSpacing: 9)
+            presentation: MediaTilePresentation(
+                horizontalAlignment: .leading,
+                padding: 10,
+                contentSpacing: 9,
+                textSpacing: 4,
+                titleLineLimit: 2,
+                accessoryPlacement: .labelTrailing,
+                titleAccessoryInset: 0
+            )
         ) {
             ProductionArtworkView(
                 model: model,
@@ -175,56 +181,25 @@ struct ProductionAlbumTile: View {
                 placeholder: .album,
                 cornerRadius: CadenceTheme.radiusGroup
             )
-        } trailingAccessory: { context in
-            FavoriteButton(
-                itemID: album.id,
-                isFavorite: album.isFavorite,
-                itemName: album.title,
-                controlSize: CatalogTileFavoriteLayout.controlSize,
-                isRevealed: false,
-                interactionContext: context
-            ) { requestedValue in
-                await model.setProductionAlbumFavorite(
-                    album,
-                    isFavorite: requestedValue
-                ) != nil
-            }
+        } trailingAccessory: {
+            EmptyView()
         } action: {
             openAlbum()
         }
         .contextMenu {
             albumActions
         }
-        .catalogRenameAlert(
-            "Rename Album",
-            prompt: "Album Name",
-            isPresented: $isRenamePresented,
-            draft: $renameDraft
-        ) { title in
-            Task {
-                _ = await model.renameProductionAlbum(
-                    id: album.id,
-                    title: title
-                )
-            }
-        }
     }
 
     @ViewBuilder
     private var albumActions: some View {
-        Button(
-            album.isFavorite ? "Remove from Favorites" : "Add to Favorites",
-            systemImage: album.isFavorite ? "heart.slash" : "heart"
-        ) {
+        FavoriteContextMenuItem(isFavorite: album.isFavorite) {
             Task {
                 await model.setProductionAlbumFavorite(
                     album,
                     isFavorite: !album.isFavorite
                 )
             }
-        }
-        Button("Rename", systemImage: "pencil") {
-            beginRename()
         }
         Button(
             HomePinStore.contains(album.id, in: .album)
@@ -236,6 +211,7 @@ struct ProductionAlbumTile: View {
         ) {
             HomePinStore.toggle(album.id, in: .album)
         }
+        Divider()
         QuickAlbumTagMenuItems(
             store: store,
             albumID: album.id
@@ -244,11 +220,7 @@ struct ProductionAlbumTile: View {
             store: store,
             albumID: album.id
         )
-        ArtworkMenuItems(
-            model: model,
-            target: .managedAlbum(album.id),
-            label: "Album Artwork"
-        )
+        Divider()
         Button(
             "Move Album to Trash…",
             systemImage: "trash",
@@ -260,11 +232,6 @@ struct ProductionAlbumTile: View {
                 title: album.title
             )
         }
-    }
-
-    private func beginRename() {
-        renameDraft = album.title
-        isRenamePresented = true
     }
 
     private func openAlbum() {

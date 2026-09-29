@@ -60,6 +60,8 @@ struct ProductionSettingsView: View {
     private var appearanceRawValue = CadenceAppearance.system.rawValue
     @AppStorage(CadencePreferences.Keys.catalogCardSize)
     private var catalogCardSizeRawValue = CatalogCardSize.automatic.rawValue
+    @AppStorage(CadencePreferences.Keys.homeRecentlyPlayedCardSize)
+    private var recentlyPlayedCardSizeRawValue = CatalogCardSize.automatic.rawValue
     @AppStorage(CadencePreferences.Keys.interfaceTextSize)
     private var interfaceTextSizeRawValue = InterfaceTextSize.standard.rawValue
     @AppStorage(CadencePreferences.Keys.startupPage)
@@ -233,6 +235,12 @@ struct ProductionSettingsView: View {
                 }
             }
 
+            Picker("Recently Played size", selection: recentlyPlayedCardSizeBinding) {
+                ForEach(CatalogCardSize.allCases) { size in
+                    Text(size.title).tag(size)
+                }
+            }
+
             Picker("Text size", selection: interfaceTextSizeBinding) {
                 ForEach(InterfaceTextSize.allCases) { size in
                     Text(size.title).tag(size)
@@ -240,7 +248,9 @@ struct ProductionSettingsView: View {
             }
 
             Text(
-                "Album and artist size also applies to playlists, smart collections, and Home."
+                "Card size controls album and artist artwork throughout Cadence, "
+                    + "including Home. Recently Played has its own size. Text size "
+                    + "changes interface labels, headings, menus, and track-list text—not artwork."
             )
             .font(.caption)
             .foregroundStyle(.secondary)
@@ -332,6 +342,16 @@ private extension ProductionSettingsView {
                     ?? .standard
             },
             set: { interfaceTextSizeRawValue = $0.rawValue }
+        )
+    }
+
+    var recentlyPlayedCardSizeBinding: Binding<CatalogCardSize> {
+        Binding(
+            get: {
+                CatalogCardSize(rawValue: recentlyPlayedCardSizeRawValue)
+                    ?? .automatic
+            },
+            set: { recentlyPlayedCardSizeRawValue = $0.rawValue }
         )
     }
 

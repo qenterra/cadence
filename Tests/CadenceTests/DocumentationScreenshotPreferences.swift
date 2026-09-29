@@ -41,19 +41,26 @@ extension LibraryTrackProjection {
     }
 }
 
+@MainActor
 final class HomeScreenshotPreferences {
-    private let defaults = UserDefaults.standard
-    private let values: [String: [String]]
+    private let defaults = DocumentationScreenshotDefaults.userDefaults
+    private let values: [String: Any]
+    private let keys: [String]
     private let previousValues: [String: Any]
 
     init(fixture: DocumentationScreenshotFixture) {
-        let values = [
+        let values: [String: Any] = [
             HomePinKind.album.storageKey: [fixture.albumID.uuidString],
             HomePinKind.artist.storageKey: [fixture.artistID.uuidString],
+            CadencePreferences.Keys.homeSectionOrder:
+                HomeSectionConfiguration.defaultOrderRawValue,
+            CadencePreferences.Keys.hiddenHomeSections: "",
         ]
-        let defaults = UserDefaults.standard
+        let defaults = DocumentationScreenshotDefaults.userDefaults
         self.values = values
-        previousValues = values.keys.reduce(into: [:]) { result, key in
+        let keys = Array(values.keys) + ["home.pins.revision"]
+        self.keys = keys
+        previousValues = keys.reduce(into: [:]) { result, key in
             result[key] = defaults.object(forKey: key)
         }
     }
@@ -69,7 +76,7 @@ final class HomeScreenshotPreferences {
     }
 
     func restore() {
-        for key in values.keys {
+        for key in keys {
             if let value = previousValues[key] {
                 defaults.set(value, forKey: key)
             } else {
@@ -95,7 +102,10 @@ final class NavigationScreenshotPreferences {
             "trackTable.columnDefaultsVersion": 2,
             "trackTable.sortField": TrackTableSortField.song.rawValue,
             "trackTable.sortDirection": TrackTableSortDirection.ascending.rawValue,
-            "tags.sidebarWidth": 300.0,
+            CadencePreferences.Keys.collectionListWidth: 300.0,
+            CadencePreferences.Keys.collectionListWidthMode:
+                CollectionListWidthMode.shared.rawValue,
+            CadencePreferences.Keys.tagListWidth: 300.0,
             "tags.inspectorWidth": 330.0,
         ]
         let keys = [
@@ -106,7 +116,9 @@ final class NavigationScreenshotPreferences {
             "trackTable.columnDefaultsVersion",
             "trackTable.sortField",
             "trackTable.sortDirection",
-            "tags.sidebarWidth",
+            CadencePreferences.Keys.collectionListWidth,
+            CadencePreferences.Keys.collectionListWidthMode,
+            CadencePreferences.Keys.tagListWidth,
             "tags.inspectorWidth",
         ]
         let screenshotDefaults = DocumentationScreenshotDefaults.userDefaults

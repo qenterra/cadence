@@ -417,10 +417,13 @@ private struct CadenceModeLyricStack: View {
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
     @Environment(\.cadenceModeVisualQAReduceMotionOverride)
     private var visualQAReduceMotionOverride
+    @Environment(\.visualRegressionFreezesAnimatedContent)
+    private var freezesAnimatedContent
 
     var body: some View {
         let motion = LyricMotionBehavior.resolve(
-            reduceMotion: visualQAReduceMotionOverride ?? systemReduceMotion
+            reduceMotion: freezesAnimatedContent
+                || (visualQAReduceMotionOverride ?? systemReduceMotion)
         )
         ScrollViewReader { proxy in
             ScrollView(.vertical) {

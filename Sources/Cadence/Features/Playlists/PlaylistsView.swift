@@ -7,14 +7,16 @@ struct PlaylistsView: View {
 
     @State var playlistNameOperation: PlaylistNameOperation?
     @State private var isDeletingPlaylist = false
-    @State private var playlistName = ""
-    @AppStorage("playlists.sidebarWidth")
-    private var sidebarWidth = 270.0
+    @State var playlistName = ""
+    @State private var isTrackPickerPresented = false
+    @State private var isEditorPresented = false
+    @CollectionListWidthPreference(page: .playlists)
+    private var listWidth
 
     var body: some View {
         CadenceResizableSplitView(
             fixedPane: .leading,
-            fixedWidth: $sidebarWidth,
+            fixedWidth: listWidth,
             fixedMinimum: WorkspaceLayout.paneMinimumWidth,
             fixedMaximum: WorkspaceLayout.paneMaximumWidth,
             flexibleMinimum: 520
@@ -35,7 +37,9 @@ struct PlaylistsView: View {
             TextField("Playlist Name", text: $playlistName)
             Button(playlistNameOperation?.actionTitle ?? "Save") {
                 let operation = playlistNameOperation
-                let name = playlistName
+                guard let name = playlistNameValidation.normalizedName else {
+                    return
+                }
                 playlistNameOperation = nil
                 playlistName = ""
                 Task {
@@ -50,10 +54,13 @@ struct PlaylistsView: View {
                 }
             }
             .cadenceActionTint(.confirmation)
+            .disabled(playlistNameValidation.normalizedName == nil)
             Button("Cancel", role: .cancel) {
                 playlistNameOperation = nil
                 playlistName = ""
             }
+        } message: {
+            Text(playlistNameValidationMessage)
         }
         .confirmationDialog(
             "Delete Playlist?",
@@ -69,6 +76,47 @@ struct PlaylistsView: View {
         } message: {
             Text("Tracks remain in your Cadence library.")
         }
+        .sheet(isPresented: $isTrackPickerPresented) {
+            if let selectedPlaylist {
+                TagTrackPickerSheet(
+                    model: model,
+                    store: store,
+                    target: .playlist(selectedPlaylist)
+                )
+            }
+        }
+        .sheet(isPresented: $isEditorPresented) {
+            if let selectedPlaylist {
+                CatalogEntityEditorSheet(
+                    model: model,
+                    title: "Edit Playlist",
+                    fieldLabel: "Playlist Name",
+                    initialValue: selectedPlaylist.name,
+                    descriptionFieldLabel: "Description",
+                    initialDescription: selectedPlaylist.userDescription,
+                    artworkTarget: .managedPlaylist(selectedPlaylist.id),
+                    artworkLabel: "Playlist Artwork",
+                    maximumLength: PlaylistNamePolicy.maximumLength,
+                    normalizeValue: PlaylistNamePolicy.normalizedName,
+                    validationMessage: { value in
+                        PlaylistNamePolicy.validation(
+                            value,
+                            existingPlaylists: store.playlists.map {
+                                ($0.id, $0.name)
+                            },
+                            excludingID: selectedPlaylist.id
+                        ).errorMessage
+                    },
+                    save: { name, description in
+                        await store.selectPlaylist(selectedPlaylist.id)
+                        return await store.updateSelectedPlaylist(
+                            name: name,
+                            userDescription: description
+                        )
+                    }
+                )
+            }
+        }
     }
 }
 
@@ -77,8 +125,8 @@ private extension PlaylistsView {
         VStack(spacing: 0) {
             WorkspacePaneHeader("Playlists") {
                 Button {
-                    playlistName = "Untitled Playlist"
                     playlistNameOperation = .create
+                    playlistName = playlistNameOperation?.initialName ?? ""
                 } label: {
                     Image(systemName: "plus")
                 }
@@ -165,13 +213,17 @@ private extension PlaylistsView {
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else if tracks.isEmpty {
-                    ContentUnavailableView(
-                        "Empty Playlist",
-                        systemImage: "music.note.list",
-                        description: Text(
-                            "Add tracks, albums, or artists from their ••• menu."
-                        )
-                    )
+                    ContentUnavailableView {
+                        Label("Empty Playlist", systemImage: "music.note.list")
+                    } description: {
+                        Text("Choose tracks from your library to get started.")
+                    } actions: {
+                        Button("Add Tracks", systemImage: "plus") {
+                            isTrackPickerPresented = true
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .cadenceActionTint(.confirmation)
+                    }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else if let trackSource {
                     ProductionTrackList(
@@ -271,9 +323,12 @@ private extension PlaylistsView {
                     Text(playlist.name)
                         .foregroundStyle(.primary)
                         .lineLimit(1)
-                    Text("\(playlist.trackCount) tracks")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                    Text(
+                        "\(playlist.trackCount) tracks · "
+                            + timeText(playlist.totalDuration)
+                    )
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
                 }
                 Spacer(minLength: 0)
             }
@@ -330,6 +385,11 @@ private extension PlaylistsView {
 
             Spacer()
 
+            Button("Edit", systemImage: "pencil") {
+                isEditorPresented = true
+            }
+            .buttonStyle(.bordered)
+
             Menu {
                 playlistActions(playlist)
             } label: {
@@ -351,25 +411,26 @@ private extension PlaylistsView {
             variant: .original,
             cornerRadius: CadenceTheme.radiusPanel
         )
-        .frame(width: 150, height: 150)
-        .contextMenu {
-            ArtworkMenuItems(
-                model: model,
-                target: .managedPlaylist(playlist.id),
-                label: "Playlist Artwork"
-            )
-        }
+        .frame(width: 168, height: 168)
     }
 
     private func playlistHeaderDetails(
         _ playlist: LibraryPlaylistProjection
     ) -> some View {
         VStack(alignment: .leading, spacing: 7) {
-            Text("PLAYLIST")
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(.secondary)
-            Text(playlist.name)
-                .font(.largeTitle.bold())
+            VStack(
+                alignment: .leading,
+                spacing: CatalogDetailHeaderMetrics.eyebrowTitleSpacing
+            ) {
+                CatalogDetailEyebrow("PLAYLIST")
+                Text(playlist.name)
+                    .font(.largeTitle.bold())
+            }
+            if let description = playlist.userDescription {
+                Text(description)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(3)
+            }
             Text(
                 "\(playlist.trackCount) tracks · "
                     + timeText(playlist.totalDuration)
@@ -393,19 +454,7 @@ private extension PlaylistsView {
         ) {
             HomePinStore.toggle(playlist.id, in: .playlist)
         }
-        ArtworkMenuItems(
-            model: model,
-            target: .managedPlaylist(playlist.id),
-            label: "Playlist Artwork"
-        )
         Divider()
-        Button("Rename…", systemImage: "pencil") {
-            Task {
-                await store.selectPlaylist(playlist.id)
-                playlistName = playlist.name
-                playlistNameOperation = .rename
-            }
-        }
         Button(
             "Delete Playlist…",
             systemImage: "trash",

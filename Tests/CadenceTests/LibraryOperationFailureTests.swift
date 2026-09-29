@@ -176,6 +176,19 @@ struct LibraryOperationFailureTests {
         #expect(reorderStore.operationFailure?.operation == .playlistReorder)
     }
 
+    @Test("Playlist picker persistence failure stays visible to its caller")
+    func confirmedPlaylistAddFailureThrows() async {
+        let store = LibraryStore(playlistClient: .failing(at: .add))
+
+        await #expect(throws: Error.self) {
+            try await store.addToPlaylistConfirmingPersistence(
+                playlistID: UUID(),
+                trackIDs: [UUID()]
+            )
+        }
+        #expect(store.operationFailure?.operation == .playlistAdd)
+    }
+
     @Test("Playlist load failure preserves content and cannot look empty")
     func playlistLoadFailurePreservesContent() async {
         let playlist = LibraryPlaylistProjection(
